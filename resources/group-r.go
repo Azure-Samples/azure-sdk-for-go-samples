@@ -1,8 +1,8 @@
 package resources
 
 import (
-  "fmt"
-  "github.com/joshgav/az-go/src/util"
+  "log"
+  "github.com/joshgav/az-go/util"
 
   "github.com/subosito/gotenv"
 
@@ -38,8 +38,6 @@ func init() {
   oauthConfig, err := adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, TenantId)
   util.OnErrorFail(err, "oauth configuration failed")
 
-  // adal.NewServicePrincipalToken handles the OAuth flow
-  // might be better not to include in `init()`
   Token, err = adal.NewServicePrincipalToken(
     *oauthConfig,
     clientId,
@@ -62,9 +60,9 @@ func DeleteGroup() error {
   groupsClient := resources.NewGroupsClient(SubscriptionId)
   groupsClient.Authorizer = autorest.NewBearerAuthorizer(Token)
 
-  response, err := groupsClient.Delete(ResourceGroupName, nil)
-  util.OnErrorFail(<-err, "failed to delete group")
-  fmt.Println(<-response)
-  return nil
+  response, errC := groupsClient.Delete(ResourceGroupName, nil)
+  err := <-errC
+  log.Println(<-response)
+  return err
 }
 

@@ -5,10 +5,11 @@ import (
   "log"
   "fmt"
   "net/url"
-  "database/sql"
+  "github.com/joshgav/az-go/util"
 
   "github.com/subosito/gotenv"
-  "github.com/joshgav/az-go/src/util"
+
+  "database/sql"
   _ "github.com/denisenkom/go-mssqldb"
 )
 
@@ -36,7 +37,7 @@ func init() {
 var db *sql.DB
 
 func TestDb() {
-  fmt.Printf("available drivers: %v", sql.Drivers())
+  log.Printf("available drivers: %v", sql.Drivers())
 
   err := open()
 	if err != nil {
@@ -74,7 +75,7 @@ func open() error {
 
 	connectionString := u.String()
 
-	fmt.Printf("using connString %s\n", connectionString)
+	log.Printf("using connString %s\n", connectionString)
 
 	_db, err := sql.Open("sqlserver", connectionString)
 
@@ -83,7 +84,7 @@ func open() error {
 	}
   db = _db
 
-  fmt.Printf("opened conn to %+v\n", db)
+  log.Printf("opened conn to %+v\n", db)
 	return nil
 }
 
@@ -95,9 +96,9 @@ func createTable() error {
     )`
   result, err := db.Exec(createTableStatement)
   util.OnErrorFail(err, "failed to create table")
-  rows, _ := result.RowsAffected()
-  fmt.Printf("table created, rows affected: %d\n", rows)
-  return nil
+  rows, err := result.RowsAffected()
+  log.Printf("table created, rows affected: %d\n", rows)
+  return err
 }
 
 func insert() error {
@@ -105,16 +106,15 @@ func insert() error {
     INSERT INTO customers VALUES (1, 'Josh')`
   result, err := db.Exec(insertStmt)
   util.OnErrorFail(err, "failed to insert record")
-  rows, _ := result.RowsAffected()
-  fmt.Printf("rows inserted: %d\n", rows)
-
-  return nil
+  rows, err := result.RowsAffected()
+  log.Printf("rows inserted: %d\n", rows)
+  return err
 }
 
 func query() error {
 	// assert(db != null)
 	const queryString string = "SELECT id,name FROM customers"
-	fmt.Printf("using query %s\n", queryString)
+	log.Printf("using query %s\n", queryString)
 
   rows, err := db.Query(queryString)
 	if err != nil {
@@ -129,7 +129,7 @@ func query() error {
       log.Print("query failed:", err.Error())
     }
 
-    fmt.Printf("  id: %d\n  name: %s\n", id, name)
+    log.Printf("  id: %d\n  name: %s\n", id, name)
   }
 
   return rows.Err()

@@ -1,8 +1,8 @@
 package resources
 
 import (
-  "fmt"
-  "github.com/joshgav/az-go/src/util"
+  "log"
+  "github.com/joshgav/az-go/util"
   "github.com/subosito/gotenv"
 
   "github.com/Azure/azure-sdk-for-go/arm/sql"
@@ -79,7 +79,7 @@ func DeleteDb() (autorest.Response, error) {
 }
 
 func PrintInfo() {
-  fmt.Printf("user agent string: %s\n", sql.UserAgent())
-  fmt.Printf("SQL ARM Client version: %s\n", sql.Version())
+  log.Printf("user agent string: %s\n", sql.UserAgent())
+  log.Printf("SQL ARM Client version: %s\n", sql.Version())
 }
 

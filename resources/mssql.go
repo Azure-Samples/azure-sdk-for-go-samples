@@ -5,7 +5,8 @@ import (
 	"github.com/subosito/gotenv"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/sql"
+	"github.com/Azure/azure-sdk-for-go/profiles/preview/sql/mgmt/sql"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )

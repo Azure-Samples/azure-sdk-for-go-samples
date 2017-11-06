@@ -4,7 +4,8 @@ import (
 	"log"
 	"github.com/joshgav/az-go/common"
 
-	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
+	"github.com/Azure/azure-sdk-for-go/profiles/preview/resources/mgmt/resources"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/subosito/gotenv"

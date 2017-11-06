@@ -1,12 +1,14 @@
-package util
+package common
 
 import (
-  "log"
-  "os"
+	"log"
+	"os"
 )
 
 func OnErrorFail(err error, message string) {
-  if err != nil { log.Fatalf("%s: %v", message, err) }
+	if err != nil {
+		log.Fatalf("%s: %v", message, err)
+	}
 }
 
 func GetEnvVarOrFail(envVar string) string {
@@ -17,4 +19,3 @@ func GetEnvVarOrFail(envVar string) string {
 
 	return value
 }
-

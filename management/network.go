@@ -1,76 +1,78 @@
 package management
 
 import (
-	"log"
 	"github.com/Azure/azure-sdk-for-go/profiles/preview/network/mgmt/network"
 	"github.com/joshgav/az-go/common"
-  "github.com/subosito/gotenv"
+	"github.com/subosito/gotenv"
+	"log"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 var (
-  virtualNetworkName string
-	subnet1Name string
-	subnet2Name string
-	nsgName string
-	nicName string
-	ip1Name string
-	clients map[string]interface{}
+	virtualNetworkName string
+	subnet1Name        string
+	subnet2Name        string
+	nsgName            string
+	nicName            string
+	ip1Name            string
+	clients            map[string]interface{}
 )
 
 func init() {
-  gotenv.Load()
-  virtualNetworkName = common.GetEnvVarOrFail("AZURE_VNET_NAME")
+	gotenv.Load()
+	virtualNetworkName = common.GetEnvVarOrFail("AZURE_VNET_NAME")
 	nsgName = "basic_services"
 	nicName = "nic1"
 	subnet1Name = "subnet1"
 	subnet2Name = "subnet2"
 	ip1Name = "ip1"
-  clients = make(map[string]interface{})
+	clients = make(map[string]interface{})
 }
 
 func getNetworkClients() (map[string]interface{}, error) {
-  if len(clients) > 0 { return clients, nil }
+	if len(clients) > 0 {
+		return clients, nil
+	}
 
 	token, err := common.GetResourceManagementToken(common.OAuthGrantTypeServicePrincipal)
 	if err != nil {
 		log.Fatalf("%s: %v", "failed to get auth token", err)
 	}
 
-  vnetClient := network.NewVirtualNetworksClient(subscriptionId)
+	vnetClient := network.NewVirtualNetworksClient(subscriptionId)
 	vnetClient.Authorizer = autorest.NewBearerAuthorizer(token)
-  clients["vnet"] = vnetClient
+	clients["vnet"] = vnetClient
 
-  subnetClient := network.NewSubnetsClient(subscriptionId)
+	subnetClient := network.NewSubnetsClient(subscriptionId)
 	subnetClient.Authorizer = autorest.NewBearerAuthorizer(token)
-  clients["subnet"] = subnetClient
+	clients["subnet"] = subnetClient
 
-  nsgClient := network.NewSecurityGroupsClient(subscriptionId)
+	nsgClient := network.NewSecurityGroupsClient(subscriptionId)
 	nsgClient.Authorizer = autorest.NewBearerAuthorizer(token)
-  clients["nsg"] = nsgClient
+	clients["nsg"] = nsgClient
 
-  ipAddressClient := network.NewPublicIPAddressesClient(subscriptionId)
+	ipAddressClient := network.NewPublicIPAddressesClient(subscriptionId)
 	ipAddressClient.Authorizer = autorest.NewBearerAuthorizer(token)
-  clients["ip"] = ipAddressClient
+	clients["ip"] = ipAddressClient
 
-  nicClient := network.NewInterfacesClient(subscriptionId)
+	nicClient := network.NewInterfacesClient(subscriptionId)
 	nicClient.Authorizer = autorest.NewBearerAuthorizer(token)
-  clients["nic"] = nicClient
+	clients["nic"] = nicClient
 
-  return clients, nil
+	return clients, nil
 }
 
 // Vnets
 
 func CreateVirtualNetwork() (<-chan network.VirtualNetwork, <-chan error) {
-  clients, _ := getNetworkClients()
-  vnetClient, _ := clients["vnet"].(network.VirtualNetworksClient)
+	clients, _ := getNetworkClients()
+	vnetClient, _ := clients["vnet"].(network.VirtualNetworksClient)
 
-  return vnetClient.CreateOrUpdate(
-    resourceGroupName,
-    virtualNetworkName,
+	return vnetClient.CreateOrUpdate(
+		resourceGroupName,
+		virtualNetworkName,
 		network.VirtualNetwork{
 			Location: to.StringPtr(location),
 			VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
@@ -78,13 +80,13 @@ func CreateVirtualNetwork() (<-chan network.VirtualNetwork, <-chan error) {
 					AddressPrefixes: &[]string{"10.0.0.0/8"},
 				},
 				Subnets: &[]network.Subnet{
-					network.Subnet{
+					{
 						Name: to.StringPtr(subnet1Name),
 						SubnetPropertiesFormat: &network.SubnetPropertiesFormat{
 							AddressPrefix: to.StringPtr("10.0.0.0/16"),
 						},
 					},
-					network.Subnet{
+					{
 						Name: to.StringPtr(subnet2Name),
 						SubnetPropertiesFormat: &network.SubnetPropertiesFormat{
 							AddressPrefix: to.StringPtr("10.1.0.0/16"),
@@ -96,10 +98,10 @@ func CreateVirtualNetwork() (<-chan network.VirtualNetwork, <-chan error) {
 		nil)
 }
 func DeleteVirtualNetwork() (<-chan autorest.Response, <-chan error) {
-  clients, _ := getNetworkClients()
-  vnetClient, _ := clients["vnet"].(network.VirtualNetworksClient)
+	clients, _ := getNetworkClients()
+	vnetClient, _ := clients["vnet"].(network.VirtualNetworksClient)
 
-  return vnetClient.Delete(resourceGroupName, virtualNetworkName, nil)
+	return vnetClient.Delete(resourceGroupName, virtualNetworkName, nil)
 }
 
 // VNet Subnets
@@ -107,8 +109,8 @@ func DeleteVirtualNetwork() (<-chan autorest.Response, <-chan error) {
 func CreateVirtualNetworkSubnet() {}
 func DeleteVirtualNetworkSubnet() {}
 func GetVirtualNetworkSubnet(_vnetName string, _subnetName string) (network.Subnet, error) {
-  clients, _ := getNetworkClients()
-  subnetClient, _ := clients["subnet"].(network.SubnetsClient)
+	clients, _ := getNetworkClients()
+	subnetClient, _ := clients["subnet"].(network.SubnetsClient)
 
 	return subnetClient.Get(resourceGroupName, _vnetName, _subnetName, "")
 }
@@ -116,40 +118,40 @@ func GetVirtualNetworkSubnet(_vnetName string, _subnetName string) (network.Subn
 // Network Security Groups
 
 func CreateNetworkSecurityGroup() (<-chan network.SecurityGroup, <-chan error) {
-  clients, _ := getNetworkClients()
-  nsgClient, _ := clients["nsg"].(network.SecurityGroupsClient)
+	clients, _ := getNetworkClients()
+	nsgClient, _ := clients["nsg"].(network.SecurityGroupsClient)
 
-  return nsgClient.CreateOrUpdate(
+	return nsgClient.CreateOrUpdate(
 		resourceGroupName,
 		nsgName,
 		network.SecurityGroup{
 			Location: to.StringPtr(location),
 			SecurityGroupPropertiesFormat: &network.SecurityGroupPropertiesFormat{
 				SecurityRules: &[]network.SecurityRule{
-					network.SecurityRule{
+					{
 						Name: to.StringPtr("allow_ssh"),
 						SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
-							Protocol: network.SecurityRuleProtocolTCP,
-							SourceAddressPrefix: to.StringPtr("0.0.0.0/0"),
-							SourcePortRange: to.StringPtr("1-65535"),
+							Protocol:                 network.SecurityRuleProtocolTCP,
+							SourceAddressPrefix:      to.StringPtr("0.0.0.0/0"),
+							SourcePortRange:          to.StringPtr("1-65535"),
 							DestinationAddressPrefix: to.StringPtr("0.0.0.0/0"),
-							DestinationPortRange: to.StringPtr("22"),
-							Access: network.SecurityRuleAccessAllow,
-							Direction: network.SecurityRuleDirectionInbound,
-							Priority: to.Int32Ptr(100),
+							DestinationPortRange:     to.StringPtr("22"),
+							Access:                   network.SecurityRuleAccessAllow,
+							Direction:                network.SecurityRuleDirectionInbound,
+							Priority:                 to.Int32Ptr(100),
 						},
 					},
-					network.SecurityRule{
+					{
 						Name: to.StringPtr("allow_https"),
 						SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
-							Protocol: network.SecurityRuleProtocolTCP,
-							SourceAddressPrefix: to.StringPtr("0.0.0.0/0"),
-							SourcePortRange: to.StringPtr("1-65535"),
+							Protocol:                 network.SecurityRuleProtocolTCP,
+							SourceAddressPrefix:      to.StringPtr("0.0.0.0/0"),
+							SourcePortRange:          to.StringPtr("1-65535"),
 							DestinationAddressPrefix: to.StringPtr("0.0.0.0/0"),
-							DestinationPortRange: to.StringPtr("443"),
-							Access: network.SecurityRuleAccessAllow,
-							Direction: network.SecurityRuleDirectionInbound,
-							Priority: to.Int32Ptr(200),
+							DestinationPortRange:     to.StringPtr("443"),
+							Access:                   network.SecurityRuleAccessAllow,
+							Direction:                network.SecurityRuleDirectionInbound,
+							Priority:                 to.Int32Ptr(200),
 						},
 					},
 				},
@@ -160,15 +162,15 @@ func CreateNetworkSecurityGroup() (<-chan network.SecurityGroup, <-chan error) {
 }
 
 func DeleteNetworkSecurityGroup() (<-chan autorest.Response, <-chan error) {
-  clients, _ := getNetworkClients()
-  nsgClient, _ := clients["nsg"].(network.SecurityGroupsClient)
+	clients, _ := getNetworkClients()
+	nsgClient, _ := clients["nsg"].(network.SecurityGroupsClient)
 
 	return nsgClient.Delete(resourceGroupName, nsgName, nil)
 }
 
 func GetNetworkSecurityGroup(_nsgName string) (network.SecurityGroup, error) {
-  clients, _ := getNetworkClients()
-  nsgClient, _ := clients["nsg"].(network.SecurityGroupsClient)
+	clients, _ := getNetworkClients()
+	nsgClient, _ := clients["nsg"].(network.SecurityGroupsClient)
 
 	return nsgClient.Get(resourceGroupName, _nsgName, "")
 }
@@ -181,33 +183,39 @@ func DeleteNetworkSecurityGroupRule() {}
 // Network Interfaces (NIC's)
 
 func CreateNic() (<-chan network.Interface, <-chan error) {
-  clients, _ := getNetworkClients()
-  nicClient, _ := clients["nic"].(network.InterfacesClient)
+	clients, _ := getNetworkClients()
+	nicClient, _ := clients["nic"].(network.InterfacesClient)
 
 	nsg, err := GetNetworkSecurityGroup(nsgName)
-	if err != nil {log.Fatalf("failed to get nsg: %v", err)}
+	if err != nil {
+		log.Fatalf("failed to get nsg: %v", err)
+	}
 
 	subnet, err := GetVirtualNetworkSubnet(virtualNetworkName, subnet1Name)
-	if err != nil {log.Fatalf("failed to get subnet: %v", err)}
+	if err != nil {
+		log.Fatalf("failed to get subnet: %v", err)
+	}
 
 	ip, err := GetPublicIp(ip1Name)
-	if err != nil {log.Fatalf("failed to get ip address: %v", err)}
+	if err != nil {
+		log.Fatalf("failed to get ip address: %v", err)
+	}
 
-  return nicClient.CreateOrUpdate(
+	return nicClient.CreateOrUpdate(
 		resourceGroupName,
 		nicName,
 		network.Interface{
-			Name: to.StringPtr(nicName),
+			Name:     to.StringPtr(nicName),
 			Location: to.StringPtr(location),
 			InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
 				NetworkSecurityGroup: &nsg,
 				IPConfigurations: &[]network.InterfaceIPConfiguration{
-					network.InterfaceIPConfiguration{
-            Name: to.StringPtr("ipConfig1"),
+					{
+						Name: to.StringPtr("ipConfig1"),
 						InterfaceIPConfigurationPropertiesFormat: &network.InterfaceIPConfigurationPropertiesFormat{
 							Subnet: &subnet,
 							PrivateIPAllocationMethod: network.Dynamic,
-							PublicIPAddress: &ip,
+							PublicIPAddress:           &ip,
 						},
 					},
 				},
@@ -218,8 +226,8 @@ func CreateNic() (<-chan network.Interface, <-chan error) {
 }
 
 func DeleteNic() (<-chan autorest.Response, <-chan error) {
-  clients, _ := getNetworkClients()
-  nicClient, _ := clients["nic"].(network.InterfacesClient)
+	clients, _ := getNetworkClients()
+	nicClient, _ := clients["nic"].(network.InterfacesClient)
 
 	return nicClient.Delete(resourceGroupName, nicName, nil)
 }
@@ -227,17 +235,17 @@ func DeleteNic() (<-chan autorest.Response, <-chan error) {
 // Public IP Addresses
 
 func CreatePublicIp() (<-chan network.PublicIPAddress, <-chan error) {
-  clients, _ := getNetworkClients()
-  ipClient, _ := clients["ip"].(network.PublicIPAddressesClient)
+	clients, _ := getNetworkClients()
+	ipClient, _ := clients["ip"].(network.PublicIPAddressesClient)
 
 	return ipClient.CreateOrUpdate(
 		resourceGroupName,
 		ip1Name,
 		network.PublicIPAddress{
-      Name: to.StringPtr(ip1Name),
-      Location: to.StringPtr(location),
+			Name:     to.StringPtr(ip1Name),
+			Location: to.StringPtr(location),
 			PublicIPAddressPropertiesFormat: &network.PublicIPAddressPropertiesFormat{
-        PublicIPAddressVersion: network.IPv4,
+				PublicIPAddressVersion:   network.IPv4,
 				PublicIPAllocationMethod: network.Static,
 			},
 		},
@@ -246,15 +254,15 @@ func CreatePublicIp() (<-chan network.PublicIPAddress, <-chan error) {
 }
 
 func DeletePublicIp() (<-chan autorest.Response, <-chan error) {
-  clients, _ := getNetworkClients()
-  ipClient, _ := clients["ip"].(network.PublicIPAddressesClient)
+	clients, _ := getNetworkClients()
+	ipClient, _ := clients["ip"].(network.PublicIPAddressesClient)
 
 	return ipClient.Delete(resourceGroupName, ip1Name, nil)
 }
 
 func GetPublicIp(_ipName string) (network.PublicIPAddress, error) {
-  clients, _ := getNetworkClients()
-  ipClient, _ := clients["ip"].(network.PublicIPAddressesClient)
+	clients, _ := getNetworkClients()
+	ipClient, _ := clients["ip"].(network.PublicIPAddressesClient)
 
 	return ipClient.Get(resourceGroupName, _ipName, "")
 }

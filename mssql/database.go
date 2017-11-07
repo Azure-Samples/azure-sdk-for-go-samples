@@ -6,6 +6,7 @@ import (
 	"github.com/joshgav/az-go/common"
 	"log"
 	"net/url"
+	"strings"
 
 	"github.com/subosito/gotenv"
 
@@ -29,6 +30,9 @@ func init() {
 	gotenv.Load() // read from .env file
 
 	serverName = common.GetEnvVarOrFail("AZURE_SQL_SERVERNAME")
+	if !strings.ContainsRune(serverName, '.') {
+		serverName = serverName + ".database.windows.net"
+	}
 	dbName = common.GetEnvVarOrFail("AZURE_SQL_DBNAME")
 	dbLogin = common.GetEnvVarOrFail("AZURE_SQL_DBUSER")
 	dbPassword = common.GetEnvVarOrFail("AZURE_SQL_DBPASSWORD")

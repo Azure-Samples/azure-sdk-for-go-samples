@@ -1,0 +1,44 @@
+hash: e9b381bf5e8cedf69aceec9e03af5b49df1a36f96b3bd516fab4bd632dc8a06f
+updated: 2017-11-06T20:39:39.802127666-08:00
+imports:
+- name: github.com/Azure/azure-sdk-for-go
+  version: 153d3422c65465edfcdbf2ce1707b35ab3891845
+  subpackages:
+  - profiles/preview/resources/mgmt/resources
+  - profiles/preview/sql/mgmt/sql
+  - profiles/preview/storage/mgmt/storage
+  - services/resources/mgmt/2017-05-10/resources
+  - services/sql/mgmt/2017-03-01-preview/sql
+  - services/storage/mgmt/2017-06-01/storage
+- name: github.com/Azure/go-autorest
+  version: 8efdaa3a898515764e6039c03e8d953c10519915
+  subpackages:
+  - autorest
+  - autorest/adal
+  - autorest/azure
+  - autorest/date
+  - autorest/to
+  - autorest/validation
+- name: github.com/denisenkom/go-mssqldb
+  version: 88555645b640cc621e32f8693d7586a1aa1575f4
+- name: github.com/dgrijalva/jwt-go
+  version: 2268707a8f0843315e2004ee4f1d021dc08baedf
+- name: github.com/satori/go.uuid
+  version: 5bf94b69c6b68ee1b541973bb8e1144db23a194b
+- name: github.com/subosito/gotenv
+  version: 009e1f9581dc712aba5682a279dee155ca3eeded
+- name: golang.org/x/crypto
+  version: 81e90905daefcd6fd217b62423c0908922eadb30
+  repo: https://github.com/golang/crypto.git
+  vcs: git
+  subpackages:
+  - md4
+  - pkcs12
+- name: golang.org/x/net
+  version: 66aacef3dd8a676686c7ae3716979581e8b03c47
+  repo: https://github.com/golang/net.git
+  vcs: git
+  subpackages:
+  - .
+  - context
+testImports: []

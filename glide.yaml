@@ -3,6 +3,5 @@ import:
 - package: github.com/Azure/azure-sdk-for-go
   version: dev
 - package: github.com/Azure/go-autorest
-  version: ~9.3.1
 - package: github.com/subosito/gotenv
 - package: github.com/denisenkom/go-mssqldb

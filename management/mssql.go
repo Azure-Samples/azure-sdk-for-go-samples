@@ -1,28 +1,26 @@
-package resources
+package management
 
 import (
 	"github.com/joshgav/az-go/common"
-	"github.com/subosito/gotenv"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/profiles/preview/sql/mgmt/sql"
+	"github.com/subosito/gotenv"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 var (
-	subscriptionId string
-	serverName     string
-	dbName         string
-	dbLogin        string
-	dbPassword     string
+	serverName string
+	dbName     string
+	dbLogin    string
+	dbPassword string
 )
 
 func init() {
 	gotenv.Load() // read from .env file
 
-	subscriptionId = common.GetEnvVarOrFail("AZURE_SUBSCRIPTION_ID")
 	serverName = common.GetEnvVarOrFail("AZURE_SQL_SERVERNAME")
 	dbName = common.GetEnvVarOrFail("AZURE_SQL_DBNAME")
 	dbLogin = common.GetEnvVarOrFail("AZURE_SQL_DBUSER")
@@ -39,10 +37,10 @@ func CreateServer() (<-chan sql.Server, <-chan error) {
 	serversClient.Authorizer = autorest.NewBearerAuthorizer(token)
 
 	return serversClient.CreateOrUpdate(
-		ResourceGroupName,
+		resourceGroupName,
 		serverName,
 		sql.Server{
-			Location: to.StringPtr(Location),
+			Location: to.StringPtr(location),
 			ServerProperties: &sql.ServerProperties{
 				AdministratorLogin:         to.StringPtr(dbLogin),
 				AdministratorLoginPassword: to.StringPtr(dbPassword)}},
@@ -59,15 +57,15 @@ func CreateDb() (<-chan sql.Database, <-chan error) {
 	dbClient.Authorizer = autorest.NewBearerAuthorizer(token)
 
 	return dbClient.CreateOrUpdate(
-		ResourceGroupName,
+		resourceGroupName,
 		serverName,
 		dbName,
 		sql.Database{
-			Location: to.StringPtr(Location)},
+			Location: to.StringPtr(location)},
 		nil)
 }
 
-func OpenDbPort() (sql.FirewallRule, error) {
+func OpenDbPort() error {
 	token, err := common.GetResourceManagementToken(common.OAuthGrantTypeServicePrincipal)
 	if err != nil {
 		log.Fatalf("%s: %v", "failed to get auth token", err)
@@ -76,14 +74,25 @@ func OpenDbPort() (sql.FirewallRule, error) {
 	fwRulesClient := sql.NewFirewallRulesClient(subscriptionId)
 	fwRulesClient.Authorizer = autorest.NewBearerAuthorizer(token)
 
-	return fwRulesClient.CreateOrUpdate(
-		ResourceGroupName,
+	_, _ = fwRulesClient.CreateOrUpdate(
+		resourceGroupName,
 		serverName,
 		"unsafe open to world",
 		sql.FirewallRule{
 			FirewallRuleProperties: &sql.FirewallRuleProperties{
 				StartIPAddress: to.StringPtr("0.0.0.0"),
 				EndIPAddress:   to.StringPtr("255.255.255.255")}})
+
+	_, err2 := fwRulesClient.CreateOrUpdate(
+		resourceGroupName,
+		serverName,
+		"open to Azure internal",
+		sql.FirewallRule{
+			FirewallRuleProperties: &sql.FirewallRuleProperties{
+				StartIPAddress: to.StringPtr("0.0.0.0"),
+				EndIPAddress:   to.StringPtr("0.0.0.0")}})
+
+	return err2
 }
 
 func DeleteDb() (autorest.Response, error) {
@@ -96,7 +105,7 @@ func DeleteDb() (autorest.Response, error) {
 	dbClient.Authorizer = autorest.NewBearerAuthorizer(token)
 
 	return dbClient.Delete(
-		ResourceGroupName,
+		resourceGroupName,
 		serverName,
 		dbName)
 }

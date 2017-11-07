@@ -1,29 +1,13 @@
-package resources
+package management
 
 import (
-	"log"
-	"github.com/joshgav/az-go/common"
-
 	"github.com/Azure/azure-sdk-for-go/profiles/preview/resources/mgmt/resources"
+	"github.com/joshgav/az-go/common"
+	"log"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/subosito/gotenv"
 )
-
-var (
-	SubscriptionId    string
-	ResourceGroupName string
-	Location          string
-)
-
-func init() {
-	gotenv.Load() // read from .env file
-
-	SubscriptionId = common.GetEnvVarOrFail("AZURE_SUBSCRIPTION_ID")
-	ResourceGroupName = common.GetEnvVarOrFail("AZURE_RG_NAME")
-	Location = common.GetEnvVarOrFail("AZURE_LOCATION")
-}
 
 // create a new resource group named by env var
 func CreateGroup() (resources.Group, error) {
@@ -32,13 +16,13 @@ func CreateGroup() (resources.Group, error) {
 		log.Fatalf("%s: %v", "failed to get auth token", err)
 	}
 
-	groupsClient := resources.NewGroupsClient(SubscriptionId)
+	groupsClient := resources.NewGroupsClient(subscriptionId)
 	groupsClient.Authorizer = autorest.NewBearerAuthorizer(token)
 
 	return groupsClient.CreateOrUpdate(
-		ResourceGroupName,
+		resourceGroupName,
 		resources.Group{
-			Location: to.StringPtr(Location)})
+			Location: to.StringPtr(location)})
 }
 
 func DeleteGroup() error {
@@ -47,10 +31,10 @@ func DeleteGroup() error {
 		log.Fatalf("%s: %v", "failed to get auth token", err)
 	}
 
-	groupsClient := resources.NewGroupsClient(SubscriptionId)
+	groupsClient := resources.NewGroupsClient(subscriptionId)
 	groupsClient.Authorizer = autorest.NewBearerAuthorizer(token)
 
-	response, errC := groupsClient.Delete(ResourceGroupName, nil)
+	response, errC := groupsClient.Delete(resourceGroupName, nil)
 	err = <-errC
 	log.Println(<-response)
 	return err

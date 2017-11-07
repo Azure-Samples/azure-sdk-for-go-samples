@@ -1,11 +1,11 @@
 package main
 
 import (
+	"log"
+	"os"
 	"github.com/joshgav/az-go/common"
 	"github.com/joshgav/az-go/management"
 	"github.com/joshgav/az-go/mssql"
-	"log"
-	"os"
 )
 
 func main() {
@@ -30,20 +30,12 @@ func main() {
 
 	mssql.TestDb()
 
-	sa, errC := management.CreateStorageAccount()
-	common.OnErrorFail(<-errC, "failed to create storage account")
-	log.Printf("new storage account created: %+v\n", <-sa)
-
 	if os.Getenv("AZURE_KEEP_SAMPLE_RESOURCES") == "1" {
     log.Printf("retaining resources because env var is set\n")
 		os.Exit(0)
 	}
 
 	log.Printf("going to delete all resources\n")
-
-	_, err = management.DeleteStorageAccount()
-	common.OnErrorFail(err, "failed to delete storage account")
-	log.Printf("storage account deleted\n")
 
 	_, err = management.DeleteDb()
 	common.OnErrorFail(err, "failed to delete database")

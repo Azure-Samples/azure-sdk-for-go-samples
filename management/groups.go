@@ -25,7 +25,7 @@ func CreateGroup() (resources.Group, error) {
 			Location: to.StringPtr(location)})
 }
 
-func DeleteGroup() error {
+func DeleteGroup() (<-chan autorest.Response, <-chan error) {
 	token, err := common.GetResourceManagementToken(common.OAuthGrantTypeServicePrincipal)
 	if err != nil {
 		log.Fatalf("%s: %v", "failed to get auth token", err)
@@ -34,8 +34,5 @@ func DeleteGroup() error {
 	groupsClient := resources.NewGroupsClient(subscriptionId)
 	groupsClient.Authorizer = autorest.NewBearerAuthorizer(token)
 
-	response, errC := groupsClient.Delete(resourceGroupName, nil)
-	err = <-errC
-	log.Println(<-response)
-	return err
+	return groupsClient.Delete(resourceGroupName, nil)
 }

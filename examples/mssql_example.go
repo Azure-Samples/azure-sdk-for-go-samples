@@ -6,6 +6,7 @@ import (
 	"github.com/joshgav/az-go/common"
 	"github.com/joshgav/az-go/management"
 	"github.com/joshgav/az-go/mssql"
+  "github.com/Azure/go-autorest/autorest"
 )
 
 func main() {
@@ -37,11 +38,14 @@ func main() {
 
 	log.Printf("going to delete all resources\n")
 
-	_, err = management.DeleteDb()
-	common.OnErrorFail(err, "failed to delete database")
-	log.Printf("database deleted\n")
+  var res autorest.Response
+  var resC <-chan autorest.Response
 
-	err = management.DeleteGroup()
-	common.OnErrorFail(err, "failed to delete group")
-	log.Printf("group deleted\n")
+	res, err = management.DeleteDb()
+	common.OnErrorFail(err, "failed to delete database")
+	log.Printf("database deleted: %+v\n", res)
+
+	resC, errC = management.DeleteGroup()
+	common.OnErrorFail(<-errC, "failed to delete group")
+	log.Printf("group deleted: %+v\n", <-resC)
 }

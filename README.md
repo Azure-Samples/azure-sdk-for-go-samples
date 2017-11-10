@@ -1,4 +1,4 @@
-Simple samples for using Azure servcies with Go.
+Simple samples for using Azure services with Go.
 
 ## To run
 

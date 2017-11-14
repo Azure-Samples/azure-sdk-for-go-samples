@@ -1,0 +1,170 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "databaseName": {
+            "type": "string"
+        },
+        "administratorLogin": {
+            "type": "string"
+        },
+        "administratorLoginPassword": {
+            "type": "securestring"
+        },
+        "mysqlLocation": {
+            "type": "string"
+        },
+        "serverName": {
+            "type": "string"
+        },
+        "skuCapacityDTU": {
+            "type": "int"
+        },
+        "skuFamily": {
+            "type": "string"
+        },
+        "skuName": {
+            "type": "string"
+        },
+        "skuSizeMB": {
+            "type": "int"
+        },
+        "skuTier": {
+            "type": "string"
+        },
+        "version": {
+            "type": "string"
+        },
+        "charset": {
+            "type": "string"
+        },
+        "collation": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "linuxFxVersion": {
+            "type": "string"
+        },
+        "hostingPlanName": {
+            "type": "string"
+        },
+        "hostingEnvironment": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        },
+        "sku": {
+            "type": "string"
+        },
+        "skuCode": {
+            "type": "string"
+        },
+        "workerSize": {
+            "type": "string"
+        },
+        "serverFarmResourceGroup": {
+            "type": "string"
+        },
+        "subscriptionId": {
+            "type": "string"
+        }
+    },
+    "resources": [
+        {
+            "name": "[parameters('name')]",
+            "type": "Microsoft.Web/sites",
+            "dependsOn": [
+                "[concat('Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
+            ],
+            "properties": {
+                "siteConfig": {
+                    "connectionStrings": [
+                        {
+                            "name": "defaultConnection",
+                            "ConnectionString": "[concat('Database=', parameters('databaseName'), ';Data Source=', parameters('serverName') ,'.mysql.database.azure.com;User Id=',parameters('administratorLogin'),'@',parameters('serverName') ,';Password=',parameters('administratorLoginPassword'))]",
+                            "type": "MySQL"
+                        }
+                    ],
+                    "linuxFxVersion": "[parameters('linuxFxVersion')]"
+                },
+                "name": "[parameters('name')]",
+                "serverFarmId": "[concat('/subscriptions/', parameters('subscriptionId'),'/resourcegroups/', parameters('serverFarmResourceGroup'), '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]",
+                "hostingEnvironment": "[parameters('hostingEnvironment')]"
+            },
+            "apiVersion": "2016-03-01",
+            "location": "[parameters('location')]",
+            "tags": {
+                "[concat('hidden-related:', '/subscriptions/', parameters('subscriptionId'),'/resourcegroups/', parameters('serverFarmResourceGroup'), '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]": "empty"
+            }
+        },
+        {
+            "apiVersion": "2016-09-01",
+            "name": "[parameters('hostingPlanName')]",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[parameters('location')]",
+            "properties": {
+                "name": "[parameters('hostingPlanName')]",
+                "workerSizeId": "[parameters('workerSize')]",
+                "reserved": true,
+                "numberOfWorkers": "1",
+                "hostingEnvironment": "[parameters('hostingEnvironment')]"
+            },
+            "sku": {
+                "Tier": "[parameters('sku')]",
+                "Name": "[parameters('skuCode')]"
+            },
+            "kind": "linux"
+        },
+        {
+            "name": "[parameters('serverName')]",
+            "type": "Microsoft.DBforMySQL/servers",
+            "apiVersion": "2016-02-01-privatepreview",
+            "location": "[parameters('mysqlLocation')]",
+            "properties": {
+                "version": "[parameters('version')]",
+                "administratorLogin": "[parameters('administratorLogin')]",
+                "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
+                "storageMB": "[parameters('skuSizeMB')]",
+                "sslEnforcement": "Disabled"
+            },
+            "sku": {
+                "name": "[parameters('skuName')]",
+                "tier": "[parameters('skuTier')]",
+                "capacity": "[parameters('skuCapacityDTU')]",
+                "size": "[parameters('skuSizeMB')]",
+                "family": "[parameters('skuFamily')]"
+            },
+            "resources": [
+                {
+                    "name": "AllowAll",
+                    "type": "firewallrules",
+                    "apiVersion": "2016-02-01-privatepreview",
+                    "properties": {
+                        "startIpAddress": "0.0.0.0",
+                        "endIpAddress": "255.255.255.255"
+                    },
+                    "location": "[parameters('mysqlLocation')]",
+                    "dependsOn": [
+                        "[concat('Microsoft.DBforMySQL/servers/', parameters('serverName'), '/databases/' , parameters('databaseName'))]",
+                        "[concat('Microsoft.DBforMySQL/servers/', parameters('serverName'))]"
+                    ]
+                },
+                {
+                    "name": "[parameters('databaseName')]",
+                    "type": "databases",
+                    "apiVersion": "2016-02-01-privatepreview",
+                    "properties": {
+                        "charset": "[parameters('charset')]",
+                        "collation": "[parameters('collation')]"
+                    },
+                    "dependsOn": [
+                        "[concat('Microsoft.DBforMySQL/servers/', parameters('serverName'))]"
+                    ]
+                }
+            ]
+        }
+    ]
+}

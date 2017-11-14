@@ -1,0 +1,75 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "databaseName": {
+            "value": "mysqldb"
+        },
+        "administratorLogin": {
+            "value": "mysqldbuser"
+        },
+        "administratorLoginPassword": {
+            "value": null
+        },
+        "mysqlLocation": {
+            "value": "West US"
+        },
+        "serverName": {
+            "value": "webapp-joshgav-l-mysqldbserver"
+        },
+        "skuCapacityDTU": {
+            "value": 100
+        },
+        "skuFamily": {
+            "value": "SkuFamily"
+        },
+        "skuName": {
+            "value": "MYSQLS100"
+        },
+        "skuSizeMB": {
+            "value": 128000
+        },
+        "skuTier": {
+            "value": "Standard"
+        },
+        "version": {
+            "value": "5.7"
+        },
+        "collation": {
+            "value": "utf8_general_ci"
+        },
+        "charset": {
+            "value": "utf8"
+        },
+        "name": {
+            "value": "webapp-joshgav-l"
+        },
+        "linuxFxVersion": {
+            "value": "node|8.1"
+        },
+        "hostingPlanName": {
+            "value": "webapp-joshgav-1-plan"
+        },
+        "hostingEnvironment": {
+            "value": ""
+        },
+        "location": {
+            "value": "West US"
+        },
+        "sku": {
+            "value": "Standard"
+        },
+        "workerSize": {
+            "value": "0"
+        },
+        "serverFarmResourceGroup": {
+            "value": "webapp-joshgav-l"
+        },
+        "skuCode": {
+            "value": "S1"
+        },
+        "subscriptionId": {
+            "value": "0d844cec-1ba6-473f-b836-79a156370167"
+        }
+    }
+}

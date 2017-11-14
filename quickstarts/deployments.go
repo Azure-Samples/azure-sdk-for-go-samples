@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -13,7 +12,6 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/satori/go.uuid"
 	"github.com/subosito/gotenv"
 )
 
@@ -40,8 +38,9 @@ func main() {
 
 	log.Printf("starting deployment\n")
 	result, errC := CreateDeployment()
-	if errC != nil {
-		log.Fatalf("failed to deploy: %v\n", <-errC)
+	wait := <-errC
+	if wait != nil {
+		log.Fatalf("failed to deploy: %v\n", wait)
 	}
 	log.Printf("started deployment: %v\n", (<-result).Properties)
 }
@@ -53,7 +52,7 @@ func init() {
 	clientId = common.GetEnvVarOrFail("AZURE_CLIENT_ID")
 	clientSecret = common.GetEnvVarOrFail("AZURE_CLIENT_SECRET")
 	resourceGroupName = common.GetEnvVarOrFail("AZURE_RG_NAME")
-	deploymentName = fmt.Sprintf("template-deployment-%s", uuid.NewV4())
+	deploymentName = "template-deployment-test"
 	resourceGroupLocation = common.GetEnvVarOrFail("AZURE_LOCATION")
 	pathToTemplateFile, _ = filepath.Abs("test_data/template.json")
 	pathToParametersFile, _ = filepath.Abs("test_data/parameters.json")
@@ -78,7 +77,6 @@ func init() {
 // ReadJSON reads a file and unmarshals the JSON
 func ReadJSON(path string) (*map[string]interface{}, error) {
 	_json, err := ioutil.ReadFile(path)
-	log.Printf("%s", string(_json[:]))
 	if err != nil {
 		log.Fatalf("failed to read template file: %v\n", err)
 	}
@@ -92,8 +90,14 @@ func CreateDeployment() (<-chan resources.DeploymentExtended, <-chan error) {
 	deploymentsClient := resources.NewDeploymentsClient(subscriptionId)
 	deploymentsClient.Authorizer = autorest.NewBearerAuthorizer(armToken)
 
-	_template, _ := ReadJSON(pathToTemplateFile)
-	_params, _ := ReadJSON(pathToParametersFile)
+	_template, err := ReadJSON(pathToTemplateFile)
+	if err != nil {
+		log.Fatalf("failed to read template.json: %v", err)
+	}
+	_params, err := ReadJSON(pathToParametersFile)
+	if err != nil {
+		log.Fatalf("failed to read parameters.json: %v", err)
+	}
 
 	return deploymentsClient.CreateOrUpdate(
 		resourceGroupName,

@@ -4,38 +4,37 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"os"
-	"path/filepath"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/subosito/gotenv"
 )
 
 var (
-	tenantId              string
-	subscriptionId        string
-	clientId              string
-	clientSecret          string
-	resourceGroupName     string
-	deploymentName        string
-	resourceGroupLocation string
-	pathToTemplateFile    string
-	pathToParametersFile  string
+	tenantId              = "your tenant id"
+	subscriptionId        = "your subscription id"
+	clientId              = "your AAD application id"
+	clientSecret          = "your AAD application secret"
+	resourceGroupName     = "a-resource-group"
+	deploymentName        = "a-deployment"
+	resourceGroupLocation = "an Azure region"
+	pathToTemplateFile    = "template.json"
+	pathToParametersFile  = "parameters.json"
 
 	armToken *adal.ServicePrincipalToken
 )
 
 func main() {
+	// create the resource group
 	group, err := CreateGroup()
 	if err != nil {
 		log.Fatalf("failed to create group: %v", err)
 	}
 	log.Printf("created group: %v\n", group)
 
+	// deploy template into resource group
 	log.Printf("starting deployment\n")
 	result, errC := CreateDeployment()
 	wait := <-errC
@@ -46,17 +45,6 @@ func main() {
 }
 
 func init() {
-	gotenv.Load()
-	tenantId = os.Getenv("AZURE_TENANT_ID")
-	subscriptionId = os.Getenv("AZURE_SUBSCRIPTION_ID")
-	clientId = os.Getenv("AZURE_CLIENT_ID")
-	clientSecret = os.Getenv("AZURE_CLIENT_SECRET")
-	resourceGroupName = os.Getenv("AZURE_RG_NAME")
-	deploymentName = "template-deployment-test"
-	resourceGroupLocation = os.Getenv("AZURE_LOCATION")
-	pathToTemplateFile, _ = filepath.Abs("test_data/template.json")
-	pathToParametersFile, _ = filepath.Abs("test_data/parameters.json")
-
 	// get OAuth token using Service Principal credentials
 	oauthConfig, err := adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantId)
 	if err != nil {
@@ -81,7 +69,9 @@ func CreateGroup() (resources.Group, error) {
 	return groupsClient.CreateOrUpdate(
 		resourceGroupName,
 		resources.Group{
-			Location: to.StringPtr(resourceGroupLocation)})
+			Location: to.StringPtr(location),
+		},
+	)
 }
 
 // ReadJSON reads a file and unmarshals the JSON

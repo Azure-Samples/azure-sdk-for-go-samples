@@ -3,14 +3,12 @@ package mssql
 
 import (
 	"fmt"
-	"github.com/joshgav/az-go/common"
 	"log"
 	"net/url"
-	"strings"
-
-	"github.com/subosito/gotenv"
 
 	"database/sql"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	_ "github.com/denisenkom/go-mssqldb"
 )
 
@@ -18,25 +16,6 @@ const (
 	connectionTimeout int = 300
 	port              int = 1433
 )
-
-var (
-	serverName string
-	dbName     string
-	dbLogin    string
-	dbPassword string
-)
-
-func init() {
-	gotenv.Load() // read from .env file
-
-	serverName = common.GetEnvVarOrFail("AZURE_SQL_SERVERNAME")
-	if !strings.ContainsRune(serverName, '.') {
-		serverName = serverName + ".database.windows.net"
-	}
-	dbName = common.GetEnvVarOrFail("AZURE_SQL_DBNAME")
-	dbLogin = common.GetEnvVarOrFail("AZURE_SQL_DBUSER")
-	dbPassword = common.GetEnvVarOrFail("AZURE_SQL_DBPASSWORD")
-}
 
 var db *sql.DB
 
@@ -99,7 +78,7 @@ func createTable() error {
       name nvarchar(max)
     )`
 	result, err := db.Exec(createTableStatement)
-	common.OnErrorFail(err, "failed to create table")
+	helpers.OnErrorFail(err, "failed to create table")
 	rows, err := result.RowsAffected()
 	log.Printf("table created, rows affected: %d\n", rows)
 	return err
@@ -109,7 +88,7 @@ func insert() error {
 	const insertStmt string = `
     INSERT INTO customers VALUES (1, 'Josh')`
 	result, err := db.Exec(insertStmt)
-	common.OnErrorFail(err, "failed to insert record")
+	helpers.OnErrorFail(err, "failed to insert record")
 	rows, err := result.RowsAffected()
 	log.Printf("rows inserted: %d\n", rows)
 	return err

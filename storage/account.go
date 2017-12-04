@@ -1,10 +1,12 @@
-package management
+package storage
 
 import (
-	"github.com/Azure/azure-sdk-for-go/profiles/preview/storage/mgmt/storage"
-	"github.com/joshgav/az-go/common"
-	"github.com/subosito/gotenv"
 	"log"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage"
+	"github.com/subosito/gotenv"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -12,25 +14,35 @@ import (
 
 var (
 	accountName string
+	accountKey  string
 )
 
 func init() {
 	gotenv.Load() // read from .env file
-
-	accountName = common.GetEnvVarOrFail("AZURE_STORAGEACCOUNT_NAME")
+	accountName = helpers.GetEnvVarOrFail("AZURE_STORAGE_ACCOUNTNAME")
 }
 
 func getStorageAccountsClient() (storage.AccountsClient, error) {
-	token, err := common.GetResourceManagementToken(common.OAuthGrantTypeServicePrincipal)
+	token, err := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
 	if err != nil {
 		log.Fatalf("%s: %v", "failed to get auth token", err)
 	}
 
-	storageAccountsClient := storage.NewAccountsClient(subscriptionId)
+	storageAccountsClient := storage.NewAccountsClient(helpers.SubscriptionID)
 	storageAccountsClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	return storageAccountsClient, err
 }
 
+func loadKey() {
+	storageAccountsClient, _ := getStorageAccountsClient()
+	res, err := storageAccountsClient.ListKeys(helpers.ResourceGroupName, accountName)
+	if err != nil {
+		log.Fatalf("failed to list keys: %#v", err)
+	}
+	accountKey = *(((*res.Keys)[0]).Value)
+}
+
+// CreateStorageAccount creates a new storage account.
 func CreateStorageAccount() (<-chan storage.Account, <-chan error) {
 	storageAccountsClient, _ := getStorageAccountsClient()
 
@@ -46,17 +58,18 @@ func CreateStorageAccount() (<-chan storage.Account, <-chan error) {
 	}
 
 	return storageAccountsClient.Create(
-		resourceGroupName,
+		helpers.ResourceGroupName,
 		accountName,
 		storage.AccountCreateParameters{
 			Sku: &storage.Sku{
 				Name: storage.StandardLRS},
-			Location: to.StringPtr(location),
+			Location: to.StringPtr(helpers.Location),
 			AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{}},
 		nil /* cancel <-chan struct{} */)
 }
 
+// DeleteStorageAccount delets the storage account specified by env var.
 func DeleteStorageAccount() (autorest.Response, error) {
 	storageAccountsClient, _ := getStorageAccountsClient()
-	return storageAccountsClient.Delete(resourceGroupName, accountName)
+	return storageAccountsClient.Delete(helpers.ResourceGroupName, accountName)
 }

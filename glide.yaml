@@ -1,6 +1,0 @@
-package: github.com/joshgav/az-go
-import:
-- package: github.com/Azure/azure-sdk-for-go
-- package: github.com/Azure/go-autorest
-- package: github.com/subosito/gotenv
-- package: github.com/denisenkom/go-mssqldb

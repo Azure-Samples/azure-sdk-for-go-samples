@@ -1,4 +1,4 @@
-package main
+package mssql
 
 import (
 	"github.com/Azure/go-autorest/autorest"

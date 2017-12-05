@@ -2,28 +2,52 @@
 
 
 [[projects]]
+  name = "github.com/Azure/azure-pipeline-go"
+  packages = ["pipeline"]
+  revision = "44216532458a7167e884458cf2d4bfc706df1651"
+  version = "0.1.1"
+
+[[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
-  packages = ["profiles/preview/network/mgmt/network","profiles/preview/resources/mgmt/resources","profiles/preview/sql/mgmt/sql","profiles/preview/storage/mgmt/storage","services/network/mgmt/2017-09-01/network","services/resources/mgmt/2017-05-10/resources","services/sql/mgmt/2017-03-01-preview/sql","services/storage/mgmt/2017-06-01/storage"]
+  packages = ["services/keyvault/mgmt/2016-10-01/keyvault","services/network/mgmt/2017-09-01/network","services/resources/mgmt/2017-05-10/resources","services/sql/mgmt/2015-05-01-preview/sql","services/storage/mgmt/2017-06-01/storage"]
   revision = "7692b0cef22674113fcf71cc17ac3ccc1a7fef48"
   version = "v11.2.2-beta"
 
 [[projects]]
+  name = "github.com/Azure/azure-storage-blob-go"
+  packages = ["2016-05-31/azblob"]
+  revision = "d38be03d2669a60175dc8f6bc64ac815a3ef8ba8"
+  version = "0.1.1"
+
+[[projects]]
   name = "github.com/Azure/go-autorest"
   packages = ["autorest","autorest/adal","autorest/azure","autorest/date","autorest/to","autorest/validation"]
-  revision = "c67b24a8e30d876542a85022ebbdecf0e5a935e8"
-  version = "v9.4.1"
+  revision = "cab8279ba5cd5e165c58201f798712f2ec0f49d6"
+  version = "v9.4.2"
 
 [[projects]]
   branch = "master"
   name = "github.com/denisenkom/go-mssqldb"
   packages = ["."]
-  revision = "88555645b640cc621e32f8693d7586a1aa1575f4"
+  revision = "8a15d1bb0c8eaa4b870c016b312de5b50b493b4e"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
   revision = "dbeaa9332f19a944acb5736b4456cfcc02140e29"
   version = "v3.1.0"
+
+[[projects]]
+  name = "github.com/marstr/collection"
+  packages = ["."]
+  revision = "871b1cfa2ab97d3d8f54a034280907896190c346"
+  version = "v0.3.3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/marstr/randname"
+  packages = ["."]
+  revision = "3ef1f47af99e66171417047e6f6fa334345e95e7"
 
 [[projects]]
   name = "github.com/satori/go.uuid"
@@ -52,6 +76,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7db061ef1a5c0db6e5cba156672e1469b6d281f1b12919dc83f0aba6ba71538d"
+  inputs-digest = "a4f616d66fe384e6a3532ba77d5d8eedf32791c07d23fe30405bc72e8498a364"
   solver-name = "gps-cdcl"
   solver-version = 1

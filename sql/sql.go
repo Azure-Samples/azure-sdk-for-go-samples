@@ -1,9 +1,14 @@
-package management
+package mssql
 
 import (
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/profiles/preview/sql/mgmt/sql"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+
+	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
+	"github.com/subosito/gotenv"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/subosito/gotenv"
@@ -17,11 +22,26 @@ func CreateServer(serverName, dbLogin, dbPassword string) (<-chan sql.Server, <-
 	serversClient := sql.NewServersClient(subscriptionId)
 	serversClient.Authorizer = token
 
+	serverName = helpers.GetEnvVarOrFail("AZURE_SQL_SERVERNAME")
+	dbName = helpers.GetEnvVarOrFail("AZURE_SQL_DBNAME")
+	dbLogin = helpers.GetEnvVarOrFail("AZURE_SQL_DBUSER")
+	dbPassword = helpers.GetEnvVarOrFail("AZURE_SQL_DBPASSWORD")
+}
+
+func CreateServer() (<-chan sql.Server, <-chan error) {
+	token, err := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
+	if err != nil {
+		log.Fatalf("%s: %v", "failed to get auth token", err)
+	}
+
+	serversClient := sql.NewServersClient(helpers.SubscriptionID)
+	serversClient.Authorizer = autorest.NewBearerAuthorizer(token)
+
 	return serversClient.CreateOrUpdate(
-		resourceGroupName,
+		helpers.ResourceGroupName,
 		serverName,
 		sql.Server{
-			Location: to.StringPtr(location),
+			Location: to.StringPtr(helpers.Location),
 			ServerProperties: &sql.ServerProperties{
 				AdministratorLogin:         to.StringPtr(dbLogin),
 				AdministratorLoginPassword: to.StringPtr(dbPassword),
@@ -35,11 +55,11 @@ func CreateDb(serverName, dbName string) (<-chan sql.Database, <-chan error) {
 	dbClient.Authorizer = token
 
 	return dbClient.CreateOrUpdate(
-		resourceGroupName,
+		helpers.ResourceGroupName,
 		serverName,
 		dbName,
 		sql.Database{
-			Location: to.StringPtr(location)},
+			Location: to.StringPtr(helpers.Location)},
 		nil)
 }
 
@@ -48,7 +68,7 @@ func OpenDbPort(serverName string) error {
 	fwRulesClient.Authorizer = token
 
 	_, _ = fwRulesClient.CreateOrUpdate(
-		resourceGroupName,
+		helpers.ResourceGroupName,
 		serverName,
 		"unsafe open to world",
 		sql.FirewallRule{
@@ -57,7 +77,7 @@ func OpenDbPort(serverName string) error {
 				EndIPAddress:   to.StringPtr("255.255.255.255")}})
 
 	_, err2 := fwRulesClient.CreateOrUpdate(
-		resourceGroupName,
+		helpers.ResourceGroupName,
 		serverName,
 		"open to Azure internal",
 		sql.FirewallRule{
@@ -73,7 +93,7 @@ func DeleteDb(serverName, dbName string) (autorest.Response, error) {
 	dbClient.Authorizer = token
 
 	return dbClient.Delete(
-		resourceGroupName,
+		helpers.ResourceGroupName,
 		serverName,
 		dbName)
 }

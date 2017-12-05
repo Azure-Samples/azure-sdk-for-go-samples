@@ -1,4 +1,4 @@
-package common
+package iam
 
 import (
 	"fmt"
@@ -7,58 +7,55 @@ import (
 	"os/user"
 	"path/filepath"
 
+	"github.com/subosito/gotenv"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/subosito/gotenv"
 )
 
 const (
-	samplesAppId = "bee3737f-b06f-444f-b3c3-5b0f3fce46ea"
+	samplesAppID = "bee3737f-b06f-444f-b3c3-5b0f3fce46ea"
 )
 
 var (
 	// for service principal and device
-	clientId    string
+	clientID    string
 	oauthConfig *adal.OAuthConfig
 	armToken    adal.OAuthTokenProvider
 
 	// for service principal
-	subscriptionId string
-	tenantId       string
+	subscriptionID string
+	tenantID       string
 	clientSecret   string
 )
 
-// token types
+// OAuthGrantType specifies which grant type to use.
 type OAuthGrantType int
 
 const (
+	// OAuthGrantTypeServicePrincipal for client credentials flow
 	OAuthGrantTypeServicePrincipal OAuthGrantType = iota
+	// OAuthGrantTypeDeviceFlow for device-auth flow
 	OAuthGrantTypeDeviceFlow
-)
-
-type ClientCredentialType int
-
-const (
-	ClientCredentialTypeSecret ClientCredentialType = iota
-	ClientCredentialTypeCertificate
 )
 
 func init() {
 	gotenv.Load() // read from .env file
 
-	subscriptionId = GetEnvVarOrFail("AZURE_SUBSCRIPTION_ID")
-	tenantId = GetEnvVarOrFail("AZURE_TENANT_ID")
-	clientId = GetEnvVarOrFail("AZURE_CLIENT_ID")
-	clientSecret = GetEnvVarOrFail("AZURE_CLIENT_SECRET")
+	tenantID = helpers.GetEnvVarOrFail("AZURE_TENANT_ID")
+	clientID = helpers.GetEnvVarOrFail("AZURE_CLIENT_ID")
+	clientSecret = helpers.GetEnvVarOrFail("AZURE_CLIENT_SECRET")
 
 	var err error
-	oauthConfig, err = adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantId)
+	oauthConfig, err = adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantID)
 	if err != nil {
 		log.Fatalf("%s: %v", "failed to get OAuth config", err)
 	}
 }
 
-// get OAuth token for managing resources (ARM)
+// GetResourceManagementToken gets an OAuth token for managing resources using the specified grant type.
 func GetResourceManagementToken(grantType OAuthGrantType) (adal.OAuthTokenProvider, error) {
 	// TODO(joshgav): if cached token is available retrieve that
 	if armToken != nil {
@@ -86,7 +83,7 @@ func GetResourceManagementToken(grantType OAuthGrantType) (adal.OAuthTokenProvid
 func getServicePrincipalToken() (adal.OAuthTokenProvider, error) {
 	return adal.NewServicePrincipalToken(
 		*oauthConfig,
-		clientId,
+		clientID,
 		clientSecret,
 		azure.PublicCloud.ResourceManagerEndpoint)
 }
@@ -97,7 +94,7 @@ func getDeviceToken() (adal.OAuthTokenProvider, error) {
 	code, err := adal.InitiateDeviceAuth(
 		sender,
 		*oauthConfig,
-		samplesAppId, // clientID
+		samplesAppID, // clientID
 		azure.PublicCloud.ResourceManagerEndpoint)
 	if err != nil {
 		log.Fatalf("%s: %v\n", "failed to initiate device auth", err)
@@ -107,6 +104,7 @@ func getDeviceToken() (adal.OAuthTokenProvider, error) {
 	return adal.WaitForUserCompletion(sender, code)
 }
 
+// TODO(joshgav): use cached token when available
 func getTokenCachePath() string {
 	usr, err := user.Current()
 	if err != nil {

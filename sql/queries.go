@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"strings"
 
 	"database/sql"
 
@@ -48,10 +49,17 @@ func open() error {
 	query.Add("connection timeout", fmt.Sprintf("%d", connectionTimeout))
 	query.Add("database", dbName)
 
+	var _serverName string
+	if !strings.ContainsRune(serverName, '.') {
+		_serverName = serverName + ".database.windows.net"
+	} else {
+		_serverName = serverName
+	}
+
 	u := &url.URL{
 		Scheme: "sqlserver",
 		User:   url.UserPassword(dbLogin, dbPassword),
-		Host:   fmt.Sprintf("%s:%d", serverName, port),
+		Host:   fmt.Sprintf("%s:%d", _serverName, port),
 		// Path:  instance, // if connecting to an instance instead of a port
 		RawQuery: query.Encode(),
 	}

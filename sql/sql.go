@@ -2,7 +2,6 @@ package mssql
 
 import (
 	"log"
-	"strings"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
@@ -25,9 +24,6 @@ func init() {
 	gotenv.Load() // read from .env file
 
 	serverName = helpers.GetEnvVarOrFail("AZURE_SQL_SERVERNAME")
-	if !strings.ContainsRune(serverName, '.') {
-		serverName = serverName + ".database.windows.net"
-	}
 	dbName = helpers.GetEnvVarOrFail("AZURE_SQL_DBNAME")
 	dbLogin = helpers.GetEnvVarOrFail("AZURE_SQL_DBUSER")
 	dbPassword = helpers.GetEnvVarOrFail("AZURE_SQL_DBPASSWORD")

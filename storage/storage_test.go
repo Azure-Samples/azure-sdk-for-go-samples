@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
-	// for init to pick up env vars
 	_ "github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 // Example creates a resource group and a storage account. Then it adds a container and a blob in that account.
-// Finally it removes the blob, container, account, and group
+// Finally it removes the blob, container, account, and group.
 // more examples available at https://github.com/Azure/azure-storage-blob-go/2016-05-31/azblob/zt_examples_test.go
 func Example() {
 	var err error

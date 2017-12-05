@@ -7,10 +7,9 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"github.com/subosito/gotenv"
-
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/subosito/gotenv"
 )
 
 const (

@@ -1,13 +1,23 @@
 package main
 
 import (
-	"github.com/joshgav/az-go/common"
-	"github.com/joshgav/az-go/management"
+	"flag"
 	"log"
-	"os"
-	//"github.com/joshgav/az-go/storage"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/common"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/management"
 	"github.com/Azure/go-autorest/autorest"
 )
+
+var (
+	accountName string
+)
+
+func init() {
+	management.GetStartParams()
+	flag.StringVar(&accountName, "storageAccName", "storageaccname", "Provide a name for the storage account to be created")
+	flag.Parse()
+}
 
 func main() {
 	var err error
@@ -17,23 +27,17 @@ func main() {
 	common.OnErrorFail(err, "failed to create group")
 	log.Printf("group: %+v\n", group)
 
-	sa, errC := management.CreateStorageAccount()
+	sa, errC := management.CreateStorageAccount(accountName)
 	common.OnErrorFail(<-errC, "failed to create storage account")
 	log.Printf("storage account: %+v\n", <-sa)
 
-	if os.Getenv("AZURE_KEEP_SAMPLE_RESOURCES") == "1" {
-		log.Printf("retaining resources because env var is set\n")
-		os.Exit(0)
-	}
-
-	//storage.TestStorage()
-
+	management.KeepResourcesAndExit()
 	log.Printf("going to delete all resources\n")
 
 	var res autorest.Response
 	var resC <-chan autorest.Response
 
-	res, err = management.DeleteStorageAccount()
+	res, err = management.DeleteStorageAccount(accountName)
 	common.OnErrorFail(err, "failed to delete storage account")
 	log.Printf("storage account deleted: %+v\n", res)
 

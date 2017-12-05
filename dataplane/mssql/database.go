@@ -2,15 +2,12 @@
 package mssql
 
 import (
+	"database/sql"
 	"fmt"
-	"github.com/joshgav/az-go/common"
 	"log"
 	"net/url"
-	"strings"
 
-	"github.com/subosito/gotenv"
-
-	"database/sql"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/common"
 	_ "github.com/denisenkom/go-mssqldb"
 )
 
@@ -19,60 +16,39 @@ const (
 	port              int = 1433
 )
 
-var (
-	serverName string
-	dbName     string
-	dbLogin    string
-	dbPassword string
-)
-
-func init() {
-	gotenv.Load() // read from .env file
-
-	serverName = common.GetEnvVarOrFail("AZURE_SQL_SERVERNAME")
-	if !strings.ContainsRune(serverName, '.') {
-		serverName = serverName + ".database.windows.net"
-	}
-	dbName = common.GetEnvVarOrFail("AZURE_SQL_DBNAME")
-	dbLogin = common.GetEnvVarOrFail("AZURE_SQL_DBUSER")
-	dbPassword = common.GetEnvVarOrFail("AZURE_SQL_DBPASSWORD")
-}
-
-var db *sql.DB
-
-func TestDb() {
+func DbOperations(server, database, username, password string) {
 	log.Printf("available drivers: %v", sql.Drivers())
 
-	err := open()
+	db, err := open(server, database, username, password)
 	if err != nil {
 		log.Fatal("open connection failed:", err.Error())
 	}
 
-	err = createTable()
+	err = createTable(db)
 	if err != nil {
 		log.Fatal("create table failed:", err.Error())
 	}
 
-	err = insert()
+	err = insert(db)
 	if err != nil {
 		log.Fatal("insert failed:", err.Error())
 	}
 
-	err = query()
+	err = query(db)
 	if err != nil {
 		log.Fatal("query failed:", err.Error())
 	}
 }
 
-func open() error {
+func open(server, database, username, password string) (*sql.DB, error) {
 	query := url.Values{}
 	query.Add("connection timeout", fmt.Sprintf("%d", connectionTimeout))
-	query.Add("database", dbName)
+	query.Add("database", database)
 
 	u := &url.URL{
 		Scheme: "sqlserver",
-		User:   url.UserPassword(dbLogin, dbPassword),
-		Host:   fmt.Sprintf("%s:%d", serverName, port),
+		User:   url.UserPassword(username, password),
+		Host:   fmt.Sprintf("%s.database.windows.net:%d", server, port),
 		// Path:  instance, // if connecting to an instance instead of a port
 		RawQuery: query.Encode(),
 	}
@@ -81,18 +57,16 @@ func open() error {
 
 	log.Printf("using connString %s\n", connectionString)
 
-	_db, err := sql.Open("sqlserver", connectionString)
-
+	db, err := sql.Open("sqlserver", connectionString)
 	if err != nil {
 		log.Fatal("open connection failed:", err.Error())
 	}
-	db = _db
 
 	log.Printf("opened conn to %+v\n", db)
-	return nil
+	return db, nil
 }
 
-func createTable() error {
+func createTable(db *sql.DB) error {
 	const createTableStatement string = `
     CREATE TABLE customers (
       id int NOT NULL PRIMARY KEY,
@@ -105,7 +79,7 @@ func createTable() error {
 	return err
 }
 
-func insert() error {
+func insert(db *sql.DB) error {
 	const insertStmt string = `
     INSERT INTO customers VALUES (1, 'Josh')`
 	result, err := db.Exec(insertStmt)
@@ -115,7 +89,7 @@ func insert() error {
 	return err
 }
 
-func query() error {
+func query(db *sql.DB) error {
 	// assert(db != null)
 	const queryString string = "SELECT id,name FROM customers"
 	log.Printf("using query %s\n", queryString)

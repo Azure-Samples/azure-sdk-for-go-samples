@@ -1,40 +1,21 @@
 package management
 
 import (
-	"github.com/joshgav/az-go/common"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/profiles/preview/sql/mgmt/sql"
-	"github.com/subosito/gotenv"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
-)
-
-var (
-	serverName string
-	dbName     string
-	dbLogin    string
-	dbPassword string
+	"github.com/subosito/gotenv"
 )
 
 func init() {
 	gotenv.Load() // read from .env file
-
-	serverName = common.GetEnvVarOrFail("AZURE_SQL_SERVERNAME")
-	dbName = common.GetEnvVarOrFail("AZURE_SQL_DBNAME")
-	dbLogin = common.GetEnvVarOrFail("AZURE_SQL_DBUSER")
-	dbPassword = common.GetEnvVarOrFail("AZURE_SQL_DBPASSWORD")
 }
 
-func CreateServer() (<-chan sql.Server, <-chan error) {
-	token, err := common.GetResourceManagementToken(common.OAuthGrantTypeServicePrincipal)
-	if err != nil {
-		log.Fatalf("%s: %v", "failed to get auth token", err)
-	}
-
+func CreateServer(serverName, dbLogin, dbPassword string) (<-chan sql.Server, <-chan error) {
 	serversClient := sql.NewServersClient(subscriptionId)
-	serversClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	serversClient.Authorizer = token
 
 	return serversClient.CreateOrUpdate(
 		resourceGroupName,
@@ -43,18 +24,15 @@ func CreateServer() (<-chan sql.Server, <-chan error) {
 			Location: to.StringPtr(location),
 			ServerProperties: &sql.ServerProperties{
 				AdministratorLogin:         to.StringPtr(dbLogin),
-				AdministratorLoginPassword: to.StringPtr(dbPassword)}},
+				AdministratorLoginPassword: to.StringPtr(dbPassword),
+			},
+		},
 		nil)
 }
 
-func CreateDb() (<-chan sql.Database, <-chan error) {
-	token, err := common.GetResourceManagementToken(common.OAuthGrantTypeServicePrincipal)
-	if err != nil {
-		log.Fatalf("%s: %v", "failed to get auth token", err)
-	}
-
+func CreateDb(serverName, dbName string) (<-chan sql.Database, <-chan error) {
 	dbClient := sql.NewDatabasesClient(subscriptionId)
-	dbClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	dbClient.Authorizer = token
 
 	return dbClient.CreateOrUpdate(
 		resourceGroupName,
@@ -65,14 +43,9 @@ func CreateDb() (<-chan sql.Database, <-chan error) {
 		nil)
 }
 
-func OpenDbPort() error {
-	token, err := common.GetResourceManagementToken(common.OAuthGrantTypeServicePrincipal)
-	if err != nil {
-		log.Fatalf("%s: %v", "failed to get auth token", err)
-	}
-
+func OpenDbPort(serverName string) error {
 	fwRulesClient := sql.NewFirewallRulesClient(subscriptionId)
-	fwRulesClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	fwRulesClient.Authorizer = token
 
 	_, _ = fwRulesClient.CreateOrUpdate(
 		resourceGroupName,
@@ -95,14 +68,9 @@ func OpenDbPort() error {
 	return err2
 }
 
-func DeleteDb() (autorest.Response, error) {
-	token, err := common.GetResourceManagementToken(common.OAuthGrantTypeServicePrincipal)
-	if err != nil {
-		log.Fatalf("%s: %v", "failed to get auth token", err)
-	}
-
+func DeleteDb(serverName, dbName string) (autorest.Response, error) {
 	dbClient := sql.NewDatabasesClient(subscriptionId)
-	dbClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	dbClient.Authorizer = token
 
 	return dbClient.Delete(
 		resourceGroupName,

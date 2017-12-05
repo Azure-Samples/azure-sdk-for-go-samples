@@ -1,38 +1,21 @@
 package management
 
 import (
-	"github.com/Azure/azure-sdk-for-go/profiles/preview/storage/mgmt/storage"
-	"github.com/joshgav/az-go/common"
-	"github.com/subosito/gotenv"
 	"log"
 
+	"github.com/Azure/azure-sdk-for-go/profiles/preview/storage/mgmt/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
-var (
-	accountName string
-)
-
-func init() {
-	gotenv.Load() // read from .env file
-
-	accountName = common.GetEnvVarOrFail("AZURE_STORAGEACCOUNT_NAME")
-}
-
-func getStorageAccountsClient() (storage.AccountsClient, error) {
-	token, err := common.GetResourceManagementToken(common.OAuthGrantTypeServicePrincipal)
-	if err != nil {
-		log.Fatalf("%s: %v", "failed to get auth token", err)
-	}
-
+func getStorageAccountsClient() storage.AccountsClient {
 	storageAccountsClient := storage.NewAccountsClient(subscriptionId)
-	storageAccountsClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	return storageAccountsClient, err
+	storageAccountsClient.Authorizer = token
+	return storageAccountsClient
 }
 
-func CreateStorageAccount() (<-chan storage.Account, <-chan error) {
-	storageAccountsClient, _ := getStorageAccountsClient()
+func CreateStorageAccount(accountName string) (<-chan storage.Account, <-chan error) {
+	storageAccountsClient := getStorageAccountsClient()
 
 	result, err := storageAccountsClient.CheckNameAvailability(
 		storage.AccountCheckNameAvailabilityParameters{
@@ -56,7 +39,7 @@ func CreateStorageAccount() (<-chan storage.Account, <-chan error) {
 		nil /* cancel <-chan struct{} */)
 }
 
-func DeleteStorageAccount() (autorest.Response, error) {
-	storageAccountsClient, _ := getStorageAccountsClient()
+func DeleteStorageAccount(accountName string) (autorest.Response, error) {
+	storageAccountsClient := getStorageAccountsClient()
 	return storageAccountsClient.Delete(resourceGroupName, accountName)
 }

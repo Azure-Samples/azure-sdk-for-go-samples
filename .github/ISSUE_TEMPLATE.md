@@ -1,5 +1,4 @@
-Thanks for your feedback on the Azure Go SDK! Please provide the following
-information so we can better help you:
+Thanks for your contributions and feedback to the samples for Go on Azure!
 
 ### This issue is a: (mark with an `x`)
 ```
@@ -23,4 +22,3 @@ information so we can better help you:
 > Go version
 
 Thanks again!
-

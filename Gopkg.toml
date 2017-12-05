@@ -1,0 +1,27 @@
+[[constraint]]
+  name = "github.com/Azure/azure-sdk-for-go"
+  version = "11.2.2-beta"
+
+[[constraint]]
+  name = "github.com/Azure/azure-storage-blob-go"
+  version = "0.1.1"
+
+[[constraint]]
+  name = "github.com/Azure/go-autorest"
+  version = "9.4.2"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/denisenkom/go-mssqldb"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/marstr/randname"
+
+[[constraint]]
+  name = "github.com/satori/go.uuid"
+  version = "1.1.0"
+
+[[constraint]]
+  name = "github.com/subosito/gotenv"
+  version = "1.1.0"

@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+
+	// sql driver
+	_ "github.com/denisenkom/go-mssqldb"
 )
 
 const (

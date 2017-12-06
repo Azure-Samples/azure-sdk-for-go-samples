@@ -3,10 +3,12 @@ package sql
 import (
 	"flag"
 	"log"
+	"strings"
 	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/examples/resources"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/management"
+	"github.com/marstr/randname"
 	chk "gopkg.in/check.v1"
 )
 
@@ -25,10 +27,10 @@ var (
 
 func init() {
 	management.GetStartParams()
-	flag.StringVar(&serverName, "sqlServerName", "sqlservername", "Provide a name for the SQL server name to be created")
-	flag.StringVar(&dbName, "sqlDbName", "sqldbname", "Provide a name for the SQL data basename to be created")
-	flag.StringVar(&dbLogin, "sqlDbUserName", "sqldbuser", "Provide a name for the SQL database username")
-	flag.StringVar(&dbPassword, "sqlDbPassword", "Pa$$w0rd1975", "Provide a name for the SQL database password")
+	flag.StringVar(&serverName, "sqlServerName", "server"+randname.AdjNoun{}.Generate(), "Provide a name for the SQL server name to be created")
+	flag.StringVar(&dbName, "sqlDbName", "db"+randname.AdjNoun{}.Generate(), "Provide a name for the SQL data basename to be created")
+	flag.StringVar(&dbLogin, "sqlDbUserName", "user"+randname.AdjNoun{}.Generate(), "Provide a name for the SQL database username")
+	flag.StringVar(&dbPassword, "sqlDbPassword", randname.AdjNoun{}.Generate(), "Provide a name for the SQL database password")
 	flag.Parse()
 }
 
@@ -39,6 +41,8 @@ func (s *SQLSuite) TestDatabaseQueries(c *chk.C) {
 	group, err := resources.CreateGroup()
 	c.Check(err, chk.IsNil)
 	log.Printf("group: %+v\n", group)
+
+	serverName = strings.ToLower(serverName)
 
 	server, errC := CreateServer(serverName, dbLogin, dbPassword)
 	c.Check(<-errC, chk.IsNil)

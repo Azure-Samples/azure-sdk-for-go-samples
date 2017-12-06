@@ -7,9 +7,7 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"github.com/subosito/gotenv"
-
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/common"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/subosito/gotenv"
@@ -44,9 +42,9 @@ const (
 func init() {
 	gotenv.Load() // read from .env file
 
-	tenantID = helpers.GetEnvVarOrFail("AZURE_TENANT_ID")
-	clientID = helpers.GetEnvVarOrFail("AZURE_CLIENT_ID")
-	clientSecret = helpers.GetEnvVarOrFail("AZURE_CLIENT_SECRET")
+	tenantID = common.GetEnvVarOrFail("AZURE_TENANT_ID")
+	clientID = common.GetEnvVarOrFail("AZURE_CLIENT_ID")
+	clientSecret = common.GetEnvVarOrFail("AZURE_CLIENT_SECRET")
 
 	var err error
 	oauthConfig, err = adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantID)

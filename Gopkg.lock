@@ -73,9 +73,15 @@
   packages = ["context"]
   revision = "a8b9294777976932365dabb6640cf1468d95c70f"
 
+[[projects]]
+  branch = "v1"
+  name = "gopkg.in/check.v1"
+  packages = ["."]
+  revision = "20d25e2804050c1cd24a7eea1e7a6447dd0e74ec"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a4f616d66fe384e6a3532ba77d5d8eedf32791c07d23fe30405bc72e8498a364"
+  inputs-digest = "8a50e0b71f9ad2fa39d88b675b6b42b35b92c1d5e4291f75ce4d60b75cefc379"
   solver-name = "gps-cdcl"
   solver-version = 1

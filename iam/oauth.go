@@ -39,7 +39,7 @@ const (
 	OAuthGrantTypeDeviceFlow
 )
 
-func init() {
+func GetEnvVars() {
 	gotenv.Load() // read from .env file
 
 	tenantID = common.GetEnvVarOrFail("AZURE_TENANT_ID")
@@ -55,6 +55,7 @@ func init() {
 
 // GetResourceManagementToken gets an OAuth token for managing resources using the specified grant type.
 func GetResourceManagementToken(grantType OAuthGrantType) (adal.OAuthTokenProvider, error) {
+	GetEnvVars()
 	// TODO(joshgav): if cached token is available retrieve that
 	if armToken != nil {
 		return armToken, nil
@@ -109,4 +110,12 @@ func getTokenCachePath() string {
 		log.Fatalf("%s: %v", "failed to get current user", err)
 	}
 	return filepath.Join(usr.HomeDir, ".azure", "armToken.json")
+}
+
+func GetClientID() string {
+	return clientID
+}
+
+func GetTenantID() string {
+	return tenantID
 }

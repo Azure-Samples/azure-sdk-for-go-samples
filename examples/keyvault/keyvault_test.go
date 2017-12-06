@@ -1,38 +1,43 @@
 package keyvault
 
 import (
-	"fmt"
+	"flag"
 	"log"
+	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/examples/resources"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/management"
+	"github.com/marstr/randname"
+	chk "gopkg.in/check.v1"
 )
 
-// Example creates a resource group and a storage account. Then it adds a container and a blob in that account.
-// Finally it removes the blob, container, account, and group
-// more examples available at https://github.com/Azure/azure-storage-blob-go/2016-05-31/azblob/zt_examples_test.go
-func Example() {
-	var err error
+func Test(t *testing.T) { chk.TestingT(t) }
 
+type KeyVaultSuite struct{}
+
+var _ = chk.Suite(&KeyVaultSuite{})
+
+var (
+	keyValutName string
+)
+
+func init() {
+	management.GetStartParams()
+	flag.StringVar(&keyValutName, "keyValutName", "valut"+randname.AdjNoun{}.Generate(), "Provide a name for the keyvault to be created")
+	flag.Parse()
+}
+func (s *KeyVaultSuite) TestSetVaultPermissions(c *chk.C) {
 	defer resources.Cleanup()
 
 	group, err := resources.CreateGroup()
-	if err != nil {
-		log.Fatalf("failed to get create group: %v", err)
-	}
+	c.Check(err, chk.IsNil)
 	log.Printf("created group: %v\n", group)
 
-	v, err := CreateVault()
-	if err != nil {
-		log.Fatalf("failed to create vault: %v", err)
-	}
+	v, err := CreateVault(keyValutName)
+	c.Check(err, chk.IsNil)
 	log.Printf("created vault: %v\n", v)
 
-	v, err = SetVaultPermissions()
-	if err != nil {
-		log.Fatalf("failed to set vault permissions: %v", err)
-	}
+	v, err = SetVaultPermissions(keyValutName)
+	c.Check(err, chk.IsNil)
 	log.Printf("set vault permissions: %v\n", v)
-
-	fmt.Println("Success")
-	// Output: Success
 }

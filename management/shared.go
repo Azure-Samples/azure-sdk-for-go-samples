@@ -15,7 +15,6 @@ var (
 	resourceGroupName string
 	location          string
 	subscriptionID    string
-	tenantId          string
 	token             autorest.Authorizer
 	keepResources     bool
 )
@@ -24,7 +23,6 @@ func GetStartParams() {
 	gotenv.Load() // read from .env file
 
 	subscriptionID = common.GetEnvVarOrFail("AZURE_SUBSCRIPTION_ID")
-	tenantId = common.GetEnvVarOrFail("AZURE_TENANT_ID")
 
 	flag.BoolVar(&keepResources, "keepResources", false, "Set the sample to keep or delete the created resources")
 	flag.StringVar(&resourceGroupName, "rgName", "rg"+randname.AdjNoun{}.Generate(), "Provide a name for the resource group to be created")

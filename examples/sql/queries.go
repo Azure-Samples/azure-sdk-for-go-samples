@@ -1,15 +1,13 @@
 // tests basic functionality for an existing mssql db
-package mssql
+package sql
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/url"
-	"strings"
 
-	"database/sql"
-
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	// sql driver
 	_ "github.com/denisenkom/go-mssqldb"
 )
 
@@ -18,48 +16,36 @@ const (
 	port              int = 1433
 )
 
-var db *sql.DB
-
-func TestDb() {
+func DbOperations(server, database, username, password string) error {
 	log.Printf("available drivers: %v", sql.Drivers())
 
-	err := open()
+	db, err := Open(server, database, username, password)
 	if err != nil {
-		log.Fatal("open connection failed:", err.Error())
+		return err
 	}
 
-	err = createTable()
+	err = CreateTable(db)
 	if err != nil {
-		log.Fatal("create table failed:", err.Error())
+		return err
 	}
 
-	err = insert()
+	err = Insert(db)
 	if err != nil {
-		log.Fatal("insert failed:", err.Error())
+		return err
 	}
 
-	err = query()
-	if err != nil {
-		log.Fatal("query failed:", err.Error())
-	}
+	return Query(db)
 }
 
-func open() error {
+func Open(server, database, username, password string) (*sql.DB, error) {
 	query := url.Values{}
 	query.Add("connection timeout", fmt.Sprintf("%d", connectionTimeout))
-	query.Add("database", dbName)
-
-	var _serverName string
-	if !strings.ContainsRune(serverName, '.') {
-		_serverName = serverName + ".database.windows.net"
-	} else {
-		_serverName = serverName
-	}
+	query.Add("database", database)
 
 	u := &url.URL{
 		Scheme: "sqlserver",
-		User:   url.UserPassword(dbLogin, dbPassword),
-		Host:   fmt.Sprintf("%s:%d", _serverName, port),
+		User:   url.UserPassword(username, password),
+		Host:   fmt.Sprintf("%s.database.windows.net:%d", server, port),
 		// Path:  instance, // if connecting to an instance instead of a port
 		RawQuery: query.Encode(),
 	}
@@ -68,41 +54,43 @@ func open() error {
 
 	log.Printf("using connString %s\n", connectionString)
 
-	_db, err := sql.Open("sqlserver", connectionString)
-
+	db, err := sql.Open("sqlserver", connectionString)
 	if err != nil {
-		log.Fatal("open connection failed:", err.Error())
+		fmt.Errorf("open connection failed: %v", err)
 	}
-	db = _db
 
 	log.Printf("opened conn to %+v\n", db)
-	return nil
+	return db, nil
 }
 
-func createTable() error {
+func CreateTable(db *sql.DB) error {
 	const createTableStatement string = `
     CREATE TABLE customers (
       id int NOT NULL PRIMARY KEY,
       name nvarchar(max)
     )`
 	result, err := db.Exec(createTableStatement)
-	helpers.OnErrorFail(err, "failed to create table")
+	if err != nil {
+		return fmt.Errorf("failed to create table: %v", err)
+	}
 	rows, err := result.RowsAffected()
 	log.Printf("table created, rows affected: %d\n", rows)
 	return err
 }
 
-func insert() error {
+func Insert(db *sql.DB) error {
 	const insertStmt string = `
     INSERT INTO customers VALUES (1, 'Josh')`
 	result, err := db.Exec(insertStmt)
-	helpers.OnErrorFail(err, "failed to insert record")
+	if err != nil {
+		return fmt.Errorf("failed to insert record: %v", err)
+	}
 	rows, err := result.RowsAffected()
 	log.Printf("rows inserted: %d\n", rows)
 	return err
 }
 
-func query() error {
+func Query(db *sql.DB) error {
 	// assert(db != null)
 	const queryString string = "SELECT id,name FROM customers"
 	log.Printf("using query %s\n", queryString)
@@ -117,7 +105,7 @@ func query() error {
 		var name string
 		err := rows.Scan(&id, &name)
 		if err != nil {
-			log.Print("query failed:", err.Error())
+			fmt.Errorf("query failed:", err.Error())
 		}
 
 		log.Printf("  id: %d\n  name: %s\n", id, name)

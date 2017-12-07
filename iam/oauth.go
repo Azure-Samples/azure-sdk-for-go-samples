@@ -7,11 +7,10 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"github.com/subosito/gotenv"
-
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/common"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/subosito/gotenv"
 )
 
 const (
@@ -40,12 +39,12 @@ const (
 	OAuthGrantTypeDeviceFlow
 )
 
-func init() {
+func GetEnvVars() {
 	gotenv.Load() // read from .env file
 
-	tenantID = helpers.GetEnvVarOrFail("AZURE_TENANT_ID")
-	clientID = helpers.GetEnvVarOrFail("AZURE_CLIENT_ID")
-	clientSecret = helpers.GetEnvVarOrFail("AZURE_CLIENT_SECRET")
+	tenantID = common.GetEnvVarOrFail("AZURE_TENANT_ID")
+	clientID = common.GetEnvVarOrFail("AZURE_CLIENT_ID")
+	clientSecret = common.GetEnvVarOrFail("AZURE_CLIENT_SECRET")
 
 	var err error
 	oauthConfig, err = adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantID)
@@ -56,6 +55,7 @@ func init() {
 
 // GetResourceManagementToken gets an OAuth token for managing resources using the specified grant type.
 func GetResourceManagementToken(grantType OAuthGrantType) (adal.OAuthTokenProvider, error) {
+	GetEnvVars()
 	// TODO(joshgav): if cached token is available retrieve that
 	if armToken != nil {
 		return armToken, nil
@@ -110,4 +110,12 @@ func getTokenCachePath() string {
 		log.Fatalf("%s: %v", "failed to get current user", err)
 	}
 	return filepath.Join(usr.HomeDir, ".azure", "armToken.json")
+}
+
+func GetClientID() string {
+	return clientID
+}
+
+func GetTenantID() string {
+	return tenantID
 }

@@ -1,47 +1,66 @@
 package storage
 
 import (
-	"fmt"
-	"log"
+	"flag"
+	"strings"
 
-	_ "github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/common"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/management"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+	"github.com/marstr/randname"
 )
+
+var (
+	accountName   string
+	containerName string
+	blobName      string
+)
+
+func init() {
+	management.GetStartParams()
+	flag.StringVar(&accountName, "storageAccName", "acc"+randname.AdjNoun{}.Generate(), "Provide a name for the storage account to be created")
+	flag.StringVar(&containerName, "containerName", "cnt"+randname.AdjNoun{}.Generate(), "Provide a name for the storage account to be created")
+	flag.StringVar(&blobName, "blobName", "blob"+randname.AdjNoun{}.Generate(), "Provide a name for the storage account to be created")
+	flag.Parse()
+}
 
 // Example creates a resource group and a storage account. Then it adds a container and a blob in that account.
 // Finally it removes the blob, container, account, and group.
 // more examples available at https://github.com/Azure/azure-storage-blob-go/2016-05-31/azblob/zt_examples_test.go
-func Example() {
-	var err error
-	var errC <-chan error
-
+func ExampleUploadBlockBlob() {
 	defer resources.Cleanup()
 
-	group, err := resources.CreateGroup()
+	_, err := resources.CreateGroup()
 	if err != nil {
-		log.Fatalf("failed to get create group: %v", err)
+		common.PrintAndLog(err.Error())
 	}
-	log.Printf("created group: %v\n", group)
+	common.PrintAndLog("resource group created")
 
-	account, errC := CreateStorageAccount()
-	err = <-errC // wait on error channel
+	accountName = strings.ToLower(accountName)
+	containerName = strings.ToLower(containerName)
+
+	_, errC := CreateStorageAccount(accountName)
+	err = <-errC
 	if err != nil {
-		log.Fatalf("failed to create storage account: %v", err)
+		common.PrintAndLog(err.Error())
 	}
-	log.Printf("created storage account: %v\n", <-account)
+	common.PrintAndLog("created storage account")
 
-	c, err := CreateContainer(containerName)
+	_, err = CreateContainer(accountName, containerName)
 	if err != nil {
-		log.Fatalf("failed to create container: %v", err)
+		common.PrintAndLog(err.Error())
 	}
-	log.Printf("created container: %v", c)
+	common.PrintAndLog("created container")
 
-	b, err := CreateBlockBlob(blobName)
+	_, err = CreateBlockBlob(accountName, containerName, blobName)
 	if err != nil {
-		log.Fatalf("failed to create blob: %v", err)
+		common.PrintAndLog(err.Error())
 	}
-	log.Printf("created blob: %v", b)
+	common.PrintAndLog("created blob")
 
-	fmt.Println("Success")
-	// Output: Success
+	// Output:
+	// resource group created
+	// created storage account
+	// created container
+	// created blob
 }

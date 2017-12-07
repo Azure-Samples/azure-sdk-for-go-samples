@@ -1,6 +1,7 @@
 package common
 
 import (
+	"fmt"
 	"log"
 	"os"
 )
@@ -18,4 +19,9 @@ func GetEnvVarOrFail(envVar string) string {
 	}
 
 	return value
+}
+
+func PrintAndLog(message string) {
+	log.Println(message)
+	fmt.Println(message)
 }

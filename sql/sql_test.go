@@ -2,21 +2,13 @@ package sql
 
 import (
 	"flag"
-	"log"
 	"strings"
-	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/examples/resources"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/common"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/management"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	"github.com/marstr/randname"
-	chk "gopkg.in/check.v1"
 )
-
-func Test(t *testing.T) { chk.TestingT(t) }
-
-type SQLSuite struct{}
-
-var _ = chk.Suite(&SQLSuite{})
 
 var (
 	serverName string
@@ -35,28 +27,47 @@ func init() {
 }
 
 // Example creates a SQL server and database, then creates a table and inserts a record.
-func (s *SQLSuite) TestDatabaseQueries(c *chk.C) {
+func ExampleDatabaseQueries() {
 	defer resources.Cleanup()
 
-	group, err := resources.CreateGroup()
-	c.Check(err, chk.IsNil)
-	log.Printf("group: %+v\n", group)
+	_, err := resources.CreateGroup()
+	if err != nil {
+		common.PrintAndLog(err.Error())
+	}
+	common.PrintAndLog("resource group created")
 
 	serverName = strings.ToLower(serverName)
 
-	server, errC := CreateServer(serverName, dbLogin, dbPassword)
-	c.Check(<-errC, chk.IsNil)
-	log.Printf("new server created: %+v\n", <-server)
+	_, errC := CreateServer(serverName, dbLogin, dbPassword)
+	err = <-errC
+	if err != nil {
+		common.PrintAndLog(err.Error())
+	}
+	common.PrintAndLog("sql server created")
 
-	db, errC := CreateDb(serverName, dbName)
-	c.Check(<-errC, chk.IsNil)
-	log.Printf("new database created: %+v\n", <-db)
+	_, errC = CreateDb(serverName, dbName)
+	err = <-errC
+	if err != nil {
+		common.PrintAndLog(err.Error())
+	}
+	common.PrintAndLog("database created")
 
 	err = CreateFirewallRules(serverName)
-	c.Check(err, chk.IsNil)
-	log.Printf("db fw rules set\n")
+	if err != nil {
+		common.PrintAndLog(err.Error())
+	}
+	common.PrintAndLog("database firewall rules set")
 
 	err = DbOperations(serverName, dbName, dbLogin, dbPassword)
-	c.Check(err, chk.IsNil)
-	log.Printf("db operations done\n")
+	if err != nil {
+		common.PrintAndLog(err.Error())
+	}
+	common.PrintAndLog("database operations performed")
+
+	// Output:
+	// resource group created
+	// sql server created
+	// database created
+	// database firewall rules set
+	// database operations performed
 }

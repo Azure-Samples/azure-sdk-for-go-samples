@@ -18,6 +18,7 @@ func getGroupsClient() resources.GroupsClient {
 // CreateGroup creates a new resource group named by env var
 func CreateGroup() (resources.Group, error) {
 	groupsClient := getGroupsClient()
+	log.Printf("creating group on location %v\n", management.GetLocation())
 	return groupsClient.CreateOrUpdate(
 		management.GetResourceGroup(),
 		resources.Group{

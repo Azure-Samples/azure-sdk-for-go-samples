@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/management"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -13,23 +13,24 @@ import (
 )
 
 func getVaultsClient() keyvault.VaultsClient {
-	vaultsClient := keyvault.NewVaultsClient(management.GetSubID())
-	vaultsClient.Authorizer = management.GetToken()
+	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
+	vaultsClient := keyvault.NewVaultsClient(helpers.SubscriptionID())
+	vaultsClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	return vaultsClient
 }
 
 func CreateVault(vaultName string) (keyvault.Vault, error) {
 	vaultsClient := getVaultsClient()
-	tenantID, err := uuid.FromString(iam.GetTenantID())
+	tenantID, err := uuid.FromString(iam.TenantID())
 	if err != nil {
 		return keyvault.Vault{}, err
 	}
 
 	return vaultsClient.CreateOrUpdate(
-		management.GetResourceGroup(),
+		helpers.ResourceGroupName(),
 		vaultName,
 		keyvault.VaultCreateOrUpdateParameters{
-			Location: to.StringPtr(management.GetLocation()),
+			Location: to.StringPtr(helpers.Location()),
 			Properties: &keyvault.VaultProperties{
 				TenantID: &tenantID,
 				Sku: &keyvault.Sku{
@@ -44,24 +45,24 @@ func CreateVault(vaultName string) (keyvault.Vault, error) {
 
 func GetVault(vaultName string) (keyvault.Vault, error) {
 	vaultsClient := getVaultsClient()
-	return vaultsClient.Get(management.GetResourceGroup(), vaultName)
+	return vaultsClient.Get(helpers.ResourceGroupName(), vaultName)
 }
 
 // SetVaultPermissions adds an access policy permitting this app's Client ID to manage keys and secrets.
 func SetVaultPermissions(vaultName string) (keyvault.Vault, error) {
 	vaultsClient := getVaultsClient()
-	tenantID, err := uuid.FromString(iam.GetTenantID())
+	tenantID, err := uuid.FromString(iam.TenantID())
 	if err != nil {
 		return keyvault.Vault{}, err
 	}
 
-	clientID := iam.GetClientID()
+	clientID := iam.ClientID()
 
 	return vaultsClient.CreateOrUpdate(
-		management.GetResourceGroup(),
+		helpers.ResourceGroupName(),
 		vaultName,
 		keyvault.VaultCreateOrUpdateParameters{
-			Location: to.StringPtr(management.GetLocation()),
+			Location: to.StringPtr(helpers.Location()),
 			Properties: &keyvault.VaultProperties{
 				TenantID: &tenantID,
 				Sku: &keyvault.Sku{
@@ -93,17 +94,17 @@ func SetVaultPermissions(vaultName string) (keyvault.Vault, error) {
 // SetVaultPermissionsForDeployment updates a key vault to enable deployments and add permissions to the application")
 func SetVaultPermissionsForDeployment(vaultName string) (keyvault.Vault, error) {
 	vaultsClient := getVaultsClient()
-	tenantID, err := uuid.FromString(iam.GetTenantID())
+	tenantID, err := uuid.FromString(iam.TenantID())
 	if err != nil {
 		return keyvault.Vault{}, err
 	}
-	clientID := iam.GetClientID()
+	clientID := iam.ClientID()
 
 	return vaultsClient.CreateOrUpdate(
-		management.GetResourceGroup(),
+		helpers.ResourceGroupName(),
 		vaultName,
 		keyvault.VaultCreateOrUpdateParameters{
-			Location: to.StringPtr(management.GetLocation()),
+			Location: to.StringPtr(helpers.Location()),
 			Properties: &keyvault.VaultProperties{
 				TenantID:                     &tenantID,
 				EnabledForDeployment:         to.BoolPtr(true),
@@ -149,7 +150,7 @@ func GetVaults() {
 	}
 
 	fmt.Println("Getting all vaults in resource group")
-	rgList, err := vaultsClient.ListByResourceGroup(management.GetResourceGroup(), nil)
+	rgList, err := vaultsClient.ListByResourceGroup(helpers.ResourceGroupName(), nil)
 	if err != nil {
 		log.Printf("failed to get list of vaults: %v", err)
 	}
@@ -160,5 +161,5 @@ func GetVaults() {
 
 func DeleteVault(vaultName string) (autorest.Response, error) {
 	vaultsClient := getVaultsClient()
-	return vaultsClient.Delete(management.GetResourceGroup(), vaultName)
+	return vaultsClient.Delete(helpers.ResourceGroupName(), vaultName)
 }

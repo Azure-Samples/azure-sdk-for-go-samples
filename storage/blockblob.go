@@ -10,7 +10,7 @@ import (
 )
 
 func getBlockBlobURL(accountName, containerName, blobName string) blob.BlockBlobURL {
-	key := loadKey(accountName)
+	key := getFirstKey(accountName)
 	c := blob.NewSharedKeyCredential(accountName, key)
 	p := blob.NewPipeline(c, blob.PipelineOptions{})
 	u, _ := url.Parse(fmt.Sprintf(blobFormatString, accountName))

@@ -2,64 +2,80 @@ package network
 
 import (
 	"flag"
+	"log"
+	"os"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/common"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/management"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
-	"github.com/marstr/randname"
+	"github.com/subosito/gotenv"
 )
 
 var (
-	virtualNetworkName string
-	subnet1Name        = "subnet" + randname.AdjNoun{}.Generate()
-	subnet2Name        = "subnet" + randname.AdjNoun{}.Generate()
-	nsgName            = "nsg" + randname.AdjNoun{}.Generate()
-	nicName            = "nic" + randname.AdjNoun{}.Generate()
-	ipName             = "ip" + randname.AdjNoun{}.Generate()
+	virtualNetworkName = "vnet1"
+	subnet1Name        = "subnet1"
+	subnet2Name        = "subnet2"
+	nsgName            = "nsg1"
+	nicName            = "nic1"
+	ipName             = "ip1"
 )
 
 func init() {
-	management.GetStartParams()
-	flag.StringVar(&virtualNetworkName, "vNetName", "vnet"+randname.AdjNoun{}.Generate(), "Provide a name for the virtual network to be created")
-	flag.Parse()
+	err := parseArgs()
+	if err != nil {
+		log.Fatalln("failed to parse args")
+	}
+}
+
+func parseArgs() error {
+	gotenv.Load()
+
+	virtualNetworkName = os.Getenv("AZ_VNET_NAME")
+	flag.StringVar(&virtualNetworkName, "vnetName", virtualNetworkName, "Specify a name for the vnet.")
+	helpers.ParseArgs()
+
+	if !(len(virtualNetworkName) > 0) {
+		virtualNetworkName = "vnet1"
+	}
+
+	return nil
 }
 
 func ExampleCreateNIC() {
 	defer resources.Cleanup()
 
-	_, err := resources.CreateGroup()
+	_, err := resources.CreateGroup(helpers.ResourceGroupName())
 	if err != nil {
-		common.PrintAndLog(err.Error())
+		helpers.PrintAndLog(err.Error())
 	}
-	common.PrintAndLog("resource group created")
+	helpers.PrintAndLog("resource group created")
 
 	_, errC := CreateVirtualNetworkAndSubnets(virtualNetworkName, subnet1Name, subnet2Name)
 	err = <-errC
 	if err != nil {
-		common.PrintAndLog(err.Error())
+		helpers.PrintAndLog(err.Error())
 	}
-	common.PrintAndLog("created vnet and 2 subnets")
+	helpers.PrintAndLog("created vnet and 2 subnets")
 
 	_, errC = CreateNetworkSecurityGroup(nsgName)
 	err = <-errC
 	if err != nil {
-		common.PrintAndLog(err.Error())
+		helpers.PrintAndLog(err.Error())
 	}
-	common.PrintAndLog("created network security group")
+	helpers.PrintAndLog("created network security group")
 
 	_, errC = CreatePublicIp(ipName)
 	err = <-errC
 	if err != nil {
-		common.PrintAndLog(err.Error())
+		helpers.PrintAndLog(err.Error())
 	}
-	common.PrintAndLog("created public IP")
+	helpers.PrintAndLog("created public IP")
 
 	_, errC = CreateNic(virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
 	err = <-errC
 	if err != nil {
-		common.PrintAndLog(err.Error())
+		helpers.PrintAndLog(err.Error())
 	}
-	common.PrintAndLog("created nic")
+	helpers.PrintAndLog("created nic")
 
 	// Output:
 	// resource group created

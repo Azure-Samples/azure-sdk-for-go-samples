@@ -3,7 +3,8 @@ package sql
 import (
 	"log"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/management"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -12,18 +13,19 @@ import (
 // Servers
 
 func getServersClient() sql.ServersClient {
-	serversClient := sql.NewServersClient(management.GetSubID())
-	serversClient.Authorizer = management.GetToken()
+	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
+	serversClient := sql.NewServersClient(helpers.SubscriptionID())
+	serversClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	return serversClient
 }
 
 func CreateServer(serverName, dbLogin, dbPassword string) (<-chan sql.Server, <-chan error) {
 	serversClient := getServersClient()
 	return serversClient.CreateOrUpdate(
-		management.GetResourceGroup(),
+		helpers.ResourceGroupName(),
 		serverName,
 		sql.Server{
-			Location: to.StringPtr(management.GetLocation()),
+			Location: to.StringPtr(helpers.Location()),
 			ServerProperties: &sql.ServerProperties{
 				AdministratorLogin:         to.StringPtr(dbLogin),
 				AdministratorLoginPassword: to.StringPtr(dbPassword),
@@ -35,35 +37,39 @@ func CreateServer(serverName, dbLogin, dbPassword string) (<-chan sql.Server, <-
 // Databases
 
 func getDbClient() sql.DatabasesClient {
-	dbClient := sql.NewDatabasesClient(management.GetSubID())
-	dbClient.Authorizer = management.GetToken()
+	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
+	dbClient := sql.NewDatabasesClient(helpers.SubscriptionID())
+	dbClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	return dbClient
 }
 
 func CreateDb(serverName, dbName string) (<-chan sql.Database, <-chan error) {
 	dbClient := getDbClient()
 	return dbClient.CreateOrUpdate(
-		management.GetResourceGroup(),
+		helpers.ResourceGroupName(),
 		serverName,
 		dbName,
 		sql.Database{
-			Location: to.StringPtr(management.GetLocation())},
+			Location: to.StringPtr(helpers.Location()),
+		},
 		nil)
 }
 
 func DeleteDb(serverName, dbName string) (autorest.Response, error) {
 	dbClient := getDbClient()
 	return dbClient.Delete(
-		management.GetResourceGroup(),
+		helpers.ResourceGroupName(),
 		serverName,
-		dbName)
+		dbName,
+	)
 }
 
 // Firewall rukes
 
 func getFwRulesClient() sql.FirewallRulesClient {
-	fwrClient := sql.NewFirewallRulesClient(management.GetSubID())
-	fwrClient.Authorizer = management.GetToken()
+	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
+	fwrClient := sql.NewFirewallRulesClient(helpers.SubscriptionID())
+	fwrClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	return fwrClient
 }
 
@@ -71,7 +77,7 @@ func CreateFirewallRules(serverName string) error {
 	fwrClient := getFwRulesClient()
 
 	_, err := fwrClient.CreateOrUpdate(
-		management.GetResourceGroup(),
+		helpers.ResourceGroupName(),
 		serverName,
 		"unsafe open to world",
 		sql.FirewallRule{
@@ -86,7 +92,7 @@ func CreateFirewallRules(serverName string) error {
 	}
 
 	_, err = fwrClient.CreateOrUpdate(
-		management.GetResourceGroup(),
+		helpers.ResourceGroupName(),
 		serverName,
 		"open to Azure internal",
 		sql.FirewallRule{

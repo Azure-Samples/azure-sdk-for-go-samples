@@ -4,65 +4,62 @@ import (
 	"flag"
 	"strings"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/common"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/management"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
-	"github.com/marstr/randname"
 )
 
 var (
-	serverName string
-	dbName     string
-	dbLogin    string
-	dbPassword string
+	serverName = "sql-server-go-samples-" + helpers.GetRandomLetterSequence(10)
+	dbName     = "sql-db1"
+	dbLogin    = "sql-db-user1"
+	dbPassword = "NoSoupForYou1!"
 )
 
 func init() {
-	management.GetStartParams()
-	flag.StringVar(&serverName, "sqlServerName", "server"+randname.AdjNoun{}.Generate(), "Provide a name for the SQL server name to be created")
-	flag.StringVar(&dbName, "sqlDbName", "db"+randname.AdjNoun{}.Generate(), "Provide a name for the SQL data basename to be created")
-	flag.StringVar(&dbLogin, "sqlDbUserName", "user"+randname.AdjNoun{}.Generate(), "Provide a name for the SQL database username")
-	flag.StringVar(&dbPassword, "sqlDbPassword", randname.AdjNoun{}.Generate(), "Provide a name for the SQL database password")
-	flag.Parse()
+	flag.StringVar(&serverName, "sqlServerName", serverName, "Provide a name for the SQL server to be created")
+	flag.StringVar(&dbName, "sqlDbName", dbName, "Provide a name for the SQL database to be created")
+	flag.StringVar(&dbLogin, "sqlDbUsername", dbLogin, "Provide a username for the SQL database.")
+	flag.StringVar(&dbPassword, "sqlDbPassword", dbPassword, "Provide a password for the username.")
+	helpers.ParseArgs()
 }
 
 // Example creates a SQL server and database, then creates a table and inserts a record.
 func ExampleDatabaseQueries() {
 	defer resources.Cleanup()
 
-	_, err := resources.CreateGroup()
+	_, err := resources.CreateGroup(helpers.ResourceGroupName())
 	if err != nil {
-		common.PrintAndLog(err.Error())
+		helpers.PrintAndLog(err.Error())
 	}
-	common.PrintAndLog("resource group created")
+	helpers.PrintAndLog("resource group created")
 
 	serverName = strings.ToLower(serverName)
 
 	_, errC := CreateServer(serverName, dbLogin, dbPassword)
 	err = <-errC
 	if err != nil {
-		common.PrintAndLog(err.Error())
+		helpers.PrintAndLog(err.Error())
 	}
-	common.PrintAndLog("sql server created")
+	helpers.PrintAndLog("sql server created")
 
 	_, errC = CreateDb(serverName, dbName)
 	err = <-errC
 	if err != nil {
-		common.PrintAndLog(err.Error())
+		helpers.PrintAndLog(err.Error())
 	}
-	common.PrintAndLog("database created")
+	helpers.PrintAndLog("database created")
 
 	err = CreateFirewallRules(serverName)
 	if err != nil {
-		common.PrintAndLog(err.Error())
+		helpers.PrintAndLog(err.Error())
 	}
-	common.PrintAndLog("database firewall rules set")
+	helpers.PrintAndLog("database firewall rules set")
 
 	err = DbOperations(serverName, dbName, dbLogin, dbPassword)
 	if err != nil {
-		common.PrintAndLog(err.Error())
+		helpers.PrintAndLog(err.Error())
 	}
-	common.PrintAndLog("database operations performed")
+	helpers.PrintAndLog("database operations performed")
 
 	// Output:
 	// resource group created

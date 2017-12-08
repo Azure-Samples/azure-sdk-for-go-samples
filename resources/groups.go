@@ -1,43 +1,34 @@
 package resources
 
 import (
-	"log"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/management"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 func getGroupsClient() resources.GroupsClient {
-	groupsClient := resources.NewGroupsClient(management.GetSubID())
-	groupsClient.Authorizer = management.GetToken()
+	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
+	groupsClient := resources.NewGroupsClient(helpers.SubscriptionID())
+	groupsClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	return groupsClient
 }
 
 // CreateGroup creates a new resource group named by env var
-func CreateGroup() (resources.Group, error) {
+func CreateGroup(groupName string) (resources.Group, error) {
 	groupsClient := getGroupsClient()
-	log.Printf("creating group on location %v\n", management.GetLocation())
+
 	return groupsClient.CreateOrUpdate(
-		management.GetResourceGroup(),
+		groupName,
 		resources.Group{
-			Location: to.StringPtr(management.GetLocation()),
+			Location: to.StringPtr(helpers.Location()),
 		})
 }
 
 // DeleteGroup removes the resource group named by env var
-func DeleteGroup() (<-chan autorest.Response, <-chan error) {
+func DeleteGroup(groupName string) (<-chan autorest.Response, <-chan error) {
 	groupsClient := getGroupsClient()
-	return groupsClient.Delete(management.GetResourceGroup(), nil)
-}
-
-func Cleanup() error {
-	if management.KeepResources() {
-		log.Println("keeping resources")
-		return nil
-	}
-	log.Println("deleting resources")
-	_, errChan := DeleteGroup()
-	return <-errChan
+	return groupsClient.Delete(groupName, nil)
 }

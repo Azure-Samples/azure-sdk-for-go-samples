@@ -13,7 +13,7 @@ var (
 )
 
 func getContainerURL(accountName, containerName string) blob.ContainerURL {
-	key := loadKey(accountName)
+	key := getFirstKey(accountName)
 	c := blob.NewSharedKeyCredential(accountName, key)
 	p := blob.NewPipeline(c, blob.PipelineOptions{})
 	u, _ := url.Parse(fmt.Sprintf(blobFormatString, accountName))
@@ -22,8 +22,7 @@ func getContainerURL(accountName, containerName string) blob.ContainerURL {
 	return container
 }
 
-// CreateContainer creates a new container with the specified name
-// in the Storage Account specified by env var
+// CreateContainer creates a new container with the specified name in the specified account
 func CreateContainer(accountName, containerName string) (blob.ContainerURL, error) {
 	c := getContainerURL(accountName, containerName)
 

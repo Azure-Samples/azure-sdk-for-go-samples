@@ -186,6 +186,11 @@ func CreateNic(vnetName, subnetName, nsgName, ipName, nicName string) (<-chan ne
 	)
 }
 
+func GetNic(nicName string) (network.Interface, error) {
+	nicClient := getNicClient()
+	return nicClient.Get(helpers.ResourceGroupName(), nicName, "")
+}
+
 func DeleteNic(nic string) (<-chan autorest.Response, <-chan error) {
 	nicClient := getNicClient()
 	return nicClient.Delete(helpers.ResourceGroupName(), nic, nil)

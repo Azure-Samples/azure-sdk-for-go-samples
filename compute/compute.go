@@ -68,6 +68,7 @@ func CreateVM(vmName, storageAccountName, nicName, username, password, sshPublic
 						SSH: &compute.SSHConfiguration{
 							PublicKeys: &[]compute.SSHPublicKey{
 								compute.SSHPublicKey{
+									Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", username)),
 									KeyData: to.StringPtr(string(sshBytes)),
 								},
 							},

@@ -40,7 +40,7 @@ func CreateStorageAccount(accountName string) (<-chan storage.Account, <-chan er
 		log.Fatalf("%s: %v", "storage account creation failed", err)
 	}
 	if *result.NameAvailable != true {
-		log.Fatalf("%s: %v", "storage account name not available", err)
+		log.Fatalf("%s [%s]: %v", "storage account name not available", accountName, err)
 	}
 
 	return storageAccountsClient.Create(

@@ -14,15 +14,15 @@ Read the [main SDK README][] for more help getting started with the Go SDK.
 1. Set the following environment variables (those marked * are required). Use
 the following instructions to find or create these values if necessary.
 
-    * AZ_SUBSCRIPTION_ID*
-    * AZ_TENANT_ID*
-    * AZ_CLIENT_ID*
-    * AZ_CLIENT_SECRET*
-    * AZ_LOCATION
-    * AZ_RESOURCE_GROUP_NAME
-    * AZ_KEEP_SAMPLE_RESOURCES
+    * `AZ_SUBSCRIPTION_ID`*
+    * `AZ_TENANT_ID`*
+    * `AZ_CLIENT_ID`*
+    * `AZ_CLIENT_SECRET`*
+    * `AZ_LOCATION`
+    * `AZ_RESOURCE_GROUP_NAME`
+    * `AZ_KEEP_SAMPLE_RESOURCES`
 
-    Using [azure-cli][], you can get your subscription ID by running `az account
+    Using [the Azure CLI][azure-cli], you can get your subscription ID by running `az account
     list`. You can check your tenant ID and get a client ID and secret by
     running `az ad sp create-for-rbac -n "<yourAppName>"`.
 
@@ -47,11 +47,6 @@ the following instructions to find or create these values if necessary.
     1. If you're feeling lucky and want to test all the samples, try `go test ./...`
         * This only requires the root .env file.
 
-**NOTE:** To use Device Flow rather than Service Principal, replace
-`iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)` with
-`iam.GetResourceManagementToken(iam.OAuthGrantTypeDeviceFlow)` throughout
-codebase. Currently, Device Flow relies on an app ID from joshgav's tenant.
-
 # Resources
 
 - SDK code is at [Azure/azure-sdk-for-go][].
@@ -62,11 +57,11 @@ codebase. Currently, Device Flow relies on an app ID from joshgav's tenant.
 
 # License
 
-MIT, see [LICENSE][].
+This code is provided under the MIT license. See [LICENSE][] for details.
 
 # Contribute
 
-See [CONTRIBUTING.md][]. 
+We welcome your contributions! For instructions and our code of conduct see [CONTRIBUTING.md][]. And thank you!
 
 [main SDK README]: https://github.com/Azure/azure-sdk-for-go/blob/master/README.md
 [Azure update feed]: https://azure.microsoft.com/updates/

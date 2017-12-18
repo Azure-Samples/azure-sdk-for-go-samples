@@ -1,24 +1,24 @@
-Thanks for your contributions and feedback to the samples for Go on Azure!
+Thank you for your contribution and feedback! Help us review faster by providing the following information:
 
-### This issue is a: (mark with an `x`)
-```
-- [ ] bug report (consider searching issues before submitting)
-- [ ] feature request
+## This issue is a: (mark with an `x`)
+
+- [ ] bug report
+- [ ] request for new sample
 - [ ] documentation issue or request
 - [ ] regression (a behavior that used to work and stopped in a new release)
-```
 
-### Minimal steps to reproduce
->
 
-### Related errors and log messages
->
+## Steps to reproduce:
 
-### Expected/desired behavior
->
 
-### OS and Go version
-> Windows version, Linux distribution and version, macOS version.
-> Go version
+## Errors and log messages:
 
-Thanks again!
+
+## Expected behavior:
+
+
+## OS and Go versions:
+
+
+## Further info:
+

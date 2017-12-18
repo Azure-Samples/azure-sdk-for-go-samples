@@ -44,7 +44,7 @@ func ParseArgs() error {
 	}
 
 	if !(len(resourceGroupName) > 0) {
-		resourceGroupName = "group-azure-samples-go"
+		resourceGroupName = "group-azure-samples-go" + GetRandomLetterSequence(10)
 	}
 
 	if !(len(location) > 0) {

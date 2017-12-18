@@ -17,8 +17,6 @@ const (
 	publisher = "Canonical"
 	offer     = "UbuntuServer"
 	sku       = "16.04.0-LTS"
-
-	vhdURItemplate = "https://%s.blob.core.windows.net/azsamplesgocompute/%s.vhd"
 )
 
 func getVMClient() (compute.VirtualMachinesClient, error) {
@@ -28,7 +26,9 @@ func getVMClient() (compute.VirtualMachinesClient, error) {
 	return vmClient, nil
 }
 
-func CreateVM(vmName, storageAccountName, nicName, username, password, sshPublicKeyPath string) (<-chan compute.VirtualMachine, <-chan error) {
+// CreateVM creates a new virtual machine with the specified name using the specified NIC.
+// Username, password, and sshPublicKeyPath determine logon credentials.
+func CreateVM(vmName, nicName, username, password, sshPublicKeyPath string) (<-chan compute.VirtualMachine, <-chan error) {
 	nic, _ := network.GetNic(nicName)
 	sshBytes, err := ioutil.ReadFile(sshPublicKeyPath)
 	if err != nil {
@@ -51,13 +51,6 @@ func CreateVM(vmName, storageAccountName, nicName, username, password, sshPublic
 						Offer:     to.StringPtr(offer),
 						Sku:       to.StringPtr(sku),
 						Version:   to.StringPtr("latest"),
-					},
-					OsDisk: &compute.OSDisk{
-						Name: to.StringPtr("osDisk-" + helpers.GetRandomLetterSequence(10)),
-						Vhd: &compute.VirtualHardDisk{
-							URI: to.StringPtr(fmt.Sprintf(vhdURItemplate, storageAccountName, vmName)),
-						},
-						CreateOption: compute.DiskCreateOptionTypesFromImage,
 					},
 				},
 				OsProfile: &compute.OSProfile{

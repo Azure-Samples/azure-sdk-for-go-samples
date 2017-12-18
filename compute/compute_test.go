@@ -4,22 +4,19 @@ import (
 	"flag"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/storage"
 	"github.com/subosito/gotenv"
 )
 
 var (
-	vmName             = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
-	nicName            = "nic1"
-	storageAccountName = "azsamplesgo" + helpers.GetRandomLetterSequence(10)
-	username           = "az-samples-go-user"
-	password           = "NoSoupForYou1!"
-	sshPublicKeyPath   = os.Getenv("HOME") + "/.ssh/id_rsa.pub"
+	vmName           = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
+	nicName          = "nic1"
+	username         = "az-samples-go-user"
+	password         = "NoSoupForYou1!"
+	sshPublicKeyPath = os.Getenv("HOME") + "/.ssh/id_rsa.pub"
 
 	virtualNetworkName = "vnet1"
 	subnet1Name        = "subnet1"
@@ -86,14 +83,7 @@ func ExampleCreateVM() {
 	}
 	helpers.PrintAndLog("created nic")
 
-	_, errC = storage.CreateStorageAccount(strings.ToLower(storageAccountName))
-	err = <-errC
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("created storage account")
-
-	_, errC = CreateVM(vmName, storageAccountName, nicName, username, password, sshPublicKeyPath)
+	_, errC = CreateVM(vmName, nicName, username, password, sshPublicKeyPath)
 	err = <-errC
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
@@ -106,6 +96,5 @@ func ExampleCreateVM() {
 	// created network security group
 	// created public IP
 	// created nic
-	// created storage account
 	// created VM
 }

@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	accountName   = "azure-samples-go-" + helpers.GetRandomLetterSequence(10)
+	accountName   = "azuresamplesgo" + helpers.GetRandomLetterSequence(10)
 	containerName = "container1"
 	blobName      = "blob1"
 )

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
@@ -30,9 +31,14 @@ func getVMClient() (compute.VirtualMachinesClient, error) {
 // Username, password, and sshPublicKeyPath determine logon credentials.
 func CreateVM(vmName, nicName, username, password, sshPublicKeyPath string) (<-chan compute.VirtualMachine, <-chan error) {
 	nic, _ := network.GetNic(nicName)
-	sshBytes, err := ioutil.ReadFile(sshPublicKeyPath)
-	if err != nil {
-		log.Fatalf("failed to read SSH key data: %v", err)
+
+	var sshBytes []byte
+	var err error
+	if _, err = os.Stat(sshPublicKeyPath); err == nil {
+		sshBytes, err = ioutil.ReadFile(sshPublicKeyPath)
+		if err != nil {
+			log.Fatalf("failed to read SSH key data: %v", err)
+		}
 	}
 
 	vmClient, _ := getVMClient()

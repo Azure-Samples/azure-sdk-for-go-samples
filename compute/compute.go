@@ -20,6 +20,8 @@ const (
 	sku       = "16.04.0-LTS"
 )
 
+var fakepubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM97OXV9dTCZdZJkSk+W2r9XqmlbuGkZU1b1zyiAaXZq azureuser"
+
 func getVMClient() (compute.VirtualMachinesClient, error) {
 	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
 	vmClient := compute.NewVirtualMachinesClient(helpers.SubscriptionID())
@@ -32,13 +34,16 @@ func getVMClient() (compute.VirtualMachinesClient, error) {
 func CreateVM(vmName, nicName, username, password, sshPublicKeyPath string) (<-chan compute.VirtualMachine, <-chan error) {
 	nic, _ := network.GetNic(nicName)
 
-	var sshBytes []byte
+	var sshKeyData string
 	var err error
 	if _, err = os.Stat(sshPublicKeyPath); err == nil {
-		sshBytes, err = ioutil.ReadFile(sshPublicKeyPath)
+		sshBytes, err := ioutil.ReadFile(sshPublicKeyPath)
 		if err != nil {
 			log.Fatalf("failed to read SSH key data: %v", err)
 		}
+		sshKeyData = string(sshBytes)
+	} else {
+		sshKeyData = fakepubkey
 	}
 
 	vmClient, _ := getVMClient()
@@ -68,7 +73,7 @@ func CreateVM(vmName, nicName, username, password, sshPublicKeyPath string) (<-c
 							PublicKeys: &[]compute.SSHPublicKey{
 								compute.SSHPublicKey{
 									Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", username)),
-									KeyData: to.StringPtr(string(sshBytes)),
+									KeyData: to.StringPtr(sshKeyData),
 								},
 							},
 						},

@@ -61,6 +61,8 @@ func ExampleCognitiveServicesSearch() {
 	// completed entity search and got results
 }
 
+// Example creates a resource group and a Cognitive Services account of type spell check. Then it executes
+// a spell check and inspects the corrections.
 func ExampleCognitiveServicesSpellCheck() {
 	defer resources.Cleanup()
 

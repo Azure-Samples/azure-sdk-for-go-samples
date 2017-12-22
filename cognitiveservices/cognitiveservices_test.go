@@ -61,6 +61,44 @@ func ExampleCognitiveServicesSearch() {
 	// completed entity search and got results
 }
 
+func ExampleCognitiveServicesSpellCheck() {
+	defer resources.Cleanup()
+
+	_, err := resources.CreateGroup(helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("resource group created")
+
+	_, err = CreateCSAccount(accountName, cognitiveservices.BingSpellCheckv7)
+
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+
+	helpers.PrintAndLog("cognitive services spellcheck resource created")
+
+	spellCheckResult, err := SpellCheck(accountName)
+
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+
+	if len(*spellCheckResult.FlaggedTokens) > 0 {
+		helpers.PrintAndLog("completed spell check and found corrections")
+
+		firstFlaggedToken := (*spellCheckResult.FlaggedTokens)[0]
+		log.Printf("Number of flagged tokens in the input: %v \n", len(*spellCheckResult.FlaggedTokens))
+		log.Printf("First flagged token: %v \n", *firstFlaggedToken.Token)
+		log.Printf("First flagged token error type: %v \n", firstFlaggedToken.Type)
+		log.Printf("First flagged token suggestions count: %v \n", len(*firstFlaggedToken.Suggestions))
+	}
+	// Output:
+	// resource group created
+	// cognitive services spellcheck resource created
+	// completed spell check and found corrections
+}
+
 func searchWeb() {
 	webPages, err := SearchWeb(accountName)
 

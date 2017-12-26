@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	containerGroupName = "az-samples-go-container-group-" + helpers.GetRandomLetterSequence(10)
+	containerGroupName string
 )
 
 func init() {
@@ -33,7 +33,7 @@ func parseArgs() error {
 		return fmt.Errorf("cannot parse args: %v", err)
 	}
 
-	containerGroupName := os.Getenv("AZ_CONTAINERINSTANCE_NAME")
+	containerGroupName = os.Getenv("AZ_CONTAINERINSTANCE_CONTAINER_GROUP_NAME")
 	if !(len(containerGroupName) > 0) {
 		containerGroupName = "az-samples-go-container-group-" + helpers.GetRandomLetterSequence(10)
 	}
@@ -42,6 +42,7 @@ func parseArgs() error {
 }
 
 func ExampleCreateContainerGroup() {
+
 	defer resources.Cleanup()
 
 	_, err := resources.CreateGroup(helpers.ResourceGroupName())
@@ -60,4 +61,18 @@ func ExampleCreateContainerGroup() {
 	// Output:
 	// created resource group
 	// created container group
+}
+
+func ExampleGetContainerGroup() {
+	defer resources.Cleanup()
+
+	c, err := GetContainerGroup(helpers.ResourceGroupName(), containerGroupName)
+	if err != nil {
+		log.Fatalf("cannot get container group %v from resource group %v", containerGroupName, helpers.ResourceGroupName())
+	}
+
+	helpers.PrintAndLog(fmt.Sprintf("container group name: %v", *c.Name))
+
+	// Output:
+	// container group name: containergroup-test
 }

@@ -9,7 +9,7 @@
 
 [[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
-  packages = ["services/keyvault/mgmt/2016-10-01/keyvault","services/network/mgmt/2017-09-01/network","services/resources/mgmt/2017-05-10/resources","services/sql/mgmt/2015-05-01-preview/sql","services/storage/mgmt/2017-06-01/storage"]
+  packages = ["services/compute/mgmt/2017-03-30/compute","services/containerinstance/mgmt/2017-08-01-preview/containerinstance","services/keyvault/mgmt/2016-10-01/keyvault","services/network/mgmt/2017-09-01/network","services/resources/mgmt/2017-05-10/resources","services/sql/mgmt/2015-05-01-preview/sql","services/storage/mgmt/2017-06-01/storage"]
   revision = "7692b0cef22674113fcf71cc17ac3ccc1a7fef48"
   version = "v11.2.2-beta"
 
@@ -38,18 +38,6 @@
   version = "v3.1.0"
 
 [[projects]]
-  name = "github.com/marstr/collection"
-  packages = ["."]
-  revision = "871b1cfa2ab97d3d8f54a034280907896190c346"
-  version = "v0.3.3"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/marstr/randname"
-  packages = ["."]
-  revision = "3ef1f47af99e66171417047e6f6fa334345e95e7"
-
-[[projects]]
   name = "github.com/satori/go.uuid"
   packages = ["."]
   revision = "879c5887cd475cd7864858769793b2ceb0d44feb"
@@ -73,15 +61,9 @@
   packages = ["context"]
   revision = "a8b9294777976932365dabb6640cf1468d95c70f"
 
-[[projects]]
-  branch = "v1"
-  name = "gopkg.in/check.v1"
-  packages = ["."]
-  revision = "20d25e2804050c1cd24a7eea1e7a6447dd0e74ec"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8a50e0b71f9ad2fa39d88b675b6b42b35b92c1d5e4291f75ce4d60b75cefc379"
+  inputs-digest = "2ea261ac879230677704c3ac68b94747567b3459b99068c203a65d4fa86afba6"
   solver-name = "gps-cdcl"
   solver-version = 1

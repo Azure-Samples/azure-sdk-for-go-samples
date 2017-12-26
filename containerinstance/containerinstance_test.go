@@ -80,6 +80,20 @@ func ExampleGetContainerGroup() {
 	// retrieved container group
 }
 
+func ExampleUpdateContainerGroup() {
+	defer resources.Cleanup()
+
+	_, err := UpdateContainerGroup(helpers.ResourceGroupName(), containerGroupName)
+	if err != nil {
+		log.Fatalf("cannot upate container group: %v", err)
+	}
+
+	helpers.PrintAndLog("updated container group")
+
+	// Output:
+	// updated container group
+}
+
 func ExampleDeleteContainerGroup() {
 	defer resources.Cleanup()
 

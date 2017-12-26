@@ -93,6 +93,25 @@ func GetContainerGroup(resourceGroupName, containerGroupName string) (c containe
 	return c, nil
 }
 
+// UpdateContainerGroup updates the image of the first container of an existing container group
+// given a resrouce group name and container group name
+func UpdateContainerGroup(resourceGroupName, containerGroupName string) (c containerinstance.ContainerGroup, err error) {
+	containerGroupsClient, err := getContainerGroupsClient()
+	if err != nil {
+		return c, fmt.Errorf("cannot get container group client: %v", err)
+	}
+
+	c, err = GetContainerGroup(resourceGroupName, containerGroupName)
+	if err != nil {
+		return c, fmt.Errorf("cannot get container group %v from resource group %v: %v", containerGroupName, resourceGroupName, err)
+	}
+	// updating the image of the first container in the group
+	// here you can also update other properties of the container group
+	(*c.Containers)[0].Image = to.StringPtr("microsoft/aci-helloworld")
+
+	return containerGroupsClient.CreateOrUpdate(resourceGroupName, containerGroupName, c)
+}
+
 // DeleteContainerGroup deletes an existing container group given a resource group name and container group name
 func DeleteContainerGroup(resourceGroupName, containerGroupName string) (c containerinstance.ContainerGroup, err error) {
 	containerGroupsClient, err := getContainerGroupsClient()

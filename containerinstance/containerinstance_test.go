@@ -42,7 +42,6 @@ func parseArgs() error {
 }
 
 func ExampleCreateContainerGroup() {
-
 	defer resources.Cleanup()
 
 	_, err := resources.CreateGroup(helpers.ResourceGroupName())
@@ -71,8 +70,26 @@ func ExampleGetContainerGroup() {
 		log.Fatalf("cannot get container group %v from resource group %v", containerGroupName, helpers.ResourceGroupName())
 	}
 
-	helpers.PrintAndLog(fmt.Sprintf("container group name: %v", *c.Name))
+	if *c.Name != containerGroupName {
+		log.Fatalf("incorrect name of container group: expected %v, got %v", containerGroupName, *c.Name)
+	}
+
+	helpers.PrintAndLog("retrieved container group")
 
 	// Output:
-	// container group name: containergroup-test
+	// retrieved container group
+}
+
+func ExampleDeleteContainerGroup() {
+	defer resources.Cleanup()
+
+	_, err := DeleteContainerGroup(helpers.ResourceGroupName(), containerGroupName)
+	if err != nil {
+		log.Fatalf("cannot delete container group %v from resource group %v: %v", containerGroupName, helpers.ResourceGroupName(), err)
+	}
+
+	helpers.PrintAndLog("deleted container group")
+
+	// Output:
+	// deleted container group
 }

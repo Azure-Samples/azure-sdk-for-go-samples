@@ -25,7 +25,6 @@ func getContainerGroupsClient() (containerinstance.ContainerGroupsClient, error)
 
 // CreateContainerGroup creates a new container group given a container group name, location and resoruce group
 func CreateContainerGroup(containerGroupName, location, resourceGroupName string) (c containerinstance.ContainerGroup, err error) {
-
 	containerGroupsClient, err := getContainerGroupsClient()
 	if err != nil {
 		return c, fmt.Errorf("cannot get container group client: %v", err)
@@ -81,7 +80,6 @@ func CreateContainerGroup(containerGroupName, location, resourceGroupName string
 
 // GetContainerGroup returns an existing container group given a resource group name and container group name
 func GetContainerGroup(resourceGroupName, containerGroupName string) (c containerinstance.ContainerGroup, err error) {
-
 	containerGroupsClient, err := getContainerGroupsClient()
 	if err != nil {
 		return c, fmt.Errorf("cannot get container group client: %v", err)
@@ -93,4 +91,14 @@ func GetContainerGroup(resourceGroupName, containerGroupName string) (c containe
 	}
 
 	return c, nil
+}
+
+// DeleteContainerGroup deletes an existing container group given a resource group name and container group name
+func DeleteContainerGroup(resourceGroupName, containerGroupName string) (c containerinstance.ContainerGroup, err error) {
+	containerGroupsClient, err := getContainerGroupsClient()
+	if err != nil {
+		return c, fmt.Errorf("cannot get container group client: %v", err)
+	}
+
+	return containerGroupsClient.Delete(resourceGroupName, containerGroupName)
 }

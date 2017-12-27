@@ -1,6 +1,7 @@
 package keyvault
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 func getVaultsClient() keyvault.VaultsClient {
@@ -19,7 +20,8 @@ func getVaultsClient() keyvault.VaultsClient {
 	return vaultsClient
 }
 
-func CreateVault(vaultName string) (keyvault.Vault, error) {
+// CreateVault creates a new vault
+func CreateVault(ctx context.Context, vaultName string) (keyvault.Vault, error) {
 	vaultsClient := getVaultsClient()
 	tenantID, err := uuid.FromString(iam.TenantID())
 	if err != nil {
@@ -27,6 +29,7 @@ func CreateVault(vaultName string) (keyvault.Vault, error) {
 	}
 
 	return vaultsClient.CreateOrUpdate(
+		ctx,
 		helpers.ResourceGroupName(),
 		vaultName,
 		keyvault.VaultCreateOrUpdateParameters{
@@ -43,13 +46,14 @@ func CreateVault(vaultName string) (keyvault.Vault, error) {
 	)
 }
 
-func GetVault(vaultName string) (keyvault.Vault, error) {
+// GetVault returns an existing vault
+func GetVault(ctx context.Context, vaultName string) (keyvault.Vault, error) {
 	vaultsClient := getVaultsClient()
-	return vaultsClient.Get(helpers.ResourceGroupName(), vaultName)
+	return vaultsClient.Get(ctx, helpers.ResourceGroupName(), vaultName)
 }
 
 // SetVaultPermissions adds an access policy permitting this app's Client ID to manage keys and secrets.
-func SetVaultPermissions(vaultName string) (keyvault.Vault, error) {
+func SetVaultPermissions(ctx context.Context, vaultName string) (keyvault.Vault, error) {
 	vaultsClient := getVaultsClient()
 	tenantID, err := uuid.FromString(iam.TenantID())
 	if err != nil {
@@ -59,6 +63,7 @@ func SetVaultPermissions(vaultName string) (keyvault.Vault, error) {
 	clientID := iam.ClientID()
 
 	return vaultsClient.CreateOrUpdate(
+		ctx,
 		helpers.ResourceGroupName(),
 		vaultName,
 		keyvault.VaultCreateOrUpdateParameters{
@@ -92,7 +97,7 @@ func SetVaultPermissions(vaultName string) (keyvault.Vault, error) {
 }
 
 // SetVaultPermissionsForDeployment updates a key vault to enable deployments and add permissions to the application")
-func SetVaultPermissionsForDeployment(vaultName string) (keyvault.Vault, error) {
+func SetVaultPermissionsForDeployment(ctx context.Context, vaultName string) (keyvault.Vault, error) {
 	vaultsClient := getVaultsClient()
 	tenantID, err := uuid.FromString(iam.TenantID())
 	if err != nil {
@@ -101,6 +106,7 @@ func SetVaultPermissionsForDeployment(vaultName string) (keyvault.Vault, error) 
 	clientID := iam.ClientID()
 
 	return vaultsClient.CreateOrUpdate(
+		ctx,
 		helpers.ResourceGroupName(),
 		vaultName,
 		keyvault.VaultCreateOrUpdateParameters{
@@ -137,29 +143,30 @@ func SetVaultPermissionsForDeployment(vaultName string) (keyvault.Vault, error) 
 }
 
 // GetVaults lists all key vaults in a subscrition
-func GetVaults() {
+func GetVaults(ctx context.Context) {
 	vaultsClient := getVaultsClient()
 
 	fmt.Println("Getting all vaults in subscription")
-	subList, err := vaultsClient.List("resourceType eq 'Microsoft.KeyVault/vaults'", nil)
+	subList, err := vaultsClient.List(ctx, "resourceType eq 'Microsoft.KeyVault/vaults'", nil)
 	if err != nil {
 		log.Printf("failed to get list of vaults: %v", err)
 	}
-	for _, kv := range *subList.Value {
+	for _, kv := range subList.Values() {
 		fmt.Printf("\t%s\n", *kv.Name)
 	}
 
 	fmt.Println("Getting all vaults in resource group")
-	rgList, err := vaultsClient.ListByResourceGroup(helpers.ResourceGroupName(), nil)
+	rgList, err := vaultsClient.ListByResourceGroup(ctx, helpers.ResourceGroupName(), nil)
 	if err != nil {
 		log.Printf("failed to get list of vaults: %v", err)
 	}
-	for _, kv := range *rgList.Value {
+	for _, kv := range rgList.Values() {
 		fmt.Printf("\t%s\n", *kv.Name)
 	}
 }
 
-func DeleteVault(vaultName string) (autorest.Response, error) {
+// DeleteVault deletes an existing vault
+func DeleteVault(ctx context.Context, vaultName string) (autorest.Response, error) {
 	vaultsClient := getVaultsClient()
-	return vaultsClient.Delete(helpers.ResourceGroupName(), vaultName)
+	return vaultsClient.Delete(ctx, helpers.ResourceGroupName(), vaultName)
 }

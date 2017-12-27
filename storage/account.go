@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"context"
+	"fmt"
 	"log"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
@@ -18,9 +20,9 @@ func getStorageAccountsClient() storage.AccountsClient {
 	return storageAccountsClient
 }
 
-func getFirstKey(accountName string) string {
+func getFirstKey(ctx context.Context, accountName string) string {
 	accountsClient := getStorageAccountsClient()
-	res, err := accountsClient.ListKeys(helpers.ResourceGroupName(), accountName)
+	res, err := accountsClient.ListKeys(ctx, helpers.ResourceGroupName(), accountName)
 	if err != nil {
 		log.Fatalf("failed to list keys: %v", err)
 	}
@@ -28,10 +30,11 @@ func getFirstKey(accountName string) string {
 }
 
 // CreateStorageAccount creates a new storage account.
-func CreateStorageAccount(accountName string) (<-chan storage.Account, <-chan error) {
+func CreateStorageAccount(ctx context.Context, accountName string) (s storage.Account, err error) {
 	storageAccountsClient := getStorageAccountsClient()
 
 	result, err := storageAccountsClient.CheckNameAvailability(
+		ctx,
 		storage.AccountCheckNameAvailabilityParameters{
 			Name: to.StringPtr(accountName),
 			Type: to.StringPtr("Microsoft.Storage/storageAccounts"),
@@ -43,7 +46,8 @@ func CreateStorageAccount(accountName string) (<-chan storage.Account, <-chan er
 		log.Fatalf("%s [%s]: %v", "storage account name not available", accountName, err)
 	}
 
-	return storageAccountsClient.Create(
+	future, err := storageAccountsClient.Create(
+		ctx,
 		helpers.ResourceGroupName(),
 		accountName,
 		storage.AccountCreateParameters{
@@ -51,11 +55,22 @@ func CreateStorageAccount(accountName string) (<-chan storage.Account, <-chan er
 				Name: storage.StandardLRS},
 			Location: to.StringPtr(helpers.Location()),
 			AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{},
-		},
-		nil /* cancel <-chan struct{} */)
+		})
+
+	if err != nil {
+		return s, fmt.Errorf("cannot create storage account: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, storageAccountsClient.Client)
+	if err != nil {
+		return s, fmt.Errorf("cannot get the storage account create future response: %v", err)
+	}
+
+	return future.Result(storageAccountsClient)
 }
 
-func DeleteStorageAccount(accountName string) (autorest.Response, error) {
+// DeleteStorageAccount deletes an existing storate account
+func DeleteStorageAccount(ctx context.Context, accountName string) (autorest.Response, error) {
 	storageAccountsClient := getStorageAccountsClient()
-	return storageAccountsClient.Delete(helpers.ResourceGroupName(), accountName)
+	return storageAccountsClient.Delete(ctx, helpers.ResourceGroupName(), accountName)
 }

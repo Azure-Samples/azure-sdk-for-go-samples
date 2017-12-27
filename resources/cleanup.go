@@ -1,17 +1,18 @@
 package resources
 
 import (
+	"context"
 	"log"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 )
 
-func Cleanup() error {
+func Cleanup(ctx context.Context) error {
 	if helpers.KeepResources() {
 		log.Println("keeping resources")
 		return nil
 	}
 	log.Println("deleting resources")
-	_, errChan := DeleteGroup(helpers.ResourceGroupName())
-	return <-errChan
+	_, err := DeleteGroup(ctx, helpers.ResourceGroupName())
+	return err
 }

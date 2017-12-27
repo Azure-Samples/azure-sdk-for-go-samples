@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"context"
 	"flag"
 	"log"
 	"os"
@@ -47,44 +48,41 @@ func parseArgs() error {
 }
 
 func ExampleCreateVM() {
-	defer resources.Cleanup()
+	ctx := context.Background()
 
-	_, err := resources.CreateGroup(helpers.ResourceGroupName())
+	defer resources.Cleanup(ctx)
+
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("resource group created")
 
-	_, errC := network.CreateVirtualNetworkAndSubnets(virtualNetworkName, subnet1Name, subnet2Name)
-	err = <-errC
+	_, err = network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created vnet and 2 subnets")
 
-	_, errC = network.CreateNetworkSecurityGroup(nsgName)
-	err = <-errC
+	_, err = network.CreateNetworkSecurityGroup(ctx, nsgName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created network security group")
 
-	_, errC = network.CreatePublicIp(ipName)
-	err = <-errC
+	_, err = network.CreatePublicIP(ctx, ipName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created public IP")
 
-	_, errC = network.CreateNic(virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
-	err = <-errC
+	_, err = network.CreateNIC(ctx, virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created nic")
 
-	_, errC = CreateVM(vmName, nicName, username, password, sshPublicKeyPath)
-	err = <-errC
+	_, err = CreateVM(ctx, vmName, nicName, username, password, sshPublicKeyPath)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

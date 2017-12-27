@@ -9,9 +9,9 @@
 
 [[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
-  packages = ["services/keyvault/mgmt/2016-10-01/keyvault","services/network/mgmt/2017-09-01/network","services/resources/mgmt/2017-05-10/resources","services/sql/mgmt/2015-05-01-preview/sql","services/storage/mgmt/2017-06-01/storage"]
-  revision = "7692b0cef22674113fcf71cc17ac3ccc1a7fef48"
-  version = "v11.2.2-beta"
+  packages = ["services/compute/mgmt/2017-03-30/compute","services/containerinstance/mgmt/2017-08-01-preview/containerinstance","services/keyvault/mgmt/2016-10-01/keyvault","services/network/mgmt/2017-09-01/network","services/resources/mgmt/2017-05-10/resources","services/sql/mgmt/2015-05-01-preview/sql","services/storage/mgmt/2017-06-01/storage"]
+  revision = "990842d1126ef6e294152c5f6f4e3f804a3cfd6d"
+  version = "v12.0.0-beta"
 
 [[projects]]
   name = "github.com/Azure/azure-storage-blob-go"
@@ -22,8 +22,8 @@
 [[projects]]
   name = "github.com/Azure/go-autorest"
   packages = ["autorest","autorest/adal","autorest/azure","autorest/date","autorest/to","autorest/validation"]
-  revision = "cab8279ba5cd5e165c58201f798712f2ec0f49d6"
-  version = "v9.4.2"
+  revision = "809ed2ef5c4c9a60c3c2f3aa9cc11f3a7c2ce59d"
+  version = "v9.6.0"
 
 [[projects]]
   branch = "master"
@@ -36,18 +36,6 @@
   packages = ["."]
   revision = "dbeaa9332f19a944acb5736b4456cfcc02140e29"
   version = "v3.1.0"
-
-[[projects]]
-  name = "github.com/marstr/collection"
-  packages = ["."]
-  revision = "871b1cfa2ab97d3d8f54a034280907896190c346"
-  version = "v0.3.3"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/marstr/randname"
-  packages = ["."]
-  revision = "3ef1f47af99e66171417047e6f6fa334345e95e7"
 
 [[projects]]
   name = "github.com/satori/go.uuid"
@@ -73,15 +61,9 @@
   packages = ["context"]
   revision = "a8b9294777976932365dabb6640cf1468d95c70f"
 
-[[projects]]
-  branch = "v1"
-  name = "gopkg.in/check.v1"
-  packages = ["."]
-  revision = "20d25e2804050c1cd24a7eea1e7a6447dd0e74ec"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8a50e0b71f9ad2fa39d88b675b6b42b35b92c1d5e4291f75ce4d60b75cefc379"
+  inputs-digest = "6e9051280498e7d2ba1f81a2c70af6ed267d9a86cb421e8fea73c33f23cd0ad5"
   solver-name = "gps-cdcl"
   solver-version = 1

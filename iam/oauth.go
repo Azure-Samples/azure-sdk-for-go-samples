@@ -1,13 +1,12 @@
 package iam
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"os/user"
-	"path/filepath"
+	"os"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/common"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/subosito/gotenv"
@@ -39,24 +38,40 @@ const (
 	OAuthGrantTypeDeviceFlow
 )
 
-func GetEnvVars() {
+func init() {
+	err := parseArgs()
+	if err != nil {
+		log.Fatalf("failed to parse args: %s\n", err)
+	}
+}
+
+func parseArgs() error {
 	gotenv.Load() // read from .env file
 
-	tenantID = common.GetEnvVarOrFail("AZURE_TENANT_ID")
-	clientID = common.GetEnvVarOrFail("AZURE_CLIENT_ID")
-	clientSecret = common.GetEnvVarOrFail("AZURE_CLIENT_SECRET")
+	tenantID = os.Getenv("AZ_TENANT_ID")
+	clientID = os.Getenv("AZ_CLIENT_ID")
+	clientSecret = os.Getenv("AZ_CLIENT_SECRET")
 
+	if !(len(tenantID) > 0) || !(len(clientID) > 0) || !(len(clientSecret) > 0) {
+		return errors.New("tenant id, client id, and client secret must be specified via env var or flags")
+
+	}
 	var err error
 	oauthConfig, err = adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantID)
-	if err != nil {
-		log.Fatalf("%s: %v", "failed to get OAuth config", err)
-	}
+
+	return err
+}
+
+func ClientID() string {
+	return clientID
+}
+
+func TenantID() string {
+	return tenantID
 }
 
 // GetResourceManagementToken gets an OAuth token for managing resources using the specified grant type.
 func GetResourceManagementToken(grantType OAuthGrantType) (adal.OAuthTokenProvider, error) {
-	GetEnvVars()
-	// TODO(joshgav): if cached token is available retrieve that
 	if armToken != nil {
 		return armToken, nil
 	}
@@ -74,7 +89,6 @@ func GetResourceManagementToken(grantType OAuthGrantType) (adal.OAuthTokenProvid
 	}
 	if err == nil {
 		armToken = token
-		//TODO(joshgav): cache token to fs
 	}
 	return token, err
 }
@@ -101,21 +115,4 @@ func getDeviceToken() (adal.OAuthTokenProvider, error) {
 
 	fmt.Println(*code.Message)
 	return adal.WaitForUserCompletion(sender, code)
-}
-
-// TODO(joshgav): use cached token when available
-func getTokenCachePath() string {
-	usr, err := user.Current()
-	if err != nil {
-		log.Fatalf("%s: %v", "failed to get current user", err)
-	}
-	return filepath.Join(usr.HomeDir, ".azure", "armToken.json")
-}
-
-func GetClientID() string {
-	return clientID
-}
-
-func GetTenantID() string {
-	return tenantID
 }

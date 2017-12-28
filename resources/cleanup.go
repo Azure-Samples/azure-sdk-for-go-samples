@@ -12,6 +12,6 @@ func Cleanup() error {
 		return nil
 	}
 	log.Println("deleting resources")
-	_, errChan := DeleteGroup(helpers.ResourceGroupName())
-	return <-errChan
+	_, error := DeleteGroup(helpers.ResourceGroupName())
+	return error
 }

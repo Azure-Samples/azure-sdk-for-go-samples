@@ -1,6 +1,8 @@
 package resources
 
 import (
+	"context"
+
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 
@@ -21,6 +23,7 @@ func CreateGroup(groupName string) (resources.Group, error) {
 	groupsClient := getGroupsClient()
 
 	return groupsClient.CreateOrUpdate(
+		context.Background(),
 		groupName,
 		resources.Group{
 			Location: to.StringPtr(helpers.Location()),
@@ -28,7 +31,7 @@ func CreateGroup(groupName string) (resources.Group, error) {
 }
 
 // DeleteGroup removes the resource group named by env var
-func DeleteGroup(groupName string) (<-chan autorest.Response, <-chan error) {
+func DeleteGroup(groupName string) (resources.GroupsDeleteFuture, error) {
 	groupsClient := getGroupsClient()
-	return groupsClient.Delete(groupName, nil)
+	return groupsClient.Delete(context.Background(), groupName)
 }

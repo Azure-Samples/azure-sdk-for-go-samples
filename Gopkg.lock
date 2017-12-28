@@ -2,6 +2,17 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/Azure-Samples/azure-sdk-for-go-samples"
+  packages = [
+    "helpers",
+    "iam",
+    "network",
+    "resources"
+  ]
+  revision = "f81db6173c872990801594a9d9b31a8ae04258f2"
+
+[[projects]]
   name = "github.com/Azure/azure-pipeline-go"
   packages = ["pipeline"]
   revision = "f4da77e3846319876aebb41f2e6dccc6b1d7f1e0"
@@ -9,7 +20,23 @@
 
 [[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
-  packages = ["profiles/latest/cognitiveservices/mgmt/cognitiveservices","services/cognitiveservices/mgmt/2017-04-18/cognitiveservices","services/compute/mgmt/2017-03-30/compute","services/keyvault/mgmt/2016-10-01/keyvault","services/network/mgmt/2017-09-01/network","services/resources/mgmt/2017-05-10/resources","services/sql/mgmt/2015-05-01-preview/sql","services/storage/mgmt/2017-06-01/storage"]
+  packages = [
+    "profiles/latest/cognitiveservices/mgmt/cognitiveservices",
+    "services/cognitiveservices/mgmt/2017-04-18/cognitiveservices",
+    "services/cognitiveservices/v1.0/customsearch",
+    "services/cognitiveservices/v1.0/entitysearch",
+    "services/cognitiveservices/v1.0/imagesearch",
+    "services/cognitiveservices/v1.0/newssearch",
+    "services/cognitiveservices/v1.0/spellcheck",
+    "services/cognitiveservices/v1.0/videosearch",
+    "services/cognitiveservices/v1.0/websearch",
+    "services/compute/mgmt/2017-03-30/compute",
+    "services/keyvault/mgmt/2016-10-01/keyvault",
+    "services/network/mgmt/2017-09-01/network",
+    "services/resources/mgmt/2017-05-10/resources",
+    "services/sql/mgmt/2015-05-01-preview/sql",
+    "services/storage/mgmt/2017-06-01/storage"
+  ]
   revision = "990842d1126ef6e294152c5f6f4e3f804a3cfd6d"
   version = "v12.0.0-beta"
 
@@ -21,7 +48,14 @@
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
-  packages = ["autorest","autorest/adal","autorest/azure","autorest/date","autorest/to","autorest/validation"]
+  packages = [
+    "autorest",
+    "autorest/adal",
+    "autorest/azure",
+    "autorest/date",
+    "autorest/to",
+    "autorest/validation"
+  ]
   revision = "809ed2ef5c4c9a60c3c2f3aa9cc11f3a7c2ce59d"
   version = "v9.6.0"
 
@@ -53,7 +87,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["md4"]
-  revision = "d585fd2cc9195196078f516b69daff6744ef5e84"
+  revision = "95a4943f35d008beabde8c11e5075a1b714e6419"
 
 [[projects]]
   branch = "master"
@@ -64,6 +98,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2b5eafbcf034379656caa5173d190d61e9ec089eac6c5723e5792aa76b1223c9"
+  inputs-digest = "0e1c32a00a059efabb2d4df14c51827e16fdb02bf4368a6a306562245bff8e84"
   solver-name = "gps-cdcl"
   solver-version = 1

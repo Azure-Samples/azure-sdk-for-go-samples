@@ -1,2 +1,5 @@
 .env
 vendor/
+
+# Temp/backup files
+*.swp

@@ -55,36 +55,31 @@ func ExampleCreateVM() {
 	}
 	helpers.PrintAndLog("resource group created")
 
-	_, errC := network.CreateVirtualNetworkAndSubnets(virtualNetworkName, subnet1Name, subnet2Name)
-	err = <-errC
+	_, err = network.CreateVirtualNetworkAndSubnets(virtualNetworkName, subnet1Name, subnet2Name)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created vnet and 2 subnets")
 
-	_, errC = network.CreateNetworkSecurityGroup(nsgName)
-	err = <-errC
+	_, err = network.CreateNetworkSecurityGroup(nsgName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created network security group")
 
-	_, errC = network.CreatePublicIp(ipName)
-	err = <-errC
+	_, err = network.CreatePublicIp(ipName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created public IP")
 
-	_, errC = network.CreateNic(virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
-	err = <-errC
+	_, err = network.CreateNic(virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created nic")
 
-	_, errC = CreateVM(vmName, nicName, username, password, sshPublicKeyPath)
-	err = <-errC
+	_, err = CreateVM(vmName, nicName, username, password, sshPublicKeyPath)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

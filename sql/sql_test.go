@@ -35,15 +35,13 @@ func ExampleDatabaseQueries() {
 
 	serverName = strings.ToLower(serverName)
 
-	_, errC := CreateServer(serverName, dbLogin, dbPassword)
-	err = <-errC
+	_, err = CreateServer(serverName, dbLogin, dbPassword)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("sql server created")
 
-	_, errC = CreateDb(serverName, dbName)
-	err = <-errC
+	_, err = CreateDb(serverName, dbName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

@@ -1,6 +1,7 @@
 package keyvault
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -27,6 +28,7 @@ func CreateVault(vaultName string) (keyvault.Vault, error) {
 	}
 
 	return vaultsClient.CreateOrUpdate(
+		context.Background(),
 		helpers.ResourceGroupName(),
 		vaultName,
 		keyvault.VaultCreateOrUpdateParameters{
@@ -45,7 +47,7 @@ func CreateVault(vaultName string) (keyvault.Vault, error) {
 
 func GetVault(vaultName string) (keyvault.Vault, error) {
 	vaultsClient := getVaultsClient()
-	return vaultsClient.Get(helpers.ResourceGroupName(), vaultName)
+	return vaultsClient.Get(context.Background(), helpers.ResourceGroupName(), vaultName)
 }
 
 // SetVaultPermissions adds an access policy permitting this app's Client ID to manage keys and secrets.
@@ -59,6 +61,7 @@ func SetVaultPermissions(vaultName string) (keyvault.Vault, error) {
 	clientID := iam.ClientID()
 
 	return vaultsClient.CreateOrUpdate(
+		context.Background(),
 		helpers.ResourceGroupName(),
 		vaultName,
 		keyvault.VaultCreateOrUpdateParameters{
@@ -101,6 +104,7 @@ func SetVaultPermissionsForDeployment(vaultName string) (keyvault.Vault, error) 
 	clientID := iam.ClientID()
 
 	return vaultsClient.CreateOrUpdate(
+		context.Background(),
 		helpers.ResourceGroupName(),
 		vaultName,
 		keyvault.VaultCreateOrUpdateParameters{
@@ -136,30 +140,29 @@ func SetVaultPermissionsForDeployment(vaultName string) (keyvault.Vault, error) 
 	)
 }
 
-// GetVaults lists all key vaults in a subscrition
+// GetVaults lists all key vaults in a subscription
 func GetVaults() {
 	vaultsClient := getVaultsClient()
 
 	fmt.Println("Getting all vaults in subscription")
-	subList, err := vaultsClient.List("resourceType eq 'Microsoft.KeyVault/vaults'", nil)
-	if err != nil {
-		log.Printf("failed to get list of vaults: %v", err)
-	}
-	for _, kv := range *subList.Value {
-		fmt.Printf("\t%s\n", *kv.Name)
+	for subList, err := vaultsClient.ListComplete(context.Background(), "resourceType eq 'Microsoft.KeyVault/vaults'", nil); subList.NotDone(); err = subList.Next() {
+		if err != nil {
+			log.Printf("failed to get list of vaults: %v", err)
+		}
+		fmt.Printf("\t%s\n", *subList.Value().Name)
 	}
 
 	fmt.Println("Getting all vaults in resource group")
-	rgList, err := vaultsClient.ListByResourceGroup(helpers.ResourceGroupName(), nil)
-	if err != nil {
-		log.Printf("failed to get list of vaults: %v", err)
-	}
-	for _, kv := range *rgList.Value {
-		fmt.Printf("\t%s\n", *kv.Name)
+	for rgList, err := vaultsClient.ListByResourceGroupComplete(context.Background(), helpers.ResourceGroupName(), nil); rgList.NotDone(); err = rgList.Next() {
+		if err != nil {
+			log.Printf("failed to get list of vaults: %v", err)
+		}
+		fmt.Printf("\t%s\n", *rgList.Value().Name)
 	}
 }
 
-func DeleteVault(vaultName string) (autorest.Response, error) {
+func DeleteVault(vaultName string) error {
 	vaultsClient := getVaultsClient()
-	return vaultsClient.Delete(helpers.ResourceGroupName(), vaultName)
+	_, err := vaultsClient.Delete(context.Background(), helpers.ResourceGroupName(), vaultName)
+	return err
 }

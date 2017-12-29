@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -29,11 +30,13 @@ func getVMClient() (compute.VirtualMachinesClient, error) {
 
 // CreateVM creates a new virtual machine with the specified name using the specified NIC.
 // Username, password, and sshPublicKeyPath determine logon credentials.
-func CreateVM(vmName, nicName, username, password, sshPublicKeyPath string) (<-chan compute.VirtualMachine, <-chan error) {
-	nic, _ := network.GetNic(nicName)
+func CreateVM(vmName, nicName, username, password, sshPublicKeyPath string) (vm compute.VirtualMachine, err error) {
+	nic, err := network.GetNic(nicName)
+	if err != nil {
+		return
+	}
 
 	var sshBytes []byte
-	var err error
 	if _, err = os.Stat(sshPublicKeyPath); err == nil {
 		sshBytes, err = ioutil.ReadFile(sshPublicKeyPath)
 		if err != nil {
@@ -42,7 +45,8 @@ func CreateVM(vmName, nicName, username, password, sshPublicKeyPath string) (<-c
 	}
 
 	vmClient, _ := getVMClient()
-	return vmClient.CreateOrUpdate(
+	future, err := vmClient.CreateOrUpdate(
+		context.Background(),
 		helpers.ResourceGroupName(),
 		vmName,
 		compute.VirtualMachine{
@@ -85,7 +89,13 @@ func CreateVM(vmName, nicName, username, password, sshPublicKeyPath string) (<-c
 					},
 				},
 			},
-		},
-		nil,
-	)
+		})
+	if err != nil {
+		return
+	}
+	err = future.WaitForCompletion(context.Background(), vmClient.Client)
+	if err != nil {
+		return
+	}
+	return future.Result(vmClient)
 }

@@ -49,29 +49,25 @@ func ExampleCreateNIC() {
 	}
 	helpers.PrintAndLog("resource group created")
 
-	_, errC := CreateVirtualNetworkAndSubnets(virtualNetworkName, subnet1Name, subnet2Name)
-	err = <-errC
+	_, err = CreateVirtualNetworkAndSubnets(virtualNetworkName, subnet1Name, subnet2Name)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created vnet and 2 subnets")
 
-	_, errC = CreateNetworkSecurityGroup(nsgName)
-	err = <-errC
+	_, err = CreateNetworkSecurityGroup(nsgName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created network security group")
 
-	_, errC = CreatePublicIp(ipName)
-	err = <-errC
+	_, err = CreatePublicIp(ipName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created public IP")
 
-	_, errC = CreateNic(virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
-	err = <-errC
+	_, err = CreateNic(virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

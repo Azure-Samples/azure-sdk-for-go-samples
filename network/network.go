@@ -1,6 +1,7 @@
 package network
 
 import (
+	"context"
 	"log"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
@@ -19,9 +20,10 @@ func getVnetClient() network.VirtualNetworksClient {
 	return vnetClient
 }
 
-func CreateVirtualNetworkAndSubnets(vnetName, subnet1Name, subnet2Name string) (<-chan network.VirtualNetwork, <-chan error) {
+func CreateVirtualNetworkAndSubnets(vnetName, subnet1Name, subnet2Name string) (vnet network.VirtualNetwork, err error) {
 	vnetClient := getVnetClient()
-	return vnetClient.CreateOrUpdate(
+	future, err := vnetClient.CreateOrUpdate(
+		context.Background(),
 		helpers.ResourceGroupName(),
 		vnetName,
 		network.VirtualNetwork{
@@ -45,12 +47,24 @@ func CreateVirtualNetworkAndSubnets(vnetName, subnet1Name, subnet2Name string) (
 					},
 				},
 			},
-		},
-		nil)
+		})
+	if err != nil {
+		return
+	}
+	err = future.WaitForCompletion(context.Background(), vnetClient.Client)
+	if err != nil {
+		return
+	}
+	return future.Result(vnetClient)
 }
-func DeleteVirtualNetwork(vnetName string) (<-chan autorest.Response, <-chan error) {
+
+func DeleteVirtualNetwork(vnetName string) error {
 	vnetClient := getVnetClient()
-	return vnetClient.Delete(helpers.ResourceGroupName(), vnetName, nil)
+	future, err := vnetClient.Delete(context.Background(), helpers.ResourceGroupName(), vnetName)
+	if err != nil {
+		return err
+	}
+	return future.WaitForCompletion(context.Background(), vnetClient.Client)
 }
 
 // VNet Subnets
@@ -67,7 +81,7 @@ func DeleteVirtualNetworkSubnet() {}
 
 func GetVirtualNetworkSubnet(vnetName string, subnetName string) (network.Subnet, error) {
 	subnetsClient := getSubnetsClient()
-	return subnetsClient.Get(helpers.ResourceGroupName(), vnetName, subnetName, "")
+	return subnetsClient.Get(context.Background(), helpers.ResourceGroupName(), vnetName, subnetName, "")
 }
 
 // Network Security Groups
@@ -79,9 +93,10 @@ func getNsgClient() network.SecurityGroupsClient {
 	return nsgClient
 }
 
-func CreateNetworkSecurityGroup(nsgName string) (<-chan network.SecurityGroup, <-chan error) {
+func CreateNetworkSecurityGroup(nsgName string) (nsg network.SecurityGroup, err error) {
 	nsgClient := getNsgClient()
-	return nsgClient.CreateOrUpdate(
+	future, err := nsgClient.CreateOrUpdate(
+		context.Background(),
 		helpers.ResourceGroupName(),
 		nsgName,
 		network.SecurityGroup{
@@ -116,19 +131,29 @@ func CreateNetworkSecurityGroup(nsgName string) (<-chan network.SecurityGroup, <
 					},
 				},
 			},
-		},
-		nil,
-	)
+		})
+	if err != nil {
+		return
+	}
+	err = future.WaitForCompletion(context.Background(), nsgClient.Client)
+	if err != nil {
+		return
+	}
+	return future.Result(nsgClient)
 }
 
-func DeleteNetworkSecurityGroup(nsgName string) (<-chan autorest.Response, <-chan error) {
+func DeleteNetworkSecurityGroup(nsgName string) error {
 	nsgClient := getNsgClient()
-	return nsgClient.Delete(helpers.ResourceGroupName(), nsgName, nil)
+	result, err := nsgClient.Delete(context.Background(), helpers.ResourceGroupName(), nsgName)
+	if err != nil {
+		return err
+	}
+	return result.WaitForCompletion(context.Background(), nsgClient.Client)
 }
 
 func GetNetworkSecurityGroup(nsgName string) (network.SecurityGroup, error) {
 	nsgClient := getNsgClient()
-	return nsgClient.Get(helpers.ResourceGroupName(), nsgName, "")
+	return nsgClient.Get(context.Background(), helpers.ResourceGroupName(), nsgName, "")
 }
 
 // Network Security Group Rules
@@ -145,7 +170,7 @@ func getNicClient() network.InterfacesClient {
 	return nicClient
 }
 
-func CreateNic(vnetName, subnetName, nsgName, ipName, nicName string) (<-chan network.Interface, <-chan error) {
+func CreateNic(vnetName, subnetName, nsgName, ipName, nicName string) (nic network.Interface, err error) {
 	nsg, err := GetNetworkSecurityGroup(nsgName)
 	if err != nil {
 		log.Fatalf("failed to get nsg: %v", err)
@@ -162,7 +187,8 @@ func CreateNic(vnetName, subnetName, nsgName, ipName, nicName string) (<-chan ne
 	}
 
 	nicClient := getNicClient()
-	return nicClient.CreateOrUpdate(
+	future, err := nicClient.CreateOrUpdate(
+		context.Background(),
 		helpers.ResourceGroupName(),
 		nicName,
 		network.Interface{
@@ -181,19 +207,29 @@ func CreateNic(vnetName, subnetName, nsgName, ipName, nicName string) (<-chan ne
 					},
 				},
 			},
-		},
-		nil,
-	)
+		})
+	if err != nil {
+		return
+	}
+	err = future.WaitForCompletion(context.Background(), nicClient.Client)
+	if err != nil {
+		return
+	}
+	return future.Result(nicClient)
 }
 
 func GetNic(nicName string) (network.Interface, error) {
 	nicClient := getNicClient()
-	return nicClient.Get(helpers.ResourceGroupName(), nicName, "")
+	return nicClient.Get(context.Background(), helpers.ResourceGroupName(), nicName, "")
 }
 
-func DeleteNic(nic string) (<-chan autorest.Response, <-chan error) {
+func DeleteNic(nic string) error {
 	nicClient := getNicClient()
-	return nicClient.Delete(helpers.ResourceGroupName(), nic, nil)
+	future, err := nicClient.Delete(context.Background(), helpers.ResourceGroupName(), nic)
+	if err != nil {
+		return err
+	}
+	return future.WaitForCompletion(context.Background(), nicClient.Client)
 }
 
 // Public IP Addresses
@@ -205,9 +241,10 @@ func getIpClient() network.PublicIPAddressesClient {
 	return ipClient
 }
 
-func CreatePublicIp(ipName string) (<-chan network.PublicIPAddress, <-chan error) {
+func CreatePublicIp(ipName string) (pip network.PublicIPAddress, err error) {
 	ipClient := getIpClient()
-	return ipClient.CreateOrUpdate(
+	future, err := ipClient.CreateOrUpdate(
+		context.Background(),
 		helpers.ResourceGroupName(),
 		ipName,
 		network.PublicIPAddress{
@@ -217,17 +254,27 @@ func CreatePublicIp(ipName string) (<-chan network.PublicIPAddress, <-chan error
 				PublicIPAddressVersion:   network.IPv4,
 				PublicIPAllocationMethod: network.Static,
 			},
-		},
-		nil,
-	)
+		})
+	if err != nil {
+		return
+	}
+	err = future.WaitForCompletion(context.Background(), ipClient.Client)
+	if err != nil {
+		return
+	}
+	return future.Result(ipClient)
 }
 
-func DeletePublicIp(ipName string) (<-chan autorest.Response, <-chan error) {
+func DeletePublicIp(ipName string) error {
 	ipClient := getIpClient()
-	return ipClient.Delete(helpers.ResourceGroupName(), ipName, nil)
+	future, err := ipClient.Delete(context.Background(), helpers.ResourceGroupName(), ipName)
+	if err != nil {
+		return err
+	}
+	return future.WaitForCompletion(context.Background(), ipClient.Client)
 }
 
 func GetPublicIp(ipName string) (network.PublicIPAddress, error) {
 	ipClient := getIpClient()
-	return ipClient.Get(helpers.ResourceGroupName(), ipName, "")
+	return ipClient.Get(context.Background(), helpers.ResourceGroupName(), ipName, "")
 }

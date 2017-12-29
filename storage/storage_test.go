@@ -44,8 +44,7 @@ func ExampleUploadBlockBlob() {
 	accountName = strings.ToLower(accountName)
 	containerName = strings.ToLower(containerName)
 
-	_, errC := CreateStorageAccount(accountName)
-	err = <-errC
+	_, err = CreateStorageAccount(accountName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

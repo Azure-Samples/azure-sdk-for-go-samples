@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"context"
 	"log"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
@@ -19,9 +20,10 @@ func getServersClient() sql.ServersClient {
 	return serversClient
 }
 
-func CreateServer(serverName, dbLogin, dbPassword string) (<-chan sql.Server, <-chan error) {
+func CreateServer(serverName, dbLogin, dbPassword string) (server sql.Server, err error) {
 	serversClient := getServersClient()
-	return serversClient.CreateOrUpdate(
+	future, err := serversClient.CreateOrUpdate(
+		context.Background(),
 		helpers.ResourceGroupName(),
 		serverName,
 		sql.Server{
@@ -30,8 +32,15 @@ func CreateServer(serverName, dbLogin, dbPassword string) (<-chan sql.Server, <-
 				AdministratorLogin:         to.StringPtr(dbLogin),
 				AdministratorLoginPassword: to.StringPtr(dbPassword),
 			},
-		},
-		nil)
+		})
+	if err != nil {
+		return
+	}
+	err = future.WaitForCompletion(context.Background(), serversClient.Client)
+	if err != nil {
+		return
+	}
+	return future.Result(serversClient)
 }
 
 // Databases
@@ -43,25 +52,30 @@ func getDbClient() sql.DatabasesClient {
 	return dbClient
 }
 
-func CreateDb(serverName, dbName string) (<-chan sql.Database, <-chan error) {
+func CreateDb(serverName, dbName string) (db sql.Database, err error) {
 	dbClient := getDbClient()
-	return dbClient.CreateOrUpdate(
+	future, err := dbClient.CreateOrUpdate(
+		context.Background(),
 		helpers.ResourceGroupName(),
 		serverName,
 		dbName,
 		sql.Database{
 			Location: to.StringPtr(helpers.Location()),
-		},
-		nil)
+		})
+	if err != nil {
+		return
+	}
+	err = future.WaitForCompletion(context.Background(), dbClient.Client)
+	if err != nil {
+		return
+	}
+	return future.Result(dbClient)
 }
 
-func DeleteDb(serverName, dbName string) (autorest.Response, error) {
+func DeleteDb(serverName, dbName string) error {
 	dbClient := getDbClient()
-	return dbClient.Delete(
-		helpers.ResourceGroupName(),
-		serverName,
-		dbName,
-	)
+	_, err := dbClient.Delete(context.Background(), helpers.ResourceGroupName(), serverName, dbName)
+	return err
 }
 
 // Firewall rukes
@@ -77,6 +91,7 @@ func CreateFirewallRules(serverName string) error {
 	fwrClient := getFwRulesClient()
 
 	_, err := fwrClient.CreateOrUpdate(
+		context.Background(),
 		helpers.ResourceGroupName(),
 		serverName,
 		"unsafe open to world",
@@ -92,6 +107,7 @@ func CreateFirewallRules(serverName string) error {
 	}
 
 	_, err = fwrClient.CreateOrUpdate(
+		context.Background(),
 		helpers.ResourceGroupName(),
 		serverName,
 		"open to Azure internal",

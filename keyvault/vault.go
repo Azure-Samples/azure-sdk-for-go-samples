@@ -142,26 +142,24 @@ func SetVaultPermissionsForDeployment(ctx context.Context, vaultName string) (ke
 	)
 }
 
-// GetVaults lists all key vaults in a subscrition
-func GetVaults(ctx context.Context) {
+// GetVaults lists all key vaults in a subscription
+func GetVaults() {
 	vaultsClient := getVaultsClient()
 
 	fmt.Println("Getting all vaults in subscription")
-	subList, err := vaultsClient.List(ctx, "resourceType eq 'Microsoft.KeyVault/vaults'", nil)
-	if err != nil {
-		log.Printf("failed to get list of vaults: %v", err)
-	}
-	for _, kv := range subList.Values() {
-		fmt.Printf("\t%s\n", *kv.Name)
+	for subList, err := vaultsClient.ListComplete(context.Background(), "resourceType eq 'Microsoft.KeyVault/vaults'", nil); subList.NotDone(); err = subList.Next() {
+		if err != nil {
+			log.Printf("failed to get list of vaults: %v", err)
+		}
+		fmt.Printf("\t%s\n", *subList.Value().Name)
 	}
 
 	fmt.Println("Getting all vaults in resource group")
-	rgList, err := vaultsClient.ListByResourceGroup(ctx, helpers.ResourceGroupName(), nil)
-	if err != nil {
-		log.Printf("failed to get list of vaults: %v", err)
-	}
-	for _, kv := range rgList.Values() {
-		fmt.Printf("\t%s\n", *kv.Name)
+	for rgList, err := vaultsClient.ListByResourceGroupComplete(context.Background(), helpers.ResourceGroupName(), nil); rgList.NotDone(); err = rgList.Next() {
+		if err != nil {
+			log.Printf("failed to get list of vaults: %v", err)
+		}
+		fmt.Printf("\t%s\n", *rgList.Value().Name)
 	}
 }
 

@@ -1,6 +1,7 @@
 package cognitiveservices
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -25,7 +26,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("resource group created")
+	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
 
 	os.Exit(m.Run())
 }

@@ -4,12 +4,12 @@
 [[projects]]
   name = "github.com/Azure/azure-pipeline-go"
   packages = ["pipeline"]
-  revision = "44216532458a7167e884458cf2d4bfc706df1651"
-  version = "0.1.1"
+  revision = "f4da77e3846319876aebb41f2e6dccc6b1d7f1e0"
+  version = "1.1.3"
 
 [[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
-  packages = ["services/compute/mgmt/2017-03-30/compute","services/containerinstance/mgmt/2017-08-01-preview/containerinstance","services/keyvault/mgmt/2016-10-01/keyvault","services/network/mgmt/2017-09-01/network","services/resources/mgmt/2017-05-10/resources","services/sql/mgmt/2015-05-01-preview/sql","services/storage/mgmt/2017-06-01/storage"]
+  packages = ["profiles/latest/cognitiveservices/mgmt/cognitiveservices","services/cognitiveservices/mgmt/2017-04-18/cognitiveservices","services/compute/mgmt/2017-03-30/compute","services/keyvault/mgmt/2016-10-01/keyvault","services/network/mgmt/2017-09-01/network","services/resources/mgmt/2017-05-10/resources","services/sql/mgmt/2015-05-01-preview/sql","services/storage/mgmt/2017-06-01/storage"]
   revision = "990842d1126ef6e294152c5f6f4e3f804a3cfd6d"
   version = "v12.0.0-beta"
 
@@ -53,17 +53,17 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["md4"]
-  revision = "94eea52f7b742c7cbe0b03b22f0c4c8631ece122"
+  revision = "d585fd2cc9195196078f516b69daff6744ef5e84"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context"]
-  revision = "a8b9294777976932365dabb6640cf1468d95c70f"
+  revision = "d866cfc389cec985d6fda2859936a575a55a3ab6"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6e9051280498e7d2ba1f81a2c70af6ed267d9a86cb421e8fea73c33f23cd0ad5"
+  inputs-digest = "2b5eafbcf034379656caa5173d190d61e9ec089eac6c5723e5792aa76b1223c9"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -5,7 +5,6 @@ import (
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
-
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -19,11 +18,11 @@ func getGroupsClient() resources.GroupsClient {
 }
 
 // CreateGroup creates a new resource group named by env var
-func CreateGroup(groupName string) (resources.Group, error) {
+func CreateGroup(ctx context.Context, groupName string) (resources.Group, error) {
 	groupsClient := getGroupsClient()
 
 	return groupsClient.CreateOrUpdate(
-		context.Background(),
+		ctx,
 		groupName,
 		resources.Group{
 			Location: to.StringPtr(helpers.Location()),
@@ -31,7 +30,7 @@ func CreateGroup(groupName string) (resources.Group, error) {
 }
 
 // DeleteGroup removes the resource group named by env var
-func DeleteGroup(groupName string) (resources.GroupsDeleteFuture, error) {
+func DeleteGroup(ctx context.Context, groupName string) (result resources.GroupsDeleteFuture, err error) {
 	groupsClient := getGroupsClient()
-	return groupsClient.Delete(context.Background(), groupName)
+	return groupsClient.Delete(ctx, groupName)
 }

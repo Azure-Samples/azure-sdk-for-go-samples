@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -20,6 +21,9 @@ const (
 	sku       = "16.04.0-LTS"
 )
 
+// fakepubkey is used if a key isn't available at the specified path in CreateVM(...)
+var fakepubkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7laRyN4B3YZmVrDEZLZoIuUA72pQ0DpGuZBZWykCofIfCPrFZAJgFvonKGgKJl6FGKIunkZL9Us/mV4ZPkZhBlE7uX83AAf5i9Q8FmKpotzmaxN10/1mcnEE7pFvLoSkwqrQSkrrgSm8zaJ3g91giXSbtqvSIj/vk2f05stYmLfhAwNo3Oh27ugCakCoVeuCrZkvHMaJgcYrIGCuFo6q0Pfk9rsZyriIqEa9AtiUOtViInVYdby7y71wcbl0AbbCZsTSqnSoVxm2tRkOsXV6+8X4SnwcmZbao3H+zfO1GBhQOLxJ4NQbzAa8IJh810rYARNLptgmsd4cYXVOSosTX azureuser"
+
 func getVMClient() (compute.VirtualMachinesClient, error) {
 	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
 	vmClient := compute.NewVirtualMachinesClient(helpers.SubscriptionID())
@@ -29,20 +33,23 @@ func getVMClient() (compute.VirtualMachinesClient, error) {
 
 // CreateVM creates a new virtual machine with the specified name using the specified NIC.
 // Username, password, and sshPublicKeyPath determine logon credentials.
-func CreateVM(vmName, nicName, username, password, sshPublicKeyPath string) (<-chan compute.VirtualMachine, <-chan error) {
-	nic, _ := network.GetNic(nicName)
+func CreateVM(ctx context.Context, vmName, nicName, username, password, sshPublicKeyPath string) (vm compute.VirtualMachine, err error) {
+	nic, _ := network.GetNic(ctx, nicName)
 
-	var sshBytes []byte
-	var err error
+	var sshKeyData string
 	if _, err = os.Stat(sshPublicKeyPath); err == nil {
-		sshBytes, err = ioutil.ReadFile(sshPublicKeyPath)
+		sshBytes, err := ioutil.ReadFile(sshPublicKeyPath)
 		if err != nil {
 			log.Fatalf("failed to read SSH key data: %v", err)
 		}
+		sshKeyData = string(sshBytes)
+	} else {
+		sshKeyData = fakepubkey
 	}
 
 	vmClient, _ := getVMClient()
-	return vmClient.CreateOrUpdate(
+	future, err := vmClient.CreateOrUpdate(
+		ctx,
 		helpers.ResourceGroupName(),
 		vmName,
 		compute.VirtualMachine{
@@ -68,7 +75,7 @@ func CreateVM(vmName, nicName, username, password, sshPublicKeyPath string) (<-c
 							PublicKeys: &[]compute.SSHPublicKey{
 								compute.SSHPublicKey{
 									Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", username)),
-									KeyData: to.StringPtr(string(sshBytes)),
+									KeyData: to.StringPtr(sshKeyData),
 								},
 							},
 						},
@@ -86,6 +93,15 @@ func CreateVM(vmName, nicName, username, password, sshPublicKeyPath string) (<-c
 				},
 			},
 		},
-		nil,
 	)
+	if err != nil {
+		return vm, fmt.Errorf("cannot create vm: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, vmClient.Client)
+	if err != nil {
+		return vm, fmt.Errorf("cannot get the vm create or update future response: %v", err)
+	}
+
+	return future.Result(vmClient)
 }

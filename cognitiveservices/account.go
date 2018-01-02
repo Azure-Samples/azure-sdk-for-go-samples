@@ -48,7 +48,8 @@ func CreateCSAccount(accountName string, accountKind cognitiveservices.Kind) (*c
 		return nil, err
 	}
 
-	// Need to wait because although service returns that the account is ready, using the dataplane immediatley will fail
+	// Need to wait because although service returns that the account is already created,
+	// the dataplane needs more time to be ready
 	time.Sleep(time.Second * 10)
 	return &csAccount, nil
 }

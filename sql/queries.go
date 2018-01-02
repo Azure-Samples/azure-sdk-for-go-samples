@@ -105,7 +105,7 @@ func Query(db *sql.DB) error {
 		var name string
 		err := rows.Scan(&id, &name)
 		if err != nil {
-			fmt.Errorf("query failed:", err.Error())
+			return fmt.Errorf("query failed: %v", err)
 		}
 
 		log.Printf("  id: %d\n  name: %s\n", id, name)

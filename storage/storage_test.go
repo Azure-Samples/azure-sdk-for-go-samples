@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"flag"
 	"os"
 	"strings"
@@ -33,9 +34,11 @@ func init() {
 // Finally it removes the blob, container, account, and group.
 // more examples available at https://github.com/Azure/azure-storage-blob-go/2016-05-31/azblob/zt_examples_test.go
 func ExampleUploadBlockBlob() {
-	defer resources.Cleanup()
+	ctx := context.Background()
 
-	_, err := resources.CreateGroup(helpers.ResourceGroupName())
+	defer resources.Cleanup(ctx)
+
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
@@ -44,20 +47,19 @@ func ExampleUploadBlockBlob() {
 	accountName = strings.ToLower(accountName)
 	containerName = strings.ToLower(containerName)
 
-	_, errC := CreateStorageAccount(accountName)
-	err = <-errC
+	_, err = CreateStorageAccount(ctx, accountName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created storage account")
 
-	_, err = CreateContainer(accountName, containerName)
+	_, err = CreateContainer(ctx, accountName, containerName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created container")
 
-	_, err = CreateBlockBlob(accountName, containerName, blobName)
+	_, err = CreateBlockBlob(ctx, accountName, containerName, blobName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

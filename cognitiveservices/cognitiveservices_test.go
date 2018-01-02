@@ -1,7 +1,10 @@
 package cognitiveservices
 
 import (
+	"fmt"
 	"log"
+	"os"
+	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
@@ -10,30 +13,30 @@ import (
 	"github.com/subosito/gotenv"
 )
 
-var (
-	accountName = "azuresamplesgo" + helpers.GetRandomLetterSequence(10)
-)
-
-func init() {
+func TestMain(m *testing.M) {
 	gotenv.Load()
 	err := helpers.ParseArgs()
 	if err != nil {
 		log.Fatalln("failed to parse args")
 	}
-}
 
-// Example creates a resource group and a Cognitive Services account of type Search. Then it executes searches
-// for web pages, images, videos, news and entities
-func ExampleCognitiveServicesSearch() {
 	defer resources.Cleanup()
 
-	_, err := resources.CreateGroup(helpers.ResourceGroupName())
+	_, err = resources.CreateGroup(helpers.ResourceGroupName())
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("resource group created")
+	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
 
-	_, err = CreateCSAccount(accountName, cognitiveservices.BingSearchv7)
+	os.Exit(m.Run())
+}
+
+// ExampleCognitiveServicesSearch creates a resource group and a Cognitive Services account of type Search. Then it executes searches
+// for web pages, images, videos, news and entities
+func ExampleCognitiveServicesSearch() {
+	accountName := "azuresamplesgo" + helpers.GetRandomLetterSequence(10)
+
+	_, err := CreateCSAccount(accountName, cognitiveservices.BingSearchv7)
 
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
@@ -41,14 +44,13 @@ func ExampleCognitiveServicesSearch() {
 
 	helpers.PrintAndLog("cognitive services search resource created")
 
-	searchWeb()
-	searchImages()
-	searchVideos()
-	searchNews()
-	searchEntities()
+	searchWeb(accountName)
+	searchImages(accountName)
+	searchVideos(accountName)
+	searchNews(accountName)
+	searchEntities(accountName)
 
 	// Output:
-	// resource group created
 	// cognitive services search resource created
 	// completed web search and got results
 	// completed image search and got results
@@ -61,19 +63,12 @@ func ExampleCognitiveServicesSearch() {
 	// completed entity search and got results
 }
 
-// Example creates a resource group and a Cognitive Services account of type spell check. Then it executes
+// ExampleCognitiveServicesSpellCheck creates a resource group and a Cognitive Services account of type spell check. Then it executes
 // a spell check and inspects the corrections.
 func ExampleCognitiveServicesSpellCheck() {
-	defer resources.Cleanup()
+	accountName := "azuresamplesgo" + helpers.GetRandomLetterSequence(10)
 
-	_, err := resources.CreateGroup(helpers.ResourceGroupName())
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("resource group created")
-
-	_, err = CreateCSAccount(accountName, cognitiveservices.BingSpellCheckv7)
-
+	_, err := CreateCSAccount(accountName, cognitiveservices.BingSpellCheckv7)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
@@ -81,7 +76,6 @@ func ExampleCognitiveServicesSpellCheck() {
 	helpers.PrintAndLog("cognitive services spellcheck resource created")
 
 	spellCheckResult, err := SpellCheck(accountName)
-
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
@@ -96,14 +90,12 @@ func ExampleCognitiveServicesSpellCheck() {
 		log.Printf("First flagged token suggestions count: %v \n", len(*firstFlaggedToken.Suggestions))
 	}
 	// Output:
-	// resource group created
 	// cognitive services spellcheck resource created
 	// completed spell check and found corrections
 }
 
-func searchWeb() {
+func searchWeb(accountName string) {
 	webPages, err := SearchWeb(accountName)
-
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
@@ -118,9 +110,8 @@ func searchWeb() {
 	}
 }
 
-func searchImages() {
+func searchImages(accountName string) {
 	images, err := SearchImages(accountName)
-
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
@@ -161,9 +152,8 @@ func searchImages() {
 	}
 }
 
-func searchVideos() {
+func searchVideos(accountName string) {
 	videos, err := SearchVideos(accountName)
-
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
@@ -179,7 +169,6 @@ func searchVideos() {
 	}
 
 	trendingVideos, err := TrendingVideos(accountName)
-
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
@@ -194,9 +183,8 @@ func searchVideos() {
 	}
 }
 
-func searchNews() {
+func searchNews(accountName string) {
 	news, err := SearchNews(accountName)
-
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
@@ -222,9 +210,8 @@ func searchNews() {
 	}
 }
 
-func searchEntities() {
+func searchEntities(accountName string) {
 	entities, err := SearchEntities(accountName)
-
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

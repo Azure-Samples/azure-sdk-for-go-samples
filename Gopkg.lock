@@ -25,6 +25,7 @@
     "services/compute/mgmt/2017-03-30/compute",
     "services/containerinstance/mgmt/2017-08-01-preview/containerinstance",
     "services/containerservice/mgmt/2017-09-30/containerservice",
+    "services/dns/mgmt/2017-09-01/dns",
     "services/graphrbac/1.6/graphrbac",
     "services/keyvault/2016-10-01/keyvault",
     "services/keyvault/mgmt/2016-10-01/keyvault",
@@ -101,6 +102,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "756c55faddca897667336ffddf52fb71fcabd4c10eab4ab7211a1ebf34f1eebb"
+  inputs-digest = "1514461788da144dff8665f6ecc18d794e651ef2a227e44e7157e87a2e434870"
   solver-name = "gps-cdcl"
   solver-version = 1

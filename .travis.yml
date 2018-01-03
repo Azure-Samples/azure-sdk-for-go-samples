@@ -4,11 +4,11 @@ go:
 install:
 - go get -u github.com/golang/lint/golint
 - go get -u github.com/golang/dep/cmd/dep
-- dep ensure
 script:
-- test -z "$(gofmt -s -l -w $(find ./* -type d -print | grep -v '^./vendor$') | tee /dev/stderr)"
-- golint $(go list ./...)
+- test -z "$(gofmt -s -l -w $(find ./* -type d -print) | tee /dev/stderr)"
+- golint ./...
 - test -z "$(go vet ./... |  grep -v 'refers to unknown identifier' | tee /dev/stderr)"
+- dep ensure
 - go build ./...
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then go test -v ./...; fi
 env:

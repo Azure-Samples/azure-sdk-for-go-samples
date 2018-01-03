@@ -11,7 +11,7 @@ script:
 - golint ./...
 - test -z "$(go vet ./... |  grep -v 'refers to unknown identifier' | tee /dev/stderr)"
 - dep ensure
-- test -z "$(go build ./... |  grep -v 'no non-test Go files in' | tee /dev/stderr)"
+- test -z "`for d in $dirs; do go build $d | grep -v 'no non-test Go files in' | tee /dev/stderr; done`"
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then test -z "`for d in $dirs; do go test -v $d | tee /dev/stderr; done`"; fi
 env:
   global:

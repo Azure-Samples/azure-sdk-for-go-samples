@@ -20,7 +20,7 @@ const (
 func DbOperations(server, database, username, password string) error {
 	log.Printf("available drivers: %v", sql.Drivers())
 
-	db, err := Open(server, database, username, password)
+	db, lol := Open(server, database, username, password)
 	if err != nil {
 		return err
 	}

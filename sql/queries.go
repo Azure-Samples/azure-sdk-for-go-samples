@@ -20,7 +20,7 @@ const (
 func DbOperations(server, database, username, password string) error {
 	log.Printf("available drivers: %v", sql.Drivers())
 
-	db, lol := Open(server, database, username, password)
+	db, err := Open(server, database, username, password)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func Open(server, database, username, password string) (*sql.DB, error) {
 
 	db, err := sql.Open("sqlserver", connectionString)
 	if err != nil {
-		fmt.Errorf("open connection failed: %v", err)
+		return db, fmt.Errorf("open connection failed: %v", err)
 	}
 
 	log.Printf("opened conn to %+v\n", db)

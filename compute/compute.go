@@ -73,7 +73,7 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, sshPubli
 					LinuxConfiguration: &compute.LinuxConfiguration{
 						SSH: &compute.SSHConfiguration{
 							PublicKeys: &[]compute.SSHPublicKey{
-								compute.SSHPublicKey{
+								{
 									Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", username)),
 									KeyData: to.StringPtr(sshKeyData),
 								},
@@ -83,7 +83,7 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, sshPubli
 				},
 				NetworkProfile: &compute.NetworkProfile{
 					NetworkInterfaces: &[]compute.NetworkInterfaceReference{
-						compute.NetworkInterfaceReference{
+						{
 							ID: nic.ID,
 							NetworkInterfaceReferenceProperties: &compute.NetworkInterfaceReferenceProperties{
 								Primary: to.BoolPtr(true),

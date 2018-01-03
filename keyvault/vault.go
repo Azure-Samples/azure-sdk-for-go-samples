@@ -75,7 +75,7 @@ func SetVaultPermissions(ctx context.Context, vaultName string) (keyvault.Vault,
 					Name:   keyvault.Standard,
 				},
 				AccessPolicies: &[]keyvault.AccessPolicyEntry{
-					keyvault.AccessPolicyEntry{
+					{
 						ObjectID: &clientID,
 						TenantID: &tenantID,
 						Permissions: &keyvault.Permissions{
@@ -120,7 +120,7 @@ func SetVaultPermissionsForDeployment(ctx context.Context, vaultName string) (ke
 					Name:   keyvault.Standard,
 				},
 				AccessPolicies: &[]keyvault.AccessPolicyEntry{
-					keyvault.AccessPolicyEntry{
+					{
 						ObjectID: to.StringPtr(clientID),
 						TenantID: &tenantID,
 						Permissions: &keyvault.Permissions{

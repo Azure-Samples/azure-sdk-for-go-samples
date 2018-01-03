@@ -1,13 +1,15 @@
 language: go
+go:
+- 1.9.x
 install:
 - go get -u github.com/golang/lint/golint
 - go get -u github.com/golang/dep/cmd/dep
 - dep ensure
 script:
-- gofmt -s -l $(go list ./...)
+- test -z "$(gofmt -s -l -w $(find ./* -type d -print | grep -v '^./vendor$') | tee /dev/stderr)"
 - golint $(go list ./...)
-- go vet $(go list ./...)
-- go build $(go list ./...)
+- test -z "$(go vet ./... |  grep -v 'refers to unknown identifier' | tee /dev/stderr)"
+- go build ./...
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then go test -v ./...; fi
 env:
   global:

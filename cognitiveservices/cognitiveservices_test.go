@@ -1,6 +1,7 @@
 package cognitiveservices
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -20,9 +21,10 @@ func TestMain(m *testing.M) {
 		log.Fatalln("failed to parse args")
 	}
 
-	defer resources.Cleanup()
+	ctx := context.Background()
+	defer resources.Cleanup(ctx)
 
-	_, err = resources.CreateGroup(helpers.ResourceGroupName())
+	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

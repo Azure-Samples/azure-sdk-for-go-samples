@@ -1,6 +1,8 @@
 package resources
 
 import (
+	"context"
+
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 )
 
@@ -9,9 +11,9 @@ func init() {
 }
 
 func ExampleCreateGroup() {
-	defer Cleanup()
+	defer Cleanup(context.Background())
 
-	_, err := CreateGroup(helpers.ResourceGroupName())
+	_, err := CreateGroup(context.Background(), helpers.ResourceGroupName())
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

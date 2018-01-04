@@ -2,6 +2,8 @@ package resources
 
 import (
 	"context"
+	"fmt"
+	"log"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
@@ -20,7 +22,7 @@ func getGroupsClient() resources.GroupsClient {
 // CreateGroup creates a new resource group named by env var
 func CreateGroup(ctx context.Context, groupName string) (resources.Group, error) {
 	groupsClient := getGroupsClient()
-
+	log.Println(fmt.Sprintf("creating resource group on location: %v", helpers.Location()))
 	return groupsClient.CreateOrUpdate(
 		ctx,
 		groupName,

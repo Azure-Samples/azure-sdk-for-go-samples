@@ -46,7 +46,10 @@ func init() {
 }
 
 func parseArgs() error {
-	gotenv.Load() // read from .env file
+	err := gotenv.Load() // read from .env file
+	if err != nil && err.Error() != "open .env: The system cannot find the file specified." {
+		return err
+	}
 
 	tenantID = os.Getenv("AZ_TENANT_ID")
 	clientID = os.Getenv("AZ_CLIENT_ID")
@@ -54,9 +57,8 @@ func parseArgs() error {
 
 	if !(len(tenantID) > 0) || !(len(clientID) > 0) || !(len(clientSecret) > 0) {
 		return errors.New("tenant id, client id, and client secret must be specified via env var or flags")
-
 	}
-	var err error
+
 	oauthConfig, err = adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantID)
 
 	return err

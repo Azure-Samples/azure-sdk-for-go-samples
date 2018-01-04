@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
@@ -22,7 +23,11 @@ func init() {
 	flag.StringVar(&dbName, "sqlDbName", dbName, "Provide a name for the SQL database to be created")
 	flag.StringVar(&dbLogin, "sqlDbUsername", dbLogin, "Provide a username for the SQL database.")
 	flag.StringVar(&dbPassword, "sqlDbPassword", dbPassword, "Provide a password for the username.")
-	helpers.ParseArgs()
+
+	err := helpers.ParseArgs()
+	if err != nil {
+		log.Fatalf("cannot parse arguments: %v", err)
+	}
 }
 
 // Example creates a SQL server and database, then creates a table and inserts a record.

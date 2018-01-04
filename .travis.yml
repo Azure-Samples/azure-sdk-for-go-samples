@@ -1,0 +1,21 @@
+language: go
+go:
+- 1.9.x
+- 1.8.x
+install:
+- go get -u github.com/golang/lint/golint
+- go get -u github.com/golang/dep/cmd/dep
+script:
+- dirs=$(go list ./...)
+- test -z "$(gofmt -s -l -w $(find ./* -type d -print) | tee /dev/stderr)"
+- golint ./...
+- test -z "$(go vet ./... |  grep -v 'refers to unknown identifier' | tee /dev/stderr)"
+- dep ensure
+- test -z "`for d in $dirs; do go build $d | grep -v 'no non-test Go files in' | tee /dev/stderr; done`"
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then test -z "`for d in $dirs; do go test -v $d | tee /dev/stderr; done`"; fi
+env:
+  global:
+  - secure: iJPj6gYRWl+3/oTmH3jx7tbd+ts3i8fC8VuGcY8WJfFJAcTT//i+YedH4PYeKedL8v79D6v9oif7KggyTGp9Ky2tfBjVoETCKgNclE/91VdVRxpazfHxxPjvu4L99nl0DuMMjKsGtVpuU8BB8lbnXTL44oqk96oUyYs/GvO7/4emawvTZHX4gl+r7r6caRb9suF3Ttf+i7XCu1bIS4RVPKZi4kMgI2F2SoNiOvxVc+1gtpDxyfnOljCCnKU6JOXoMyDLV3n0ZU1nR6EPLb5BpTeUMCqSTpWvZjSVGtYGUAc96woQeoy0aTJsK7rDNVJLRhKWS5sA1c7ichXnIW7Zqm+fRsXipv2qAXJhGdAGwlNcj0C4f7YW4VNG1Dmg2SX1N3POX5tfKhT2oF65h0gKWhq7NeOorummfdvPfIdt2FCSuZtCw7wzMiAVlgMomX3q34aWccPr8TGycGPDRJq7nI+Cxmz3gBK7xnqgiblPd8aFjAxAxa4OZZuEaxzDcTWC4muxqStacs5jpBw/j1hHv5r3uqOhKjnEkxXAQroF7M1LvPf+1jDsKqqHp6OmZsToZNSaZ0zJXg72UWc0HCFM3nfS/vUITtcshkKqYXRc8fuVFrxdCv5kDT8IF5pueBV0S8rHnTJoL50rS1j15Dp1NQKeU8jATjBo3Sn2xkccuKo=
+  - secure: sgnUW6C5xzji6rqCVqDKEss2Xph+u711rhgypynqjVo/C8s6ubsYhdi47iyhzRpvdSjhIMWuH+zdlbGTJ9vywsE6DD44NMUQBwSAjkOKo8iAXiZsEtF2OfpLsHw9FGsQv4Do3rrMDlnVlk785lJXDt9rdmi8q1LjDJe0MTEdj7Jrl/YnfoewCwkJ3lw/kG4G67jnhymfI66Ly2NX98xx1MDqoRxMaSryImk/EMu2NSfpY5n+nwSR4X8IJNP5ta+lJx09ml9T7Q/uUbnwyziYBmjfW1bpR7+1G8chHTR4y32gJ7PJJx20vNYI31hHqPT79R8oafAFmaqh/JfztlMjGJRcyNGeDQkB2wAJVCv5imi15S/NmjOIWlm3DjH3psMqEHgJnJ/WFIaOsRGCEobS6hvfyVK6dnLVZ3vdOV2hF8Q32f1NU/ZTNu1iXu/PsGRWlP/SueaofFrJ9XzCnWgKIp82xZaZLNustqp1psJUlWK0arwSwJPiF7mjiyEFbpsH/h4Y7YLQsU920T1RaTuMBR6kdiFvZRsc/wPvZwnK2vnc8Nl3XjbZyYRn+Gh0IciCAoxnt8+ARiE1axkrwrdSzkHNrXXOoTWyxAXJTginkAYo01lCFe4GpcVR5BwuK6XtgWeNK/AX8619cH8dpPYjzmhS/QomMndgmefTCMPWhQc=
+  - secure: v78dN5u9FuB2nQnJaZ699u9aIhZJ0e7T8yM8+SwbOpo+r42UJ01yhYAfZQzm1kVbAlO1kJkQYeC2S3rqZu7AtUONFnjPkXKGCVT3kLv2dvJzsBrb1m8UL3Z6UgpkAW/MM6+FmMDV2A0ZJ3l4I1NekGIOzVHwYkjp88Mgk603PphSHLBEGbbsalGsqeXZ1zVKJyriS9U336mANAed2f15ViAi7yBjEDw7TmCdoWImH0GmCDQmWyrJr0zYzQO12pFen2+nWITpCOhrC4uuKl4s2C1e30tGuPMIfyY51QVQ5JCoDKazjEXfS2mgKLbTsFLi70HtEVVqwy16JKfmrZOYSR1PEYt2jHYdnQp4YIwGSfKknYxDuTWf5xgVguy9afVHVJ2oIwA93JT10hrZEKvwnmfvSz0mgVD6yD/5faGyh489RCa+Ljt1ETdn9AmtQoTjql8wIB3b3s+pXZ9RG+jpsrxnkBAELlByTC2hUryYZytCHXWYe86eDBbhw/Oq6FTjxGGKnQKeWKyTsfC5nrc5WlbDM8Q2i2v8JA/txW8nM0Ygm/3wptFpAc+zyVc9+kwLmXYqWcafwMy2qoFxqxwoRW7zK1ggDzB57QRsg3/s2XqR4KBcyzFPbitng5vF0r16SA34j32HqV+AxWWk5S0CoM6aZboBOsuVgiJEnErVoH4=
+  - secure: tDjumhicM+Kq+ZivSq4M1+xPc/l+LnbYhhLV+juzwan9zUYxMjeuizNbWhdPEjzbbTDEYYwBrk5KfNnfUZan0QWNF8Aw7ZmjQXnwyOiDJIM+TS74ST8aeg3MFML38Rje0lKrbMF5s14DtMZA07yS5ike5+Dn42bzTgZBS4kdgowGTDjxNu6WhLChgYK+i52cN5TXCUzgLAjJB2DbR+iBkrYrCpJSWQACj4pq1nIRGuZ9PzxN7QY0hiaTStvIxofLfj7uSZozAxoAOkuMtEUdh3vvPm2nUTBY5sJVcDtFnE4Bdmk2gLmrM637il/rbq4SjMs0n3XUtd91yKyXtJ4gJTXTI40B6D54i94oWEtMfRzaVw93LNG0aHzIVpnGYc0wbyrmcQTG0zfkI/xM/KkvwHAsClWub6VRjrKxmbsMkOCJnb1PDsLmvEHYj3vgB0kF0vQX5aALfVdM+br8i2MaHEX4LlTlJ8HdZ/5/Ktlov5IQHPE4hjZFIb4uYzC1SPOETr7BUFfv3x62+IT2J9BXZbBS4BV/nk38b97Asyxn6jzU+yLU4/Ut2s50tQUrTFy/ihQZnsGBK3SfnPLzJyqZ5x19RENqJtYPSdPXIV9Ot3NhzTM5rNlIQoBKY28DH9ETv2J7PO3tk6STF5/chJS/ieeChwpN47sQ1oHAaeXIVcA=

@@ -12,8 +12,8 @@ var (
 	blobFormatString = `https://%s.blob.core.windows.net`
 )
 
-func getContainerURL(accountName, containerName string) blob.ContainerURL {
-	key := getFirstKey(accountName)
+func getContainerURL(ctx context.Context, accountName, containerName string) blob.ContainerURL {
+	key := getFirstKey(ctx, accountName)
 	c := blob.NewSharedKeyCredential(accountName, key)
 	p := blob.NewPipeline(c, blob.PipelineOptions{})
 	u, _ := url.Parse(fmt.Sprintf(blobFormatString, accountName))
@@ -23,8 +23,8 @@ func getContainerURL(accountName, containerName string) blob.ContainerURL {
 }
 
 // CreateContainer creates a new container with the specified name in the specified account
-func CreateContainer(accountName, containerName string) (blob.ContainerURL, error) {
-	c := getContainerURL(accountName, containerName)
+func CreateContainer(ctx context.Context, accountName, containerName string) (blob.ContainerURL, error) {
+	c := getContainerURL(ctx, accountName, containerName)
 
 	_, err := c.Create(
 		context.Background(),
@@ -34,16 +34,16 @@ func CreateContainer(accountName, containerName string) (blob.ContainerURL, erro
 }
 
 // GetContainer gets info about an existing container.
-func GetContainer(accountName, containerName string) (blob.ContainerURL, error) {
-	c := getContainerURL(accountName, containerName)
+func GetContainer(ctx context.Context, accountName, containerName string) (blob.ContainerURL, error) {
+	c := getContainerURL(ctx, accountName, containerName)
 
 	_, err := c.GetPropertiesAndMetadata(context.Background(), blob.LeaseAccessConditions{})
 	return c, err
 }
 
 // DeleteContainer deletes the named container.
-func DeleteContainer(accountName, containerName string) error {
-	c := getContainerURL(containerName, containerName)
+func DeleteContainer(ctx context.Context, accountName, containerName string) error {
+	c := getContainerURL(ctx, containerName, containerName)
 
 	_, err := c.Delete(context.Background(), blob.ContainerAccessConditions{})
 	return err

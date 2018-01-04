@@ -9,8 +9,8 @@ import (
 	blob "github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
 )
 
-func getBlockBlobURL(accountName, containerName, blobName string) blob.BlockBlobURL {
-	key := getFirstKey(accountName)
+func getBlockBlobURL(ctx context.Context, accountName, containerName, blobName string) blob.BlockBlobURL {
+	key := getFirstKey(ctx, accountName)
 	c := blob.NewSharedKeyCredential(accountName, key)
 	p := blob.NewPipeline(c, blob.PipelineOptions{})
 	u, _ := url.Parse(fmt.Sprintf(blobFormatString, accountName))
@@ -21,8 +21,8 @@ func getBlockBlobURL(accountName, containerName, blobName string) blob.BlockBlob
 }
 
 // CreateBlockBlob creates a new test blob in the container specified by env var
-func CreateBlockBlob(accountName, containerName, blobName string) (blob.BlockBlobURL, error) {
-	b := getBlockBlobURL(accountName, containerName, blobName)
+func CreateBlockBlob(ctx context.Context, accountName, containerName, blobName string) (blob.BlockBlobURL, error) {
+	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
 	data := "blob created by Azure-Samples, okay to delete!"
 
 	_, err := b.PutBlob(

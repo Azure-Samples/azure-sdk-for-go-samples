@@ -1,6 +1,8 @@
 package network
 
 import (
+	"context"
+	"fmt"
 	"log"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
@@ -19,9 +21,11 @@ func getVnetClient() network.VirtualNetworksClient {
 	return vnetClient
 }
 
-func CreateVirtualNetworkAndSubnets(vnetName, subnet1Name, subnet2Name string) (<-chan network.VirtualNetwork, <-chan error) {
+// CreateVirtualNetworkAndSubnets creates a virtual network with two subnets
+func CreateVirtualNetworkAndSubnets(ctx context.Context, vnetName, subnet1Name, subnet2Name string) (vnet network.VirtualNetwork, err error) {
 	vnetClient := getVnetClient()
-	return vnetClient.CreateOrUpdate(
+	future, err := vnetClient.CreateOrUpdate(
+		ctx,
 		helpers.ResourceGroupName(),
 		vnetName,
 		network.VirtualNetwork{
@@ -45,12 +49,24 @@ func CreateVirtualNetworkAndSubnets(vnetName, subnet1Name, subnet2Name string) (
 					},
 				},
 			},
-		},
-		nil)
+		})
+
+	if err != nil {
+		return vnet, fmt.Errorf("cannot create virtual network: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, vnetClient.Client)
+	if err != nil {
+		return vnet, fmt.Errorf("cannot get the vnet create or update future response: %v", err)
+	}
+
+	return future.Result(vnetClient)
 }
-func DeleteVirtualNetwork(vnetName string) (<-chan autorest.Response, <-chan error) {
+
+// DeleteVirtualNetwork deletes a virtual network given an existing virtual network
+func DeleteVirtualNetwork(ctx context.Context, vnetName string) (result network.VirtualNetworksDeleteFuture, err error) {
 	vnetClient := getVnetClient()
-	return vnetClient.Delete(helpers.ResourceGroupName(), vnetName, nil)
+	return vnetClient.Delete(ctx, helpers.ResourceGroupName(), vnetName)
 }
 
 // VNet Subnets
@@ -62,12 +78,16 @@ func getSubnetsClient() network.SubnetsClient {
 	return subnetsClient
 }
 
+// CreateVirtualNetworkSubnet creates a subnet
 func CreateVirtualNetworkSubnet() {}
+
+// DeleteVirtualNetworkSubnet deletes a subnet
 func DeleteVirtualNetworkSubnet() {}
 
-func GetVirtualNetworkSubnet(vnetName string, subnetName string) (network.Subnet, error) {
+// GetVirtualNetworkSubnet returns an existing subnet from a virtual network
+func GetVirtualNetworkSubnet(ctx context.Context, vnetName string, subnetName string) (network.Subnet, error) {
 	subnetsClient := getSubnetsClient()
-	return subnetsClient.Get(helpers.ResourceGroupName(), vnetName, subnetName, "")
+	return subnetsClient.Get(ctx, helpers.ResourceGroupName(), vnetName, subnetName, "")
 }
 
 // Network Security Groups
@@ -79,9 +99,11 @@ func getNsgClient() network.SecurityGroupsClient {
 	return nsgClient
 }
 
-func CreateNetworkSecurityGroup(nsgName string) (<-chan network.SecurityGroup, <-chan error) {
+// CreateNetworkSecurityGroup creates a new network security group
+func CreateNetworkSecurityGroup(ctx context.Context, nsgName string) (nsg network.SecurityGroup, err error) {
 	nsgClient := getNsgClient()
-	return nsgClient.CreateOrUpdate(
+	future, err := nsgClient.CreateOrUpdate(
+		ctx,
 		helpers.ResourceGroupName(),
 		nsgName,
 		network.SecurityGroup{
@@ -117,23 +139,38 @@ func CreateNetworkSecurityGroup(nsgName string) (<-chan network.SecurityGroup, <
 				},
 			},
 		},
-		nil,
 	)
+
+	if err != nil {
+		return nsg, fmt.Errorf("cannot create nsg: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, nsgClient.Client)
+	if err != nil {
+		return nsg, fmt.Errorf("cannot get nsg create or update future response: %v", err)
+	}
+
+	return future.Result(nsgClient)
 }
 
-func DeleteNetworkSecurityGroup(nsgName string) (<-chan autorest.Response, <-chan error) {
+// DeleteNetworkSecurityGroup deletes an existing network security group
+func DeleteNetworkSecurityGroup(ctx context.Context, nsgName string) (result network.SecurityGroupsDeleteFuture, err error) {
 	nsgClient := getNsgClient()
-	return nsgClient.Delete(helpers.ResourceGroupName(), nsgName, nil)
+	return nsgClient.Delete(ctx, helpers.ResourceGroupName(), nsgName)
 }
 
-func GetNetworkSecurityGroup(nsgName string) (network.SecurityGroup, error) {
+// GetNetworkSecurityGroup returns an existing network security group
+func GetNetworkSecurityGroup(ctx context.Context, nsgName string) (network.SecurityGroup, error) {
 	nsgClient := getNsgClient()
-	return nsgClient.Get(helpers.ResourceGroupName(), nsgName, "")
+	return nsgClient.Get(ctx, helpers.ResourceGroupName(), nsgName, "")
 }
 
 // Network Security Group Rules
 
+// CreateNetworkSecurityGroupRule creates a network security group rule
 func CreateNetworkSecurityGroupRule() {}
+
+// DeleteNetworkSecurityGroupRule deletes a network security group rule
 func DeleteNetworkSecurityGroupRule() {}
 
 // Network Interfaces (NIC's)
@@ -145,24 +182,26 @@ func getNicClient() network.InterfacesClient {
 	return nicClient
 }
 
-func CreateNic(vnetName, subnetName, nsgName, ipName, nicName string) (<-chan network.Interface, <-chan error) {
-	nsg, err := GetNetworkSecurityGroup(nsgName)
+// CreateNIC creates a new network interface
+func CreateNIC(ctx context.Context, vnetName, subnetName, nsgName, ipName, nicName string) (nic network.Interface, err error) {
+	nsg, err := GetNetworkSecurityGroup(ctx, nsgName)
 	if err != nil {
 		log.Fatalf("failed to get nsg: %v", err)
 	}
 
-	subnet, err := GetVirtualNetworkSubnet(vnetName, subnetName)
+	subnet, err := GetVirtualNetworkSubnet(ctx, vnetName, subnetName)
 	if err != nil {
 		log.Fatalf("failed to get subnet: %v", err)
 	}
 
-	ip, err := GetPublicIp(ipName)
+	ip, err := GetPublicIP(ctx, ipName)
 	if err != nil {
 		log.Fatalf("failed to get ip address: %v", err)
 	}
 
 	nicClient := getNicClient()
-	return nicClient.CreateOrUpdate(
+	future, err := nicClient.CreateOrUpdate(
+		ctx,
 		helpers.ResourceGroupName(),
 		nicName,
 		network.Interface{
@@ -182,32 +221,46 @@ func CreateNic(vnetName, subnetName, nsgName, ipName, nicName string) (<-chan ne
 				},
 			},
 		},
-		nil,
 	)
+
+	if err != nil {
+		return nic, fmt.Errorf("cannot create nic: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, nicClient.Client)
+	if err != nil {
+		return nic, fmt.Errorf("cannot get nic create or update future response: %v", err)
+	}
+
+	return future.Result(nicClient)
 }
 
-func GetNic(nicName string) (network.Interface, error) {
+// GetNic returns an existing network interface
+func GetNic(ctx context.Context, nicName string) (network.Interface, error) {
 	nicClient := getNicClient()
-	return nicClient.Get(helpers.ResourceGroupName(), nicName, "")
+	return nicClient.Get(ctx, helpers.ResourceGroupName(), nicName, "")
 }
 
-func DeleteNic(nic string) (<-chan autorest.Response, <-chan error) {
+// DeleteNic deletes an existing network interface
+func DeleteNic(ctx context.Context, nic string) (result network.InterfacesDeleteFuture, err error) {
 	nicClient := getNicClient()
-	return nicClient.Delete(helpers.ResourceGroupName(), nic, nil)
+	return nicClient.Delete(ctx, helpers.ResourceGroupName(), nic)
 }
 
 // Public IP Addresses
 
-func getIpClient() network.PublicIPAddressesClient {
+func getIPClient() network.PublicIPAddressesClient {
 	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
 	ipClient := network.NewPublicIPAddressesClient(helpers.SubscriptionID())
 	ipClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	return ipClient
 }
 
-func CreatePublicIp(ipName string) (<-chan network.PublicIPAddress, <-chan error) {
-	ipClient := getIpClient()
-	return ipClient.CreateOrUpdate(
+// CreatePublicIP creates a new public IP
+func CreatePublicIP(ctx context.Context, ipName string) (ip network.PublicIPAddress, err error) {
+	ipClient := getIPClient()
+	future, err := ipClient.CreateOrUpdate(
+		ctx,
 		helpers.ResourceGroupName(),
 		ipName,
 		network.PublicIPAddress{
@@ -218,16 +271,28 @@ func CreatePublicIp(ipName string) (<-chan network.PublicIPAddress, <-chan error
 				PublicIPAllocationMethod: network.Static,
 			},
 		},
-		nil,
 	)
+
+	if err != nil {
+		return ip, fmt.Errorf("cannot create public ip address: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, ipClient.Client)
+	if err != nil {
+		return ip, fmt.Errorf("cannot get public ip address create or update future response: %v", err)
+	}
+
+	return future.Result(ipClient)
 }
 
-func DeletePublicIp(ipName string) (<-chan autorest.Response, <-chan error) {
-	ipClient := getIpClient()
-	return ipClient.Delete(helpers.ResourceGroupName(), ipName, nil)
+// GetPublicIP returns an existing public IP
+func GetPublicIP(ctx context.Context, ipName string) (network.PublicIPAddress, error) {
+	ipClient := getIPClient()
+	return ipClient.Get(ctx, helpers.ResourceGroupName(), ipName, "")
 }
 
-func GetPublicIp(ipName string) (network.PublicIPAddress, error) {
-	ipClient := getIpClient()
-	return ipClient.Get(helpers.ResourceGroupName(), ipName, "")
+// DeletePublicIP deletes an existing public IP
+func DeletePublicIP(ctx context.Context, ipName string) (result network.PublicIPAddressesDeleteFuture, err error) {
+	ipClient := getIPClient()
+	return ipClient.Delete(ctx, helpers.ResourceGroupName(), ipName)
 }

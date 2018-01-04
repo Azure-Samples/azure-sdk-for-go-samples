@@ -1,4 +1,4 @@
-// tests basic functionality for an existing mssql db
+// Package sql tests basic functionality for an existing mssql db
 package sql
 
 import (
@@ -16,6 +16,7 @@ const (
 	port              int = 1433
 )
 
+// DbOperations executes some simple SQL queries
 func DbOperations(server, database, username, password string) error {
 	log.Printf("available drivers: %v", sql.Drivers())
 
@@ -37,6 +38,7 @@ func DbOperations(server, database, username, password string) error {
 	return Query(db)
 }
 
+// Open opens a connection to the SQL server
 func Open(server, database, username, password string) (*sql.DB, error) {
 	query := url.Values{}
 	query.Add("connection timeout", fmt.Sprintf("%d", connectionTimeout))
@@ -56,13 +58,14 @@ func Open(server, database, username, password string) (*sql.DB, error) {
 
 	db, err := sql.Open("sqlserver", connectionString)
 	if err != nil {
-		fmt.Errorf("open connection failed: %v", err)
+		return db, fmt.Errorf("open connection failed: %v", err)
 	}
 
 	log.Printf("opened conn to %+v\n", db)
 	return db, nil
 }
 
+// CreateTable creates an SQL table
 func CreateTable(db *sql.DB) error {
 	const createTableStatement string = `
     CREATE TABLE customers (
@@ -78,6 +81,7 @@ func CreateTable(db *sql.DB) error {
 	return err
 }
 
+// Insert adds a row to the SQL datablase
 func Insert(db *sql.DB) error {
 	const insertStmt string = `
     INSERT INTO customers VALUES (1, 'Josh')`
@@ -90,6 +94,7 @@ func Insert(db *sql.DB) error {
 	return err
 }
 
+// Query queries the SQL database
 func Query(db *sql.DB) error {
 	// assert(db != null)
 	const queryString string = "SELECT id,name FROM customers"
@@ -105,7 +110,7 @@ func Query(db *sql.DB) error {
 		var name string
 		err := rows.Scan(&id, &name)
 		if err != nil {
-			fmt.Errorf("query failed:", err.Error())
+			return fmt.Errorf("query failed: %v", err)
 		}
 
 		log.Printf("  id: %d\n  name: %s\n", id, name)

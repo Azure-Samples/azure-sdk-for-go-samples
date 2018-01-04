@@ -2,16 +2,43 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/Azure-Samples/azure-sdk-for-go-samples"
+  packages = [
+    "helpers",
+    "iam",
+    "network",
+    "resources"
+  ]
+  revision = "f81db6173c872990801594a9d9b31a8ae04258f2"
+
+[[projects]]
   name = "github.com/Azure/azure-pipeline-go"
   packages = ["pipeline"]
-  revision = "44216532458a7167e884458cf2d4bfc706df1651"
-  version = "0.1.1"
+  revision = "f4da77e3846319876aebb41f2e6dccc6b1d7f1e0"
+  version = "1.1.3"
 
 [[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
-  packages = ["services/keyvault/mgmt/2016-10-01/keyvault","services/network/mgmt/2017-09-01/network","services/resources/mgmt/2017-05-10/resources","services/sql/mgmt/2015-05-01-preview/sql","services/storage/mgmt/2017-06-01/storage"]
-  revision = "7692b0cef22674113fcf71cc17ac3ccc1a7fef48"
-  version = "v11.2.2-beta"
+  packages = [
+    "profiles/latest/cognitiveservices/mgmt/cognitiveservices",
+    "services/cognitiveservices/mgmt/2017-04-18/cognitiveservices",
+    "services/cognitiveservices/v1.0/customsearch",
+    "services/cognitiveservices/v1.0/entitysearch",
+    "services/cognitiveservices/v1.0/imagesearch",
+    "services/cognitiveservices/v1.0/newssearch",
+    "services/cognitiveservices/v1.0/spellcheck",
+    "services/cognitiveservices/v1.0/videosearch",
+    "services/cognitiveservices/v1.0/websearch",
+    "services/compute/mgmt/2017-03-30/compute",
+    "services/keyvault/mgmt/2016-10-01/keyvault",
+    "services/network/mgmt/2017-09-01/network",
+    "services/resources/mgmt/2017-05-10/resources",
+    "services/sql/mgmt/2015-05-01-preview/sql",
+    "services/storage/mgmt/2017-06-01/storage"
+  ]
+  revision = "990842d1126ef6e294152c5f6f4e3f804a3cfd6d"
+  version = "v12.0.0-beta"
 
 [[projects]]
   name = "github.com/Azure/azure-storage-blob-go"
@@ -21,9 +48,16 @@
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
-  packages = ["autorest","autorest/adal","autorest/azure","autorest/date","autorest/to","autorest/validation"]
-  revision = "cab8279ba5cd5e165c58201f798712f2ec0f49d6"
-  version = "v9.4.2"
+  packages = [
+    "autorest",
+    "autorest/adal",
+    "autorest/azure",
+    "autorest/date",
+    "autorest/to",
+    "autorest/validation"
+  ]
+  revision = "809ed2ef5c4c9a60c3c2f3aa9cc11f3a7c2ce59d"
+  version = "v9.6.0"
 
 [[projects]]
   branch = "master"
@@ -36,18 +70,6 @@
   packages = ["."]
   revision = "dbeaa9332f19a944acb5736b4456cfcc02140e29"
   version = "v3.1.0"
-
-[[projects]]
-  name = "github.com/marstr/collection"
-  packages = ["."]
-  revision = "871b1cfa2ab97d3d8f54a034280907896190c346"
-  version = "v0.3.3"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/marstr/randname"
-  packages = ["."]
-  revision = "3ef1f47af99e66171417047e6f6fa334345e95e7"
 
 [[projects]]
   name = "github.com/satori/go.uuid"
@@ -65,23 +87,17 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["md4"]
-  revision = "94eea52f7b742c7cbe0b03b22f0c4c8631ece122"
+  revision = "95a4943f35d008beabde8c11e5075a1b714e6419"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context"]
-  revision = "a8b9294777976932365dabb6640cf1468d95c70f"
-
-[[projects]]
-  branch = "v1"
-  name = "gopkg.in/check.v1"
-  packages = ["."]
-  revision = "20d25e2804050c1cd24a7eea1e7a6447dd0e74ec"
+  revision = "d866cfc389cec985d6fda2859936a575a55a3ab6"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8a50e0b71f9ad2fa39d88b675b6b42b35b92c1d5e4291f75ce4d60b75cefc379"
+  inputs-digest = "0e1c32a00a059efabb2d4df14c51827e16fdb02bf4368a6a306562245bff8e84"
   solver-name = "gps-cdcl"
   solver-version = 1

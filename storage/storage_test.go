@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"flag"
+	"log"
 	"os"
 	"strings"
 
@@ -27,7 +28,12 @@ func init() {
 	flag.StringVar(&accountName, "storageAccoutName", accountName, "Provide a name for the storage account to be created")
 	flag.StringVar(&containerName, "containerName", containerName, "Provide a name for the container.")
 	flag.StringVar(&blobName, "blobName", blobName, "Provide a name for the blob.")
-	helpers.ParseArgs()
+
+	err := helpers.ParseArgs()
+	if err != nil {
+		log.Fatalf("cannot parse arguments: %v", err)
+	}
+
 }
 
 // Example creates a resource group and a storage account. Then it adds a container and a blob in that account.

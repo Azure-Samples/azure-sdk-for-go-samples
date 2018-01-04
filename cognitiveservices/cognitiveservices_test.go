@@ -11,11 +11,9 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/cognitiveservices/mgmt/cognitiveservices"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/entitysearch"
-	"github.com/subosito/gotenv"
 )
 
 func TestMain(m *testing.M) {
-	gotenv.Load()
 	err := helpers.ParseArgs()
 	if err != nil {
 		log.Fatalln("failed to parse args")

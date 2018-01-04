@@ -8,7 +8,6 @@ import (
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
-	"github.com/subosito/gotenv"
 )
 
 var (
@@ -24,12 +23,7 @@ func init() {
 }
 
 func parseArgs() error {
-	err := gotenv.Load()
-	if err != nil {
-		return fmt.Errorf("cannot load env: %v", err)
-	}
-
-	err = helpers.ParseArgs()
+	err := helpers.ParseArgs()
 	if err != nil {
 		return fmt.Errorf("cannot parse args: %v", err)
 	}

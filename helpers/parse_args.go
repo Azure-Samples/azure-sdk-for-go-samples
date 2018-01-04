@@ -20,7 +20,10 @@ var (
 func ParseArgs() error {
 	// flags are prioritized over env vars,
 	// so read from env vars first, then check flags
-	gotenv.Load() // to allow use of .env file
+	err := gotenv.Load() // to allow use of .env file
+	if err != nil && err.Error() != "open .env: The system cannot find the file specified." {
+		return err
+	}
 
 	subscriptionID = os.Getenv("AZ_SUBSCRIPTION_ID")
 	resourceGroupName = os.Getenv("AZ_RESOURCE_GROUP_NAME")
@@ -40,7 +43,7 @@ func ParseArgs() error {
 
 	// defaults
 	if !(len(subscriptionID) > 0) {
-		return errors.New("subscription ID must be specified in env var or flag")
+		return errors.New("subscription ID must be specified in env var, .env file or flag")
 	}
 
 	if !(len(resourceGroupName) > 0) {

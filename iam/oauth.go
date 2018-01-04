@@ -62,10 +62,12 @@ func parseArgs() error {
 	return err
 }
 
+// ClientID gets the client ID
 func ClientID() string {
 	return clientID
 }
 
+// TenantID gets the client ID
 func TenantID() string {
 	return tenantID
 }

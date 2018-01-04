@@ -78,7 +78,10 @@ func getSubnetsClient() network.SubnetsClient {
 	return subnetsClient
 }
 
+// CreateVirtualNetworkSubnet creates a subnet
 func CreateVirtualNetworkSubnet() {}
+
+// DeleteVirtualNetworkSubnet deletes a subnet
 func DeleteVirtualNetworkSubnet() {}
 
 // GetVirtualNetworkSubnet returns an existing subnet from a virtual network
@@ -164,7 +167,10 @@ func GetNetworkSecurityGroup(ctx context.Context, nsgName string) (network.Secur
 
 // Network Security Group Rules
 
+// CreateNetworkSecurityGroupRule creates a network security group rule
 func CreateNetworkSecurityGroupRule() {}
+
+// DeleteNetworkSecurityGroupRule deletes a network security group rule
 func DeleteNetworkSecurityGroupRule() {}
 
 // Network Interfaces (NIC's)

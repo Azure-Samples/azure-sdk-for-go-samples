@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"os"
+	"strings"
 
 	"github.com/subosito/gotenv"
 )
@@ -21,7 +22,7 @@ func ParseArgs() error {
 	// flags are prioritized over env vars,
 	// so read from env vars first, then check flags
 	err := gotenv.Load() // to allow use of .env file
-	if err != nil && err.Error() != "open .env: The system cannot find the file specified." {
+	if err != nil && !strings.HasPrefix(err.Error(), "open .env:") {
 		return err
 	}
 

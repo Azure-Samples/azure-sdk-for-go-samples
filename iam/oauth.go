@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -47,7 +48,7 @@ func init() {
 
 func parseArgs() error {
 	err := gotenv.Load() // read from .env file
-	if err != nil && err.Error() != "open .env: The system cannot find the file specified." {
+	if err != nil && !strings.HasPrefix(err.Error(), "open .env:") {
 		return err
 	}
 

@@ -21,21 +21,22 @@ func SearchEntities(accountName string) (entitysearch.Entities, error) {
 	query := "tom cruise"
 	market := "en-us"
 	searchResponse, err := entitySearchClient.Search(
-		context.Background(),
-		"",
-		query,
-		"",
-		"",
-		"",
-		"",
-		"",
-		"",
-		"",
-		market,
-		nil,
-		nil,
-		"",
-		"")
+		context.Background(), // context
+		"",                   // X-BingApis-SDK header
+		query,                // query keyword
+		"",                   // Accept-Language header
+		"",                   // pragma header
+		"",                   // User-Agent header
+		"",                   // X-MSEdge-ClientID header
+		"",                   // X-MSEdge-ClientIP header
+		"",                   // X-Search-Location header
+		"",                   // country code
+		market,               // market
+		nil,                  // response filter
+		nil,                  // response format
+		"",                   // safe search
+		"",                   // set lang
+	)
 
 	return *searchResponse.Entities, err
 }

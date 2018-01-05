@@ -21,27 +21,28 @@ func SearchVideos(accountName string) (videosearch.Videos, error) {
 	query := "Nasa CubeSat"
 
 	videos, err := videoSearchClient.Search(
-		context.Background(),
-		"",
-		query,
-		"",
-		"",
-		"",
-		"",
-		"",
-		"",
-		nil,
-		"",
-		"",
-		"",
-		"",
-		nil,
-		"",
-		"",
-		"",
-		"",
-		nil,
-		"")
+		context.Background(), // context
+		"",                   // X-BingApis-SDK header
+		query,                // query keyword
+		"",                   // Accept-Language header
+		"",                   // User-Agent header
+		"",                   // X-MSEdge-ClientID header
+		"",                   // X-MSEdge-ClientIP header
+		"",                   // X-Search-Location header
+		"",                   // country code
+		nil,                  // count
+		"",                   // freshness
+		"",                   // ID
+		"",                   // video length
+		"",                   // market
+		nil,                  // offset
+		"",                   // video pricing
+		"",                   // video resolution
+		"",                   // safe search
+		"",                   // set lang
+		nil,                  // text decorations
+		"",                   // text format
+	)
 
 	return videos, err
 }

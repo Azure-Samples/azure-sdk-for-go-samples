@@ -31,47 +31,49 @@ func CreateContainerGroup(ctx context.Context, containerGroupName, location, res
 		return c, fmt.Errorf("cannot get container group client: %v", err)
 	}
 
-	parameters := containerinstance.ContainerGroup{
-		Name:     &containerGroupName,
-		Location: &location,
-		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
-			IPAddress: &containerinstance.IPAddress{
-				Type: to.StringPtr("Public"),
-				Ports: &[]containerinstance.Port{
+	c, err = containerGroupsClient.CreateOrUpdate(
+		ctx,
+		resourceGroupName,
+		containerGroupName,
+		containerinstance.ContainerGroup{
+			Name:     &containerGroupName,
+			Location: &location,
+			ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
+				IPAddress: &containerinstance.IPAddress{
+					Type: to.StringPtr("Public"),
+					Ports: &[]containerinstance.Port{
+						{
+							Port:     to.Int32Ptr(80),
+							Protocol: containerinstance.TCP,
+						},
+					},
+				},
+				OsType: containerinstance.Linux,
+				Containers: &[]containerinstance.Container{
 					{
-						Port:     to.Int32Ptr(80),
-						Protocol: containerinstance.TCP,
-					},
-				},
-			},
-			OsType: containerinstance.Linux,
-			Containers: &[]containerinstance.Container{
-				{
-					Name: to.StringPtr("az-samples-go-container"),
-					ContainerProperties: &containerinstance.ContainerProperties{
-						Ports: &[]containerinstance.ContainerPort{
-							{
-								Port: to.Int32Ptr(80),
+						Name: to.StringPtr("az-samples-go-container"),
+						ContainerProperties: &containerinstance.ContainerProperties{
+							Ports: &[]containerinstance.ContainerPort{
+								{
+									Port: to.Int32Ptr(80),
+								},
 							},
-						},
-						Image: to.StringPtr("nginx:latest"),
-						Resources: &containerinstance.ResourceRequirements{
-							Limits: &containerinstance.ResourceLimits{
-								MemoryInGB: to.Float64Ptr(1),
-								CPU:        to.Float64Ptr(1),
-							},
-							Requests: &containerinstance.ResourceRequests{
-								MemoryInGB: to.Float64Ptr(1),
-								CPU:        to.Float64Ptr(1),
+							Image: to.StringPtr("nginx:latest"),
+							Resources: &containerinstance.ResourceRequirements{
+								Limits: &containerinstance.ResourceLimits{
+									MemoryInGB: to.Float64Ptr(1),
+									CPU:        to.Float64Ptr(1),
+								},
+								Requests: &containerinstance.ResourceRequests{
+									MemoryInGB: to.Float64Ptr(1),
+									CPU:        to.Float64Ptr(1),
+								},
 							},
 						},
 					},
 				},
 			},
-		},
-	}
-
-	c, err = containerGroupsClient.CreateOrUpdate(ctx, resourceGroupName, containerGroupName, parameters)
+		})
 	if err != nil {
 		log.Fatalf("cannot create container group: %v", err)
 	}

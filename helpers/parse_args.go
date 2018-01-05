@@ -3,6 +3,7 @@ package helpers
 import (
 	"errors"
 	"flag"
+	"log"
 	"os"
 	"strings"
 
@@ -14,6 +15,35 @@ var (
 	location          string
 	subscriptionID    string
 	keepResources     bool
+
+	allLocations = []string{
+		"eastasia",
+		"southeastasia",
+		"centralus",
+		"eastus",
+		"eastus2",
+		"westus",
+		"northcentralus",
+		"southcentralus",
+		"northeurope",
+		"westeurope",
+		"japanwest",
+		"japaneast",
+		"brazilsouth",
+		"australiaeast",
+		"australiasoutheast",
+		"southindia",
+		"centralindia",
+		"westindia",
+		"canadacentral",
+		"canadaeast",
+		"uksouth",
+		"ukwest",
+		"westcentralus",
+		"westus2",
+		"koreacentral",
+		"koreasouth",
+	}
 )
 
 // ParseArgs picks up shared env vars and flags and finishes parsing flags
@@ -80,3 +110,11 @@ func Location() string {
 }
 
 // end getters
+
+func OverrideLocation(available []string) {
+	// If location is not listed on all locations, don't override it. It might be a canary location
+	if contains(allLocations, location) && !contains(available, location) && len(available) > 0 {
+		log.Printf("Using location %s on this sample, because this service is not yet available on specified location %s\n", available[0], location)
+		location = available[0]
+	}
+}

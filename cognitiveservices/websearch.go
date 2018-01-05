@@ -21,27 +21,28 @@ func SearchWeb(accountName string) (websearch.WebWebAnswer, error) {
 	webSearchClient := getWebSearchClient(accountName)
 	query := "tom cruise"
 	searchResponse, err := webSearchClient.Search(
-		context.Background(),
-		"",
-		query,
-		"",
-		"",
-		"",
-		"",
-		"",
-		"",
-		nil,
-		"",
-		nil,
-		"",
-		"",
-		nil,
-		nil,
-		nil,
-		"",
-		"",
-		nil,
-		"")
+		context.Background(), // context
+		"",                   // X-BingApis-SDK header
+		query,                // query keyword
+		"",                   // Accept-Language header
+		"",                   // Pragma header
+		"",                   // User-Agent header
+		"",                   // X-MSEdge-ClientID header
+		"",                   // X-MSEdge-ClientIP header
+		"",                   // X-Search-Location header
+		nil,                  // answer count
+		"",                   // country code
+		nil,                  // count
+		"",                   // freshness
+		"",                   // market
+		nil,                  // offset
+		nil,                  // promote
+		nil,                  // response filter
+		"",                   // safe search
+		"",                   // set lang
+		nil,                  // text decorations
+		"",                   // text format
+	)
 
 	return *searchResponse.WebPages, err
 }

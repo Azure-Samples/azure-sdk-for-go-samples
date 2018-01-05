@@ -12,10 +12,9 @@ import (
 )
 
 func getCognitiveSevicesManagementClient() cognitiveservices.AccountsClient {
-	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeDeviceFlow)
+	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
 	accountClient := cognitiveservices.NewAccountsClient(helpers.SubscriptionID())
 	accountClient.Authorizer = autorest.NewBearerAuthorizer(token)
-
 	return accountClient
 }
 
@@ -32,18 +31,20 @@ func getFirstKey(accountName string) string {
 func CreateCSAccount(accountName string, accountKind cognitiveservices.Kind) (*cognitiveservices.Account, error) {
 	managementClient := getCognitiveSevicesManagementClient()
 	location := "global"
-	props := map[string]interface{}{}
-	params := cognitiveservices.AccountCreateParameters{
-		Kind: accountKind,
-		Sku: &cognitiveservices.Sku{
-			Name: "S1",
-			Tier: cognitiveservices.Standard,
-		},
-		Location:   &location,
-		Properties: &props,
-	}
 
-	csAccount, err := managementClient.Create(context.Background(), helpers.ResourceGroupName(), accountName, params)
+	csAccount, err := managementClient.Create(
+		context.Background(),
+		helpers.ResourceGroupName(),
+		accountName,
+		cognitiveservices.AccountCreateParameters{
+			Kind: accountKind,
+			Sku: &cognitiveservices.Sku{
+				Name: "S1",
+				Tier: cognitiveservices.Standard,
+			},
+			Location:   &location,
+			Properties: &map[string]interface{}{},
+		})
 	if err != nil {
 		return nil, err
 	}

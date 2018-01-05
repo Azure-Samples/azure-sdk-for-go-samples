@@ -37,26 +37,23 @@ func parseArgs() error {
 }
 
 func ExampleCreateContainerGroup() {
-	_, err := resources.CreateGroup(context.Background(), helpers.ResourceGroupName())
+	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
 	if err != nil {
 		log.Printf("cannot create resource group: %v", err)
 	}
 	helpers.PrintAndLog("created resource group")
 
-	_, err = CreateContainerGroup(context.Background(), containerGroupName, helpers.Location(), helpers.ResourceGroupName())
+	_, err = CreateContainerGroup(ctx, containerGroupName, helpers.Location(), helpers.ResourceGroupName())
 	if err != nil {
 		log.Fatalf("cannot create container group: %v", err)
 	}
 
 	helpers.PrintAndLog("created container group")
 
-	// Output:
-	// created resource group
-	// created container group
-}
-
-func ExampleGetContainerGroup() {
-	c, err := GetContainerGroup(context.Background(), helpers.ResourceGroupName(), containerGroupName)
+	c, err := GetContainerGroup(ctx, helpers.ResourceGroupName(), containerGroupName)
 	if err != nil {
 		log.Fatalf("cannot get container group %v from resource group %v", containerGroupName, helpers.ResourceGroupName())
 	}
@@ -67,26 +64,14 @@ func ExampleGetContainerGroup() {
 
 	helpers.PrintAndLog("retrieved container group")
 
-	// Output:
-	// retrieved container group
-}
-
-func ExampleUpdateContainerGroup() {
-	_, err := UpdateContainerGroup(context.Background(), helpers.ResourceGroupName(), containerGroupName)
+	_, err = UpdateContainerGroup(ctx, helpers.ResourceGroupName(), containerGroupName)
 	if err != nil {
 		log.Fatalf("cannot upate container group: %v", err)
 	}
 
 	helpers.PrintAndLog("updated container group")
 
-	// Output:
-	// updated container group
-}
-
-func ExampleDeleteContainerGroup() {
-	defer resources.Cleanup(context.Background())
-
-	_, err := DeleteContainerGroup(context.Background(), helpers.ResourceGroupName(), containerGroupName)
+	_, err = DeleteContainerGroup(ctx, helpers.ResourceGroupName(), containerGroupName)
 	if err != nil {
 		log.Fatalf("cannot delete container group %v from resource group %v: %v", containerGroupName, helpers.ResourceGroupName(), err)
 	}
@@ -94,5 +79,9 @@ func ExampleDeleteContainerGroup() {
 	helpers.PrintAndLog("deleted container group")
 
 	// Output:
+	// created resource group
+	// created container group
+	// retrieved container group
+	// updated container group
 	// deleted container group
 }

@@ -20,36 +20,38 @@ func SearchImages(accountName string) (imagesearch.Images, error) {
 	imageSearchClient := getImageSearchClient(accountName)
 	query := "canadian rockies"
 
-	images, err := imageSearchClient.Search(context.Background(),
-		"",
-		query,
-		"",
-		"",
-		"",
-		"",
-		"",
-		"",
-		"",
-		"",
-		nil,
-		"",
-		nil,
-		"",
-		"",
-		"",
-		"",
-		"",
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		"",
-		"",
-		"",
-		nil)
+	images, err := imageSearchClient.Search(
+		context.Background(), // context
+		"",                   // X-BingApis-SDK header
+		query,                // query keyword
+		"",                   // Accept-Language header
+		"",                   // User-Agent header
+		"",                   // X-MSEdge-ClientID header
+		"",                   // X-MSEdge-ClientIP header
+		"",                   // X-Search-Location header
+		"",                   // image aspect
+		"",                   // image color
+		"",                   // country code
+		nil,                  // count
+		"",                   // freshness
+		nil,                  // height
+		"",                   // ID
+		"",                   // image content
+		"",                   // image type
+		"",                   // image license
+		"",                   // market
+		nil,                  // max file size
+		nil,                  // max height
+		nil,                  // max width
+		nil,                  // min file size
+		nil,                  // min height
+		nil,                  // min width
+		nil,                  // offset
+		"",                   // safe search
+		"",                   // image size
+		"",                   // set lang
+		nil,                  // width
+	)
 
 	return images, err
 }

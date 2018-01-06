@@ -13,15 +13,14 @@ import (
 )
 
 func main() {
+	var quiet bool
+	flag.BoolVar(&quiet, "quiet", false, "Run quietly")
+
 	err := helpers.ParseSubscriptionID()
 	if err != nil {
 		log.Fatalf("Error parsing subscriptionID: %v\n", err)
 		os.Exit(1)
 	}
-
-	var quiet bool
-	flag.BoolVar(&quiet, "quiet", false, "Run quietly")
-	flag.Parse()
 
 	if !quiet {
 		fmt.Println("Are you sure you want to delete all resource groups in the subscription? (yes | no)")

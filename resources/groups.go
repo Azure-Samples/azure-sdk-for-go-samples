@@ -36,3 +36,8 @@ func DeleteGroup(ctx context.Context, groupName string) (result resources.Groups
 	groupsClient := getGroupsClient()
 	return groupsClient.Delete(ctx, groupName)
 }
+
+func ListGroups(ctx context.Context) (resources.GroupListResultIterator, error) {
+	groupsClient := getGroupsClient()
+	return groupsClient.ListComplete(ctx, "", nil)
+}

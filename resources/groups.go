@@ -1,4 +1,4 @@
-ackage resources
+package resources
 
 import (
 	"context"

@@ -77,7 +77,7 @@ func ParseArgs() error {
 
 	// defaults
 	if !(len(resourceGroupName) > 0) {
-		resourceGroupName = "group-azure-samples-go" + GetRandomLetterSequence(10)
+		resourceGroupName = GroupPrefix() + GetRandomLetterSequence(10)
 	}
 
 	if !(len(location) > 0) {
@@ -124,8 +124,15 @@ func Location() string {
 	return location
 }
 
+// GroupPrefix specifies the prefix sample resource groups should have
+func GroupPrefix() string {
+	return "group-azure-samples-go"
+}
+
 // end getters
 
+// OverrideLocation ovverrides the specified location where to create Azure resources.
+// This can be used when the selection location does not have the desired resource provider available yet
 func OverrideLocation(available []string) {
 	// If location is not listed on all locations, don't override it. It might be a canary location
 	if contains(allLocations, location) && !contains(available, location) && len(available) > 0 {

@@ -31,8 +31,12 @@ func main() {
 			os.Exit(0)
 		}
 	}
+
+	futures, groups := resources.DeleteAllGroupsWithPrefix(context.Background(), helpers.GroupPrefix())
+
 	var wg sync.WaitGroup
-	resources.CleanupAll(context.Background(), &wg)
+	resources.WaitForDeleteCompletion(context.Background(), &wg, futures, groups)
 	wg.Wait()
+
 	fmt.Println("Done")
 }

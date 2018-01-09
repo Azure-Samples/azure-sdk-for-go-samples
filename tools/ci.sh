@@ -7,13 +7,15 @@ fi
 REALEXITSTATUS=0
 
 dirs=$(go list ./... | grep -v /vendor/)
-test -z "`for d in $dirs; do go test -v $d | tee /dev/stderr; done`"
-REALEXITSTATUS=$(($REALEXITSTATUS+$?))
+for d in $dirs
+do
+    go test -v $d
+    REALEXITSTATUS=$(($REALEXITSTATUS+$?))
+done
 
 go install github.com/Azure-Samples/azure-sdk-for-go-samples/tools/cleanup
 REALEXITSTATUS=$(($REALEXITSTATUS+$?))
 
 cleanup -quiet
-REALEXITSTATUS=$(($REALEXITSTATUS+$?))
 
 exit $REALEXITSTATUS

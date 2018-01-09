@@ -1,13 +1,15 @@
 package network
 
 import (
+	"context"
 	"flag"
 	"log"
 	"os"
 
+	"github.com/subosito/gotenv"
+
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
-	"github.com/subosito/gotenv"
 )
 
 var (
@@ -22,7 +24,7 @@ var (
 func init() {
 	err := parseArgs()
 	if err != nil {
-		log.Fatalln("failed to parse args")
+		log.Fatalf("cannot parse arguments: %v", err)
 	}
 }
 
@@ -31,7 +33,11 @@ func parseArgs() error {
 
 	virtualNetworkName = os.Getenv("AZ_VNET_NAME")
 	flag.StringVar(&virtualNetworkName, "vnetName", virtualNetworkName, "Specify a name for the vnet.")
-	helpers.ParseArgs()
+
+	err := helpers.ParseArgs()
+	if err != nil {
+		log.Fatalln("failed to parse args")
+	}
 
 	if !(len(virtualNetworkName) > 0) {
 		virtualNetworkName = "vnet1"
@@ -41,37 +47,34 @@ func parseArgs() error {
 }
 
 func ExampleCreateNIC() {
-	defer resources.Cleanup()
+	ctx := context.Background()
+	defer resources.Cleanup(ctx)
 
-	_, err := resources.CreateGroup(helpers.ResourceGroupName())
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("resource group created")
 
-	_, errC := CreateVirtualNetworkAndSubnets(virtualNetworkName, subnet1Name, subnet2Name)
-	err = <-errC
+	_, err = CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created vnet and 2 subnets")
 
-	_, errC = CreateNetworkSecurityGroup(nsgName)
-	err = <-errC
+	_, err = CreateNetworkSecurityGroup(ctx, nsgName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created network security group")
 
-	_, errC = CreatePublicIp(ipName)
-	err = <-errC
+	_, err = CreatePublicIP(ctx, ipName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created public IP")
 
-	_, errC = CreateNic(virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
-	err = <-errC
+	_, err = CreateNIC(ctx, virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

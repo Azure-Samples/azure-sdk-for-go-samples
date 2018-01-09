@@ -1,7 +1,9 @@
 package storage
 
 import (
+	"context"
 	"flag"
+	"log"
 	"os"
 	"strings"
 
@@ -26,16 +28,23 @@ func init() {
 	flag.StringVar(&accountName, "storageAccoutName", accountName, "Provide a name for the storage account to be created")
 	flag.StringVar(&containerName, "containerName", containerName, "Provide a name for the container.")
 	flag.StringVar(&blobName, "blobName", blobName, "Provide a name for the blob.")
-	helpers.ParseArgs()
+
+	err := helpers.ParseArgs()
+	if err != nil {
+		log.Fatalf("cannot parse arguments: %v", err)
+	}
+
 }
 
 // Example creates a resource group and a storage account. Then it adds a container and a blob in that account.
 // Finally it removes the blob, container, account, and group.
 // more examples available at https://github.com/Azure/azure-storage-blob-go/2016-05-31/azblob/zt_examples_test.go
 func ExampleUploadBlockBlob() {
-	defer resources.Cleanup()
+	ctx := context.Background()
 
-	_, err := resources.CreateGroup(helpers.ResourceGroupName())
+	defer resources.Cleanup(ctx)
+
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
@@ -44,20 +53,19 @@ func ExampleUploadBlockBlob() {
 	accountName = strings.ToLower(accountName)
 	containerName = strings.ToLower(containerName)
 
-	_, errC := CreateStorageAccount(accountName)
-	err = <-errC
+	_, err = CreateStorageAccount(ctx, accountName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created storage account")
 
-	_, err = CreateContainer(accountName, containerName)
+	_, err = CreateContainer(ctx, accountName, containerName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created container")
 
-	_, err = CreateBlockBlob(accountName, containerName, blobName)
+	_, err = CreateBlockBlob(ctx, accountName, containerName, blobName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

@@ -1,6 +1,8 @@
 package sql
 
 import (
+	"context"
+	"fmt"
 	"log"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
@@ -19,9 +21,11 @@ func getServersClient() sql.ServersClient {
 	return serversClient
 }
 
-func CreateServer(serverName, dbLogin, dbPassword string) (<-chan sql.Server, <-chan error) {
+// CreateServer creates a new SQL Server
+func CreateServer(ctx context.Context, serverName, dbLogin, dbPassword string) (server sql.Server, err error) {
 	serversClient := getServersClient()
-	return serversClient.CreateOrUpdate(
+	future, err := serversClient.CreateOrUpdate(
+		ctx,
 		helpers.ResourceGroupName(),
 		serverName,
 		sql.Server{
@@ -30,8 +34,18 @@ func CreateServer(serverName, dbLogin, dbPassword string) (<-chan sql.Server, <-
 				AdministratorLogin:         to.StringPtr(dbLogin),
 				AdministratorLoginPassword: to.StringPtr(dbPassword),
 			},
-		},
-		nil)
+		})
+
+	if err != nil {
+		return server, fmt.Errorf("cannot create sql server: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, serversClient.Client)
+	if err != nil {
+		return server, fmt.Errorf("cannot get the sql server create or update future response: %v", err)
+	}
+
+	return future.Result(serversClient)
 }
 
 // Databases
@@ -43,21 +57,34 @@ func getDbClient() sql.DatabasesClient {
 	return dbClient
 }
 
-func CreateDb(serverName, dbName string) (<-chan sql.Database, <-chan error) {
+// CreateDB creates a new SQL Database on a given server
+func CreateDB(ctx context.Context, serverName, dbName string) (db sql.Database, err error) {
 	dbClient := getDbClient()
-	return dbClient.CreateOrUpdate(
+	future, err := dbClient.CreateOrUpdate(
+		ctx,
 		helpers.ResourceGroupName(),
 		serverName,
 		dbName,
 		sql.Database{
 			Location: to.StringPtr(helpers.Location()),
-		},
-		nil)
+		})
+	if err != nil {
+		return db, fmt.Errorf("cannot create sql database: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, dbClient.Client)
+	if err != nil {
+		return db, fmt.Errorf("cannot get the sql database create or update future response: %v", err)
+	}
+
+	return future.Result(dbClient)
 }
 
-func DeleteDb(serverName, dbName string) (autorest.Response, error) {
+// DeleteDB deletes an existing database from a server
+func DeleteDB(ctx context.Context, serverName, dbName string) (autorest.Response, error) {
 	dbClient := getDbClient()
 	return dbClient.Delete(
+		ctx,
 		helpers.ResourceGroupName(),
 		serverName,
 		dbName,
@@ -73,10 +100,12 @@ func getFwRulesClient() sql.FirewallRulesClient {
 	return fwrClient
 }
 
-func CreateFirewallRules(serverName string) error {
+// CreateFirewallRules creates new firewall rules for a given server
+func CreateFirewallRules(ctx context.Context, serverName string) error {
 	fwrClient := getFwRulesClient()
 
 	_, err := fwrClient.CreateOrUpdate(
+		ctx,
 		helpers.ResourceGroupName(),
 		serverName,
 		"unsafe open to world",
@@ -92,6 +121,7 @@ func CreateFirewallRules(serverName string) error {
 	}
 
 	_, err = fwrClient.CreateOrUpdate(
+		ctx,
 		helpers.ResourceGroupName(),
 		serverName,
 		"open to Azure internal",
@@ -106,6 +136,7 @@ func CreateFirewallRules(serverName string) error {
 	return err
 }
 
+// PrintInfo logs information on SQL user agent and ARM client
 func PrintInfo() {
 	log.Printf("user agent string: %s\n", sql.UserAgent())
 	log.Printf("SQL ARM Client version: %s\n", sql.Version())

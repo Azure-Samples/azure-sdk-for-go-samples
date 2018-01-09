@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -32,11 +33,10 @@ func getVMClient() (compute.VirtualMachinesClient, error) {
 
 // CreateVM creates a new virtual machine with the specified name using the specified NIC.
 // Username, password, and sshPublicKeyPath determine logon credentials.
-func CreateVM(vmName, nicName, username, password, sshPublicKeyPath string) (<-chan compute.VirtualMachine, <-chan error) {
-	nic, _ := network.GetNic(nicName)
+func CreateVM(ctx context.Context, vmName, nicName, username, password, sshPublicKeyPath string) (vm compute.VirtualMachine, err error) {
+	nic, _ := network.GetNic(ctx, nicName)
 
 	var sshKeyData string
-	var err error
 	if _, err = os.Stat(sshPublicKeyPath); err == nil {
 		sshBytes, err := ioutil.ReadFile(sshPublicKeyPath)
 		if err != nil {
@@ -48,7 +48,8 @@ func CreateVM(vmName, nicName, username, password, sshPublicKeyPath string) (<-c
 	}
 
 	vmClient, _ := getVMClient()
-	return vmClient.CreateOrUpdate(
+	future, err := vmClient.CreateOrUpdate(
+		ctx,
 		helpers.ResourceGroupName(),
 		vmName,
 		compute.VirtualMachine{
@@ -72,7 +73,7 @@ func CreateVM(vmName, nicName, username, password, sshPublicKeyPath string) (<-c
 					LinuxConfiguration: &compute.LinuxConfiguration{
 						SSH: &compute.SSHConfiguration{
 							PublicKeys: &[]compute.SSHPublicKey{
-								compute.SSHPublicKey{
+								{
 									Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", username)),
 									KeyData: to.StringPtr(sshKeyData),
 								},
@@ -82,7 +83,7 @@ func CreateVM(vmName, nicName, username, password, sshPublicKeyPath string) (<-c
 				},
 				NetworkProfile: &compute.NetworkProfile{
 					NetworkInterfaces: &[]compute.NetworkInterfaceReference{
-						compute.NetworkInterfaceReference{
+						{
 							ID: nic.ID,
 							NetworkInterfaceReferenceProperties: &compute.NetworkInterfaceReferenceProperties{
 								Primary: to.BoolPtr(true),
@@ -92,6 +93,15 @@ func CreateVM(vmName, nicName, username, password, sshPublicKeyPath string) (<-c
 				},
 			},
 		},
-		nil,
 	)
+	if err != nil {
+		return vm, fmt.Errorf("cannot create vm: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, vmClient.Client)
+	if err != nil {
+		return vm, fmt.Errorf("cannot get the vm create or update future response: %v", err)
+	}
+
+	return future.Result(vmClient)
 }

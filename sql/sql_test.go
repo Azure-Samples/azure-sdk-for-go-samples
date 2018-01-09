@@ -1,7 +1,10 @@
 package sql
 
 import (
+	"context"
 	"flag"
+	"fmt"
+	"log"
 	"strings"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
@@ -20,14 +23,20 @@ func init() {
 	flag.StringVar(&dbName, "sqlDbName", dbName, "Provide a name for the SQL database to be created")
 	flag.StringVar(&dbLogin, "sqlDbUsername", dbLogin, "Provide a username for the SQL database.")
 	flag.StringVar(&dbPassword, "sqlDbPassword", dbPassword, "Provide a password for the username.")
-	helpers.ParseArgs()
+
+	err := helpers.ParseArgs()
+	if err != nil {
+		log.Fatalf("cannot parse arguments: %v", err)
+	}
 }
 
 // Example creates a SQL server and database, then creates a table and inserts a record.
 func ExampleDatabaseQueries() {
-	defer resources.Cleanup()
+	ctx := context.Background()
 
-	_, err := resources.CreateGroup(helpers.ResourceGroupName())
+	defer resources.Cleanup(ctx)
+
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
@@ -35,21 +44,20 @@ func ExampleDatabaseQueries() {
 
 	serverName = strings.ToLower(serverName)
 
-	_, errC := CreateServer(serverName, dbLogin, dbPassword)
-	err = <-errC
+	_, err = CreateServer(ctx, serverName, dbLogin, dbPassword)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		helpers.PrintAndLog(fmt.Sprintf("cannot create sql server: %v", err))
 	}
+
 	helpers.PrintAndLog("sql server created")
 
-	_, errC = CreateDb(serverName, dbName)
-	err = <-errC
+	_, err = CreateDB(ctx, serverName, dbName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		helpers.PrintAndLog(fmt.Sprintf("cannot create sql database: %v", err))
 	}
 	helpers.PrintAndLog("database created")
 
-	err = CreateFirewallRules(serverName)
+	err = CreateFirewallRules(ctx, serverName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

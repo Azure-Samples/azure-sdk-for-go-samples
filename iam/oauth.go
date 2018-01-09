@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -46,7 +47,10 @@ func init() {
 }
 
 func parseArgs() error {
-	gotenv.Load() // read from .env file
+	err := gotenv.Load() // read from .env file
+	if err != nil && !strings.HasPrefix(err.Error(), "open .env:") {
+		return err
+	}
 
 	tenantID = os.Getenv("AZ_TENANT_ID")
 	clientID = os.Getenv("AZ_CLIENT_ID")
@@ -54,18 +58,19 @@ func parseArgs() error {
 
 	if !(len(tenantID) > 0) || !(len(clientID) > 0) || !(len(clientSecret) > 0) {
 		return errors.New("tenant id, client id, and client secret must be specified via env var or flags")
-
 	}
-	var err error
+
 	oauthConfig, err = adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantID)
 
 	return err
 }
 
+// ClientID gets the client ID
 func ClientID() string {
 	return clientID
 }
 
+// TenantID gets the client ID
 func TenantID() string {
 	return tenantID
 }

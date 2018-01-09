@@ -1,17 +1,23 @@
 package resources
 
 import (
+	"context"
+	"log"
+
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 )
 
 func init() {
-	helpers.ParseArgs()
+	err := helpers.ParseArgs()
+	if err != nil {
+		log.Fatalf("cannot parse arguments: %v", err)
+	}
 }
 
 func ExampleCreateGroup() {
-	defer Cleanup()
+	defer Cleanup(context.Background())
 
-	_, err := CreateGroup(helpers.ResourceGroupName())
+	_, err := CreateGroup(context.Background(), helpers.ResourceGroupName())
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

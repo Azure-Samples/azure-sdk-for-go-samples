@@ -23,3 +23,12 @@ func GetRandomLetterSequence(n int) string {
 	}
 	return string(b)
 }
+
+func contains(array []string, element string) bool {
+	for _, e := range array {
+		if e == element {
+			return true
+		}
+	}
+	return false
+}

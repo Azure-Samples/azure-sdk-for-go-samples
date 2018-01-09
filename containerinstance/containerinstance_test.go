@@ -33,6 +33,12 @@ func parseArgs() error {
 		containerGroupName = "az-samples-go-container-group-" + helpers.GetRandomLetterSequence(10)
 	}
 
+	// Container instance is not yet available in many Azure locations
+	helpers.OverrideLocation([]string{
+		"westus",
+		"eastus",
+		"westeurope",
+	})
 	return nil
 }
 

@@ -12,7 +12,7 @@ script:
 - test -z "$(go vet ./... |  grep -v 'refers to unknown identifier' | tee /dev/stderr)"
 - dep ensure
 - test -z "`for d in $dirs; do go build $d | grep -v 'no non-test Go files in' | tee /dev/stderr; done`"
-- bash tools/ci.sh
+- travis_wait 30 bash tools/ci.sh
 env:
   global:
   - secure: iJPj6gYRWl+3/oTmH3jx7tbd+ts3i8fC8VuGcY8WJfFJAcTT//i+YedH4PYeKedL8v79D6v9oif7KggyTGp9Ky2tfBjVoETCKgNclE/91VdVRxpazfHxxPjvu4L99nl0DuMMjKsGtVpuU8BB8lbnXTL44oqk96oUyYs/GvO7/4emawvTZHX4gl+r7r6caRb9suF3Ttf+i7XCu1bIS4RVPKZi4kMgI2F2SoNiOvxVc+1gtpDxyfnOljCCnKU6JOXoMyDLV3n0ZU1nR6EPLb5BpTeUMCqSTpWvZjSVGtYGUAc96woQeoy0aTJsK7rDNVJLRhKWS5sA1c7ichXnIW7Zqm+fRsXipv2qAXJhGdAGwlNcj0C4f7YW4VNG1Dmg2SX1N3POX5tfKhT2oF65h0gKWhq7NeOorummfdvPfIdt2FCSuZtCw7wzMiAVlgMomX3q34aWccPr8TGycGPDRJq7nI+Cxmz3gBK7xnqgiblPd8aFjAxAxa4OZZuEaxzDcTWC4muxqStacs5jpBw/j1hHv5r3uqOhKjnEkxXAQroF7M1LvPf+1jDsKqqHp6OmZsToZNSaZ0zJXg72UWc0HCFM3nfS/vUITtcshkKqYXRc8fuVFrxdCv5kDT8IF5pueBV0S8rHnTJoL50rS1j15Dp1NQKeU8jATjBo3Sn2xkccuKo=

@@ -6,7 +6,7 @@ fi
 
 REALEXITSTATUS=0
 
-dirs=$(go list ./...)
+dirs=$(go list ./... | grep -v /vendor/)
 test -z "`for d in $dirs; do go test -v $d | tee /dev/stderr; done`"
 REALEXITSTATUS=$(($REALEXITSTATUS+$?))
 

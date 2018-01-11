@@ -3,7 +3,10 @@ package keyvault
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
+	"os"
+	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
@@ -13,27 +16,30 @@ var (
 	vaultName = "vault-sample-go-" + helpers.GetRandomLetterSequence(5)
 )
 
-func init() {
+func TestMain(m *testing.M) {
 	flag.StringVar(&vaultName, "vaultName", vaultName, "Specify name of vault to create.")
 
 	err := helpers.ParseArgs()
 	if err != nil {
 		log.Fatalln("failed to parse args")
 	}
+
+	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+
+	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
+
+	os.Exit(m.Run())
 }
 
 func ExampleSetVaultPermissions() {
 	ctx := context.Background()
 
-	defer resources.Cleanup(ctx)
-
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("resource group created")
-
-	_, err = CreateVault(ctx, vaultName)
+	_, err := CreateVault(ctx, vaultName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
@@ -46,7 +52,6 @@ func ExampleSetVaultPermissions() {
 	helpers.PrintAndLog("set vault permissions")
 
 	// Output:
-	// resource group created
 	// vault created
 	// set vault permissions
 }

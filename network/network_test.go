@@ -3,8 +3,10 @@ package network
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"os"
+	"testing"
 
 	"github.com/subosito/gotenv"
 
@@ -21,11 +23,22 @@ var (
 	ipName             = "ip1"
 )
 
-func init() {
+func TestMain(m *testing.M) {
 	err := parseArgs()
 	if err != nil {
-		log.Fatalf("cannot parse arguments: %v", err)
+		log.Fatalln("failed to parse args")
 	}
+
+	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+
+	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
+
+	os.Exit(m.Run())
 }
 
 func parseArgs() error {
@@ -48,15 +61,8 @@ func parseArgs() error {
 
 func ExampleCreateNIC() {
 	ctx := context.Background()
-	defer resources.Cleanup(ctx)
 
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("resource group created")
-
-	_, err = CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
+	_, err := CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
@@ -81,7 +87,6 @@ func ExampleCreateNIC() {
 	helpers.PrintAndLog("created nic")
 
 	// Output:
-	// resource group created
 	// created vnet and 2 subnets
 	// created network security group
 	// created public IP

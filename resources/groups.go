@@ -18,6 +18,7 @@ func getGroupsClient() resources.GroupsClient {
 	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
 	groupsClient := resources.NewGroupsClient(helpers.SubscriptionID())
 	groupsClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	groupsClient.AddToUserAgent(helpers.UserAgent())
 	return groupsClient
 }
 

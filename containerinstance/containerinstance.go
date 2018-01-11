@@ -20,7 +20,7 @@ func getContainerGroupsClient() (containerinstance.ContainerGroupsClient, error)
 
 	containerGroupsClient := containerinstance.NewContainerGroupsClient(helpers.SubscriptionID())
 	containerGroupsClient.Authorizer = autorest.NewBearerAuthorizer(token)
-
+	containerGroupsClient.AddToUserAgent(helpers.UserAgent())
 	return containerGroupsClient, nil
 }
 

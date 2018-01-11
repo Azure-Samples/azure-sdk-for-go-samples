@@ -5,6 +5,8 @@ import (
 	"log"
 	"math/rand"
 	"time"
+
+	"github.com/Azure/go-autorest/autorest/utils"
 )
 
 // PrintAndLog writes to stdout and to a logger.
@@ -31,4 +33,9 @@ func contains(array []string, element string) bool {
 		}
 	}
 	return false
+}
+
+// UserAgent return the string to be appended to user agent header
+func UserAgent() string {
+	return "samples " + utils.GetCommit()
 }

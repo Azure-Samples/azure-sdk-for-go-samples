@@ -3,6 +3,7 @@ package cognitiveservices
 import (
 	"context"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/spellcheck"
 	"github.com/Azure/go-autorest/autorest"
 )
@@ -12,6 +13,7 @@ func getSpellCheckClient(accountName string) spellcheck.BaseClient {
 	spellCheckClient := spellcheck.New()
 	csAuthorizer := autorest.NewCognitiveServicesAuthorizer(apiKey)
 	spellCheckClient.Authorizer = csAuthorizer
+	spellCheckClient.AddToUserAgent(helpers.UserAgent())
 	return spellCheckClient
 }
 

@@ -3,6 +3,7 @@ package cognitiveservices
 import (
 	"context"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/imagesearch"
 	"github.com/Azure/go-autorest/autorest"
 )
@@ -12,6 +13,7 @@ func getImageSearchClient(accountName string) imagesearch.ImagesClient {
 	imageSearchClient := imagesearch.NewImagesClient()
 	csAuthorizer := autorest.NewCognitiveServicesAuthorizer(apiKey)
 	imageSearchClient.Authorizer = csAuthorizer
+	imageSearchClient.AddToUserAgent(helpers.UserAgent())
 	return imageSearchClient
 }
 

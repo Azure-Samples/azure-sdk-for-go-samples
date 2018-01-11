@@ -17,6 +17,7 @@ func getVaultsClient() keyvault.VaultsClient {
 	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
 	vaultsClient := keyvault.NewVaultsClient(helpers.SubscriptionID())
 	vaultsClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	vaultsClient.AddToUserAgent(helpers.UserAgent())
 	return vaultsClient
 }
 

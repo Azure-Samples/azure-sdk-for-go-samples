@@ -3,6 +3,7 @@ package cognitiveservices
 import (
 	"context"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/customsearch"
 	"github.com/Azure/go-autorest/autorest"
 )
@@ -12,6 +13,7 @@ func getCustomSearchClient(accountName string) customsearch.CustomInstanceClient
 	customSearchClient := customsearch.NewCustomInstanceClient()
 	csAuthorizer := autorest.NewCognitiveServicesAuthorizer(apiKey)
 	customSearchClient.Authorizer = csAuthorizer
+	customSearchClient.AddToUserAgent(helpers.UserAgent())
 	return customSearchClient
 }
 

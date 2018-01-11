@@ -3,6 +3,7 @@ package cognitiveservices
 import (
 	"context"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/entitysearch"
 	"github.com/Azure/go-autorest/autorest"
 )
@@ -12,6 +13,7 @@ func getEntitySearchClient(accountName string) entitysearch.EntitiesClient {
 	entitySearchClient := entitysearch.NewEntitiesClient()
 	csAuthorizer := autorest.NewCognitiveServicesAuthorizer(apiKey)
 	entitySearchClient.Authorizer = csAuthorizer
+	entitySearchClient.AddToUserAgent(helpers.UserAgent())
 	return entitySearchClient
 }
 

@@ -3,6 +3,7 @@ package cognitiveservices
 import (
 	"context"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/newssearch"
 	"github.com/Azure/go-autorest/autorest"
 )
@@ -12,6 +13,7 @@ func getNewsSearchClient(accountName string) newssearch.NewsClient {
 	newsSearchClient := newssearch.NewNewsClient()
 	csAuthorizer := autorest.NewCognitiveServicesAuthorizer(apiKey)
 	newsSearchClient.Authorizer = csAuthorizer
+	newsSearchClient.AddToUserAgent(helpers.UserAgent())
 	return newsSearchClient
 }
 

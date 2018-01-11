@@ -28,6 +28,7 @@ func getVMClient() (compute.VirtualMachinesClient, error) {
 	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
 	vmClient := compute.NewVirtualMachinesClient(helpers.SubscriptionID())
 	vmClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	vmClient.AddToUserAgent(helpers.UserAgent())
 	return vmClient, nil
 }
 

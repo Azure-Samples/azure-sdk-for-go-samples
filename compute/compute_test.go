@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
@@ -27,11 +28,22 @@ var (
 	ipName             = "ip1"
 )
 
-func init() {
+func TestMain(m *testing.M) {
 	err := parseArgs()
 	if err != nil {
 		log.Fatalln("failed to parse args")
 	}
+
+	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+
+	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
+
+	os.Exit(m.Run())
 }
 
 func parseArgs() error {
@@ -55,15 +67,7 @@ func parseArgs() error {
 func ExampleCreateVM() {
 	ctx := context.Background()
 
-	defer resources.Cleanup(ctx)
-
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("resource group created")
-
-	_, err = network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
+	_, err := network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
@@ -94,7 +98,6 @@ func ExampleCreateVM() {
 	helpers.PrintAndLog("created VM")
 
 	// Output:
-	// resource group created
 	// created vnet and 2 subnets
 	// created network security group
 	// created public IP

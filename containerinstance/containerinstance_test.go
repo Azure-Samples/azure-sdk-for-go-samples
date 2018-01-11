@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
@@ -14,12 +15,22 @@ var (
 	containerGroupName string
 )
 
-func init() {
+func TestMain(m *testing.M) {
 	err := parseArgs()
 	if err != nil {
-		log.Fatalf("cannot parse arguments: %v", err)
+		log.Fatalln("failed to parse args")
 	}
 
+	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+
+	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
+
+	os.Exit(m.Run())
 }
 
 func parseArgs() error {
@@ -44,15 +55,8 @@ func parseArgs() error {
 
 func ExampleCreateContainerGroup() {
 	ctx := context.Background()
-	defer resources.Cleanup(ctx)
 
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
-	if err != nil {
-		log.Printf("cannot create resource group: %v", err)
-	}
-	helpers.PrintAndLog("created resource group")
-
-	_, err = CreateContainerGroup(ctx, containerGroupName, helpers.Location(), helpers.ResourceGroupName())
+	_, err := CreateContainerGroup(ctx, containerGroupName, helpers.Location(), helpers.ResourceGroupName())
 	if err != nil {
 		log.Fatalf("cannot create container group: %v", err)
 	}
@@ -85,7 +89,6 @@ func ExampleCreateContainerGroup() {
 	helpers.PrintAndLog("deleted container group")
 
 	// Output:
-	// created resource group
 	// created container group
 	// retrieved container group
 	// updated container group

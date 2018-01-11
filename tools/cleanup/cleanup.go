@@ -21,6 +21,12 @@ func main() {
 		log.Fatalf("Error parsing subscriptionID: %v\n", err)
 		os.Exit(1)
 	}
+	err = helpers.ParseDeviceFlow()
+	if err != nil {
+		log.Fatalf("Error parsing device flow: %v\n", err)
+		log.Fatalf("Using device flow: %v", helpers.DeviceFlow())
+	}
+	flag.Parse()
 
 	if !quiet {
 		fmt.Println("Are you sure you want to delete all resource groups in the subscription? (yes | no)")

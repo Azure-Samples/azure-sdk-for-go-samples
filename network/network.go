@@ -15,7 +15,7 @@ import (
 // Vnets
 
 func getVnetClient() network.VirtualNetworksClient {
-	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
+	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	vnetClient := network.NewVirtualNetworksClient(helpers.SubscriptionID())
 	vnetClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	return vnetClient
@@ -72,7 +72,7 @@ func DeleteVirtualNetwork(ctx context.Context, vnetName string) (result network.
 // VNet Subnets
 
 func getSubnetsClient() network.SubnetsClient {
-	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
+	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	subnetsClient := network.NewSubnetsClient(helpers.SubscriptionID())
 	subnetsClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	return subnetsClient
@@ -93,7 +93,7 @@ func GetVirtualNetworkSubnet(ctx context.Context, vnetName string, subnetName st
 // Network Security Groups
 
 func getNsgClient() network.SecurityGroupsClient {
-	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
+	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	nsgClient := network.NewSecurityGroupsClient(helpers.SubscriptionID())
 	nsgClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	return nsgClient
@@ -176,7 +176,7 @@ func DeleteNetworkSecurityGroupRule() {}
 // Network Interfaces (NIC's)
 
 func getNicClient() network.InterfacesClient {
-	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
+	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	nicClient := network.NewInterfacesClient(helpers.SubscriptionID())
 	nicClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	return nicClient
@@ -250,7 +250,7 @@ func DeleteNic(ctx context.Context, nic string) (result network.InterfacesDelete
 // Public IP Addresses
 
 func getIPClient() network.PublicIPAddressesClient {
-	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
+	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	ipClient := network.NewPublicIPAddressesClient(helpers.SubscriptionID())
 	ipClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	return ipClient

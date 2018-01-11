@@ -15,6 +15,7 @@ var (
 	location          string
 	subscriptionID    string
 	keepResources     bool
+	deviceFlow        bool
 
 	allLocations = []string{
 		"eastasia",
@@ -54,10 +55,15 @@ func ParseArgs() error {
 		return err
 	}
 
+	err = ParseDeviceFlow()
+	if err != nil {
+		return err
+	}
+
 	// flags are prioritized over env vars,
 	// so read from env vars first, then check flags
-	err = gotenv.Load() // to allow use of .env file
-	if err != nil && !strings.HasPrefix(err.Error(), "open .env:") {
+	err = LoadEnvVars()
+	if err != nil {
 		return err
 	}
 
@@ -65,8 +71,6 @@ func ParseArgs() error {
 	location = os.Getenv("AZ_LOCATION")
 	if os.Getenv("AZ_SAMPLES_KEEP_RESOURCES") == "1" {
 		keepResources = true
-	} else {
-		keepResources = false
 	}
 
 	// flags override envvars
@@ -86,19 +90,35 @@ func ParseArgs() error {
 	return nil
 }
 
+// ParseSubscriptionID gets the subscription id from either an env var, .env file or flag
+// The caller should do flag.Parse()
 func ParseSubscriptionID() error {
-	err := gotenv.Load() // to allow use of .env file
-	if err != nil && !strings.HasPrefix(err.Error(), "open .env:") {
+	err := LoadEnvVars()
+	if err != nil {
 		return err
 	}
 
 	subscriptionID = os.Getenv("AZ_SUBSCRIPTION_ID")
 	flag.StringVar(&subscriptionID, "subscription", subscriptionID, "Subscription to use for deployment.")
-	flag.Parse()
 
 	if !(len(subscriptionID) > 0) {
 		return errors.New("subscription ID must be specified in env var, .env file or flag")
 	}
+	return nil
+}
+
+// ParseDeviceFlow parses the auth grant type to be used
+// The caller should do flag.Parse()
+func ParseDeviceFlow() error {
+	err := LoadEnvVars()
+	if err != nil {
+		return err
+	}
+
+	if os.Getenv("AZ_AUTH_DEVICEFLOW") != "" {
+		deviceFlow = true
+	}
+	flag.BoolVar(&deviceFlow, "deviceFlow", deviceFlow, "Use device flow for authentication. This flag should be used with -v flag. Default authentication is service principal.")
 	return nil
 }
 
@@ -129,6 +149,11 @@ func GroupPrefix() string {
 	return "group-azure-samples-go"
 }
 
+// DeviceFlow returns if device flow has been set as auth grant type
+func DeviceFlow() bool {
+	return deviceFlow
+}
+
 // end getters
 
 // OverrideLocation ovverrides the specified location where to create Azure resources.
@@ -139,4 +164,13 @@ func OverrideLocation(available []string) {
 		log.Printf("Using location %s on this sample, because this service is not yet available on specified location %s\n", available[0], location)
 		location = available[0]
 	}
+}
+
+// LoadEnvVars loads environment variables.
+func LoadEnvVars() error {
+	err := gotenv.Load() // to allow use of .env file
+	if err != nil && !strings.HasPrefix(err.Error(), "open .env:") {
+		return err
+	}
+	return nil
 }

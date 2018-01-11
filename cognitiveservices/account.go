@@ -12,7 +12,7 @@ import (
 )
 
 func getCognitiveSevicesManagementClient() cognitiveservices.AccountsClient {
-	token, _ := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
+	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	accountClient := cognitiveservices.NewAccountsClient(helpers.SubscriptionID())
 	accountClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	return accountClient

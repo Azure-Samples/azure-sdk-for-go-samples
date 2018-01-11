@@ -2,15 +2,13 @@ package iam
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/subosito/gotenv"
 )
 
 const (
@@ -47,8 +45,8 @@ func init() {
 }
 
 func parseArgs() error {
-	err := gotenv.Load() // read from .env file
-	if err != nil && !strings.HasPrefix(err.Error(), "open .env:") {
+	err := helpers.LoadEnvVars()
+	if err != nil {
 		return err
 	}
 
@@ -73,6 +71,13 @@ func ClientID() string {
 // TenantID gets the client ID
 func TenantID() string {
 	return tenantID
+}
+
+func AuthGrantType() OAuthGrantType {
+	if helpers.DeviceFlow() {
+		return OAuthGrantTypeDeviceFlow
+	}
+	return OAuthGrantTypeServicePrincipal
 }
 
 // GetResourceManagementToken gets an OAuth token for managing resources using the specified grant type.
@@ -118,6 +123,6 @@ func getDeviceToken() (adal.OAuthTokenProvider, error) {
 		log.Fatalf("%s: %v\n", "failed to initiate device auth", err)
 	}
 
-	fmt.Println(*code.Message)
+	log.Println(*code.Message)
 	return adal.WaitForUserCompletion(sender, code)
 }

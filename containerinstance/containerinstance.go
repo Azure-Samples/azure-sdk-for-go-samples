@@ -13,7 +13,7 @@ import (
 )
 
 func getContainerGroupsClient() (containerinstance.ContainerGroupsClient, error) {
-	token, err := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
+	token, err := iam.GetResourceManagementToken(iam.AuthGrantType())
 	if err != nil {
 		return containerinstance.ContainerGroupsClient{}, fmt.Errorf("cannot get token: %v", err)
 	}

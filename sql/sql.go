@@ -18,6 +18,7 @@ func getServersClient() sql.ServersClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	serversClient := sql.NewServersClient(helpers.SubscriptionID())
 	serversClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	serversClient.AddToUserAgent(helpers.UserAgent())
 	return serversClient
 }
 
@@ -54,6 +55,7 @@ func getDbClient() sql.DatabasesClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	dbClient := sql.NewDatabasesClient(helpers.SubscriptionID())
 	dbClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	dbClient.AddToUserAgent(helpers.UserAgent())
 	return dbClient
 }
 
@@ -97,6 +99,7 @@ func getFwRulesClient() sql.FirewallRulesClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	fwrClient := sql.NewFirewallRulesClient(helpers.SubscriptionID())
 	fwrClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	fwrClient.AddToUserAgent(helpers.UserAgent())
 	return fwrClient
 }
 

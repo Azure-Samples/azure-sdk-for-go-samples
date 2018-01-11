@@ -18,6 +18,7 @@ func getVnetClient() network.VirtualNetworksClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	vnetClient := network.NewVirtualNetworksClient(helpers.SubscriptionID())
 	vnetClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	vnetClient.AddToUserAgent(helpers.UserAgent())
 	return vnetClient
 }
 
@@ -75,6 +76,7 @@ func getSubnetsClient() network.SubnetsClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	subnetsClient := network.NewSubnetsClient(helpers.SubscriptionID())
 	subnetsClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	subnetsClient.AddToUserAgent(helpers.UserAgent())
 	return subnetsClient
 }
 
@@ -96,6 +98,7 @@ func getNsgClient() network.SecurityGroupsClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	nsgClient := network.NewSecurityGroupsClient(helpers.SubscriptionID())
 	nsgClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	nsgClient.AddToUserAgent(helpers.UserAgent())
 	return nsgClient
 }
 
@@ -179,6 +182,7 @@ func getNicClient() network.InterfacesClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	nicClient := network.NewInterfacesClient(helpers.SubscriptionID())
 	nicClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	nicClient.AddToUserAgent(helpers.UserAgent())
 	return nicClient
 }
 
@@ -253,6 +257,7 @@ func getIPClient() network.PublicIPAddressesClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	ipClient := network.NewPublicIPAddressesClient(helpers.SubscriptionID())
 	ipClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	ipClient.AddToUserAgent(helpers.UserAgent())
 	return ipClient
 }
 

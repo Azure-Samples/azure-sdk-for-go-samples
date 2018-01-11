@@ -17,6 +17,7 @@ func getStorageAccountsClient() storage.AccountsClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	storageAccountsClient := storage.NewAccountsClient(helpers.SubscriptionID())
 	storageAccountsClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	storageAccountsClient.AddToUserAgent(helpers.UserAgent())
 	return storageAccountsClient
 }
 

@@ -15,6 +15,7 @@ func getCognitiveSevicesManagementClient() cognitiveservices.AccountsClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	accountClient := cognitiveservices.NewAccountsClient(helpers.SubscriptionID())
 	accountClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	accountClient.AddToUserAgent(helpers.UserAgent())
 	return accountClient
 }
 

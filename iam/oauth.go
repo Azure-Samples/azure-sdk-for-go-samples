@@ -57,15 +57,15 @@ func parseArgs() error {
 
 	tenantID = os.Getenv("AZ_TENANT_ID")
 	if tenantID != "" {
-		log.Println("set tenant ID")
+		helpers.PrintAndLog("set tenant ID")
 	}
 	clientID = os.Getenv("AZ_CLIENT_ID")
 	if tenantID != "" {
-		log.Println("set client ID")
+		helpers.PrintAndLog("set client ID")
 	}
 	clientSecret = os.Getenv("AZ_CLIENT_SECRET")
 	if tenantID != "" {
-		log.Println("set client secret")
+		helpers.PrintAndLog("set client secret")
 	}
 
 	if !(len(tenantID) > 0) || !(len(clientID) > 0) || !(len(clientSecret) > 0) {

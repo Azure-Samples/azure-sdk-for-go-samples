@@ -56,8 +56,17 @@ func parseArgs() error {
 	}
 
 	tenantID = os.Getenv("AZ_TENANT_ID")
+	if tenantID != "" {
+		log.Println("set tenant ID")
+	}
 	clientID = os.Getenv("AZ_CLIENT_ID")
+	if tenantID != "" {
+		log.Println("set client ID")
+	}
 	clientSecret = os.Getenv("AZ_CLIENT_SECRET")
+	if tenantID != "" {
+		log.Println("set client secret")
+	}
 
 	if !(len(tenantID) > 0) || !(len(clientID) > 0) || !(len(clientSecret) > 0) {
 		return errors.New("tenant id, client id, and client secret must be specified via env var or flags")

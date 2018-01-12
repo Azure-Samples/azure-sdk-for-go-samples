@@ -1,4 +1,4 @@
-this script runs the samples, and cleans thse subscription
+# this script runs the samples, and cleans thse subscription
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
     echo 'skip running tests'
     exit 0

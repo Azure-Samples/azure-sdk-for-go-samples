@@ -18,13 +18,14 @@ import (
 var fakepubkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7laRyN4B3YZmVrDEZLZoIuUA72pQ0DpGuZBZWykCofIfCPrFZAJgFvonKGgKJl6FGKIunkZL9Us/mV4ZPkZhBlE7uX83AAf5i9Q8FmKpotzmaxN10/1mcnEE7pFvLoSkwqrQSkrrgSm8zaJ3g91giXSbtqvSIj/vk2f05stYmLfhAwNo3Oh27ugCakCoVeuCrZkvHMaJgcYrIGCuFo6q0Pfk9rsZyriIqEa9AtiUOtViInVYdby7y71wcbl0AbbCZsTSqnSoVxm2tRkOsXV6+8X4SnwcmZbao3H+zfO1GBhQOLxJ4NQbzAa8IJh810rYARNLptgmsd4cYXVOSosTX azureuser"
 
 func getAKSClient() (containerservice.ManagedClustersClient, error) {
-	token, err := iam.GetResourceManagementToken(iam.OAuthGrantTypeServicePrincipal)
+	token, err := iam.GetResourceManagementToken(iam.AuthGrantType())
 	if err != nil {
 		return containerservice.ManagedClustersClient{}, fmt.Errorf("cannot get token: %v", err)
 	}
 
 	aksClient := containerservice.NewManagedClustersClient(helpers.SubscriptionID())
 	aksClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	aksClient.AddToUserAgent(helpers.UserAgent())
 	return aksClient, nil
 }
 
@@ -69,7 +70,7 @@ func CreateAKS(ctx context.Context, resourceName, location, resourceGroupName, u
 					{
 						Count:  to.Int32Ptr(agentPoolCount),
 						Name:   to.StringPtr("agentpool1"),
-						VMSize: containerservice.StandardD2,
+						VMSize: containerservice.StandardD2V2,
 					},
 				},
 				ServicePrincipalProfile: &containerservice.ServicePrincipalProfile{
@@ -91,16 +92,16 @@ func CreateAKS(ctx context.Context, resourceName, location, resourceGroupName, u
 	return future.Result(aksClient)
 }
 
-// GetAKS returns an existing container group given a resource group name and resource name
+// GetAKS returns an existing AKS cluster given a resource group name and resource name
 func GetAKS(ctx context.Context, resourceGroupName, resourceName string) (c containerservice.ManagedCluster, err error) {
 	aksClient, err := getAKSClient()
 	if err != nil {
-		return c, fmt.Errorf("cannot get container group client: %v", err)
+		return c, fmt.Errorf("cannot get AKS client: %v", err)
 	}
 
 	c, err = aksClient.Get(ctx, resourceGroupName, resourceName)
 	if err != nil {
-		return c, fmt.Errorf("cannot get container group %v from resource group %v: %v", resourceName, resourceGroupName, err)
+		return c, fmt.Errorf("cannot get AKS managed cluster %v from resource group %v: %v", resourceName, resourceGroupName, err)
 	}
 
 	return c, nil

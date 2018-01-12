@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
@@ -20,11 +21,22 @@ var (
 	agentPoolCount   int32
 )
 
-func init() {
+func TestMain(m *testing.M) {
 	err := parseArgs()
 	if err != nil {
-		log.Fatalf("cannot parse arguments: %v", err)
+		log.Fatalln("failed to parse args")
 	}
+
+	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+
+	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
+
+	os.Exit(m.Run())
 }
 
 func parseArgs() error {
@@ -49,54 +61,41 @@ func parseArgs() error {
 		agentPoolCount = int32(i)
 	}
 
+	// AKS managed clusters are not yet available in many Azure locations
+	helpers.OverrideLocation([]string{
+		"eastus",
+		"westeurope",
+		"centralus",
+	})
 	return nil
 }
 
 func ExampleCreateAKS() {
-	_, err := resources.CreateGroup(context.Background(), helpers.ResourceGroupName())
-	if err != nil {
-		log.Printf("cannot create resource group: %v", err)
-	}
-	helpers.PrintAndLog("created resource group")
+	ctx := context.Background()
 
-	_, err = CreateAKS(context.Background(), resourceName, helpers.Location(), helpers.ResourceGroupName(), username, sshPublicKeyPath, clientID, clientSecret, agentPoolCount)
+	_, err := CreateAKS(ctx, resourceName, helpers.Location(), helpers.ResourceGroupName(), username, sshPublicKeyPath, clientID, clientSecret, agentPoolCount)
 	if err != nil {
-		log.Fatalf("cannot create AKS cluster: %v", err)
+		helpers.PrintAndLog(err.Error())
 	}
 
 	helpers.PrintAndLog("created AKS cluster")
 
-	// Output:
-	// created resource group
-	// created AKS cluster
-}
-
-func ExampleGetAKS() {
-	c, err := GetAKS(context.Background(), helpers.ResourceGroupName(), resourceName)
+	_, err = GetAKS(ctx, helpers.ResourceGroupName(), resourceName)
 	if err != nil {
-		log.Fatalf("cannot get AKS cluster %v from resource group %v", resourceName, helpers.ResourceGroupName())
-	}
-
-	if *c.Name != resourceName {
-		log.Fatalf("incorrect name of AKS cluster: expected %v, got %v", resourceName, *c.Name)
+		helpers.PrintAndLog(err.Error())
 	}
 
 	helpers.PrintAndLog("retrieved AKS cluster")
 
-	// Output:
-	// retrieved AKS cluster
-}
-
-func ExampleDeleteAKS() {
-	defer resources.Cleanup(context.Background())
-
-	_, err := DeleteAKS(context.Background(), helpers.ResourceGroupName(), resourceName)
+	_, err = DeleteAKS(ctx, helpers.ResourceGroupName(), resourceName)
 	if err != nil {
-		log.Fatalf("cannot delete AKS cluster %v from resource group %v: %v", resourceName, helpers.ResourceGroupName(), err)
+		helpers.PrintAndLog(err.Error())
 	}
 
 	helpers.PrintAndLog("deleted AKS cluster")
 
 	// Output:
+	// created AKS cluster
+	// retrieved AKS cluster
 	// deleted AKS cluster
 }

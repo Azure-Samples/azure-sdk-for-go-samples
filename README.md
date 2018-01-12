@@ -2,7 +2,7 @@
 
 azure-sdk-for-go-samples provides easy-to-understand, continuously-tested samples for using Azure services via [Azure/azure-sdk-for-go][].
 
-[![Build Status](https://travis-ci.com/Azure-Samples/azure-sdk-for-go-samples.svg?branch=master)](https://travis-ci.com/Azure-Samples/azure-sdk-for-go-samples)
+[![Build Status](https://travis-ci.org/Azure-Samples/azure-sdk-for-go-samples.svg?branch=master)](https://travis-ci.org/Azure-Samples/azure-sdk-for-go-samples)
 
 The goal of this project is to provide a library of code snippets for common
 and not-so-common operations in Azure via the Go SDK. Code is organized by

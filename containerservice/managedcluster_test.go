@@ -66,6 +66,8 @@ func parseArgs() error {
 		"eastus",
 		"westeurope",
 		"centralus",
+		"canadacentral",
+		"canadaeast",
 	})
 	return nil
 }

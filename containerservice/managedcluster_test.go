@@ -45,7 +45,7 @@ func parseArgs() error {
 		return fmt.Errorf("cannot parse args: %v", err)
 	}
 
-	resourceName = os.Getenv("AZ_RESOURCE_GROUP_NAME")
+	resourceName = os.Getenv("AZ_AKS_NAME")
 	if !(len(resourceName) > 0) {
 		resourceName = "az-samples-go-aks-" + helpers.GetRandomLetterSequence(10)
 	}

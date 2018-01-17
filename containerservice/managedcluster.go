@@ -49,8 +49,8 @@ func CreateAKS(ctx context.Context, resourceName, location, resourceGroupName, u
 
 	future, err := aksClient.CreateOrUpdate(
 		ctx,
-		resourceName,
 		resourceGroupName,
+		resourceName,
 		containerservice.ManagedCluster{
 			Name:     &resourceName,
 			Location: &location,

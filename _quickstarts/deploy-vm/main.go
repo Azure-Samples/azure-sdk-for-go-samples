@@ -6,8 +6,9 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+	"github.com/Azure/azure-sdk-for-go/profiles/latest/network/mgmt/network"
+	"github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -131,7 +132,7 @@ func getLogin() {
 	addressClient := network.NewPublicIPAddressesClient(config.SubscriptionID)
 	addressClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	ipName := (*params)["publicIPAddresses_QuickstartVM_ip_name"].(map[string]interface{})
-	ipAddress, err := addressClient.Get(resourceGroupName, ipName["value"].(string), "")
+	ipAddress, err := addressClient.Get(ctx, resourceGroupName, ipName["value"].(string), "")
 	if err != nil {
 		log.Fatalf("Unable to get IP information. Try using `az network public-ip list -g %s", resourceGroupName)
 	}

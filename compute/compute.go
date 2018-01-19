@@ -207,3 +207,9 @@ func AddMSIExtension(ctx context.Context, vmName string) (ext compute.VirtualMac
 
 	return future.Result(extClient)
 }
+
+// GetVM gets the specified VM info
+func GetVM(ctx context.Context, vmName string) (compute.VirtualMachine, error) {
+	vmClient, _ := getVMClient()
+	return vmClient.Get(ctx, helpers.ResourceGroupName(), vmName, compute.InstanceView)
+}

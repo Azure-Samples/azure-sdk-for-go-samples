@@ -13,6 +13,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/authorization"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
@@ -110,7 +111,7 @@ func ExampleCreateVM() {
 	// created VM
 }
 
-func ExampleCreateVMWithMSIExtension() {
+func ExampleCreateVMForMSI() {
 	ctx := context.Background()
 
 	_, err := network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
@@ -149,6 +150,24 @@ func ExampleCreateVMWithMSIExtension() {
 	}
 	helpers.PrintAndLog("added MSI extension")
 
+	vm, err := GetVM(ctx, vmName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("got VM")
+
+	list, err := authorization.ListRoles(ctx, "roleName eq 'Contributor'")
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("got role definitions list")
+
+	_, err = authorization.AssignRole(ctx, *vm.Identity.PrincipalID, *((*list.Value)[0].ID))
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("role assigned")
+
 	// Output:
 	// created vnet and 2 subnets
 	// created network security group
@@ -156,4 +175,7 @@ func ExampleCreateVMWithMSIExtension() {
 	// created nic
 	// created VM
 	// added MSI extension
+	// got VM
+	// got role definitions list
+	// role assigned
 }

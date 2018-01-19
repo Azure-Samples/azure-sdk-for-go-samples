@@ -1,12 +1,12 @@
 # Azure SDK for Go quickstart: Creating a VM
 
-This code accompanies the [Azure SDK for Go quickstart - Deploy a VM](...). Running this code will
+This code accompanies the Azure documentation quickstart [Deploy an Azure virtual machine with the Azure SDK for Go](http://docs.microsoft.com/go/azure/azure-sdk-go-qs-vm). Running this code will
 load up a provisioning file provided by the user (one is included) that deploys a full VM on Azure.
  
-This code will not compile out of the box. It requires you to change values to correctly authenticate with your own
-Azure account.
+This code compiles out of the box, but will not successfully complete. It requires you to change values to correctly authenticate with your own
+Azure account, and provide other configuration information.
 
-For more information and the most up-to-date instructions on configuring your Azure account and environment to run this quickstart code, please see our full [quickstart article](...), and [learn more about the Azure SDK for Go](...).
+For more information and the most up-to-date instructions on configuring your Azure account and environment to run this quickstart code, please see our full [quickstart article](http://docs.microsoft.com/go/azure/azure-sdk-go-qs-vm), and [learn more about the Azure SDK for Go](http://docs.microsoft.com/go/azure).
 
 # License
 

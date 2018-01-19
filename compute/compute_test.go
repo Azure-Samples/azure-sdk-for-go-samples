@@ -109,3 +109,51 @@ func ExampleCreateVM() {
 	// created nic
 	// created VM
 }
+
+func ExampleCreateVMWithMSIExtension() {
+	ctx := context.Background()
+
+	_, err := network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created vnet and 2 subnets")
+
+	_, err = network.CreateNetworkSecurityGroup(ctx, nsgName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created network security group")
+
+	_, err = network.CreatePublicIP(ctx, ipName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created public IP")
+
+	_, err = network.CreateNIC(ctx, virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created nic")
+
+	_, err = CreateVMForMSI(ctx, vmName, nicName, username, password)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created VM")
+
+	_, err = AddMSIExtension(ctx, vmName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("added MSI extension")
+
+	// Output:
+	// created vnet and 2 subnets
+	// created network security group
+	// created public IP
+	// created nic
+	// created VM
+	// added MSI extension
+}

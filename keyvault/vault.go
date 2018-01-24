@@ -18,6 +18,38 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+var (
+	allKeyPermissions = []keyvault.KeyPermissions{
+		keyvault.KeyPermissionsBackup,
+		keyvault.KeyPermissionsCreate,
+		keyvault.KeyPermissionsDecrypt,
+		keyvault.KeyPermissionsDelete,
+		keyvault.KeyPermissionsEncrypt,
+		keyvault.KeyPermissionsGet,
+		keyvault.KeyPermissionsImport,
+		keyvault.KeyPermissionsList,
+		keyvault.KeyPermissionsPurge,
+		keyvault.KeyPermissionsRecover,
+		keyvault.KeyPermissionsRestore,
+		keyvault.KeyPermissionsSign,
+		keyvault.KeyPermissionsUnwrapKey,
+		keyvault.KeyPermissionsUpdate,
+		keyvault.KeyPermissionsVerify,
+		keyvault.KeyPermissionsWrapKey,
+	}
+
+	allSecretPermissions = []keyvault.SecretPermissions{
+		keyvault.SecretPermissionsBackup,
+		keyvault.SecretPermissionsDelete,
+		keyvault.SecretPermissionsGet,
+		keyvault.SecretPermissionsList,
+		keyvault.SecretPermissionsPurge,
+		keyvault.SecretPermissionsRecover,
+		keyvault.SecretPermissionsRestore,
+		keyvault.SecretPermissionsSet,
+	}
+)
+
 func getVaultsClient() keyvault.VaultsClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	vaultsClient := keyvault.NewVaultsClient(helpers.SubscriptionID())
@@ -56,6 +88,51 @@ func CreateVault(ctx context.Context, vaultName string) (keyvault.Vault, error) 
 func GetVault(ctx context.Context, vaultName string) (keyvault.Vault, error) {
 	vaultsClient := getVaultsClient()
 	return vaultsClient.Get(ctx, helpers.ResourceGroupName(), vaultName)
+}
+
+// CreateComplexKeyVault creates a new vault which grants access to the the current user and the service principal in use
+func CreateComplexKeyVault(ctx context.Context, vaultName, userID string) (vault keyvault.Vault, err error) {
+	vaultsClient := getVaultsClient()
+
+	tenantID, err := uuid.FromString(iam.TenantID())
+	if err != nil {
+		return
+	}
+
+	apList := []keyvault.AccessPolicyEntry{}
+	ap := keyvault.AccessPolicyEntry{
+		TenantID: &tenantID,
+		Permissions: &keyvault.Permissions{
+			Keys:    &allKeyPermissions,
+			Secrets: &allSecretPermissions,
+		},
+	}
+	if userID != "" {
+		ap.ObjectID = to.StringPtr(userID)
+		apList = append(apList, ap)
+	}
+	if helpers.ServicePrincipalObjectID() != "" {
+		ap.ObjectID = to.StringPtr(helpers.ServicePrincipalObjectID())
+		apList = append(apList, ap)
+	}
+
+	return vaultsClient.CreateOrUpdate(
+		ctx,
+		helpers.ResourceGroupName(),
+		vaultName,
+		keyvault.VaultCreateOrUpdateParameters{
+			Location: to.StringPtr(helpers.Location()),
+			Properties: &keyvault.VaultProperties{
+				AccessPolicies:           &apList,
+				EnabledForDiskEncryption: to.BoolPtr(true),
+				Sku: &keyvault.Sku{
+					Family: to.StringPtr("A"),
+					Name:   keyvault.Standard,
+				},
+				TenantID: &tenantID,
+			},
+		})
+
 }
 
 // SetVaultPermissions adds an access policy permitting this app's Client ID to manage keys and secrets.

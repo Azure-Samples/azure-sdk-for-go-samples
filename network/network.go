@@ -27,6 +27,34 @@ func getVnetClient() network.VirtualNetworksClient {
 	return vnetClient
 }
 
+// CreateVirtualNetwork creates a virtual network
+func CreateVirtualNetwork(ctx context.Context, vnetName string) (vnet network.VirtualNetwork, err error) {
+	vnetClient := getVnetClient()
+	future, err := vnetClient.CreateOrUpdate(
+		ctx,
+		helpers.ResourceGroupName(),
+		vnetName,
+		network.VirtualNetwork{
+			Location: to.StringPtr(helpers.Location()),
+			VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
+				AddressSpace: &network.AddressSpace{
+					AddressPrefixes: &[]string{"10.0.0.0/8"},
+				},
+			},
+		})
+
+	if err != nil {
+		return vnet, fmt.Errorf("cannot create virtual network: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, vnetClient.Client)
+	if err != nil {
+		return vnet, fmt.Errorf("cannot get the vnet create or update future response: %v", err)
+	}
+
+	return future.Result(vnetClient)
+}
+
 // CreateVirtualNetworkAndSubnets creates a virtual network with two subnets
 func CreateVirtualNetworkAndSubnets(ctx context.Context, vnetName, subnet1Name, subnet2Name string) (vnet network.VirtualNetwork, err error) {
 	vnetClient := getVnetClient()
@@ -86,7 +114,30 @@ func getSubnetsClient() network.SubnetsClient {
 }
 
 // CreateVirtualNetworkSubnet creates a subnet
-func CreateVirtualNetworkSubnet() {}
+func CreateVirtualNetworkSubnet(ctx context.Context, vnetName, subnetName string) (subnet network.Subnet, err error) {
+	subnetsClient := getSubnetsClient()
+
+	future, err := subnetsClient.CreateOrUpdate(
+		ctx,
+		helpers.ResourceGroupName(),
+		vnetName,
+		subnetName,
+		network.Subnet{
+			SubnetPropertiesFormat: &network.SubnetPropertiesFormat{
+				AddressPrefix: to.StringPtr("10.0.0.0/16"),
+			},
+		})
+	if err != nil {
+		return subnet, fmt.Errorf("cannot create subnet: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, subnetsClient.Client)
+	if err != nil {
+		return subnet, fmt.Errorf("cannot get the subnet create or update future response: %v", err)
+	}
+
+	return future.Result(subnetsClient)
+}
 
 // DeleteVirtualNetworkSubnet deletes a subnet
 func DeleteVirtualNetworkSubnet() {}

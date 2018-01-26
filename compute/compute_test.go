@@ -16,6 +16,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/subosito/gotenv"
 )
 
@@ -102,10 +103,64 @@ func ExampleCreateVM() {
 	}
 	helpers.PrintAndLog("created VM")
 
+	// Now that the Vm has been created, we can do some simple operations on the VM
+
+	_, err = UpdateVM(ctx, vmName, map[string]*string{
+		"who rocks": to.StringPtr("golang"),
+		"where":     to.StringPtr("on azure"),
+	})
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("updated VM")
+
+	_, err = AttachDataDisks(ctx, vmName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("attached data disks")
+
+	_, err = DetachDataDisks(ctx, vmName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("detached data disks")
+
+	_, err = UpdateOSDiskSize(ctx, vmName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("updated OS disk size")
+
+	_, err = StartVM(ctx, vmName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("started VM")
+
+	_, err = RestartVM(ctx, vmName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("restarted VM")
+
+	_, err = PowerOffVM(ctx, vmName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("stopped VM")
+
 	// Output:
 	// created vnet and 2 subnets
 	// created network security group
 	// created public IP
 	// created nic
 	// created VM
+	// updated VM
+	// attached data disks
+	// detached data disks
+	// updated OS disk size
+	// started VM
+	// restarted VM
+	// stopped VM
 }

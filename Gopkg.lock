@@ -10,7 +10,7 @@
 [[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
-    "profiles/latest/cognitiveservices/mgmt/cognitiveservices",
+    "arm/authorization",
     "services/cognitiveservices/mgmt/2017-04-18/cognitiveservices",
     "services/cognitiveservices/v1.0/customsearch",
     "services/cognitiveservices/v1.0/entitysearch",
@@ -21,6 +21,7 @@
     "services/cognitiveservices/v1.0/websearch",
     "services/compute/mgmt/2017-03-30/compute",
     "services/containerinstance/mgmt/2017-08-01-preview/containerinstance",
+    "services/containerservice/mgmt/2017-09-30/containerservice",
     "services/keyvault/mgmt/2016-10-01/keyvault",
     "services/network/mgmt/2017-09-01/network",
     "services/resources/mgmt/2017-05-10/resources",
@@ -44,6 +45,7 @@
     "autorest/azure",
     "autorest/date",
     "autorest/to",
+    "autorest/utils",
     "autorest/validation"
   ]
   revision = "809ed2ef5c4c9a60c3c2f3aa9cc11f3a7c2ce59d"
@@ -68,6 +70,12 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/satori/uuid"
+  packages = ["."]
+  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
+  version = "v1.2.0"
+
+[[projects]]
   name = "github.com/subosito/gotenv"
   packages = ["."]
   revision = "009e1f9581dc712aba5682a279dee155ca3eeded"
@@ -88,6 +96,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0fe7bf76890ffbe24e44f92bf5c403047508624fa5f420eb5420bff98345537b"
+  inputs-digest = "145bebe7716ba2eaa1e9fbc0af906c7bc7f52fe18f11697213a3c9e21c5c52be"
   solver-name = "gps-cdcl"
   solver-version = 1

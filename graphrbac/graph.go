@@ -10,15 +10,10 @@ import (
 )
 
 func getObjectsClient() graphrbac.ObjectsClient {
-	token, err := iam.GetGraphToken(iam.AuthGrantType())
-	if err != nil {
-		helpers.PrintAndLog("err getting grph token")
-		helpers.PrintAndLog(err.Error())
-	}
+	token, _ := iam.GetGraphToken(iam.AuthGrantType())
 	objClient := graphrbac.NewObjectsClient(iam.TenantID())
 	objClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	objClient.AddToUserAgent(helpers.UserAgent())
-	helpers.PrintAndLog("Created client")
 	return objClient
 }
 

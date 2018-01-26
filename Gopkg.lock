@@ -5,12 +5,13 @@
   branch = "master"
   name = "github.com/Azure-Samples/azure-sdk-for-go-samples"
   packages = [
+    "authorization",
     "helpers",
     "iam",
     "network",
     "resources"
   ]
-  revision = "24c9e0eb19c3c3a9042dced1e00695fa91c3b24d"
+  revision = "7cdd8bd2df3b4bd2f38a0b223b67204b4910009e"
 
 [[projects]]
   name = "github.com/Azure/azure-pipeline-go"
@@ -21,6 +22,9 @@
 [[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
+    "arm/authorization",
+    "profiles/latest/network/mgmt/network",
+    "profiles/latest/resources/mgmt/resources",
     "services/cognitiveservices/mgmt/2017-04-18/cognitiveservices",
     "services/cognitiveservices/v1.0/customsearch",
     "services/cognitiveservices/v1.0/entitysearch",
@@ -42,10 +46,10 @@
   version = "v12.1.0-beta"
 
 [[projects]]
-  branch = "master"
   name = "github.com/Azure/azure-storage-blob-go"
   packages = ["2016-05-31/azblob"]
-  revision = "fb328272929aed4cd6e5108011abe489d6e445fa"
+  revision = "c91e48a7b69c952a7699a66e4a7de825945b6b9f"
+  version = "0.1.2"
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
@@ -58,14 +62,14 @@
     "autorest/utils",
     "autorest/validation"
   ]
-  revision = "3c16bcd9ea019819c1d7c14055ed74f845f44a8a"
-  version = "v9.8.0"
+  revision = "c2a68353555b68de3ee8455a4fd3e890a0ac6d99"
+  version = "v9.8.1"
 
 [[projects]]
   branch = "master"
   name = "github.com/denisenkom/go-mssqldb"
   packages = ["."]
-  revision = "df1dd7185ab5a4b98222e0852c7f057fa00f6e1c"
+  revision = "7deea793d3c7703dd74a1a38f09223b8c2cd0501"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -80,6 +84,12 @@
   version = "v1.2.0"
 
 [[projects]]
+  name = "github.com/satori/uuid"
+  packages = ["."]
+  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
+  version = "v1.2.0"
+
+[[projects]]
   name = "github.com/subosito/gotenv"
   packages = ["."]
   revision = "009e1f9581dc712aba5682a279dee155ca3eeded"
@@ -89,11 +99,11 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["md4"]
-  revision = "13931e22f9e72ea58bb73048bc752b48c6d4d4ac"
+  revision = "0efb9460aaf800c6376acf625be2853bceac2e06"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "59f71347a9d7b8f9b69fd9ca9536198f8bca0cc1078f36307804310d0aa83d43"
+  inputs-digest = "8e7905984780f53680d1c558f77bc31a47eb9a82b8efce2431d7d215b63d484c"
   solver-name = "gps-cdcl"
   solver-version = 1

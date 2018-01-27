@@ -51,6 +51,12 @@ func ListGroups(ctx context.Context) (resources.GroupListResultIterator, error) 
 	return groupsClient.ListComplete(ctx, "", nil)
 }
 
+// GetGroup gets info on the resource group in use
+func GetGroup(ctx context.Context) (resources.Group, error) {
+	groupsClient := getGroupsClient()
+	return groupsClient.Get(ctx, helpers.ResourceGroupName())
+}
+
 // DeleteAllGroupsWithPrefix deletes all rescource groups that start with a certain prefix
 func DeleteAllGroupsWithPrefix(ctx context.Context, prefix string) (futures []resources.GroupsDeleteFuture, groups []string) {
 	if helpers.KeepResources() {

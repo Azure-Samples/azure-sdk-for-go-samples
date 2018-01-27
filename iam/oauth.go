@@ -25,6 +25,7 @@ var (
 	clientID    string
 	oauthConfig *adal.OAuthConfig
 	armToken    adal.OAuthTokenProvider
+	graphToken  adal.OAuthTokenProvider
 
 	// for service principal
 	subscriptionID string
@@ -87,6 +88,11 @@ func TenantID() string {
 	return tenantID
 }
 
+// ClientSecret gets the client secret
+func ClientSecret() string {
+	return clientSecret
+}
+
 func AuthGrantType() OAuthGrantType {
 	if helpers.DeviceFlow() {
 		return OAuthGrantTypeDeviceFlow
@@ -100,39 +106,56 @@ func GetResourceManagementToken(grantType OAuthGrantType) (adal.OAuthTokenProvid
 		return armToken, nil
 	}
 
-	var err error
-	var token adal.OAuthTokenProvider
-
-	switch grantType {
-	case OAuthGrantTypeServicePrincipal:
-		token, err = getServicePrincipalToken()
-	case OAuthGrantTypeDeviceFlow:
-		token, err = getDeviceToken()
-	default:
-		log.Fatalln("invalid token type specified")
-	}
+	token, err := getToken(grantType, azure.PublicCloud.ResourceManagerEndpoint)
 	if err == nil {
 		armToken = token
 	}
+
 	return token, err
 }
 
-func getServicePrincipalToken() (adal.OAuthTokenProvider, error) {
+// GetGraphToken gets an OAuth token for the graphrbac API using the specified grant type.
+func GetGraphToken(grantType OAuthGrantType) (adal.OAuthTokenProvider, error) {
+	if graphToken != nil {
+		return graphToken, nil
+	}
+
+	token, err := getToken(grantType, azure.PublicCloud.GraphEndpoint)
+	if err == nil {
+		graphToken = token
+	}
+
+	return token, err
+}
+
+func getToken(grantType OAuthGrantType, endpoint string) (token adal.OAuthTokenProvider, err error) {
+	switch grantType {
+	case OAuthGrantTypeServicePrincipal:
+		token, err = getServicePrincipalToken(endpoint)
+	case OAuthGrantTypeDeviceFlow:
+		token, err = getDeviceToken(endpoint)
+	default:
+		log.Fatalln("invalid token type specified")
+	}
+	return
+}
+
+func getServicePrincipalToken(endpoint string) (adal.OAuthTokenProvider, error) {
 	return adal.NewServicePrincipalToken(
 		*oauthConfig,
 		clientID,
 		clientSecret,
-		azure.PublicCloud.ResourceManagerEndpoint)
+		endpoint)
 }
 
-func getDeviceToken() (adal.OAuthTokenProvider, error) {
+func getDeviceToken(endpoint string) (adal.OAuthTokenProvider, error) {
 	sender := &http.Client{}
-
 	code, err := adal.InitiateDeviceAuth(
 		sender,
 		*oauthConfig,
-		samplesAppID, // clientID
-		azure.PublicCloud.ResourceManagerEndpoint)
+		// samplesAppID, // clientID
+		"04b07795-8ddb-461a-bbee-02f9e1bf7b46",
+		endpoint)
 	if err != nil {
 		log.Fatalf("%s: %v\n", "failed to initiate device auth", err)
 	}

@@ -18,38 +18,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-var (
-	allKeyPermissions = []keyvault.KeyPermissions{
-		keyvault.KeyPermissionsBackup,
-		keyvault.KeyPermissionsCreate,
-		keyvault.KeyPermissionsDecrypt,
-		keyvault.KeyPermissionsDelete,
-		keyvault.KeyPermissionsEncrypt,
-		keyvault.KeyPermissionsGet,
-		keyvault.KeyPermissionsImport,
-		keyvault.KeyPermissionsList,
-		keyvault.KeyPermissionsPurge,
-		keyvault.KeyPermissionsRecover,
-		keyvault.KeyPermissionsRestore,
-		keyvault.KeyPermissionsSign,
-		keyvault.KeyPermissionsUnwrapKey,
-		keyvault.KeyPermissionsUpdate,
-		keyvault.KeyPermissionsVerify,
-		keyvault.KeyPermissionsWrapKey,
-	}
-
-	allSecretPermissions = []keyvault.SecretPermissions{
-		keyvault.SecretPermissionsBackup,
-		keyvault.SecretPermissionsDelete,
-		keyvault.SecretPermissionsGet,
-		keyvault.SecretPermissionsList,
-		keyvault.SecretPermissionsPurge,
-		keyvault.SecretPermissionsRecover,
-		keyvault.SecretPermissionsRestore,
-		keyvault.SecretPermissionsSet,
-	}
-)
-
 func getVaultsClient() keyvault.VaultsClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	vaultsClient := keyvault.NewVaultsClient(helpers.SubscriptionID())
@@ -103,8 +71,12 @@ func CreateComplexKeyVault(ctx context.Context, vaultName, userID string) (vault
 	ap := keyvault.AccessPolicyEntry{
 		TenantID: &tenantID,
 		Permissions: &keyvault.Permissions{
-			Keys:    &allKeyPermissions,
-			Secrets: &allSecretPermissions,
+			Keys: &[]keyvault.KeyPermissions{
+				keyvault.KeyPermissionsCreate,
+			},
+			Secrets: &[]keyvault.SecretPermissions{
+				keyvault.SecretPermissionsSet,
+			},
 		},
 	}
 	if userID != "" {
@@ -112,6 +84,10 @@ func CreateComplexKeyVault(ctx context.Context, vaultName, userID string) (vault
 		apList = append(apList, ap)
 	}
 	if helpers.ServicePrincipalObjectID() != "" {
+		// This is the SP object ID, which is not the same as the AD app object ID
+		// SP appID and AD app ID are the same values, aka, the client ID
+		// You can get the SP objectID on the Azure CLI like this
+		// az ad sp list --spn <AD app appID>
 		ap.ObjectID = to.StringPtr(helpers.ServicePrincipalObjectID())
 		apList = append(apList, ap)
 	}

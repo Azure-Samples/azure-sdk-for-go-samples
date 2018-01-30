@@ -2,7 +2,6 @@ package keyvault
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
@@ -22,11 +21,15 @@ func getKeysClient() keyvault.BaseClient {
 	return vmClient
 }
 
-func CreateKeyBundle(ctx context.Context, vaultName string) (keyvault.KeyBundle, error) {
-	// vaultName = "az-samples-go-zdjykYvTmF"
-	vaultURL := fmt.Sprintf("https://%s.vault.azure.net/", vaultName)
-	keyClient := getKeysClient()
+func CreateKeyBundle(ctx context.Context, vaultName string) (key keyvault.KeyBundle, err error) {
+	vaultsClient := getVaultsClient()
+	vault, err := vaultsClient.Get(ctx, helpers.ResourceGroupName(), vaultName)
+	if err != nil {
+		return
+	}
+	vaultURL := *vault.Properties.VaultURI
 
+	keyClient := getKeysClient()
 	return keyClient.CreateKey(
 		ctx,
 		vaultURL,

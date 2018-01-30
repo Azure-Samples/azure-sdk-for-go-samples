@@ -7,7 +7,6 @@ package compute
 
 import (
 	"context"
-	"io/ioutil"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/graphrbac"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
@@ -87,11 +86,6 @@ func ExampleCreateVMWithEncryptedManagedDisks() {
 	key, err := keyvault.CreateKeyBundle(ctx, vaultName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
-		b, err := ioutil.ReadAll(key.Body)
-		if err != nil {
-			helpers.PrintAndLog(err.Error())
-		}
-		helpers.PrintAndLog(string(b))
 
 	}
 	helpers.PrintAndLog("created key bundle")

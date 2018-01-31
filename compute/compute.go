@@ -37,6 +37,14 @@ func getVMClient() (compute.VirtualMachinesClient, error) {
 	return vmClient, nil
 }
 
+func getExtensionClient() (compute.VirtualMachineExtensionsClient, error) {
+	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
+	extClient := compute.NewVirtualMachineExtensionsClient(helpers.SubscriptionID())
+	extClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	extClient.AddToUserAgent(helpers.UserAgent())
+	return extClient, nil
+}
+
 // CreateVM creates a new virtual machine with the specified name using the specified NIC.
 // Username, password, and sshPublicKeyPath determine logon credentials.
 func CreateVM(ctx context.Context, vmName, nicName, username, password, sshPublicKeyPath string) (vm compute.VirtualMachine, err error) {
@@ -110,4 +118,10 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, sshPubli
 	}
 
 	return future.Result(vmClient)
+}
+
+// GetVM gets the specified VM info
+func GetVM(ctx context.Context, vmName string) (compute.VirtualMachine, error) {
+	vmClient, _ := getVMClient()
+	return vmClient.Get(ctx, helpers.ResourceGroupName(), vmName, compute.InstanceView)
 }

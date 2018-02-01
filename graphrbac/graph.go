@@ -2,11 +2,13 @@ package graphrbac
 
 import (
 	"context"
+	"time"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
@@ -47,4 +49,18 @@ func CreateADApplication(ctx context.Context) (graphrbac.Application, error) {
 func DeleteADApplication(ctx context.Context, appObjID string) (autorest.Response, error) {
 	appClient := getApplicationsClient()
 	return appClient.Delete(ctx, appObjID)
+}
+
+func AddClientSecret(ctx context.Context, objID string) (autorest.Response, error) {
+	appClient := getApplicationsClient()
+	return appClient.UpdatePasswordCredentials(ctx, objID, graphrbac.PasswordCredentialsUpdateParameters{
+		Value: &[]graphrbac.PasswordCredential{
+			{
+				StartDate: &date.Time{time.Now()},
+				EndDate:   &date.Time{time.Date(2018, time.December, 20, 22, 0, 0, 0, time.UTC)},
+				Value:     to.StringPtr("052265a2-bdc8-49aa-81bd-ecf7e9fe0c42"), // this will become the client secret! Record this value, there is no way to get it back
+				KeyID:     to.StringPtr("08023993-9209-4580-9d4a-e060b44a64b8"),
+			},
+		},
+	})
 }

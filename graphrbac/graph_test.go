@@ -44,6 +44,12 @@ func ExampleCreateServicePrincipal() {
 	}
 	helpers.PrintAndLog("service principal created")
 
+	_, err = AddClientSecret(ctx, *app.ObjectID)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("added client secret")
+
 	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
@@ -62,24 +68,23 @@ func ExampleCreateServicePrincipal() {
 	}
 	helpers.PrintAndLog("create role definition")
 
-	_, err = resources.DeleteGroup(ctx, helpers.ResourceGroupName())
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("deleted resource group")
+	if !helpers.KeepResources() {
+		_, err = resources.DeleteGroup(ctx, helpers.ResourceGroupName())
+		if err != nil {
+			helpers.PrintAndLog(err.Error())
+		}
 
-	_, err = DeleteADApplication(ctx, *app.ObjectID)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		_, err = DeleteADApplication(ctx, *app.ObjectID)
+		if err != nil {
+			helpers.PrintAndLog(err.Error())
+		}
 	}
-	helpers.PrintAndLog("ad app deleted")
 
 	// Output:
 	// ad app created
 	// service principal created
+	// added client secret
 	// created resource group
 	// list contributor role definition, with resource group scope
 	// create role definition
-	// deleted resource group
-	// ad app deleted
 }

@@ -11,7 +11,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/authorization"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 func TestMain(m *testing.M) {
@@ -36,11 +38,35 @@ func ExampleCreateServicePrincipal() {
 	}
 	helpers.PrintAndLog("ad app created")
 
-	_, err = CreateServicePrincipal(ctx, *app.AppID)
+	sp, err := CreateServicePrincipal(ctx, *app.AppID)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("service principal created")
+
+	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created resource group")
+
+	list, err := authorization.ListRoles(ctx, "roleName eq 'Contributor'")
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("list contributor role definition, with resource group scope")
+
+	_, err = authorization.AssignRole(ctx, *sp.ObjectID, *((*list.Value)[0].ID))
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("create role definition")
+
+	_, err = resources.DeleteGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("deleted resource group")
 
 	_, err = DeleteADApplication(ctx, *app.ObjectID)
 	if err != nil {
@@ -51,7 +77,9 @@ func ExampleCreateServicePrincipal() {
 	// Output:
 	// ad app created
 	// service principal created
-	// list contributor role definition, sub scope
-	// create role definition with subscription scope
+	// created resource group
+	// list contributor role definition, with resource group scope
+	// create role definition
+	// deleted resource group
 	// ad app deleted
 }

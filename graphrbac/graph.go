@@ -40,7 +40,7 @@ func CreateADApplication(ctx context.Context) (graphrbac.Application, error) {
 		AvailableToOtherTenants: to.BoolPtr(false),
 		DisplayName:             to.StringPtr("go SDK samples"),
 		Homepage:                to.StringPtr("http://gosdksamples"),
-		IdentifierUris:          &[]string{"http://gosdksamples"},
+		IdentifierUris:          &[]string{"http://gosdksamples" + helpers.GetRandomLetterSequence(10)},
 	})
 }
 

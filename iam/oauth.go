@@ -153,8 +153,7 @@ func getDeviceToken(endpoint string) (adal.OAuthTokenProvider, error) {
 	code, err := adal.InitiateDeviceAuth(
 		sender,
 		*oauthConfig,
-		// samplesAppID, // clientID
-		"04b07795-8ddb-461a-bbee-02f9e1bf7b46",
+		samplesAppID, // clientID
 		endpoint)
 	if err != nil {
 		log.Fatalf("%s: %v\n", "failed to initiate device auth", err)

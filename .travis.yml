@@ -13,7 +13,7 @@ script:
 - dep ensure
 - test -z "`for d in $dirs; do go build $d | grep -v 'no non-test Go files in' | tee
   /dev/stderr; done`"
-- travis_wait 40 bash tools/ci.sh
+- travis_wait 120 bash tools/ci.sh
 env:
   global:
   - secure: IFpRpgEI4VxYKxzia0vCVHzDn/RcLQInkS7V2hnYviS/W5Kqnl7k3EklYZysawqRS3CZ5n3cOPlsGkxCvyImetbsouLLnDRO6shH7II54TO3rkbmXaWF9a0cyxBr7QZXY8ypqiJH7DP9B5CsNkxv8ZKuf7KDMt4/Fng5u7ZLQCISq5jo08vueIhEIhMl01CJ1aIoKXBPVRBFalt5/OaJmCmgi6SdUJfuQPSsaH7kfw77syOPdad28+MZuQjGxjR+3LblhZejhlDsyOE7F6U+KD6tJ1ionzMXSUNYx17HSSEr1ifTm1mHM9PhO+NbhaeOZ8f9NJkXtj5RpRjCusdvrit9nqeSgMx0EvSmk4HNhCaTHY4HBrn0IkjeOZsjEmjddN7IJfLAwng0ofcA+0vgq7MeVRHlj1p5h5RI5gkH8BqxAh1V8IPl+qG2y/KQ02AtvSJlB+Uw+F3Yz2Q7T0NusdV7lBCcy1KriUPiQpInWlLKEa0YD3JBbWPu6v/qB5e7/Fqa1jwC4iV08dGRvlpS8GkROijNOkuxDrolI9dGm5X4ii/SIkOZm1CireA7mAw90q6iyVz+RyVXzj1kJ1R4WNP8slf2VBOKzYn3EbqbVrptLtIuNz4X6qVggqnmfF9T7iw45hvQzqxNugeYrbgs/K4kgBa/rd7RDKLsXXeP0P0=

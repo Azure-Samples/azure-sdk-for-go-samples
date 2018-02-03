@@ -32,14 +32,16 @@ var (
 
 	ctx = context.Background()
 
+	token *adal.ServicePrincipalToken
+)
+
+const (
 	resourceGroupName     = "GoVMQuickstart"
 	resourceGroupLocation = "eastus"
 
 	deploymentName = "VMDeployQuickstart"
 	templateFile   = "vm-quickstart-template.json"
 	parametersFile = "vm-quickstart-params.json"
-
-	token *adal.ServicePrincipalToken
 )
 
 // Authenticate with the Azure services over OAuth, using a service principal.
@@ -88,9 +90,6 @@ func createGroup() (resources.Group, error) {
 
 // Create the deployment
 func createDeployment() (resources.DeploymentExtended, error) {
-	deploymentsClient := resources.NewDeploymentsClient(config.SubscriptionID)
-	deploymentsClient.Authorizer = autorest.NewBearerAuthorizer(token)
-
 	template, err := readJSON(templateFile)
 	if err != nil {
 		return resources.DeploymentExtended{}, err
@@ -99,6 +98,9 @@ func createDeployment() (resources.DeploymentExtended, error) {
 	if err != nil {
 		return resources.DeploymentExtended{}, err
 	}
+
+	deploymentsClient := resources.NewDeploymentsClient(config.SubscriptionID)
+	deploymentsClient.Authorizer = autorest.NewBearerAuthorizer(token)
 
 	deploymentFuture, err := deploymentsClient.CreateOrUpdate(
 		ctx,

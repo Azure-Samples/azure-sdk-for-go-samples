@@ -113,7 +113,7 @@ func getSubnetsClient() network.SubnetsClient {
 	return subnetsClient
 }
 
-// CreateVirtualNetworkSubnet creates a subnet
+// CreateVirtualNetworkSubnet creates a subnet in an existing vnet
 func CreateVirtualNetworkSubnet(ctx context.Context, vnetName, subnetName string) (subnet network.Subnet, err error) {
 	subnetsClient := getSubnetsClient()
 
@@ -242,13 +242,8 @@ func getNicClient() network.InterfacesClient {
 	return nicClient
 }
 
-// CreateNIC creates a new network interface
+// CreateNIC creates a new network interface. The Network Security Group is not a required parameter
 func CreateNIC(ctx context.Context, vnetName, subnetName, nsgName, ipName, nicName string) (nic network.Interface, err error) {
-	nsg, err := GetNetworkSecurityGroup(ctx, nsgName)
-	if err != nil {
-		log.Fatalf("failed to get nsg: %v", err)
-	}
-
 	subnet, err := GetVirtualNetworkSubnet(ctx, vnetName, subnetName)
 	if err != nil {
 		log.Fatalf("failed to get subnet: %v", err)
@@ -259,29 +254,33 @@ func CreateNIC(ctx context.Context, vnetName, subnetName, nsgName, ipName, nicNa
 		log.Fatalf("failed to get ip address: %v", err)
 	}
 
-	nicClient := getNicClient()
-	future, err := nicClient.CreateOrUpdate(
-		ctx,
-		helpers.ResourceGroupName(),
-		nicName,
-		network.Interface{
-			Name:     to.StringPtr(nicName),
-			Location: to.StringPtr(helpers.Location()),
-			InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
-				NetworkSecurityGroup: &nsg,
-				IPConfigurations: &[]network.InterfaceIPConfiguration{
-					{
-						Name: to.StringPtr("ipConfig1"),
-						InterfaceIPConfigurationPropertiesFormat: &network.InterfaceIPConfigurationPropertiesFormat{
-							Subnet: &subnet,
-							PrivateIPAllocationMethod: network.Dynamic,
-							PublicIPAddress:           &ip,
-						},
+	nicParams := network.Interface{
+		Name:     to.StringPtr(nicName),
+		Location: to.StringPtr(helpers.Location()),
+		InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
+			IPConfigurations: &[]network.InterfaceIPConfiguration{
+				{
+					Name: to.StringPtr("ipConfig1"),
+					InterfaceIPConfigurationPropertiesFormat: &network.InterfaceIPConfigurationPropertiesFormat{
+						Subnet: &subnet,
+						PrivateIPAllocationMethod: network.Dynamic,
+						PublicIPAddress:           &ip,
 					},
 				},
 			},
 		},
-	)
+	}
+
+	if nsgName != "" {
+		nsg, err := GetNetworkSecurityGroup(ctx, nsgName)
+		if err != nil {
+			log.Fatalf("failed to get nsg: %v", err)
+		}
+		nicParams.NetworkSecurityGroup = &nsg
+	}
+
+	nicClient := getNicClient()
+	future, err := nicClient.CreateOrUpdate(ctx, helpers.ResourceGroupName(), nicName, nicParams)
 
 	if err != nil {
 		return nic, fmt.Errorf("cannot create nic: %v", err)

@@ -13,29 +13,18 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/keyvault"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/storage"
 )
 
 func ExampleCreateVMWithEncryptedManagedDisks() {
+	vaultName := "az-samples-go-" + helpers.GetRandomLetterSequence(10)
+
 	ctx := context.Background()
 
-	_, err := storage.CreateStorageAccount(ctx, accountName)
+	_, err := network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created storage account")
-
-	_, err = network.CreateVirtualNetwork(ctx, virtualNetworkName)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("created vnet")
-
-	_, err = network.CreateVirtualNetworkSubnet(ctx, virtualNetworkName, subnet1Name)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("created subnet")
+	helpers.PrintAndLog("created vnet and subnets")
 
 	// If authenticating as a user, also add the user to the keyvault access policies
 	userID := ""
@@ -59,25 +48,19 @@ func ExampleCreateVMWithEncryptedManagedDisks() {
 	}
 	helpers.PrintAndLog("created disk")
 
-	_, err = network.CreateNetworkSecurityGroup(ctx, nsgName)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("created network security group")
-
 	_, err = network.CreatePublicIP(ctx, ipName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created public IP")
 
-	_, err = network.CreateNIC(ctx, virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
+	_, err = network.CreateNIC(ctx, virtualNetworkName, subnet1Name, "", ipName, nicName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created nic")
 
-	_, err = CreateVMWithManagedDisk(ctx, nicName, diskName, accountName, vmName)
+	_, err = CreateVMWithManagedDisk(ctx, nicName, diskName, vmName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
@@ -97,12 +80,9 @@ func ExampleCreateVMWithEncryptedManagedDisks() {
 	helpers.PrintAndLog("added vm encryption extension")
 
 	// Output:
-	// created storage account
-	// created vnet
-	// created subnet
+	// created vnet and subnets
 	// created keyvault
 	// created disk
-	// created network security group
 	// created public IP
 	// created nic
 	// created virtual machine

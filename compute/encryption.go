@@ -7,13 +7,11 @@ package compute
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/storage"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/satori/uuid"
@@ -51,18 +49,10 @@ func GetDisk(ctx context.Context, diskName string) (disk compute.Disk, err error
 	return disksClient.Get(ctx, helpers.ResourceGroupName(), diskName)
 }
 
-func CreateVMWithManagedDisk(ctx context.Context, nicName, diskName, storageAccountName, vmName string) (vm compute.VirtualMachine, err error) {
+// CreateVMWithManagedDisk creates a VM, attaching an already existing data disk
+func CreateVMWithManagedDisk(ctx context.Context, nicName, diskName, vmName string) (vm compute.VirtualMachine, err error) {
 	nic, _ := network.GetNic(ctx, nicName)
-	storageAccount, _ := storage.GetStorageAccount(ctx, storageAccountName)
 	disk, _ := GetDisk(ctx, diskName)
-
-	var storageURI *string
-	if storageAccount.PrimaryEndpoints != nil {
-		storageURI = (*storageAccount.PrimaryEndpoints).Blob
-	} else {
-		err = errors.New("No storage endpoint found")
-		return
-	}
 
 	vmClient := getVMClient()
 	future, err := vmClient.CreateOrUpdate(
@@ -71,12 +61,6 @@ func CreateVMWithManagedDisk(ctx context.Context, nicName, diskName, storageAcco
 		vmName, compute.VirtualMachine{
 			Location: to.StringPtr(helpers.Location()),
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
-				DiagnosticsProfile: &compute.DiagnosticsProfile{
-					BootDiagnostics: &compute.BootDiagnostics{
-						Enabled:    to.BoolPtr(true),
-						StorageURI: storageURI,
-					},
-				},
 				HardwareProfile: &compute.HardwareProfile{
 					VMSize: compute.StandardDS2V2,
 				},
@@ -114,8 +98,7 @@ func CreateVMWithManagedDisk(ctx context.Context, nicName, diskName, storageAcco
 							CreateOption: compute.DiskCreateOptionTypesAttach,
 							Lun:          to.Int32Ptr(0),
 							ManagedDisk: &compute.ManagedDiskParameters{
-								ID:                 disk.ID,
-								StorageAccountType: compute.StorageAccountTypes(storageAccount.Sku.Name),
+								ID: disk.ID,
 							},
 						},
 					},

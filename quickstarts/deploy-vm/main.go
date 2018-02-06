@@ -22,6 +22,15 @@ type authInfo struct {
 	ServicePrincipalSecret string
 }
 
+const (
+	resourceGroupName     = "GoVMQuickstart"
+	resourceGroupLocation = "eastus"
+
+	deploymentName = "VMDeployQuickstart"
+	templateFile   = "vm-quickstart-template.json"
+	parametersFile = "vm-quickstart-params.json"
+)
+
 var (
 	config = authInfo{
 		TenantID:               "",
@@ -33,15 +42,6 @@ var (
 	ctx = context.Background()
 
 	token *adal.ServicePrincipalToken
-)
-
-const (
-	resourceGroupName     = "GoVMQuickstart"
-	resourceGroupLocation = "eastus"
-
-	deploymentName = "VMDeployQuickstart"
-	templateFile   = "vm-quickstart-template.json"
-	parametersFile = "vm-quickstart-params.json"
 )
 
 // Authenticate with the Azure services over OAuth, using a service principal.

@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	samplesAppID = "bee3737f-b06f-444f-b3c3-5b0f3fce46ea"
+	samplesAppID  = "bee3737f-b06f-444f-b3c3-5b0f3fce46ea"
+	azCLIclientID = "04b07795-8ddb-461a-bbee-02f9e1bf7b46"
 )
 
 var (
@@ -31,6 +32,7 @@ var (
 	subscriptionID string
 	tenantID       string
 	clientSecret   string
+	UseCLIclientID bool
 )
 
 // OAuthGrantType specifies which grant type to use.
@@ -150,10 +152,14 @@ func getServicePrincipalToken(endpoint string) (adal.OAuthTokenProvider, error) 
 
 func getDeviceToken(endpoint string) (adal.OAuthTokenProvider, error) {
 	sender := &http.Client{}
+	cliID := samplesAppID
+	if UseCLIclientID {
+		cliID = azCLIclientID
+	}
 	code, err := adal.InitiateDeviceAuth(
 		sender,
 		*oauthConfig,
-		samplesAppID, // clientID
+		cliID, // clientID
 		endpoint)
 	if err != nil {
 		log.Fatalf("%s: %v\n", "failed to initiate device auth", err)

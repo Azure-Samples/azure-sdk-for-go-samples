@@ -13,6 +13,7 @@ import (
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/authorization"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
@@ -25,6 +26,7 @@ func TestMain(m *testing.M) {
 	if !helpers.DeviceFlow() {
 		helpers.PrintAndLog("It is best to run graph examples with device auth")
 	} else {
+		iam.UseCLIclientID = true
 		os.Exit(m.Run())
 	}
 }

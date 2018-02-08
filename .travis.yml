@@ -1,5 +1,6 @@
 language: go
 go:
+- 1.10rc1
 - 1.9.x
 - 1.8.x
 install:

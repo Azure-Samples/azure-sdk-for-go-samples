@@ -7,6 +7,10 @@
   branch = "master"
 
 [[constraint]]
+  name = "github.com/Azure/go-autorest"
+  version = "^9.6.0"
+
+[[constraint]]
   branch = "master"
   name = "github.com/denisenkom/go-mssqldb"
 

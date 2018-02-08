@@ -58,6 +58,59 @@ func GetVault(ctx context.Context, vaultName string) (keyvault.Vault, error) {
 	return vaultsClient.Get(ctx, helpers.ResourceGroupName(), vaultName)
 }
 
+// CreateComplexKeyVault creates a new vault which grants access to the the current user and the service principal in use
+func CreateComplexKeyVault(ctx context.Context, vaultName, userID string) (vault keyvault.Vault, err error) {
+	vaultsClient := getVaultsClient()
+
+	tenantID, err := uuid.FromString(iam.TenantID())
+	if err != nil {
+		return
+	}
+
+	apList := []keyvault.AccessPolicyEntry{}
+	ap := keyvault.AccessPolicyEntry{
+		TenantID: &tenantID,
+		Permissions: &keyvault.Permissions{
+			Keys: &[]keyvault.KeyPermissions{
+				keyvault.KeyPermissionsCreate,
+			},
+			Secrets: &[]keyvault.SecretPermissions{
+				keyvault.SecretPermissionsSet,
+			},
+		},
+	}
+	if userID != "" {
+		ap.ObjectID = to.StringPtr(userID)
+		apList = append(apList, ap)
+	}
+	if helpers.ServicePrincipalObjectID() != "" {
+		// This is the SP object ID, which is not the same as the AD app object ID
+		// SP appID and AD app ID are the same values, aka, the client ID
+		// You can get the SP objectID on the Azure CLI like this
+		// az ad sp list --spn <AD app appID>
+		ap.ObjectID = to.StringPtr(helpers.ServicePrincipalObjectID())
+		apList = append(apList, ap)
+	}
+
+	return vaultsClient.CreateOrUpdate(
+		ctx,
+		helpers.ResourceGroupName(),
+		vaultName,
+		keyvault.VaultCreateOrUpdateParameters{
+			Location: to.StringPtr(helpers.Location()),
+			Properties: &keyvault.VaultProperties{
+				AccessPolicies:           &apList,
+				EnabledForDiskEncryption: to.BoolPtr(true),
+				Sku: &keyvault.Sku{
+					Family: to.StringPtr("A"),
+					Name:   keyvault.Standard,
+				},
+				TenantID: &tenantID,
+			},
+		})
+
+}
+
 // SetVaultPermissions adds an access policy permitting this app's Client ID to manage keys and secrets.
 func SetVaultPermissions(ctx context.Context, vaultName string) (keyvault.Vault, error) {
 	vaultsClient := getVaultsClient()

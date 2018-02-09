@@ -6,7 +6,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
-	"github.com/Azure/azure-sdk-for-go/arm/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/satori/uuid"
@@ -29,14 +29,14 @@ func getRoleClient() (authorization.RoleAssignmentsClient, error) {
 }
 
 // ListRoles gets the role definitions in the used resource group
-func ListRoles(ctx context.Context, filter string) (list authorization.RoleDefinitionListResult, err error) {
+func ListRoles(ctx context.Context, filter string) (list authorization.RoleDefinitionListResultPage, err error) {
 	rg, err := resources.GetGroup(ctx)
 	if err != nil {
 		return
 	}
 
 	roleDefClient, _ := getRoleDefClient()
-	return roleDefClient.List(*rg.ID, filter)
+	return roleDefClient.List(ctx, *rg.ID, filter)
 }
 
 // AssignRole assigns a role, with a resource group scope
@@ -47,7 +47,7 @@ func AssignRole(ctx context.Context, principalID, roleDefID string) (role author
 	}
 
 	roleClient, _ := getRoleClient()
-	return roleClient.Create(*rg.ID, uuid.NewV1().String(), authorization.RoleAssignmentCreateParameters{
+	return roleClient.Create(ctx, *rg.ID, uuid.NewV1().String(), authorization.RoleAssignmentCreateParameters{
 		Properties: &authorization.RoleAssignmentProperties{
 			PrincipalID:      to.StringPtr(principalID),
 			RoleDefinitionID: to.StringPtr(roleDefID),

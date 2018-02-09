@@ -64,7 +64,7 @@ func ExampleCreateVMForMSI() {
 	}
 	helpers.PrintAndLog("got role definitions list")
 
-	_, err = authorization.AssignRole(ctx, *vm.Identity.PrincipalID, *((*list.Value)[0].ID))
+	_, err = authorization.AssignRole(ctx, *vm.Identity.PrincipalID, *list.Values()[0].ID)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

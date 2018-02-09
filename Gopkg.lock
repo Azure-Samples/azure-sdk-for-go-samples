@@ -6,18 +6,20 @@
   name = "github.com/Azure-Samples/azure-sdk-for-go-samples"
   packages = [
     "authorization",
+    "graphrbac",
     "helpers",
     "iam",
+    "keyvault",
     "network",
     "resources"
   ]
-  revision = "819a10796e6495b7292add979375cff8c247f927"
+  revision = "466653f5683f237a7c14a013d3cb1c3f726da19b"
 
 [[projects]]
   name = "github.com/Azure/azure-pipeline-go"
   packages = ["pipeline"]
-  revision = "9804b770d6810999e2bcb7480fb509504e72b2ba"
-  version = "0.1.4"
+  revision = "f4da77e3846319876aebb41f2e6dccc6b1d7f1e0"
+  version = "1.1.3"
 
 [[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
@@ -36,6 +38,8 @@
     "services/compute/mgmt/2017-03-30/compute",
     "services/containerinstance/mgmt/2017-08-01-preview/containerinstance",
     "services/containerservice/mgmt/2017-09-30/containerservice",
+    "services/graphrbac/1.6/graphrbac",
+    "services/keyvault/2016-10-01/keyvault",
     "services/keyvault/mgmt/2016-10-01/keyvault",
     "services/network/mgmt/2015-06-15/network",
     "services/network/mgmt/2017-09-01/network",
@@ -51,7 +55,7 @@
   branch = "master"
   name = "github.com/Azure/azure-storage-blob-go"
   packages = ["2016-05-31/azblob"]
-  revision = "8eaa850fea8595fc05285a968e24d30740953bd0"
+  revision = "fb328272929aed4cd6e5108011abe489d6e445fa"
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
@@ -64,14 +68,14 @@
     "autorest/utils",
     "autorest/validation"
   ]
-  revision = "fc3b03a2d2d1f43fad3007038bd16f044f870722"
-  version = "v9.10.0"
+  revision = "809ed2ef5c4c9a60c3c2f3aa9cc11f3a7c2ce59d"
+  version = "v9.6.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/denisenkom/go-mssqldb"
   packages = ["."]
-  revision = "ee492709d4324cdcb051d2ac266b77ddc380f5c5"
+  revision = "8a15d1bb0c8eaa4b870c016b312de5b50b493b4e"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -82,8 +86,8 @@
 [[projects]]
   name = "github.com/satori/go.uuid"
   packages = ["."]
-  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
-  version = "v1.2.0"
+  revision = "879c5887cd475cd7864858769793b2ceb0d44feb"
+  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/satori/uuid"
@@ -101,11 +105,17 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["md4"]
-  revision = "1875d0a70c90e57f11972aefd42276df65e895b9"
+  revision = "0fcca4842a8d74bfddc2c96a073bd2a4d2a7a2e8"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/net"
+  packages = ["context"]
+  revision = "d866cfc389cec985d6fda2859936a575a55a3ab6"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "71cbe06588ae8e0ac90b9935b204bb7d465f8e5934686b3425fc5eef7ab7de9e"
+  inputs-digest = "206f768505c4c6b5d91870969b9b805114e883568fc3a998d4378357a664b152"
   solver-name = "gps-cdcl"
   solver-version = 1

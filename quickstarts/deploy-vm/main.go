@@ -32,11 +32,11 @@ const (
 )
 
 var (
-	config = authInfo{
-		TenantID:               "",
-		SubscriptionID:         "",
-		ServicePrincipalID:     "",
-		ServicePrincipalSecret: "",
+	config = authInfo{ // Your application credentials
+		TenantID:               "", // Azure account tenantID
+		SubscriptionID:         "", // Azure subscription subscriptionID
+		ServicePrincipalID:     "", // Service principal appId
+		ServicePrincipalSecret: "", // Service principal password/secret
 	}
 
 	ctx = context.Background()
@@ -67,7 +67,7 @@ func main() {
 	}
 	log.Printf("created group: %v\n", *group.Name)
 
-	log.Printf("starting deployment\n")
+	log.Println("starting deployment")
 	result, err := createDeployment()
 	if err != nil {
 		log.Fatalf("Failed to deploy correctly: %v", err)
@@ -77,7 +77,7 @@ func main() {
 }
 
 // Create a resource group for the deployment.
-func createGroup() (resources.Group, error) {
+func createGroup() (group resources.Group, err error) {
 	groupsClient := resources.NewGroupsClient(config.SubscriptionID)
 	groupsClient.Authorizer = autorest.NewBearerAuthorizer(token)
 
@@ -89,14 +89,14 @@ func createGroup() (resources.Group, error) {
 }
 
 // Create the deployment
-func createDeployment() (resources.DeploymentExtended, error) {
+func createDeployment() (deployment resources.DeploymentExtended, err error) {
 	template, err := readJSON(templateFile)
 	if err != nil {
-		return resources.DeploymentExtended{}, err
+		return
 	}
 	params, err := readJSON(parametersFile)
 	if err != nil {
-		return resources.DeploymentExtended{}, err
+		return
 	}
 
 	deploymentsClient := resources.NewDeploymentsClient(config.SubscriptionID)
@@ -149,11 +149,11 @@ func getLogin() {
 }
 
 func readJSON(path string) (*map[string]interface{}, error) {
-	_json, err := ioutil.ReadFile(path)
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatalf("failed to read template file: %v\n", err)
 	}
-	_map := make(map[string]interface{})
-	json.Unmarshal(_json, &_map)
-	return &_map, nil
+	contents := make(map[string]interface{})
+	json.Unmarshal(data, &contents)
+	return &contents, nil
 }

@@ -9,9 +9,11 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 )
@@ -167,4 +169,49 @@ func getDeviceToken(endpoint string) (adal.OAuthTokenProvider, error) {
 
 	log.Println(*code.Message)
 	return adal.WaitForUserCompletion(sender, code)
+}
+
+func GetKeyvaultToken(grantType OAuthGrantType) (authorizer autorest.Authorizer, err error) {
+	config, err := adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantID)
+	updatedAuthorizeEndpoint, err := url.Parse("https://login.windows.net/" + tenantID + "/oauth2/token")
+	config.AuthorizeEndpoint = *updatedAuthorizeEndpoint
+	if err != nil {
+		return
+	}
+
+	switch grantType {
+	case OAuthGrantTypeServicePrincipal:
+		spt, err := adal.NewServicePrincipalToken(
+			*config,
+			clientID,
+			clientSecret,
+			"https://vault.azure.net")
+
+		if err != nil {
+			return authorizer, err
+		}
+		authorizer = autorest.NewBearerAuthorizer(spt)
+	case OAuthGrantTypeDeviceFlow:
+		sender := &http.Client{}
+
+		code, err := adal.InitiateDeviceAuth(
+			sender,
+			*config,
+			samplesAppID, // clientID
+			"https://vault.azure.net")
+		if err != nil {
+			log.Fatalf("%s: %v\n", "failed to initiate device auth", err)
+		}
+
+		log.Println(*code.Message)
+		spt, err := adal.WaitForUserCompletion(sender, code)
+		if err != nil {
+			return authorizer, err
+		}
+		authorizer = autorest.NewBearerAuthorizer(spt)
+	default:
+		log.Fatalln("invalid token type specified")
+	}
+
+	return
 }

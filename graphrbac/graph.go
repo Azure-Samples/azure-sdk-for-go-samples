@@ -63,4 +63,18 @@ func AddClientSecret(ctx context.Context, objID string) (autorest.Response, erro
 			},
 		},
 	})
+)
+
+func getObjectsClient() graphrbac.ObjectsClient {
+	token, _ := iam.GetGraphToken(iam.AuthGrantType())
+	objClient := graphrbac.NewObjectsClient(iam.TenantID())
+	objClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	objClient.AddToUserAgent(helpers.UserAgent())
+	return objClient
+}
+
+// GetCurrentUser gets the Azure Active Directory object of the current user
+func GetCurrentUser(ctx context.Context) (graphrbac.AADObject, error) {
+	objClient := getObjectsClient()
+	return objClient.GetCurrentUser(ctx)
 }

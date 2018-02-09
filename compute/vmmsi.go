@@ -19,7 +19,7 @@ import (
 func CreateVMForMSI(ctx context.Context, vmName, nicName, username, password string) (vm compute.VirtualMachine, err error) {
 	nic, _ := network.GetNic(ctx, nicName)
 
-	vmClient, _ := getVMClient()
+	vmClient := getVMClient()
 	future, err := vmClient.CreateOrUpdate(
 		ctx,
 		helpers.ResourceGroupName(),
@@ -73,7 +73,7 @@ func CreateVMForMSI(ctx context.Context, vmName, nicName, username, password str
 
 // AddMSIExtension adds the MSI (managed service identity) extension to a virtual machine.
 func AddMSIExtension(ctx context.Context, vmName string) (ext compute.VirtualMachineExtension, err error) {
-	extClient, _ := getExtensionClient()
+	extClient := getExtensionClient()
 
 	future, err := extClient.CreateOrUpdate(
 		ctx,

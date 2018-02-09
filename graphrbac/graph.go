@@ -63,7 +63,7 @@ func AddClientSecret(ctx context.Context, objID string) (autorest.Response, erro
 			},
 		},
 	})
-)
+}
 
 func getObjectsClient() graphrbac.ObjectsClient {
 	token, _ := iam.GetGraphToken(iam.AuthGrantType())

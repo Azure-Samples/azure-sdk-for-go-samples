@@ -4,12 +4,13 @@
 [[projects]]
   name = "github.com/Azure/azure-pipeline-go"
   packages = ["pipeline"]
-  revision = "f4da77e3846319876aebb41f2e6dccc6b1d7f1e0"
-  version = "1.1.3"
+  revision = "9804b770d6810999e2bcb7480fb509504e72b2ba"
+  version = "0.1.4"
 
 [[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
+    "services/authorization/mgmt/2015-07-01/authorization",
     "services/cognitiveservices/mgmt/2017-04-18/cognitiveservices",
     "services/cognitiveservices/v1.0/customsearch",
     "services/cognitiveservices/v1.0/entitysearch",
@@ -21,20 +22,22 @@
     "services/compute/mgmt/2017-03-30/compute",
     "services/containerinstance/mgmt/2017-08-01-preview/containerinstance",
     "services/containerservice/mgmt/2017-09-30/containerservice",
+    "services/graphrbac/1.6/graphrbac",
+    "services/keyvault/2016-10-01/keyvault",
     "services/keyvault/mgmt/2016-10-01/keyvault",
     "services/network/mgmt/2017-09-01/network",
     "services/resources/mgmt/2017-05-10/resources",
     "services/sql/mgmt/2015-05-01-preview/sql",
     "services/storage/mgmt/2017-06-01/storage"
   ]
-  revision = "934e2462aeb6e0c14186dcfeedd73a026d1b8eeb"
-  version = "v12.1.0-beta"
+  revision = "f111fc2fa3861c5fdced76cae4c9c71821969577"
+  version = "v12.4.0-beta"
 
 [[projects]]
-  branch = "master"
   name = "github.com/Azure/azure-storage-blob-go"
   packages = ["2016-05-31/azblob"]
-  revision = "fb328272929aed4cd6e5108011abe489d6e445fa"
+  revision = "d38be03d2669a60175dc8f6bc64ac815a3ef8ba8"
+  version = "0.1.1"
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
@@ -47,14 +50,14 @@
     "autorest/utils",
     "autorest/validation"
   ]
-  revision = "809ed2ef5c4c9a60c3c2f3aa9cc11f3a7c2ce59d"
-  version = "v9.6.0"
+  revision = "fc3b03a2d2d1f43fad3007038bd16f044f870722"
+  version = "v9.10.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/denisenkom/go-mssqldb"
   packages = ["."]
-  revision = "8a15d1bb0c8eaa4b870c016b312de5b50b493b4e"
+  revision = "ee492709d4324cdcb051d2ac266b77ddc380f5c5"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -65,8 +68,8 @@
 [[projects]]
   name = "github.com/satori/go.uuid"
   packages = ["."]
-  revision = "879c5887cd475cd7864858769793b2ceb0d44feb"
-  version = "v1.1.0"
+  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
+  version = "v1.2.0"
 
 [[projects]]
   name = "github.com/subosito/gotenv"
@@ -78,17 +81,11 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["md4"]
-  revision = "0fcca4842a8d74bfddc2c96a073bd2a4d2a7a2e8"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/net"
-  packages = ["context"]
-  revision = "d866cfc389cec985d6fda2859936a575a55a3ab6"
+  revision = "5119cf507ed5294cc409c092980c7497ee5d6fd2"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "eae13517f39d793d5fbd43b4e96f5d000f74fb9ccaf1d9eb90efdaad20470331"
+  inputs-digest = "d45da8054992a107106d41f59e2da61428c5fa4e3c83bd34af4c7af324e189ee"
   solver-name = "gps-cdcl"
   solver-version = 1

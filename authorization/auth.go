@@ -9,7 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/satori/uuid"
+	"github.com/satori/go.uuid"
 )
 
 func getRoleDefClient() (authorization.RoleDefinitionsClient, error) {

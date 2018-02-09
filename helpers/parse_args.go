@@ -16,11 +16,12 @@ import (
 )
 
 var (
-	resourceGroupName string
-	location          string
-	subscriptionID    string
-	keepResources     bool
-	deviceFlow        bool
+	resourceGroupName        string
+	location                 string
+	subscriptionID           string
+	servicePrincipalObjectID string
+	keepResources            bool
+	deviceFlow               bool
 
 	allLocations = []string{
 		"eastasia",
@@ -73,6 +74,7 @@ func ParseArgs() error {
 	}
 
 	resourceGroupName = os.Getenv("AZ_RESOURCE_GROUP_NAME")
+	servicePrincipalObjectID = os.Getenv("AZ_SP_OBJECT_ID")
 	location = os.Getenv("AZ_LOCATION")
 	if os.Getenv("AZ_SAMPLES_KEEP_RESOURCES") == "1" {
 		keepResources = true
@@ -137,6 +139,11 @@ func KeepResources() bool {
 // SubscriptionID returns the ID of the subscription to use.
 func SubscriptionID() string {
 	return subscriptionID
+}
+
+// ServicePrincipalObjectID returns the object ID of the service principal in use.
+func ServicePrincipalObjectID() string {
+	return servicePrincipalObjectID
 }
 
 // ResourceGroupName returns the name of the resource group to use.

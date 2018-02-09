@@ -2,6 +2,7 @@ package authorization
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
@@ -53,4 +54,23 @@ func AssignRole(ctx context.Context, principalID, roleDefID string) (role author
 			RoleDefinitionID: to.StringPtr(roleDefID),
 		},
 	})
+}
+
+// AssignRoleWithSubscriptionScope assigns a role, with a subscription scope
+func AssignRoleWithSubscriptionScope(ctx context.Context, principalID, roleDefID string) (role authorization.RoleAssignment, err error) {
+	scope := fmt.Sprintf("/subscriptions/%s", helpers.SubscriptionID())
+
+	roleClient, _ := getRoleClient()
+	return roleClient.Create(scope, uuid.NewV1().String(), authorization.RoleAssignmentCreateParameters{
+		Properties: &authorization.RoleAssignmentProperties{
+			PrincipalID:      to.StringPtr(principalID),
+			RoleDefinitionID: to.StringPtr(roleDefID),
+		},
+	})
+}
+
+// DeleteRoleAssignment deletes a roleassignment
+func DeleteRoleAssignment(id string) (authorization.RoleAssignment, error) {
+	roleClient, _ := getRoleClient()
+	return roleClient.DeleteByID(id)
 }

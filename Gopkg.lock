@@ -25,8 +25,6 @@
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
     "arm/authorization",
-    "profiles/2017-03-09/network/mgmt/network",
-    "profiles/2017-03-09/resources/mgmt/resources",
     "services/cognitiveservices/mgmt/2017-04-18/cognitiveservices",
     "services/cognitiveservices/v1.0/customsearch",
     "services/cognitiveservices/v1.0/entitysearch",
@@ -41,9 +39,7 @@
     "services/graphrbac/1.6/graphrbac",
     "services/keyvault/2016-10-01/keyvault",
     "services/keyvault/mgmt/2016-10-01/keyvault",
-    "services/network/mgmt/2015-06-15/network",
     "services/network/mgmt/2017-09-01/network",
-    "services/resources/mgmt/2016-02-01/resources",
     "services/resources/mgmt/2017-05-10/resources",
     "services/sql/mgmt/2015-05-01-preview/sql",
     "services/storage/mgmt/2017-06-01/storage"
@@ -116,6 +112,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "206f768505c4c6b5d91870969b9b805114e883568fc3a998d4378357a664b152"
+  inputs-digest = "b3c33278c949f445d2c1fd5908ed6c0b6982f096b5a29db747b05ad40a9a0213"
   solver-name = "gps-cdcl"
   solver-version = 1

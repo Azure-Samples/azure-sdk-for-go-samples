@@ -48,7 +48,7 @@ var (
 func init() {
 	oauthConfig, err := adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, config.TenantID)
 	if err != nil {
-		log.Fatalf("%s: %v\n", "failed to get OAuth config", err)
+		log.Fatalf("Failed to get OAuth config: %v\n", err)
 	}
 	token, err = adal.NewServicePrincipalToken(
 		*oauthConfig,

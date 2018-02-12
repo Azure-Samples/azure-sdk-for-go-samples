@@ -7,7 +7,6 @@ package cognitiveservices
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -23,16 +22,6 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalln("failed to parse args")
 	}
-
-	ctx := context.Background()
-	defer resources.Cleanup(ctx)
-
-	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
-
 	os.Exit(m.Run())
 }
 
@@ -41,7 +30,15 @@ func TestMain(m *testing.M) {
 func ExampleCognitiveServicesSearch() {
 	accountName := "azuresamplesgo" + helpers.GetRandomLetterSequence(10)
 
-	_, err := CreateCSAccount(accountName, cognitiveservices.BingSearchv7)
+	helpers.SetResourceGroupName("CognitiveServicesSearch")
+	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+
+	_, err = CreateCSAccount(accountName, cognitiveservices.BingSearchv7)
 
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
@@ -73,7 +70,15 @@ func ExampleCognitiveServicesSearch() {
 func ExampleCognitiveServicesSpellCheck() {
 	accountName := "azuresamplesgo" + helpers.GetRandomLetterSequence(10)
 
-	_, err := CreateCSAccount(accountName, cognitiveservices.BingSpellCheckv7)
+	helpers.SetResourceGroupName("CognitiveServicesSpellcheck")
+	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+
+	_, err = CreateCSAccount(accountName, cognitiveservices.BingSpellCheckv7)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

@@ -19,7 +19,9 @@ import (
 
 func main() {
 	var quiet bool
+	var resourceGroupNamePrefix string
 	flag.BoolVar(&quiet, "quiet", false, "Run quietly")
+	flag.StringVar(&resourceGroupNamePrefix, "groupPrefix", helpers.GroupPrefix(), "Specify prefix name of resource group for sample resources.")
 
 	err := helpers.ParseSubscriptionID()
 	if err != nil {
@@ -32,6 +34,7 @@ func main() {
 		log.Fatalf("Using device flow: %v", helpers.DeviceFlow())
 	}
 	flag.Parse()
+	helpers.SetPrefix(resourceGroupNamePrefix)
 
 	if !quiet {
 		fmt.Println("Are you sure you want to delete all resource groups in the subscription? (yes | no)")

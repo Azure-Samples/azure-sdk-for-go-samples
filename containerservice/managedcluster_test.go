@@ -26,16 +26,6 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalln("failed to parse args")
 	}
-
-	ctx := context.Background()
-	defer resources.Cleanup(ctx)
-
-	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
-
 	os.Exit(m.Run())
 }
 
@@ -73,9 +63,15 @@ func parseArgs() error {
 }
 
 func ExampleCreateAKS() {
+	helpers.SetResourceGroupName("CreateAKS")
 	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
 
-	_, err := CreateAKS(ctx, resourceName, helpers.Location(), helpers.ResourceGroupName(), username, sshPublicKeyPath, clientID, clientSecret, agentPoolCount)
+	_, err = CreateAKS(ctx, resourceName, helpers.Location(), helpers.ResourceGroupName(), username, sshPublicKeyPath, clientID, clientSecret, agentPoolCount)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

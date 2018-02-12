@@ -25,16 +25,6 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalln("failed to parse args")
 	}
-
-	ctx := context.Background()
-	defer resources.Cleanup(ctx)
-
-	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
-
 	os.Exit(m.Run())
 }
 
@@ -59,9 +49,15 @@ func parseArgs() error {
 }
 
 func ExampleCreateContainerGroup() {
+	helpers.SetResourceGroupName("CreateContainerGroup")
 	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
 
-	_, err := CreateContainerGroup(ctx, containerGroupName, helpers.Location(), helpers.ResourceGroupName())
+	_, err = CreateContainerGroup(ctx, containerGroupName, helpers.Location(), helpers.ResourceGroupName())
 	if err != nil {
 		log.Fatalf("cannot create container group: %v", err)
 	}

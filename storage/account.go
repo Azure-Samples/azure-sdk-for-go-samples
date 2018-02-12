@@ -49,7 +49,7 @@ func CreateStorageAccount(ctx context.Context, accountName string) (s storage.Ac
 		log.Fatalf("%s: %v", "storage account creation failed", err)
 	}
 	if *result.NameAvailable != true {
-		log.Fatalf("%s [%s]: %v", "storage account name not available", accountName, err)
+		log.Fatalf("%s [%s]: %v: %v", "storage account name not available", accountName, err, *result.Message)
 	}
 
 	future, err := storageAccountsClient.Create(
@@ -73,6 +73,12 @@ func CreateStorageAccount(ctx context.Context, accountName string) (s storage.Ac
 	}
 
 	return future.Result(storageAccountsClient)
+}
+
+// GetStorageAccount gets details on the specified storage account
+func GetStorageAccount(ctx context.Context, accountName string) (storage.Account, error) {
+	storageAccountsClient := getStorageAccountsClient()
+	return storageAccountsClient.GetProperties(ctx, helpers.ResourceGroupName(), accountName)
 }
 
 // DeleteStorageAccount deletes an existing storate account

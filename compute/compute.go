@@ -29,20 +29,28 @@ const (
 // fakepubkey is used if a key isn't available at the specified path in CreateVM(...)
 var fakepubkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7laRyN4B3YZmVrDEZLZoIuUA72pQ0DpGuZBZWykCofIfCPrFZAJgFvonKGgKJl6FGKIunkZL9Us/mV4ZPkZhBlE7uX83AAf5i9Q8FmKpotzmaxN10/1mcnEE7pFvLoSkwqrQSkrrgSm8zaJ3g91giXSbtqvSIj/vk2f05stYmLfhAwNo3Oh27ugCakCoVeuCrZkvHMaJgcYrIGCuFo6q0Pfk9rsZyriIqEa9AtiUOtViInVYdby7y71wcbl0AbbCZsTSqnSoVxm2tRkOsXV6+8X4SnwcmZbao3H+zfO1GBhQOLxJ4NQbzAa8IJh810rYARNLptgmsd4cYXVOSosTX azureuser"
 
-func getVMClient() (compute.VirtualMachinesClient, error) {
+func getVMClient() compute.VirtualMachinesClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	vmClient := compute.NewVirtualMachinesClient(helpers.SubscriptionID())
 	vmClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	vmClient.AddToUserAgent(helpers.UserAgent())
-	return vmClient, nil
+	return vmClient
 }
 
-func getExtensionClient() (compute.VirtualMachineExtensionsClient, error) {
+func getExtensionClient() compute.VirtualMachineExtensionsClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	extClient := compute.NewVirtualMachineExtensionsClient(helpers.SubscriptionID())
 	extClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	extClient.AddToUserAgent(helpers.UserAgent())
-	return extClient, nil
+	return extClient
+}
+
+func getDisksClient() compute.DisksClient {
+	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
+	disksClient := compute.NewDisksClient(helpers.SubscriptionID())
+	disksClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	disksClient.AddToUserAgent(helpers.UserAgent())
+	return disksClient
 }
 
 // CreateVM creates a new virtual machine with the specified name using the specified NIC.
@@ -61,7 +69,7 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, sshPubli
 		sshKeyData = fakepubkey
 	}
 
-	vmClient, _ := getVMClient()
+	vmClient := getVMClient()
 	future, err := vmClient.CreateOrUpdate(
 		ctx,
 		helpers.ResourceGroupName(),
@@ -122,7 +130,7 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, sshPubli
 
 // GetVM gets the specified VM info
 func GetVM(ctx context.Context, vmName string) (compute.VirtualMachine, error) {
-	vmClient, _ := getVMClient()
+	vmClient := getVMClient()
 	return vmClient.Get(ctx, helpers.ResourceGroupName(), vmName, compute.InstanceView)
 }
 

@@ -22,6 +22,7 @@ import (
 
 var (
 	vmName           = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
+	diskName         = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
 	nicName          = "nic1"
 	username         = "az-samples-go-user"
 	password         = "NoSoupForYou1!"

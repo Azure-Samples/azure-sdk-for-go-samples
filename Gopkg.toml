@@ -1,10 +1,10 @@
 [[constraint]]
   name = "github.com/Azure/azure-sdk-for-go"
-  version = "12.4.0-beta"
+  version = "12.5.0-beta"
 
 [[constraint]]
   name = "github.com/Azure/azure-storage-blob-go"
-  version = "0.1.1"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/Azure/go-autorest"
@@ -21,3 +21,7 @@
 [[constraint]]
   name = "github.com/subosito/gotenv"
   version = "1.1.0"
+
+[prune]
+  go-tests = true
+  unused-packages = true

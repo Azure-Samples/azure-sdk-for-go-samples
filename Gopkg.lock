@@ -30,14 +30,14 @@
     "services/sql/mgmt/2015-05-01-preview/sql",
     "services/storage/mgmt/2017-06-01/storage"
   ]
-  revision = "f111fc2fa3861c5fdced76cae4c9c71821969577"
-  version = "v12.4.0-beta"
+  revision = "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f"
+  version = "v12.5.0-beta"
 
 [[projects]]
+  branch = "master"
   name = "github.com/Azure/azure-storage-blob-go"
   packages = ["2016-05-31/azblob"]
-  revision = "d38be03d2669a60175dc8f6bc64ac815a3ef8ba8"
-  version = "0.1.1"
+  revision = "38ca054dbe15000254766ebc6d91d5497cadaf2b"
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
@@ -81,11 +81,11 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["md4"]
-  revision = "5119cf507ed5294cc409c092980c7497ee5d6fd2"
+  revision = "9de5f2eaf759b4c4550b3db39fed2e9e5f86f45c"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d45da8054992a107106d41f59e2da61428c5fa4e3c83bd34af4c7af324e189ee"
+  inputs-digest = "46e35bcb3bd5ae2d62a9d39930694845db6865639e9a4d37c6515a4be2273920"
   solver-name = "gps-cdcl"
   solver-version = 1

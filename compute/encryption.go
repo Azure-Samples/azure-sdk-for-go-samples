@@ -14,7 +14,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/satori/uuid"
+	"github.com/satori/go.uuid"
 )
 
 func CreateManagedDisk(ctx context.Context, diskName string) (disk compute.Disk, err error) {

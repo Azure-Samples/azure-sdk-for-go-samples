@@ -22,7 +22,7 @@ import (
 var (
 	vmName           = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
 	diskName         = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
-	nicName          = "nic1"
+	nicName          = "nic" + helpers.GetRandomLetterSequence(10)
 	username         = "az-samples-go-user"
 	password         = "NoSoupForYou1!"
 	sshPublicKeyPath = os.Getenv("HOME") + "/.ssh/id_rsa.pub"
@@ -39,15 +39,6 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalln("failed to parse args")
 	}
-
-	ctx := context.Background()
-	defer resources.Cleanup(ctx)
-
-	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
 
 	os.Exit(m.Run())
 }
@@ -71,9 +62,15 @@ func parseArgs() error {
 }
 
 func ExampleCreateVM() {
+	helpers.SetResourceGroupName("CreateVM")
 	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
 
-	_, err := network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
+	_, err = network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

@@ -16,6 +16,7 @@ import (
 )
 
 var (
+	resourceGroupNamePrefix  string
 	resourceGroupName        string
 	location                 string
 	subscriptionID           string
@@ -73,7 +74,7 @@ func ParseArgs() error {
 		return err
 	}
 
-	resourceGroupName = os.Getenv("AZ_RESOURCE_GROUP_NAME")
+	resourceGroupNamePrefix = os.Getenv("AZ_RESOURCE_GROUP_PREFIX")
 	servicePrincipalObjectID = os.Getenv("AZ_SP_OBJECT_ID")
 	location = os.Getenv("AZ_LOCATION")
 	if os.Getenv("AZ_SAMPLES_KEEP_RESOURCES") == "1" {
@@ -81,14 +82,14 @@ func ParseArgs() error {
 	}
 
 	// flags override envvars
-	flag.StringVar(&resourceGroupName, "groupName", resourceGroupName, "Specify name of resource group for sample resources.")
+	flag.StringVar(&resourceGroupNamePrefix, "groupPrefix", GroupPrefix(), "Specify prefix name of resource group for sample resources.")
 	flag.StringVar(&location, "location", location, "Provide the Azure location where the resources will be be created")
 	flag.BoolVar(&keepResources, "keepResources", keepResources, "Keep resources created by samples.")
 	flag.Parse()
 
 	// defaults
-	if !(len(resourceGroupName) > 0) {
-		resourceGroupName = GroupPrefix() + GetRandomLetterSequence(10)
+	if !(len(resourceGroupNamePrefix) > 0) {
+		resourceGroupNamePrefix = GroupPrefix()
 	}
 
 	if !(len(location) > 0) {
@@ -158,7 +159,10 @@ func Location() string {
 
 // GroupPrefix specifies the prefix sample resource groups should have
 func GroupPrefix() string {
-	return "group-azure-samples-go"
+	if resourceGroupNamePrefix == "" {
+		return "azure-samples-go"
+	}
+	return resourceGroupNamePrefix
 }
 
 // DeviceFlow returns if device flow has been set as auth grant type
@@ -167,6 +171,14 @@ func DeviceFlow() bool {
 }
 
 // end getters
+
+func SetPrefix(prefix string) {
+	resourceGroupNamePrefix = prefix
+}
+
+func SetResourceGroupName(suffix string) {
+	resourceGroupName = GroupPrefix() + "-" + suffix + "-" + GetRandomLetterSequence(5)
+}
 
 // OverrideLocation ovverrides the specified location where to create Azure resources.
 // This can be used when the selection location does not have the desired resource provider available yet

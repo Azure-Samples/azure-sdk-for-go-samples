@@ -11,12 +11,19 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/authorization"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 func ExampleCreateVMForMSI() {
+	helpers.SetResourceGroupName("CreateVMForMSI")
 	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
 
-	_, err := network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
+	_, err = network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

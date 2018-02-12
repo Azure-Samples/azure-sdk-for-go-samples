@@ -21,14 +21,14 @@ the following instructions to find or create these values if necessary.
     * `AZ_CLIENT_ID`*
     * `AZ_CLIENT_SECRET`*
     * `AZ_LOCATION`
-    * `AZ_RESOURCE_GROUP_NAME`
+    * `AZ_RESOURCE_GROUP_PREFIX`
     * `AZ_KEEP_SAMPLE_RESOURCES`
 
     Using [the Azure CLI][azure-cli], you can get your subscription ID by running `az account
     list`. You can check your tenant ID and get a client ID and secret by
     running `az ad sp create-for-rbac -n "<yourAppName>"`.
 
-    If `AZ_RESOURCE_GROUP_NAME` isn't specified a random name will be used.
+    If `AZ_RESOURCE_GROUP_PREFIX` isn't specified, `azure-samples-go` will be used.
 
     If `AZ_LOCATION` isn't specified `westus2` will be used.
 

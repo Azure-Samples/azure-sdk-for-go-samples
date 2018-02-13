@@ -52,6 +52,7 @@ func ExampleCreateServicePrincipal() {
 	}
 	helpers.PrintAndLog("added client secret")
 
+	helpers.SetResourceGroupName("CreateServicePrincipal")
 	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
@@ -64,7 +65,7 @@ func ExampleCreateServicePrincipal() {
 	}
 	helpers.PrintAndLog("list contributor role definition, with resource group scope")
 
-	_, err = authorization.AssignRole(ctx, *sp.ObjectID, *((*list.Value)[0].ID))
+	_, err = authorization.AssignRole(ctx, *sp.ObjectID, *list.Values()[0].ID)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

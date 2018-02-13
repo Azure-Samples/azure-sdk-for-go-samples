@@ -8,7 +8,6 @@ package storage
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -41,15 +40,6 @@ func TestMain(m *testing.M) {
 		log.Fatalln("failed to parse args")
 	}
 
-	ctx := context.Background()
-	defer resources.Cleanup(ctx)
-
-	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
-
 	os.Exit(m.Run())
 }
 
@@ -57,11 +47,18 @@ func TestMain(m *testing.M) {
 // Finally it removes the blob, container, account, and group.
 // more examples available at https://github.com/Azure/azure-storage-blob-go/2016-05-31/azblob/zt_examples_test.go
 func ExampleUploadBlockBlob() {
-	ctx := context.Background()
 	accountName = strings.ToLower(accountName)
 	containerName = strings.ToLower(containerName)
 
-	_, err := CreateStorageAccount(ctx, accountName)
+	helpers.SetResourceGroupName("UploadBlockBlob")
+	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+
+	_, err = CreateStorageAccount(ctx, accountName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

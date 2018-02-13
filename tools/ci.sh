@@ -9,7 +9,7 @@ REALEXITSTATUS=0
 dirs=$(go list ./... | grep -v /vendor/)
 for d in $dirs
 do
-    go test -v $d
+    go test -v -timeout 2h $d
     REALEXITSTATUS=$(($REALEXITSTATUS+$?))
 done
 

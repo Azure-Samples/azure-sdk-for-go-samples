@@ -20,6 +20,7 @@ func init() {
 }
 
 func ExampleCreateGroup() {
+	helpers.SetResourceGroupName("CreateGroup")
 	defer Cleanup(context.Background())
 
 	_, err := CreateGroup(context.Background(), helpers.ResourceGroupName())

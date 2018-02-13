@@ -28,16 +28,17 @@
     "services/network/mgmt/2017-09-01/network",
     "services/resources/mgmt/2017-05-10/resources",
     "services/sql/mgmt/2015-05-01-preview/sql",
-    "services/storage/mgmt/2017-06-01/storage"
+    "services/storage/mgmt/2017-06-01/storage",
+    "version"
   ]
-  revision = "f111fc2fa3861c5fdced76cae4c9c71821969577"
-  version = "v12.4.0-beta"
+  revision = "5bf28521f7a6f72f2dde3e5a5fb0d27d7a8aeee9"
+  version = "v14.0.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/Azure/azure-storage-blob-go"
   packages = ["2016-05-31/azblob"]
-  revision = "d38be03d2669a60175dc8f6bc64ac815a3ef8ba8"
-  version = "0.1.1"
+  revision = "38ca054dbe15000254766ebc6d91d5497cadaf2b"
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
@@ -50,8 +51,8 @@
     "autorest/utils",
     "autorest/validation"
   ]
-  revision = "fc3b03a2d2d1f43fad3007038bd16f044f870722"
-  version = "v9.10.0"
+  revision = "5a06e9ddbe3c22262059b8e061777b9934f982bd"
+  version = "v10.1.0"
 
 [[projects]]
   branch = "master"
@@ -72,20 +73,20 @@
   version = "v1.2.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/subosito/gotenv"
   packages = ["."]
   revision = "009e1f9581dc712aba5682a279dee155ca3eeded"
-  version = "v1.1.0"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["md4"]
-  revision = "5119cf507ed5294cc409c092980c7497ee5d6fd2"
+  revision = "9de5f2eaf759b4c4550b3db39fed2e9e5f86f45c"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d45da8054992a107106d41f59e2da61428c5fa4e3c83bd34af4c7af324e189ee"
+  inputs-digest = "83ee9066b96b2c759ccb44aaffbd87469fea92c13ae0e9aaa23008db34007c9c"
   solver-name = "gps-cdcl"
   solver-version = 1

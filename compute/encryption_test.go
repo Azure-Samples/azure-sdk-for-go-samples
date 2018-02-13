@@ -67,7 +67,7 @@ func ExampleCreateVMWithEncryptedManagedDisks() {
 	}
 	helpers.PrintAndLog("created nic")
 
-	_, err = CreateVMWithManagedDisk(ctx, nicName, diskName, vmName)
+	_, err = CreateVMWithManagedDisk(ctx, nicName, diskName, vmName, username, password)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

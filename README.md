@@ -1,6 +1,7 @@
 # Azure SDK for Go - Samples
 
-azure-sdk-for-go-samples provides easy-to-understand, continuously-tested samples for using Azure services via [Azure/azure-sdk-for-go][].
+azure-sdk-for-go-samples provides easy-to-understand, continuously-tested samples for using Azure services via [Azure/azure-sdk-for-go][]. These are currently targeting
+Go SDK For Azure **v14.0.0**.
 
 [![Build Status](https://travis-ci.org/Azure-Samples/azure-sdk-for-go-samples.svg?branch=master)](https://travis-ci.org/Azure-Samples/azure-sdk-for-go-samples)
 
@@ -20,6 +21,7 @@ the following instructions to find or create these values if necessary.
     * `AZ_TENANT_ID`*
     * `AZ_CLIENT_ID`*
     * `AZ_CLIENT_SECRET`*
+    * `AZ_SP_OBJECT_ID`
     * `AZ_LOCATION`
     * `AZ_RESOURCE_GROUP_PREFIX`
     * `AZ_KEEP_SAMPLE_RESOURCES`
@@ -35,6 +37,8 @@ the following instructions to find or create these values if necessary.
     If `AZ_KEEP_SAMPLE_RESOURCES` is set to `1` tests won't clean up resources
     they create when done. This can be helpful if you want to further experiment
     with those resources.
+
+    `AZ_SP_OBJECT_ID` represents a service principal ObjectID. It is needed to run the Create VM with encrypted managed disks sample.
 
     **NOTE:** the environment variables are listed in [.env.tpl](./.env.tpl)
     so you can copy that to .env (e.g. `cp .env.tpl .env`) and update for

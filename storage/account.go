@@ -59,6 +59,7 @@ func CreateStorageAccount(ctx context.Context, accountName string) (s storage.Ac
 		storage.AccountCreateParameters{
 			Sku: &storage.Sku{
 				Name: storage.StandardLRS},
+			Kind:     storage.Storage,
 			Location: to.StringPtr(helpers.Location()),
 			AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{},
 		})

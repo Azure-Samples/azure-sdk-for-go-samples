@@ -44,15 +44,10 @@ func CreateManagedDisk(ctx context.Context, diskName string) (disk compute.Disk,
 	return future.Result(disksClient)
 }
 
-func GetDisk(ctx context.Context, diskName string) (disk compute.Disk, err error) {
-	disksClient := getDisksClient()
-	return disksClient.Get(ctx, helpers.ResourceGroupName(), diskName)
-}
-
 // CreateVMWithManagedDisk creates a VM, attaching an already existing data disk
-func CreateVMWithManagedDisk(ctx context.Context, nicName, diskName, vmName string) (vm compute.VirtualMachine, err error) {
+func CreateVMWithManagedDisk(ctx context.Context, nicName, diskName, vmName string, username string, password string) (vm compute.VirtualMachine, err error) {
 	nic, _ := network.GetNic(ctx, nicName)
-	disk, _ := GetDisk(ctx, diskName)
+	disk, _ := getDisk(ctx, diskName)
 
 	vmClient := getVMClient()
 	future, err := vmClient.CreateOrUpdate(

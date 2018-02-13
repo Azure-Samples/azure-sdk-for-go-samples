@@ -206,7 +206,7 @@ func GetVaults() {
 	vaultsClient := getVaultsClient()
 
 	fmt.Println("Getting all vaults in subscription")
-	for subList, err := vaultsClient.ListComplete(context.Background(), "resourceType eq 'Microsoft.KeyVault/vaults'", nil); subList.NotDone(); err = subList.Next() {
+	for subList, err := vaultsClient.ListComplete(context.Background(), nil); subList.NotDone(); err = subList.Next() {
 		if err != nil {
 			log.Printf("failed to get list of vaults: %v", err)
 		}

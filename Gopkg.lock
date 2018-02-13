@@ -28,10 +28,11 @@
     "services/network/mgmt/2017-09-01/network",
     "services/resources/mgmt/2017-05-10/resources",
     "services/sql/mgmt/2015-05-01-preview/sql",
-    "services/storage/mgmt/2017-06-01/storage"
+    "services/storage/mgmt/2017-06-01/storage",
+    "version"
   ]
-  revision = "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f"
-  version = "v12.5.0-beta"
+  revision = "5bf28521f7a6f72f2dde3e5a5fb0d27d7a8aeee9"
+  version = "v14.0.0"
 
 [[projects]]
   branch = "master"
@@ -50,8 +51,8 @@
     "autorest/utils",
     "autorest/validation"
   ]
-  revision = "fc3b03a2d2d1f43fad3007038bd16f044f870722"
-  version = "v9.10.0"
+  revision = "5a06e9ddbe3c22262059b8e061777b9934f982bd"
+  version = "v10.1.0"
 
 [[projects]]
   branch = "master"
@@ -72,10 +73,10 @@
   version = "v1.2.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/subosito/gotenv"
   packages = ["."]
   revision = "009e1f9581dc712aba5682a279dee155ca3eeded"
-  version = "v1.1.0"
 
 [[projects]]
   branch = "master"
@@ -86,6 +87,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "46e35bcb3bd5ae2d62a9d39930694845db6865639e9a4d37c6515a4be2273920"
+  inputs-digest = "83ee9066b96b2c759ccb44aaffbd87469fea92c13ae0e9aaa23008db34007c9c"
   solver-name = "gps-cdcl"
   solver-version = 1

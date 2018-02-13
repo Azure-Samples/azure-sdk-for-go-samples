@@ -141,9 +141,9 @@ func UpdateVM(ctx context.Context, vmName string, tags map[string]*string) (vm c
 		return
 	}
 
-	vm.Tags = &tags
+	vm.Tags = tags
 
-	vmClient, _ := getVMClient()
+	vmClient := getVMClient()
 	future, err := vmClient.CreateOrUpdate(ctx, helpers.ResourceGroupName(), vmName, vm)
 	if err != nil {
 		return vm, fmt.Errorf("cannot update vm: %v", err)
@@ -173,7 +173,7 @@ func AttachDataDisks(ctx context.Context, vmName string) (vm compute.VirtualMach
 		},
 	}
 
-	vmClient, _ := getVMClient()
+	vmClient := getVMClient()
 	future, err := vmClient.CreateOrUpdate(ctx, helpers.ResourceGroupName(), vmName, vm)
 	if err != nil {
 		return vm, fmt.Errorf("cannot update vm: %v", err)
@@ -196,7 +196,7 @@ func DetachDataDisks(ctx context.Context, vmName string) (vm compute.VirtualMach
 
 	vm.StorageProfile.DataDisks = &[]compute.DataDisk{}
 
-	vmClient, _ := getVMClient()
+	vmClient := getVMClient()
 	future, err := vmClient.CreateOrUpdate(ctx, helpers.ResourceGroupName(), vmName, vm)
 	if err != nil {
 		return vm, fmt.Errorf("cannot update vm: %v", err)
@@ -212,7 +212,7 @@ func DetachDataDisks(ctx context.Context, vmName string) (vm compute.VirtualMach
 
 // Deallocate deallocates the selected VM
 func Deallocate(ctx context.Context, vmName string) (osr compute.OperationStatusResponse, err error) {
-	vmClient, _ := getVMClient()
+	vmClient := getVMClient()
 	future, err := vmClient.Deallocate(ctx, helpers.ResourceGroupName(), vmName)
 	if err != nil {
 		return osr, fmt.Errorf("cannot deallocate vm: %v", err)
@@ -226,43 +226,50 @@ func Deallocate(ctx context.Context, vmName string) (osr compute.OperationStatus
 	return future.Result(vmClient)
 }
 
+func getDisk(ctx context.Context, diskName string) (disk compute.Disk, err error) {
+	disksClient := getDisksClient()
+	return disksClient.Get(ctx, helpers.ResourceGroupName(), diskName)
+}
+
 // UpdateOSDiskSize increases the selected VM's OS disk size
-func UpdateOSDiskSize(ctx context.Context, vmName string) (vm compute.VirtualMachine, err error) {
-	vm, err = GetVM(ctx, vmName)
+func UpdateOSDiskSize(ctx context.Context, vmName string) (d compute.Disk, err error) {
+	vm, err := GetVM(ctx, vmName)
 	if err != nil {
-		return vm, fmt.Errorf("cannot get vm: %v", err)
+		return d, fmt.Errorf("cannot get vm: %v", err)
 	}
 
-	if vm.StorageProfile.OsDisk.DiskSizeGB == nil {
-		vm.StorageProfile.OsDisk.DiskSizeGB = to.Int32Ptr(0)
+	size := vm.StorageProfile.OsDisk.DiskSizeGB
+	if size == nil {
+		size = to.Int32Ptr(0)
 	}
+	if *size <= 0 {
+		*size = 256
+	}
+	*size += 10
 
-	if *vm.StorageProfile.OsDisk.DiskSizeGB <= 0 {
-		*vm.StorageProfile.OsDisk.DiskSizeGB = 256
-	}
-	*vm.StorageProfile.OsDisk.DiskSizeGB += 10
 	_, err = Deallocate(ctx, vmName)
 	if err != nil {
-		return vm, fmt.Errorf("cannot deallocate vm: %v", err)
+		return d, fmt.Errorf("cannot deallocate vm: %v", err)
 	}
 
-	vmClient, _ := getVMClient()
-	future, err := vmClient.CreateOrUpdate(ctx, helpers.ResourceGroupName(), vmName, vm)
+	disksClient := getDisksClient()
+	future, err := disksClient.Update(ctx, helpers.ResourceGroupName(), *vm.StorageProfile.OsDisk.Name, compute.DiskUpdate{
+		DiskUpdateProperties: &compute.DiskUpdateProperties{
+			DiskSizeGB: size,
+		},
+	})
+
+	err = future.WaitForCompletion(ctx, disksClient.Client)
 	if err != nil {
-		return vm, fmt.Errorf("cannot update vm: %v", err)
+		return d, fmt.Errorf("cannot get the disk update future response: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmClient.Client)
-	if err != nil {
-		return vm, fmt.Errorf("cannot get the vm create or update future response: %v", err)
-	}
-
-	return future.Result(vmClient)
+	return future.Result(disksClient)
 }
 
 // StartVM starts the selected VM
 func StartVM(ctx context.Context, vmName string) (osr compute.OperationStatusResponse, err error) {
-	vmClient, _ := getVMClient()
+	vmClient := getVMClient()
 	future, err := vmClient.Start(ctx, helpers.ResourceGroupName(), vmName)
 	if err != nil {
 		return osr, fmt.Errorf("cannot start vm: %v", err)
@@ -278,7 +285,7 @@ func StartVM(ctx context.Context, vmName string) (osr compute.OperationStatusRes
 
 // RestartVM restarts the selected VM
 func RestartVM(ctx context.Context, vmName string) (osr compute.OperationStatusResponse, err error) {
-	vmClient, _ := getVMClient()
+	vmClient := getVMClient()
 	future, err := vmClient.Restart(ctx, helpers.ResourceGroupName(), vmName)
 	if err != nil {
 		return osr, fmt.Errorf("cannot restart vm: %v", err)
@@ -294,7 +301,7 @@ func RestartVM(ctx context.Context, vmName string) (osr compute.OperationStatusR
 
 // PowerOffVM stops the selected VM
 func PowerOffVM(ctx context.Context, vmName string) (osr compute.OperationStatusResponse, err error) {
-	vmClient, _ := getVMClient()
+	vmClient := getVMClient()
 	future, err := vmClient.PowerOff(ctx, helpers.ResourceGroupName(), vmName)
 	if err != nil {
 		return osr, fmt.Errorf("cannot power off vm: %v", err)

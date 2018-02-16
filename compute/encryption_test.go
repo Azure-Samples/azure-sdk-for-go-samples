@@ -7,6 +7,7 @@ package compute
 
 import (
 	"context"
+	"time"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/graphrbac"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
@@ -20,7 +21,8 @@ func ExampleCreateVMWithEncryptedManagedDisks() {
 	helpers.SetResourceGroupName("CreateVMEncryptedDisks")
 	vaultName := "az-samples-go-" + helpers.GetRandomLetterSequence(10)
 
-	ctx := context.Background()
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Minute*20))
+	defer cancel()
 	defer resources.Cleanup(ctx)
 	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
 	if err != nil {

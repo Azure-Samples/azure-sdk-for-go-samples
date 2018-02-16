@@ -35,25 +35,21 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalln("failed to parse args")
 	}
-
-	ctx := context.Background()
-	defer resources.Cleanup(ctx)
-
-	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
-
 	os.Exit(m.Run())
 }
 
 // Example creates a SQL server and database, then creates a table and inserts a record.
 func ExampleDatabaseQueries() {
-	ctx := context.Background()
 	serverName = strings.ToLower(serverName)
+	helpers.SetResourceGroupName("DatabaseQueries")
+	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
 
-	_, err := CreateServer(ctx, serverName, dbLogin, dbPassword)
+	_, err = CreateServer(ctx, serverName, dbLogin, dbPassword)
 	if err != nil {
 		helpers.PrintAndLog(fmt.Sprintf("cannot create sql server: %v", err))
 	}

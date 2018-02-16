@@ -16,13 +16,14 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/subosito/gotenv"
 )
 
 var (
 	vmName           = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
 	diskName         = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
-	nicName          = "nic1"
+	nicName          = "nic" + helpers.GetRandomLetterSequence(10)
 	username         = "az-samples-go-user"
 	password         = "NoSoupForYou1!"
 	sshPublicKeyPath = os.Getenv("HOME") + "/.ssh/id_rsa.pub"
@@ -39,15 +40,6 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalln("failed to parse args")
 	}
-
-	ctx := context.Background()
-	defer resources.Cleanup(ctx)
-
-	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
 
 	os.Exit(m.Run())
 }
@@ -71,9 +63,15 @@ func parseArgs() error {
 }
 
 func ExampleCreateVM() {
+	helpers.SetResourceGroupName("CreateVM")
 	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
 
-	_, err := network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
+	_, err = network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
@@ -103,10 +101,64 @@ func ExampleCreateVM() {
 	}
 	helpers.PrintAndLog("created VM")
 
+	// Now that the Vm has been created, we can do some simple operations on the VM
+
+	_, err = UpdateVM(ctx, vmName, map[string]*string{
+		"who rocks": to.StringPtr("golang"),
+		"where":     to.StringPtr("on azure"),
+	})
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("updated VM")
+
+	_, err = AttachDataDisks(ctx, vmName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("attached data disks")
+
+	_, err = DetachDataDisks(ctx, vmName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("detached data disks")
+
+	_, err = UpdateOSDiskSize(ctx, vmName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("updated OS disk size")
+
+	_, err = StartVM(ctx, vmName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("started VM")
+
+	_, err = RestartVM(ctx, vmName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("restarted VM")
+
+	_, err = PowerOffVM(ctx, vmName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("stopped VM")
+
 	// Output:
 	// created vnet and 2 subnets
 	// created network security group
 	// created public IP
 	// created nic
 	// created VM
+	// updated VM
+	// attached data disks
+	// detached data disks
+	// updated OS disk size
+	// started VM
+	// restarted VM
+	// stopped VM
 }

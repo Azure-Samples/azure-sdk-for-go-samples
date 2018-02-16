@@ -61,7 +61,7 @@ func AssignRoleWithSubscriptionScope(ctx context.Context, principalID, roleDefID
 	scope := fmt.Sprintf("/subscriptions/%s", helpers.SubscriptionID())
 
 	roleClient, _ := getRoleClient()
-	return roleClient.Create(scope, uuid.NewV1().String(), authorization.RoleAssignmentCreateParameters{
+	return roleClient.Create(ctx, scope, uuid.NewV1().String(), authorization.RoleAssignmentCreateParameters{
 		Properties: &authorization.RoleAssignmentProperties{
 			PrincipalID:      to.StringPtr(principalID),
 			RoleDefinitionID: to.StringPtr(roleDefID),
@@ -70,7 +70,7 @@ func AssignRoleWithSubscriptionScope(ctx context.Context, principalID, roleDefID
 }
 
 // DeleteRoleAssignment deletes a roleassignment
-func DeleteRoleAssignment(id string) (authorization.RoleAssignment, error) {
+func DeleteRoleAssignment(ctx context.Context, id string) (authorization.RoleAssignment, error) {
 	roleClient, _ := getRoleClient()
-	return roleClient.DeleteByID(id)
+	return roleClient.DeleteByID(ctx, id)
 }

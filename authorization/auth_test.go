@@ -7,7 +7,6 @@ package authorization
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -22,20 +21,17 @@ func TestMain(m *testing.M) {
 		log.Fatalln("failed to parse args")
 	}
 
-	ctx := context.Background()
-	defer resources.Cleanup(ctx)
-
-	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
-
 	os.Exit(m.Run())
 }
 
 func ExampleAssignRole() {
+	helpers.SetResourceGroupName("AssignRole")
 	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
 
 	list, err := ListRoles(ctx, "roleName eq 'Contributor'")
 	if err != nil {
@@ -43,25 +39,25 @@ func ExampleAssignRole() {
 	}
 	helpers.PrintAndLog("got role definitions list")
 
-	rgRole, err := AssignRole(ctx, helpers.ServicePrincipalObjectID(), *((*list.Value)[0].ID))
+	rgRole, err := AssignRole(ctx, helpers.ServicePrincipalObjectID(), *list.Values()[0].ID)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("role assigned with resource group scope")
 
-	subRole, err := AssignRoleWithSubscriptionScope(ctx, helpers.ServicePrincipalObjectID(), *((*list.Value)[0].ID))
+	subRole, err := AssignRoleWithSubscriptionScope(ctx, helpers.ServicePrincipalObjectID(), *list.Values()[0].ID)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("role assigned with subscription scope")
 
 	if !helpers.KeepResources() {
-		DeleteRoleAssignment(*rgRole.ID)
+		DeleteRoleAssignment(ctx, *rgRole.ID)
 		if err != nil {
 			helpers.PrintAndLog(err.Error())
 		}
 
-		DeleteRoleAssignment(*subRole.ID)
+		DeleteRoleAssignment(ctx, *subRole.ID)
 		if err != nil {
 			helpers.PrintAndLog(err.Error())
 		}

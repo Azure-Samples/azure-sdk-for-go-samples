@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"go/ast"
 	"go/build"
@@ -12,16 +13,38 @@ import (
 	"strings"
 )
 
+var (
+	repo = filepath.Join("github.com", "Azure-Samples", "azure-sdk-for-go-samples")
+)
+
 func main() {
 	files, err := getTestFiles()
 	if err != nil {
 		panic(err)
 	}
 	tests := getTests(files)
+	tasks := convertToTasks(tests)
 
-	for _, t := range tests {
-		fmt.Println(formatCommand(t))
+	b, err := json.MarshalIndent(tasks, "", "    ")
+	if err != nil {
+		panic(err)
 	}
+	fmt.Println(string(b))
+
+	/*
+		execution := strings.Fields(tasks[len(tasks)-1].Settings.Execution["command"])
+		var cmd *exec.Cmd
+		if len(execution) < 2 {
+			cmd = exec.Command(execution[0])
+		} else {
+			cmd = exec.Command(execution[0], execution[1:]...)
+		}
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(string(output))
+	*/
 }
 
 type test struct {
@@ -44,12 +67,12 @@ func getTests(testFiles []string) []test {
 		for _, d := range node.Decls {
 			if f, ok := d.(*ast.FuncDecl); ok {
 				if strings.HasPrefix(f.Name.Name, "Example") {
-					i := strings.Index(tf, filepath.Join("github.com", "Azure-Samples", "azure-sdk-for-go-samples"))
+					i := strings.Index(tf, repo)
 					pack, _ := filepath.Split(tf[i:])
 
 					t := test{
 						example: f.Name.Name,
-						pack:    pack,
+						pack:    filepath.Clean(pack),
 					}
 
 					tests = append(tests, t)
@@ -62,7 +85,7 @@ func getTests(testFiles []string) []test {
 
 func getRoot() string {
 	gopath := build.Default.GOPATH
-	return filepath.Join(gopath, "src", "github.com", "Azure-Samples", "azure-sdk-for-go-samples")
+	return filepath.Join(gopath, "src", repo)
 }
 
 func getTestFiles() ([]string, error) {
@@ -78,4 +101,38 @@ func getTestFiles() ([]string, error) {
 		return nil
 	})
 	return testFiles, err
+}
+
+func convertToTasks(tests []test) []a01Task {
+	tasks := []a01Task{}
+	for _, t := range tests {
+		tasks = append(tasks, a01Task{
+			Name: fmt.Sprintf("%s/%s", filepath.Base(t.pack), strings.TrimPrefix(t.example, "Example")),
+			Settings: a01TaskSetting{
+				Execution: map[string]string{
+					"command": formatCommand(t),
+				},
+			},
+		})
+	}
+	return tasks
+}
+
+type a01TaskSetting struct {
+	Version     string            `json:"ver,omitempty"`
+	Execution   map[string]string `json:"execution,omitempty"`
+	Classifier  map[string]string `json:"classifier,omitempty"`
+	Miscellanea map[string]string `json:"msic,omitempty"`
+}
+
+type a01Task struct {
+	Annotation    string                 `json:"annotation,omitempty"`
+	Duration      int                    `json:"duration,omitempty"`
+	ID            int                    `json:"id,omitempty"`
+	Name          string                 `json:"name,omitempty"`
+	Result        string                 `json:"result,omitempty"`
+	ResultDetails map[string]interface{} `json:"result_details,omitempty"`
+	RunID         int                    `json:"run_id,omitempty"`
+	Settings      a01TaskSetting         `json:"settings,omitempty"`
+	Status        string                 `json:"status,omitempty"`
 }

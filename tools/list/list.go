@@ -20,14 +20,14 @@ var (
 func main() {
 	files, err := getTestFiles()
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed finding test files: %v\n", err)
 	}
 	tests := getTests(files)
 	tasks := convertToTasks(tests)
 
 	b, err := json.MarshalIndent(tasks, "", "  ")
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed marshalling tasks: %v\n", err)
 	}
 	fmt.Println(string(b))
 }

@@ -30,21 +30,6 @@ func main() {
 		panic(err)
 	}
 	fmt.Println(string(b))
-
-	/*
-		execution := strings.Fields(tasks[len(tasks)-1].Settings.Execution["command"])
-		var cmd *exec.Cmd
-		if len(execution) < 2 {
-			cmd = exec.Command(execution[0])
-		} else {
-			cmd = exec.Command(execution[0], execution[1:]...)
-		}
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(string(output))
-	*/
 }
 
 type test struct {

@@ -25,7 +25,7 @@ func main() {
 	tests := getTests(files)
 	tasks := convertToTasks(tests)
 
-	b, err := json.MarshalIndent(tasks, "", "    ")
+	b, err := json.MarshalIndent(tasks, "", "  ")
 	if err != nil {
 		panic(err)
 	}
@@ -107,32 +107,38 @@ func convertToTasks(tests []test) []a01Task {
 	tasks := []a01Task{}
 	for _, t := range tests {
 		tasks = append(tasks, a01Task{
-			Name: fmt.Sprintf("%s/%s", filepath.Base(t.pack), strings.TrimPrefix(t.example, "Example")),
-			Settings: a01TaskSetting{
-				Execution: map[string]string{
-					"command": formatCommand(t),
-				},
+			Version: "1.0",
+			Execution: a01TaskExecution{
+				Command: formatCommand(t),
+			},
+			Classifier: a01TaskClassifier{
+				Identifier: fmt.Sprintf("%s/%s", strings.TrimPrefix(t.pack, repo+string(filepath.Separator)), strings.TrimPrefix(t.example, "Example")),		
+				Type:       Live,
 			},
 		})
 	}
 	return tasks
 }
 
-type a01TaskSetting struct {
-	Version     string            `json:"ver,omitempty"`
-	Execution   map[string]string `json:"execution,omitempty"`
-	Classifier  map[string]string `json:"classifier,omitempty"`
-	Miscellanea map[string]string `json:"msic,omitempty"`
+type testType string
+
+const (
+	Recording testType = "Recording"
+	Live testType = "Live"
+	Unit testType = "Unit"
+)
+
+type a01TaskExecution struct {
+	Command string `json:"command,omitempty"`
+}
+
+type a01TaskClassifier struct {
+	Identifier string `json:"identifier,omitempty"`
+	Type       testType `json:"type,omitempty"`
 }
 
 type a01Task struct {
-	Annotation    string                 `json:"annotation,omitempty"`
-	Duration      int                    `json:"duration,omitempty"`
-	ID            int                    `json:"id,omitempty"`
-	Name          string                 `json:"name,omitempty"`
-	Result        string                 `json:"result,omitempty"`
-	ResultDetails map[string]interface{} `json:"result_details,omitempty"`
-	RunID         int                    `json:"run_id,omitempty"`
-	Settings      a01TaskSetting         `json:"settings,omitempty"`
-	Status        string                 `json:"status,omitempty"`
+	Version    string            `json:"ver,omitempty"`
+	Execution  a01TaskExecution  `json:"execution,omitempty"`
+	Classifier a01TaskClassifier `json:"classifier,omiyempty"`
 }

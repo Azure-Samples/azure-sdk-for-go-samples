@@ -92,3 +92,82 @@ func ExampleCreateNIC() {
 	// created public IP
 	// created nic
 }
+
+func ExampleCreateNetworkSecurityGroup() {
+	helpers.SetResourceGroupName("CreateNSG")
+	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+
+	_, err = CreateVirtualNetwork(ctx, virtualNetworkName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created vnet")
+
+	frontNSGName := "frontend"
+	backNSGName := "backend"
+
+	_, err = CreateNetworkSecurityGroup(ctx, frontNSGName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created frontend network security group")
+
+	_, err = CreateNetworkSecurityGroup(ctx, backNSGName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created backend network security group")
+
+	frontEndAddressPrefix := "10.0.0.0/16"
+	_, err = CreateSubnetWithNetowrkSecurityGroup(ctx, virtualNetworkName, "frontend", frontEndAddressPrefix, frontNSGName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created subnet with frontend network security group")
+
+	_, err = CreateSubnetWithNetowrkSecurityGroup(ctx, virtualNetworkName, "backend", "10.1.0.0/16", backNSGName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created subnet with backend network security group")
+
+	_, err = CreateSSHRule(ctx, frontNSGName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created frontend SSH security rule")
+
+	_, err = CreateHTTPRule(ctx, frontNSGName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created frontend HTTP security rule")
+
+	_, err = CreateSQLRule(ctx, frontNSGName, frontEndAddressPrefix)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created frontend SQL security rule")
+
+	_, err = CreateDenyOutRule(ctx, backNSGName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created backend deny out security rule")
+
+	// Output:
+	// created vnet
+	// created frontend network security group
+	// created backend network security group
+	// created subnet with frontend network security group
+	// created subnet with backend network security group
+	// created frontend SSH security rule
+	// created frontend HTTP security rule
+	// created frontend SQL security rule
+	// created backend deny out security rule
+}

@@ -145,7 +145,6 @@ func CreateSubnetWithNetowrkSecurityGroup(ctx context.Context, vnetName, subnetN
 		return subnet, fmt.Errorf("cannot get nsg: %v", err)
 	}
 
-
 	subnetsClient := getSubnetsClient()
 	future, err := subnetsClient.CreateOrUpdate(
 		ctx,
@@ -154,7 +153,7 @@ func CreateSubnetWithNetowrkSecurityGroup(ctx context.Context, vnetName, subnetN
 		subnetName,
 		network.Subnet{
 			SubnetPropertiesFormat: &network.SubnetPropertiesFormat{
-				AddressPrefix: to.StringPtr(addressPrefix),
+				AddressPrefix:        to.StringPtr(addressPrefix),
 				NetworkSecurityGroup: &nsg,
 			},
 		})
@@ -416,7 +415,7 @@ func getSecurityRulesClient() network.SecurityRulesClient {
 	rulesClient := network.NewSecurityRulesClient(helpers.SubscriptionID())
 	rulesClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	rulesClient.AddToUserAgent(helpers.UserAgent())
-	return rulesClient	
+	return rulesClient
 }
 
 // CreateSSHRule creates an inbound network security rule that allows using port 22
@@ -427,7 +426,7 @@ func CreateSSHRule(ctx context.Context, nsgName string) (rule network.SecurityRu
 		nsgName,
 		"ALLOW-SSH",
 		network.SecurityRule{
-			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat {
+			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
 				Access: network.SecurityRuleAccessAllow,
 				DestinationAddressPrefix: to.StringPtr("*"),
 				DestinationPortRange:     to.StringPtr("22"),
@@ -458,7 +457,7 @@ func CreateHTTPRule(ctx context.Context, nsgName string) (rule network.SecurityR
 		nsgName,
 		"ALLOW-HTTP",
 		network.SecurityRule{
-			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat {
+			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
 				Access: network.SecurityRuleAccessAllow,
 				DestinationAddressPrefix: to.StringPtr("*"),
 				DestinationPortRange:     to.StringPtr("80"),
@@ -489,7 +488,7 @@ func CreateSQLRule(ctx context.Context, nsgName, frontEndAddressPrefix string) (
 		nsgName,
 		"ALLOW-SQL",
 		network.SecurityRule{
-			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat {
+			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
 				Access: network.SecurityRuleAccessAllow,
 				DestinationAddressPrefix: to.StringPtr("*"),
 				DestinationPortRange:     to.StringPtr("1433"),
@@ -520,7 +519,7 @@ func CreateDenyOutRule(ctx context.Context, nsgName string) (rule network.Securi
 		nsgName,
 		"DENY-OUT",
 		network.SecurityRule{
-			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat {
+			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
 				Access: network.SecurityRuleAccessDeny,
 				DestinationAddressPrefix: to.StringPtr("*"),
 				DestinationPortRange:     to.StringPtr("*"),

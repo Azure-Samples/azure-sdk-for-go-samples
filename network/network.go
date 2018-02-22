@@ -450,6 +450,7 @@ func CreateSSHRule(ctx context.Context, nsgName string) (rule network.SecurityRu
 	return future.Result(rulesClient)
 }
 
+// CreateHTTPRule creates an inbound network security rule that allows using port 80
 func CreateHTTPRule(ctx context.Context, nsgName string) (rule network.SecurityRule, err error) {
 	rulesClient := getSecurityRulesClient()
 	future, err := rulesClient.CreateOrUpdate(ctx,
@@ -481,6 +482,7 @@ func CreateHTTPRule(ctx context.Context, nsgName string) (rule network.SecurityR
 	return future.Result(rulesClient)
 }
 
+// CreateSQLRule creates an inbound network security rule that allows using port 1433
 func CreateSQLRule(ctx context.Context, nsgName, frontEndAddressPrefix string) (rule network.SecurityRule, err error) {
 	rulesClient := getSecurityRulesClient()
 	future, err := rulesClient.CreateOrUpdate(ctx,
@@ -512,6 +514,7 @@ func CreateSQLRule(ctx context.Context, nsgName, frontEndAddressPrefix string) (
 	return future.Result(rulesClient)
 }
 
+// CreateDenyOutRule creates an network security rule that denies outbound traffic
 func CreateDenyOutRule(ctx context.Context, nsgName string) (rule network.SecurityRule, err error) {
 	rulesClient := getSecurityRulesClient()
 	future, err := rulesClient.CreateOrUpdate(ctx,

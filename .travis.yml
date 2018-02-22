@@ -1,6 +1,7 @@
 language: go
 go:
-- 1.10rc1
+- tip
+- 1.10.x
 - 1.9.x
 - 1.8.x
 install:
@@ -9,7 +10,7 @@ install:
 script:
 - dirs=$(go list ./...)
 - test -z "$(gofmt -s -l -w $(find ./* -type d -print) | tee /dev/stderr)"
-- golint ./...
+- test -z "`for d in $dirs; do golint $d | tee /dev/stderr; done`"
 - test -z "$(go vet ./... |  grep -v 'refers to unknown identifier' | tee /dev/stderr)"
 - dep ensure
 - test -z "`for d in $dirs; do go build $d | grep -v 'no non-test Go files in' | tee /dev/stderr; done`"

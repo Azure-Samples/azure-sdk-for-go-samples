@@ -21,6 +21,7 @@ func getKeysClient() keyvault.BaseClient {
 	return vmClient
 }
 
+// CreateKeyBundle creates a key in the specified keyvault
 func CreateKeyBundle(ctx context.Context, vaultName string) (key keyvault.KeyBundle, err error) {
 	vaultsClient := getVaultsClient()
 	vault, err := vaultsClient.Get(ctx, helpers.ResourceGroupName(), vaultName)

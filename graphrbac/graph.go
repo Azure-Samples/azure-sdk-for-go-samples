@@ -28,6 +28,7 @@ func getApplicationsClient() graphrbac.ApplicationsClient {
 	return appClient
 }
 
+// CreateServicePrincipal creates a service principal on the specified Azure Active Directory application.
 func CreateServicePrincipal(ctx context.Context, appID string) (graphrbac.ServicePrincipal, error) {
 	spClient := getServicePrincipalClient()
 	return spClient.Create(ctx, graphrbac.ServicePrincipalCreateParameters{
@@ -36,6 +37,7 @@ func CreateServicePrincipal(ctx context.Context, appID string) (graphrbac.Servic
 	})
 }
 
+// CreateADApplication creates an Azure Active Directory (AAD) application
 func CreateADApplication(ctx context.Context) (graphrbac.Application, error) {
 	appClient := getApplicationsClient()
 	return appClient.Create(ctx, graphrbac.ApplicationCreateParameters{
@@ -46,11 +48,13 @@ func CreateADApplication(ctx context.Context) (graphrbac.Application, error) {
 	})
 }
 
+// DeleteADApplication deletes the specified AAD application
 func DeleteADApplication(ctx context.Context, appObjID string) (autorest.Response, error) {
 	appClient := getApplicationsClient()
 	return appClient.Delete(ctx, appObjID)
 }
 
+// AddClientSecret adds a client secret (aka password credential) to the specified AAD app
 func AddClientSecret(ctx context.Context, objID string) (autorest.Response, error) {
 	appClient := getApplicationsClient()
 	return appClient.UpdatePasswordCredentials(ctx, objID, graphrbac.PasswordCredentialsUpdateParameters{

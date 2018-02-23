@@ -12,7 +12,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
-func ExampleCreateCosmosDbAccount() {
+func ExampleGetCosmosDbAccountKeys() {
 	context := context.Background()
 
 	helpers.SetResourceGroupName(resourceGroupNameSuffix)
@@ -37,8 +37,17 @@ func ExampleCreateCosmosDbAccount() {
 		return
 	}
 
-	helpers.PrintAndLog("Created CosmosDB Account.")
+	_, err = GetCosmosDbAccountKeys(context, cosmosDbAccountName)
+
+	if err != nil {
+		helpers.PrintAndLog("Failed to get CosmosDB Account keys.")
+		helpers.PrintAndLog(err.Error())
+
+		return
+	}
+
+	helpers.PrintAndLog("Got CosmosDB Account keys.")
 
 	// Output:
-	// Created CosmosDB Account.
+	// Got CosmosDB Account keys.
 }

@@ -10,22 +10,10 @@ import (
 	"fmt"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
-
-func getAuthorizer() (*autorest.BearerAuthorizer, error) {
-	token, err := iam.GetResourceManagementToken(iam.AuthGrantType())
-
-	if err != nil {
-		return nil, fmt.Errorf("Failure to get management token: %s", err.Error())
-	}
-
-	return autorest.NewBearerAuthorizer(token), nil
-}
 
 // CreateCosmosDbAccount creates a new CosmosDb account
 func CreateCosmosDbAccount(context context.Context, cosmosDbAccountName string) (*documentdb.DatabaseAccount, error) {

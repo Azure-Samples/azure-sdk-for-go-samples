@@ -7,6 +7,7 @@ LABEL a01.env.AZ_TENANT_ID="secret:sp.tenant"
 LABEL a01.env.AZ_CLIENT_ID="secret:sp.clientid"
 LABEL a01.env.AZ_CLIENT_SECRET="secret:sp.clientsecret"
 LABEL a01.env.AZ_SP_OBJECT_ID="secret:sp.objectid"
+LABEL a01.env.AZ_LOCATION="arg-mode"
 
 # install additional stuff alpine does not have
 RUN apk add --no-cache git bash

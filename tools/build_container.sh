@@ -11,9 +11,7 @@ build=${build:=`date +%Y%m%d%H%M`}
 
 mv tools/dockerfiles/* .
 
-docker build -t azureclidev.azurecr.io/azuresdk-test-$image_owner:go1.10-prod-$build -f Dockerfile.1.10.prod .
-docker push azureclidev.azurecr.io/azuresdk-test-$image_owner:go1.10-prod-$build
-docker build -t azureclidev.azurecr.io/azuresdk-test-$image_owner:go1.10-canary-$build -f Dockerfile.1.10.canary .
-docker push azureclidev.azurecr.io/azuresdk-test-$image_owner:go1.10-canary-$build
+docker build -t azureclidev.azurecr.io/azuresdk-test-$image_owner:go1.10-$build -f Dockerfile.1.10 .
+docker push azureclidev.azurecr.io/azuresdk-test-$image_owner:go1.10-$build
 
 mv `ls | grep ^Dockerfile` tools/dockerfiles

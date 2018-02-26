@@ -38,7 +38,7 @@ type test struct {
 }
 
 func formatCommand(t test) string {
-	return fmt.Sprintf("go test -v %s -run ^%s$", t.pack, t.example)
+	return fmt.Sprintf("go test -v -timeout=20m %s -run ^%s$", t.pack, t.example)
 }
 
 func getTests(testFiles []string) []test {

@@ -2,10 +2,11 @@ FROM golang:1.10-alpine
 
 LABEL a01.product="azuresdkforgo"
 LABEL a01.index.schema="v2"
-LABEL a01.env.AZ_SUBSCRIPTION_ID="secret:sp.go.subscriptionid"
+LABEL a01.env.AZ_SUBSCRIPTION_ID="secret:sp.subscriptionid"
 LABEL a01.env.AZ_TENANT_ID="secret:sp.tenant"
-LABEL a01.env.AZ_CLIENT_ID="secret:sp.go.clientid"
-LABEL a01.env.AZ_CLIENT_SECRET="secret:sp.go.clientsecret"
+LABEL a01.env.AZ_CLIENT_ID="secret:sp.clientid"
+LABEL a01.env.AZ_CLIENT_SECRET="secret:sp.clientsecret"
+LABEL a01.env.AZ_SP_OBJECT_ID="secret:sp.objectid"
 
 # install additional stuff alpine does not have
 RUN apk add --no-cache git bash

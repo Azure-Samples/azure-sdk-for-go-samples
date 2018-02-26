@@ -34,6 +34,7 @@ var (
 	subscriptionID string
 	tenantID       string
 	clientSecret   string
+	// UseCLIclientID sets if the Azure CLI client iD should be used on device authentication
 	UseCLIclientID bool
 )
 
@@ -97,6 +98,7 @@ func ClientSecret() string {
 	return clientSecret
 }
 
+// AuthGrantType returns what kind of authentication is going to be used: device flow or service principal
 func AuthGrantType() OAuthGrantType {
 	if helpers.DeviceFlow() {
 		return OAuthGrantTypeDeviceFlow
@@ -171,6 +173,7 @@ func getDeviceToken(endpoint string) (adal.OAuthTokenProvider, error) {
 	return adal.WaitForUserCompletion(sender, code)
 }
 
+// GetKeyvaultToken gets an authorizer for the keyvault dataplane
 func GetKeyvaultToken(grantType OAuthGrantType) (authorizer autorest.Authorizer, err error) {
 	config, err := adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantID)
 	updatedAuthorizeEndpoint, err := url.Parse("https://login.windows.net/" + tenantID + "/oauth2/token")

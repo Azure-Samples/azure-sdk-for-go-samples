@@ -17,6 +17,7 @@ import (
 	"github.com/satori/go.uuid"
 )
 
+// CreateManagedDisk creates an empty, 64GB disk. The disk can be attached to a VM later.
 func CreateManagedDisk(ctx context.Context, diskName string) (disk compute.Disk, err error) {
 	disksClient := getDisksClient()
 	future, err := disksClient.CreateOrUpdate(

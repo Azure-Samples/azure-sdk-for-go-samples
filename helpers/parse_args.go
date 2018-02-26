@@ -52,6 +52,8 @@ var (
 		"koreacentral",
 		"koreasouth",
 	}
+
+	locationOverrideTemplate = "Using location %s on this sample, because this service is not yet available on specified location %s\n"
 )
 
 // ParseArgs picks up shared env vars and flags and finishes parsing flags
@@ -183,12 +185,19 @@ func SetResourceGroupName(suffix string) {
 	resourceGroupName = GroupPrefix() + "-" + suffix + "-" + GetRandomLetterSequence(5)
 }
 
+func OverrideCanaryLocation(usableLocation string)  {
+	if strings.HasSuffix(location, "euap") {
+		log.Printf(locationOverrideTemplate, usableLocation, location)
+		location = usableLocation
+	}
+}
+
 // OverrideLocation ovverrides the specified location where to create Azure resources.
 // This can be used when the selection location does not have the desired resource provider available yet
 func OverrideLocation(available []string) {
 	// If location is not listed on all locations, don't override it. It might be a canary location
 	if contains(allLocations, location) && !contains(available, location) && len(available) > 0 {
-		log.Printf("Using location %s on this sample, because this service is not yet available on specified location %s\n", available[0], location)
+		log.Printf(locationOverrideTemplate, available[0], location)
 		location = available[0]
 	}
 }

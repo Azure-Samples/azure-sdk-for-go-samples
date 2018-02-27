@@ -21,7 +21,7 @@ import (
 func ExampleCreateGroup() {
 	defer Cleanup(context.Background())
 
-	_, err := CreateGroup(context.Background(), helpers.ResourceGroupName())
+	_, err := CreateGroup(context.Background())
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

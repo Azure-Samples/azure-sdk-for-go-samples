@@ -31,15 +31,15 @@ type EnvironmentInformation struct {
 var client = &http.Client{Timeout: 3 * time.Second}
 
 // GetAadResourceID retrieves AadResourceId from ARMEndpoint
-func GetAadResourceID(armEndpointString string, aadResourceID interface{}, aadEndpoint interface{}) error {
+func GetAadResourceID(armEndpointString string) (aadResourceID, aadEndpoint string, err error) {
 	managementEndpoint := armEndpointString + "/metadata/endpoints?api-version=1.0"
 	env := new(EnvironmentInformation)
 	if err := GetJSON(managementEndpoint, env); err != nil {
-		return err
+		return aadResourceID, aadEndpoint, err
 	}
 	aadResourceID = env.Authentication.Audiences[0]
 	aadEndpoint = env.Authentication.LoginEndpoint
-	return nil
+	return aadResourceID, aadEndpoint, nil
 }
 
 // GetJSON retrieves EnvironmentInformation

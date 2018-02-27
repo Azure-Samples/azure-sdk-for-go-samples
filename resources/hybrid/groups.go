@@ -28,18 +28,18 @@ func getGroupsClient() resources.GroupsClient {
 }
 
 // CreateGroup creates a new resource group named by env var
-func CreateGroup(cntx context.Context, groupName string) (resources.Group, error) {
+func CreateGroup(cntx context.Context) (resources.Group, error) {
 	err := helpers.ParseArgs()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	groupClient := getGroupsClient()
 	location := "local"
-	return groupClient.CreateOrUpdate(cntx, groupName, resources.Group{Location: &location})
+	return groupClient.CreateOrUpdate(cntx, helpers.ResourceGroupName(), resources.Group{Location: &location})
 }
 
 // DeleteGroup removes the resource group named by env var
-func DeleteGroup(ctx context.Context, groupName string) (result resources.GroupsDeleteFuture, err error) {
+func DeleteGroup(ctx context.Context) (result resources.GroupsDeleteFuture, err error) {
 	groupsClient := getGroupsClient()
-	return groupsClient.Delete(ctx, groupName)
+	return groupsClient.Delete(ctx, helpers.ResourceGroupName())
 }

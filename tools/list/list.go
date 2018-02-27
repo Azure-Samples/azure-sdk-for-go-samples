@@ -98,20 +98,11 @@ func convertToTasks(tests []test) []a01Task {
 			},
 			Classifier: a01TaskClassifier{
 				Identifier: fmt.Sprintf("%s/%s", strings.TrimPrefix(t.pack, repo+string(filepath.Separator)), strings.TrimPrefix(t.example, "Example")),		
-				Type:       Live,
 			},
 		})
 	}
 	return tasks
 }
-
-type testType string
-
-const (
-	Recording testType = "Recording"
-	Live testType = "Live"
-	Unit testType = "Unit"
-)
 
 type a01TaskExecution struct {
 	Command string `json:"command,omitempty"`
@@ -119,7 +110,6 @@ type a01TaskExecution struct {
 
 type a01TaskClassifier struct {
 	Identifier string `json:"identifier,omitempty"`
-	Type       testType `json:"type,omitempty"`
 }
 
 type a01Task struct {

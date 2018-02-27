@@ -114,7 +114,7 @@ func ParseArgs() error {
 		storageEndpointSuffix = "core.windows.net"
 	}
 
-	err = GetAadResourceID(armEndpointString, &activeDirectoryResourceID, &activeDirectoryEndpoint)
+	activeDirectoryResourceID, activeDirectoryEndpoint, err = GetAadResourceID(armEndpointString)
 	if err != nil {
 		activeDirectoryResourceID = azure.PublicCloud.ActiveDirectoryEndpoint
 		activeDirectoryEndpoint = azure.PublicCloud.ActiveDirectoryEndpoint

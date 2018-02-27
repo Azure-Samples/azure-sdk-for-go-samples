@@ -10,7 +10,7 @@ LABEL a01.product="azuresdkforgo" \
     a01.env.AZ_LOCATION="arg-mode"
 
 COPY . /go/src/github.com/Azure-Samples/azure-sdk-for-go-samples
-ADD https://a01tools.blob.core.windows.net/droid/latest/linux/a01droid /app/a01droid
+ADD https://a01tools.blob.core.windows.net/droid/linux/a01droid /app/a01droid
 
 RUN apk add --no-cache git bash && \
     go get github.com/golang/dep/cmd/dep && \

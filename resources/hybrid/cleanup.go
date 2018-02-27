@@ -19,6 +19,6 @@ func Cleanup(ctx context.Context) error {
 		return nil
 	}
 	log.Println("deleting resources")
-	_, err := DeleteGroup(ctx, helpers.ResourceGroupName())
+	_, err := DeleteGroup(ctx)
 	return err
 }

@@ -1,3 +1,5 @@
+#!/bin/bash -x
+
 image_owner=${TRAVIS_REPO_SLUG%-Samples/azure-sdk-for-go-samples} 
 image_owner=${image_owner:="private-${USER}"}
 image_owner=`echo $image_owner | tr '[:upper:]' '[:lower:]'`

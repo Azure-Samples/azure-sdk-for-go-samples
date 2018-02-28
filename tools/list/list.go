@@ -97,7 +97,7 @@ func convertToTasks(tests []test) []a01Task {
 				Command: formatCommand(t),
 			},
 			Classifier: a01TaskClassifier{
-				Identifier: fmt.Sprintf("%s/%s", strings.TrimPrefix(t.pack, repo+string(filepath.Separator)), strings.TrimPrefix(t.example, "Example")),		
+				Identifier: fmt.Sprintf("%s/%s", strings.TrimPrefix(t.pack, repo+string(filepath.Separator)), strings.TrimPrefix(t.example, "Example")),
 			},
 		})
 	}

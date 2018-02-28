@@ -185,7 +185,8 @@ func SetResourceGroupName(suffix string) {
 	resourceGroupName = GroupPrefix() + "-" + suffix + "-" + GetRandomLetterSequence(5)
 }
 
-func OverrideCanaryLocation(usableLocation string)  {
+// OverrideCanaryLocation ovverrides the specified canary location where to create Azure resources.
+func OverrideCanaryLocation(usableLocation string) {
 	if strings.HasSuffix(location, "euap") {
 		log.Printf(locationOverrideTemplate, usableLocation, location)
 		location = usableLocation

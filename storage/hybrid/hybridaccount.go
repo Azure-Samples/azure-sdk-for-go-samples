@@ -26,6 +26,7 @@ func getStorageAccountsClient() storage.AccountsClient {
 	return storageAccountsClient
 }
 
+// CreateStorageAccount creates a new storage account.
 func CreateStorageAccount(cntx context.Context, accountName string) (s storage.Account, err error) {
 	storageAccountsClient := getStorageAccountsClient()
 	result, err := storageAccountsClient.CheckNameAvailability(

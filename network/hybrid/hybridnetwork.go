@@ -17,7 +17,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
-const (
+var (
 	location = "local"
 )
 

@@ -43,7 +43,7 @@ func getVMClient() (compute.VirtualMachinesClient, error) {
 	return vmClient, nil
 }
 
-// CreateVM creates a new virtual machine with the specified name using the specified NIC.
+// CreateVM creates a new virtual machine with the specified name using the specified network interface and storage account.
 // Username, password, and sshPublicKeyPath determine logon credentials.
 func CreateVM(ctx context.Context, vmName, nicName, username, password, storageAccountName, sshPublicKeyPath string) (vm compute.VirtualMachine, err error) {
 	cntx := context.Background()

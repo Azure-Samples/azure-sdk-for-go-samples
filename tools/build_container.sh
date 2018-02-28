@@ -9,9 +9,11 @@ EXIT_CODE=0
 
 mv tools/Dockerfile .
 
+echo 'Building docker image'
 docker build -t azureclidev.azurecr.io/azuresdk-test-$image_owner:go1.10-$build .
 EXIT_CODE=$(($EXIT_CODE+$?))
 
+echo 'Pushing docker image'
 docker push azureclidev.azurecr.io/azuresdk-test-$image_owner:go1.10-$build
 EXIT_CODE=$(($EXIT_CODE+$?))
 

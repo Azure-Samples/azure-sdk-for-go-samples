@@ -139,6 +139,7 @@ func CreateVirtualNetworkSubnet(ctx context.Context, vnetName, subnetName string
 	return future.Result(subnetsClient)
 }
 
+// CreateSubnetWithNetowrkSecurityGroup create a subnet referencing a network secuiry group
 func CreateSubnetWithNetowrkSecurityGroup(ctx context.Context, vnetName, subnetName, addressPrefix, nsgName string) (subnet network.Subnet, err error) {
 	nsg, err := GetNetworkSecurityGroup(ctx, nsgName)
 	if err != nil {
@@ -188,7 +189,7 @@ func getNsgClient() network.SecurityGroupsClient {
 	return nsgClient
 }
 
-// CreateNetworkSecurityGroup creates a new network security group
+// CreateNetworkSecurityGroup creates a new network security group with rules set for allowing SSH and HTTPS use
 func CreateNetworkSecurityGroup(ctx context.Context, nsgName string) (nsg network.SecurityGroup, err error) {
 	nsgClient := getNsgClient()
 	future, err := nsgClient.CreateOrUpdate(
@@ -242,6 +243,7 @@ func CreateNetworkSecurityGroup(ctx context.Context, nsgName string) (nsg networ
 	return future.Result(nsgClient)
 }
 
+// CreateSimpleNetworkSecurityGroup creates a new network security group, without rules (rules can be set later)
 func CreateSimpleNetworkSecurityGroup(ctx context.Context, nsgName string) (nsg network.SecurityGroup, err error) {
 	nsgClient := getNsgClient()
 	future, err := nsgClient.CreateOrUpdate(

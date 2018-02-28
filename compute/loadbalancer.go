@@ -32,6 +32,13 @@ func CreateAvailabilitySet(ctx context.Context, avaSetName string) (compute.Avai
 		avaSetName,
 		compute.AvailabilitySet{
 			Location: to.StringPtr(helpers.Location()),
+			AvailabilitySetProperties: &compute.AvailabilitySetProperties{
+				PlatformFaultDomainCount:  to.Int32Ptr(2),
+				PlatformUpdateDomainCount: to.Int32Ptr(2),
+			},
+			Sku: &compute.Sku{
+				Name: to.StringPtr("Aligned"),
+			},
 		})
 }
 
@@ -43,7 +50,11 @@ func GetAvailabilitySet(ctx context.Context, avaSetName string) (compute.Availab
 func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, subnetName, pipName, availabilySetName string, natRule int) (vm compute.VirtualMachine, err error) {
 	nicName := fmt.Sprintf("nic-%s", vmName)
 
-	nic, err := network.CreateNICWithLoadBalancer(ctx, lbName, vnetName, subnetName, nicName, natRule)
+	_, err = network.CreateNICWithLoadBalancer(ctx, lbName, vnetName, subnetName, nicName, natRule)
+	if err != nil {
+		return
+	}
+	nic, err := network.GetNic(ctx, nicName)
 	if err != nil {
 		return
 	}
@@ -54,7 +65,7 @@ func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, sub
 	}
 
 	vmClient := getVMClient()
-	future, err = vmClient.CreateOrUpdate(
+	future, err := vmClient.CreateOrUpdate(
 		ctx,
 		helpers.ResourceGroupName(),
 		vmName,
@@ -62,7 +73,7 @@ func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, sub
 			Location: to.StringPtr(helpers.Location()),
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
 				HardwareProfile: &compute.HardwareProfile{
-					VMSize: compute.StandardDS1,
+					VMSize: compute.StandardDS1V2,
 				},
 				StorageProfile: &compute.StorageProfile{
 					ImageReference: &compute.ImageReference{
@@ -92,15 +103,14 @@ func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, sub
 				},
 			},
 		})
-		if err != nil {
-			return vm, fmt.Errorf("cannot create vm: %v", err)
-		}
-	
-		err = future.WaitForCompletion(ctx, vmClient.Client)
-		if err != nil {
-			return vm, fmt.Errorf("cannot get the vm create or update future response: %v", err)
-		}
-	
-		return future.Result(vmClient)
+	if err != nil {
+		return vm, fmt.Errorf("cannot create vm: %v", err)
 	}
+
+	err = future.WaitForCompletion(ctx, vmClient.Client)
+	if err != nil {
+		return vm, fmt.Errorf("cannot get the vm create or update future response: %v", err)
+	}
+
+	return future.Result(vmClient)
 }

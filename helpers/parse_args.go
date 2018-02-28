@@ -185,7 +185,7 @@ func SetResourceGroupName(suffix string) {
 	resourceGroupName = GroupPrefix() + "-" + suffix + "-" + GetRandomLetterSequence(5)
 }
 
-func OverrideCanaryLocation(usableLocation string)  {
+func OverrideCanaryLocation(usableLocation string) {
 	if strings.HasSuffix(location, "euap") {
 		log.Printf(locationOverrideTemplate, usableLocation, location)
 		location = usableLocation

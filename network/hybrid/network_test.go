@@ -7,13 +7,10 @@ package hybridnetwork
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log"
 	"os"
 	"testing"
-
-	"github.com/subosito/gotenv"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	hybridresources "github.com/Azure-Samples/azure-sdk-for-go-samples/resources/hybrid"
@@ -27,24 +24,6 @@ var (
 	ipName               = "ip1"
 	networkInterfaceName = "netinterface1"
 )
-
-func parseArgs() error {
-	gotenv.Load()
-
-	virtualNetworkName = os.Getenv("AZ_VNET_NAME")
-	flag.StringVar(&virtualNetworkName, "vnetName", virtualNetworkName, "Specify a name for the vnet.")
-
-	err := helpers.ParseArgs()
-	if err != nil {
-		log.Fatalln("failed to parse args")
-	}
-
-	if !(len(virtualNetworkName) > 0) {
-		virtualNetworkName = "vnet1"
-	}
-
-	return nil
-}
 
 func TestMain(m *testing.M) {
 	err := helpers.ParseArgs()

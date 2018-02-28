@@ -29,10 +29,6 @@ func getGroupsClient() resources.GroupsClient {
 
 // CreateGroup creates a new resource group named by env var
 func CreateGroup(cntx context.Context) (resources.Group, error) {
-	err := helpers.ParseArgs()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
 	groupClient := getGroupsClient()
 	location := "local"
 	return groupClient.CreateOrUpdate(cntx, helpers.ResourceGroupName(), resources.Group{Location: &location})

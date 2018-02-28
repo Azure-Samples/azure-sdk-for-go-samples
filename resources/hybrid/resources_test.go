@@ -7,14 +7,19 @@ package hybridresources
 
 import (
 	"context"
+	"log"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 )
 
 func ExampleCreateGroup() {
+	err := helpers.ParseArgs()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 	defer Cleanup(context.Background())
 
-	_, err := CreateGroup(context.Background())
+	_, err = CreateGroup(context.Background())
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

@@ -35,10 +35,10 @@ func CreateAvailabilitySet(ctx context.Context, avaSetName string) (compute.Avai
 		})
 }
 
-func CreateVMWithLoadBalancer(ctx context.Context, vmName, vnetName, subnetName, pipName string, natRule int) (vm compute.VirtualMachine, err error) {
+func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, subnetName, pipName string, natRule int) (vm compute.VirtualMachine, err error) {
 	nicName := fmt.Sprintf("nic-%s", vmName)
 
-	nic, err := network.CreateNICWithLoadBalancer(ctx, vnetName, subnetName, "", pipName, nicName)
+	nic, err := network.CreateNICWithLoadBalancer(ctx, lbName, vnetName, subnetName, nicName, natRule)
 	if err != nil {
 		return vm, err
 	}

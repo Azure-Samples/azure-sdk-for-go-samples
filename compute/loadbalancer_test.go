@@ -52,10 +52,17 @@ func ExampleCreateVMsWithLoadBalancer() {
 	}
 	helpers.PrintAndLog("created availability set")
 
+	_, err = CreateVMWithLoadBalancer()
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created virtual machine on load balance, on NAT rule 1")
+
 	// Output:
 	// created public IP
 	// created load balancer
 	// created vnet
 	// created subnet
 	// created availability set
+	// created virtual machine on load balance, on NAT rule 1
 }

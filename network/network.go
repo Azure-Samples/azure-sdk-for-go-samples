@@ -281,7 +281,6 @@ func CreateNIC(ctx context.Context, vnetName, subnetName, nsgName, ipName, nicNa
 
 	nicClient := getNicClient()
 	future, err := nicClient.CreateOrUpdate(ctx, helpers.ResourceGroupName(), nicName, nicParams)
-
 	if err != nil {
 		return nic, fmt.Errorf("cannot create nic: %v", err)
 	}
@@ -294,20 +293,30 @@ func CreateNIC(ctx context.Context, vnetName, subnetName, nsgName, ipName, nicNa
 	return future.Result(nicClient)
 }
 
-func CreateNICWithLoadBalancer(ctx context.Context, vnetName, subnetName, nicName string) {
+func CreateNICWithLoadBalancer(ctx context.Context, lbName, vnetName, subnetName, nicName string, natRule int) (nic network.Interface, err error) {
+	subnet, err := GetVirtualNetworkSubnet(ctx, vnetName, subnetName)
+	if err != nil {
+		return
+	}
+
+	lb, err := GetLoadBalancer(ctx, lbName)
+	if err != nil {
+		return
+	}
+
 	nicClient := getNicClient()
 	future, err := nicClient.CreateOrUpdate(ctx,
 		helpers.ResourceGroupName(),
 		nicName,
 		network.Interface{
-			Location: to.StringPtr(helpers.Location(),
+			Location: to.StringPtr(helpers.Location()),
 			InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
 				IPConfigurations: &[]network.InterfaceIPConfiguration{
 					{
 						Name: to.StringPtr("pipConfig"),
 						InterfaceIPConfigurationPropertiesFormat: &network.InterfaceIPConfigurationPropertiesFormat{
 							Subnet: &network.Subnet{
-								ID: subnetID,
+								ID: subnet.ID,
 							},
 							LoadBalancerBackendAddressPools: &[]network.BackendAddressPool{
 								{
@@ -324,6 +333,16 @@ func CreateNICWithLoadBalancer(ctx context.Context, vnetName, subnetName, nicNam
 				},
 			},
 		})
+	if err != nil {
+		return nic, fmt.Errorf("cannot create nic: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, nicClient.Client)
+	if err != nil {
+		return nic, fmt.Errorf("cannot get nic create or update future response: %v", err)
+	}
+
+	return future.Result(nicClient)
 }
 
 // GetNic returns an existing network interface
@@ -399,6 +418,11 @@ func getLBClient() network.LoadBalancersClient {
 	return lbClient
 }
 
+func GetLoadBalancer(ctx context.Context, lbName string) (network.LoadBalancer, error) {
+	lbClient := getLBClient()
+	return lbClient.Get(ctx, helpers.ResourceGroupName(), lbName, "")
+}
+
 func CreateLoadBalancer(ctx context.Context, lbName, pipName string) (lb network.LoadBalancer, err error) {
 	probeName := "probe"
 	frontEndIPConfigName := "fip"
@@ -411,7 +435,6 @@ func CreateLoadBalancer(ctx context.Context, lbName, pipName string) (lb network
 	}
 
 	lbClient := getLBClient()
-
 	future, err := lbClient.CreateOrUpdate(ctx,
 		helpers.ResourceGroupName(),
 		lbName,

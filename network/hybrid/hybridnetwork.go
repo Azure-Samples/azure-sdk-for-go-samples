@@ -17,10 +17,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
-var (
-	location = "local"
-)
-
 func getVnetClient() network.VirtualNetworksClient {
 	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
 	if err != nil {
@@ -80,7 +76,7 @@ func CreateVirtualNetworkAndSubnets(cntx context.Context, vnetName, subnetName s
 		helpers.ResourceGroupName(),
 		vnetName,
 		network.VirtualNetwork{
-			Location: to.StringPtr(location),
+			Location: to.StringPtr(helpers.Location()),
 			VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
 				AddressSpace: &network.AddressSpace{
 					AddressPrefixes: &[]string{"10.0.0.0/8"},
@@ -116,7 +112,7 @@ func CreateNetworkSecurityGroup(cntx context.Context, nsgName string) (nsg netwo
 		helpers.ResourceGroupName(),
 		nsgName,
 		network.SecurityGroup{
-			Location: to.StringPtr(location),
+			Location: to.StringPtr(helpers.Location()),
 			SecurityGroupPropertiesFormat: &network.SecurityGroupPropertiesFormat{
 				SecurityRules: &[]network.SecurityRule{
 					{
@@ -171,7 +167,7 @@ func CreatePublicIP(cntx context.Context, ipName string) (ip network.PublicIPAdd
 		ipName,
 		network.PublicIPAddress{
 			Name:     to.StringPtr(ipName),
-			Location: to.StringPtr(location),
+			Location: to.StringPtr(helpers.Location()),
 			PublicIPAddressPropertiesFormat: &network.PublicIPAddressPropertiesFormat{
 				PublicIPAllocationMethod: network.Static,
 			},
@@ -210,7 +206,7 @@ func CreateNetworkInterface(cntx context.Context, netInterfaceName, nsgName, vne
 		netInterfaceName,
 		network.Interface{
 			Name:     to.StringPtr(netInterfaceName),
-			Location: to.StringPtr(location),
+			Location: to.StringPtr(helpers.Location()),
 			InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
 				NetworkSecurityGroup: &nsg,
 				IPConfigurations: &[]network.InterfaceIPConfiguration{

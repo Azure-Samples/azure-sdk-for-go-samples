@@ -12,10 +12,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
-var (
-	location = "local"
-)
-
 func getStorageAccountsClient() storage.AccountsClient {
 	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
 	if err != nil {
@@ -48,7 +44,7 @@ func CreateStorageAccount(cntx context.Context, accountName string) (s storage.A
 		storage.AccountCreateParameters{
 			Sku: &storage.Sku{
 				Name: storage.StandardLRS},
-			Location: to.StringPtr(location),
+			Location: to.StringPtr(helpers.Location()),
 			AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{},
 		})
 	if err != nil {

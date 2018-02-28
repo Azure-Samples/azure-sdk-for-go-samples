@@ -17,4 +17,5 @@ script:
 - test -z "$(go vet ./... |  grep -v 'refers to unknown identifier' | tee /dev/stderr)"
 - dep ensure
 - test -z "`for d in $dirs; do go build $d | grep -v 'no non-test Go files in' | tee /dev/stderr; done`"
+- docker login azureclidev.azurecr.io -u $AZURESDKDEV_ACR_SP_USERNAME -p $AZURESDK_ACR_SP_PASSWORD
 - bash tools/build_on_travis.sh

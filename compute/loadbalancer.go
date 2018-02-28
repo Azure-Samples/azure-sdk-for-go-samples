@@ -35,11 +35,72 @@ func CreateAvailabilitySet(ctx context.Context, avaSetName string) (compute.Avai
 		})
 }
 
-func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, subnetName, pipName string, natRule int) (vm compute.VirtualMachine, err error) {
+func GetAvailabilitySet(ctx context.Context, avaSetName string) (compute.AvailabilitySet, error) {
+	avaSetClient := getAvailabilitySetsClient()
+	return avaSetClient.Get(ctx, helpers.ResourceGroupName(), avaSetName)
+}
+
+func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, subnetName, pipName, availabilySetName string, natRule int) (vm compute.VirtualMachine, err error) {
 	nicName := fmt.Sprintf("nic-%s", vmName)
 
 	nic, err := network.CreateNICWithLoadBalancer(ctx, lbName, vnetName, subnetName, nicName, natRule)
 	if err != nil {
-		return vm, err
+		return
+	}
+
+	avaSet, err := GetAvailabilitySet(ctx, availabilySetName)
+	if err != nil {
+		return
+	}
+
+	vmClient := getVMClient()
+	future, err = vmClient.CreateOrUpdate(
+		ctx,
+		helpers.ResourceGroupName(),
+		vmName,
+		compute.VirtualMachine{
+			Location: to.StringPtr(helpers.Location()),
+			VirtualMachineProperties: &compute.VirtualMachineProperties{
+				HardwareProfile: &compute.HardwareProfile{
+					VMSize: compute.StandardDS1,
+				},
+				StorageProfile: &compute.StorageProfile{
+					ImageReference: &compute.ImageReference{
+						Publisher: to.StringPtr(publisher),
+						Offer:     to.StringPtr(offer),
+						Sku:       to.StringPtr(sku),
+						Version:   to.StringPtr("latest"),
+					},
+				},
+				OsProfile: &compute.OSProfile{
+					ComputerName:  to.StringPtr(vmName),
+					AdminUsername: to.StringPtr(username),
+					AdminPassword: to.StringPtr(password),
+				},
+				NetworkProfile: &compute.NetworkProfile{
+					NetworkInterfaces: &[]compute.NetworkInterfaceReference{
+						{
+							ID: nic.ID,
+							NetworkInterfaceReferenceProperties: &compute.NetworkInterfaceReferenceProperties{
+								Primary: to.BoolPtr(true),
+							},
+						},
+					},
+				},
+				AvailabilitySet: &compute.SubResource{
+					ID: avaSet.ID,
+				},
+			},
+		})
+		if err != nil {
+			return vm, fmt.Errorf("cannot create vm: %v", err)
+		}
+	
+		err = future.WaitForCompletion(ctx, vmClient.Client)
+		if err != nil {
+			return vm, fmt.Errorf("cannot get the vm create or update future response: %v", err)
+		}
+	
+		return future.Result(vmClient)
 	}
 }

@@ -13,8 +13,8 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
-func ExampleCreateVMWithLoadBalancer() {
-	helpers.SetResourceGroupName("CreateVMWithLoadBalancer")
+func ExampleCreateVMsWithLoadBalancer() {
+	helpers.SetResourceGroupName("CreateVMsWithLoadBalancer")
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
 	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
@@ -34,7 +34,28 @@ func ExampleCreateVMWithLoadBalancer() {
 	}
 	helpers.PrintAndLog("created load balancer")
 
+	_, err = network.CreateVirtualNetwork(ctx, virtualNetworkName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created vnet")
+
+	_, err = network.CreateVirtualNetworkSubnet(ctx, virtualNetworkName, subnet1Name)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created subnet")
+
+	_, err = CreateAvailabilitySet(ctx, "availSet")
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created availability set")
+
 	// Output:
 	// created public IP
 	// created load balancer
+	// created vnet
+	// created subnet
+	// created availability set
 }

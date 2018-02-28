@@ -293,6 +293,7 @@ func CreateNIC(ctx context.Context, vnetName, subnetName, nsgName, ipName, nicNa
 	return future.Result(nicClient)
 }
 
+// CreateNICWithLoadBalancer creats a network interface, wich is set up with a loadbalancer's NAT rule
 func CreateNICWithLoadBalancer(ctx context.Context, lbName, vnetName, subnetName, nicName string, natRule int) (nic network.Interface, err error) {
 	subnet, err := GetVirtualNetworkSubnet(ctx, vnetName, subnetName)
 	if err != nil {
@@ -418,11 +419,13 @@ func getLBClient() network.LoadBalancersClient {
 	return lbClient
 }
 
+// GetLoadBalancer gets info on a loadbalancer
 func GetLoadBalancer(ctx context.Context, lbName string) (network.LoadBalancer, error) {
 	lbClient := getLBClient()
 	return lbClient.Get(ctx, helpers.ResourceGroupName(), lbName, "")
 }
 
+// CreateLoadBalancer creates a load balancer with 2 inbound NAT rules.
 func CreateLoadBalancer(ctx context.Context, lbName, pipName string) (lb network.LoadBalancer, err error) {
 	probeName := "probe"
 	frontEndIPConfigName := "fip"
@@ -452,7 +455,8 @@ func CreateLoadBalancer(ctx context.Context, lbName, pipName string) (lb network
 				},
 				BackendAddressPools: &[]network.BackendAddressPool{
 					{
-						Name: &backEndAddressPoolName},
+						Name: &backEndAddressPoolName,
+					},
 				},
 				Probes: &[]network.Probe{
 					{
@@ -489,7 +493,7 @@ func CreateLoadBalancer(ctx context.Context, lbName, pipName string) (lb network
 					},
 				},
 				InboundNatRules: &[]network.InboundNatRule{
-					network.InboundNatRule{
+					{
 						Name: to.StringPtr("natRule1"),
 						InboundNatRulePropertiesFormat: &network.InboundNatRulePropertiesFormat{
 							Protocol:             network.TransportProtocolTCP,
@@ -502,7 +506,7 @@ func CreateLoadBalancer(ctx context.Context, lbName, pipName string) (lb network
 							},
 						},
 					},
-					network.InboundNatRule{
+					{
 						Name: to.StringPtr("natRule2"),
 						InboundNatRulePropertiesFormat: &network.InboundNatRulePropertiesFormat{
 							Protocol:             network.TransportProtocolTCP,

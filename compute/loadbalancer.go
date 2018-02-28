@@ -25,6 +25,7 @@ func getAvailabilitySetsClient() compute.AvailabilitySetsClient {
 	return avaSetClient
 }
 
+// CreateAvailabilitySet creates an availability set
 func CreateAvailabilitySet(ctx context.Context, avaSetName string) (compute.AvailabilitySet, error) {
 	avaSetClient := getAvailabilitySetsClient()
 	return avaSetClient.CreateOrUpdate(ctx,
@@ -42,11 +43,15 @@ func CreateAvailabilitySet(ctx context.Context, avaSetName string) (compute.Avai
 		})
 }
 
+// GetAvailabilitySet gets info on an availability set
 func GetAvailabilitySet(ctx context.Context, avaSetName string) (compute.AvailabilitySet, error) {
 	avaSetClient := getAvailabilitySetsClient()
 	return avaSetClient.Get(ctx, helpers.ResourceGroupName(), avaSetName)
 }
 
+// CreateVMWithLoadBalancer creates a virtual machine inside an availability set
+// It also creates the NIC needed by the virtual machine. The NIC is set up with
+// a loadbalancer's inbound NAT rule.
 func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, subnetName, pipName, availabilySetName string, natRule int) (vm compute.VirtualMachine, err error) {
 	nicName := fmt.Sprintf("nic-%s", vmName)
 

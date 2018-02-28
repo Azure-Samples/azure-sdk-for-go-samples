@@ -11,10 +11,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"testing"
 
 	"github.com/subosito/gotenv"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	hybridresources "github.com/Azure-Samples/azure-sdk-for-go-samples/resources/hybrid"
 )
 
 var (
@@ -42,6 +44,24 @@ func parseArgs() error {
 	}
 
 	return nil
+}
+
+func TestMain(m *testing.M) {
+	err := helpers.ParseArgs()
+	if err != nil {
+		log.Fatalln("failed to parse args")
+	}
+
+	ctx := context.Background()
+	defer hybridresources.Cleanup(ctx)
+
+	_, err = hybridresources.CreateGroup(ctx)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
+
+	os.Exit(m.Run())
 }
 
 func ExampleCreateVirtualNetworkAndSubnets() {

@@ -7,9 +7,11 @@ package compute
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -31,4 +33,13 @@ func CreateAvailabilitySet(ctx context.Context, avaSetName string) (compute.Avai
 		compute.AvailabilitySet{
 			Location: to.StringPtr(helpers.Location()),
 		})
+}
+
+func CreateVMWithLoadBalancer(ctx context.Context, vmName, vnetName, subnetName, pipName string, natRule int) (vm compute.VirtualMachine, err error) {
+	nicName := fmt.Sprintf("nic-%s", vmName)
+
+	nic, err := network.CreateNICWithLoadBalancer(ctx, vnetName, subnetName, "", pipName, nicName)
+	if err != nil {
+		return vm, err
+	}
 }

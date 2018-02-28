@@ -294,6 +294,38 @@ func CreateNIC(ctx context.Context, vnetName, subnetName, nsgName, ipName, nicNa
 	return future.Result(nicClient)
 }
 
+func CreateNICWithLoadBalancer(ctx context.Context, vnetName, subnetName, nicName string) {
+	nicClient := getNicClient()
+	future, err := nicClient.CreateOrUpdate(ctx,
+		helpers.ResourceGroupName(),
+		nicName,
+		network.Interface{
+			Location: to.StringPtr(helpers.Location(),
+			InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
+				IPConfigurations: &[]network.InterfaceIPConfiguration{
+					{
+						Name: to.StringPtr("pipConfig"),
+						InterfaceIPConfigurationPropertiesFormat: &network.InterfaceIPConfigurationPropertiesFormat{
+							Subnet: &network.Subnet{
+								ID: subnetID,
+							},
+							LoadBalancerBackendAddressPools: &[]network.BackendAddressPool{
+								{
+									ID: (*lb.BackendAddressPools)[0].ID,
+								},
+							},
+							LoadBalancerInboundNatRules: &[]network.InboundNatRule{
+								{
+									ID: (*lb.InboundNatRules)[natRule].ID,
+								},
+							},
+						},
+					},
+				},
+			},
+		})
+}
+
 // GetNic returns an existing network interface
 func GetNic(ctx context.Context, nicName string) (network.Interface, error) {
 	nicClient := getNicClient()

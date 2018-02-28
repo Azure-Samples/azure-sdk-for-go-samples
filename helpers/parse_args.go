@@ -172,10 +172,13 @@ func DeviceFlow() bool {
 
 // end getters
 
+// SetPrefix sets a prefix for resource group names
 func SetPrefix(prefix string) {
 	resourceGroupNamePrefix = prefix
 }
 
+// SetResourceGroupName sets a name for the resource group. It takes into account the
+// resource group prefix, and adds some random letters to ensure uniqueness
 func SetResourceGroupName(suffix string) {
 	resourceGroupName = GroupPrefix() + "-" + suffix + "-" + GetRandomLetterSequence(5)
 }

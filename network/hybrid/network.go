@@ -74,10 +74,6 @@ func getSubnetsClient() network.SubnetsClient {
 
 // CreateVirtualNetworkAndSubnets creates a virtual network with two subnets
 func CreateVirtualNetworkAndSubnets(cntx context.Context, vnetName, subnetName string) (vnet network.VirtualNetwork, err error) {
-	err = helpers.ParseArgs()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
 	vnetClient := getVnetClient()
 	future, err := vnetClient.CreateOrUpdate(
 		cntx,
@@ -114,10 +110,6 @@ func CreateVirtualNetworkAndSubnets(cntx context.Context, vnetName, subnetName s
 
 // CreateNetworkSecurityGroup creates a new network security group
 func CreateNetworkSecurityGroup(cntx context.Context, nsgName string) (nsg network.SecurityGroup, err error) {
-	err = helpers.ParseArgs()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
 	nsgClient := getNsgClient()
 	future, err := nsgClient.CreateOrUpdate(
 		cntx,
@@ -172,10 +164,6 @@ func CreateNetworkSecurityGroup(cntx context.Context, nsgName string) (nsg netwo
 
 // CreatePublicIP creates a new public IP
 func CreatePublicIP(cntx context.Context, ipName string) (ip network.PublicIPAddress, err error) {
-	err = helpers.ParseArgs()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
 	ipClient := getIPClient()
 	future, err := ipClient.CreateOrUpdate(
 		cntx,
@@ -203,10 +191,6 @@ func CreatePublicIP(cntx context.Context, ipName string) (ip network.PublicIPAdd
 
 // CreateNetworkInterface creates a new network interface
 func CreateNetworkInterface(cntx context.Context, netInterfaceName, nsgName, vnetName, subnetName, ipName string) (nic network.Interface, err error) {
-	err = helpers.ParseArgs()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
 	nsg, err := GetNetworkSecurityGroup(cntx, nsgName)
 	if err != nil {
 		log.Fatalf("failed to get netwrok security group: %v", err)

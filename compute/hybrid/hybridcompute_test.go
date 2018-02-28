@@ -15,7 +15,6 @@ import (
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	hybridnetwork "github.com/Azure-Samples/azure-sdk-for-go-samples/network/hybrid"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	hybridresources "github.com/Azure-Samples/azure-sdk-for-go-samples/resources/hybrid"
 	hybridstorage "github.com/Azure-Samples/azure-sdk-for-go-samples/storage/hybrid"
 )
@@ -41,7 +40,7 @@ func TestMain(m *testing.M) {
 	}
 
 	ctx := context.Background()
-	defer resources.Cleanup(ctx)
+	defer hybridresources.Cleanup(ctx)
 
 	_, err = hybridresources.CreateGroup(ctx)
 	if err != nil {

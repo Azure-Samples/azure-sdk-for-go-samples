@@ -11,21 +11,21 @@ import (
 	"time"
 )
 
-// Audience represents list of audience endpoints
-type Audience []string
+// audience represents list of audience endpoints
+type audience []string
 
-// Authentication represents authentication section of Environment Information
-type Authentication struct {
+// authentication represents authentication section of Environment Information
+type authentication struct {
 	LoginEndpoint string   `json:"loginEndpoint"`
-	Audiences     Audience `json:"audiences"`
+	Audiences     audience `json:"audiences"`
 }
 
 // EnvironmentInformation represents a set of endpoints for the of Azure's Environment.
-type EnvironmentInformation struct {
+type environmentInformation struct {
 	GalleryEndpoint string         `json:"galleryEndpoint"`
 	GraphEndpoint   string         `json:"graphEndpoint"`
 	PortalEndpoint  string         `json:"portalEndpoint"`
-	Authentication  Authentication `json:"authentication"`
+	Authentication  authentication `json:"authentication"`
 }
 
 var client = &http.Client{Timeout: 3 * time.Second}
@@ -33,8 +33,8 @@ var client = &http.Client{Timeout: 3 * time.Second}
 // GetAadResourceID retrieves AadResourceId from ARMEndpoint
 func GetAadResourceID(armEndpointString string) (aadResourceID, aadEndpoint string, err error) {
 	managementEndpoint := armEndpointString + "/metadata/endpoints?api-version=1.0"
-	env := new(EnvironmentInformation)
-	if err := GetJSON(managementEndpoint, env); err != nil {
+	env := new(environmentInformation)
+	if err := getJSON(managementEndpoint, env); err != nil {
 		return aadResourceID, aadEndpoint, err
 	}
 	aadResourceID = env.Authentication.Audiences[0]
@@ -42,8 +42,8 @@ func GetAadResourceID(armEndpointString string) (aadResourceID, aadEndpoint stri
 	return aadResourceID, aadEndpoint, nil
 }
 
-// GetJSON retrieves EnvironmentInformation
-func GetJSON(url string, target interface{}) error {
+// getJSON retrieves EnvironmentInformation
+func getJSON(url string, target interface{}) error {
 	response, err := client.Get(url)
 	if err != nil {
 		return err

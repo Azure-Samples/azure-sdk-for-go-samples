@@ -29,14 +29,14 @@ const (
 // fakepubkey is used if a key isn't available at the specified path in CreateVM(...)
 var fakepubkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7laRyN4B3YZmVrDEZLZoIuUA72pQ0DpGuZBZWykCofIfCPrFZAJgFvonKGgKJl6FGKIunkZL9Us/mV4ZPkZhBlE7uX83AAf5i9Q8FmKpotzmaxN10/1mcnEE7pFvLoSkwqrQSkrrgSm8zaJ3g91giXSbtqvSIj/vk2f05stYmLfhAwNo3Oh27ugCakCoVeuCrZkvHMaJgcYrIGCuFo6q0Pfk9rsZyriIqEa9AtiUOtViInVYdby7y71wcbl0AbbCZsTSqnSoVxm2tRkOsXV6+8X4SnwcmZbao3H+zfO1GBhQOLxJ4NQbzAa8IJh810rYARNLptgmsd4cYXVOSosTX azureuser"
 
-func getVMClient() (compute.VirtualMachinesClient, error) {
+func getVMClient() compute.VirtualMachinesClient {
 	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Cannot generate token. Error details: %s.", err.Error()))
 	}
 	vmClient := compute.NewVirtualMachinesClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	vmClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	return vmClient, nil
+	return vmClient
 }
 
 // CreateVM creates a new virtual machine with the specified name using the specified network interface and storage account.
@@ -57,59 +57,64 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, storageA
 		sshKeyData = fakepubkey
 	}
 	vhdURItemplate := "https://%s.blob." + helpers.StorageEndpointSuffix() + "/vhds/%s.vhd"
-	vmClient, _ := getVMClient()
-	future, err := vmClient.CreateOrUpdate(
-		cntx,
-		helpers.ResourceGroupName(),
-		vmName,
-		compute.VirtualMachine{
-			Location: to.StringPtr(helpers.Location()),
-			VirtualMachineProperties: &compute.VirtualMachineProperties{
-				HardwareProfile: &compute.HardwareProfile{
-					VMSize: compute.StandardA1,
-				},
-				StorageProfile: &compute.StorageProfile{
-					ImageReference: &compute.ImageReference{
-						Publisher: to.StringPtr(publisher),
-						Offer:     to.StringPtr(offer),
-						Sku:       to.StringPtr(sku),
-						Version:   to.StringPtr("latest"),
-					},
-					OsDisk: &compute.OSDisk{
-						Name: to.StringPtr("osDisk"),
-						Vhd: &compute.VirtualHardDisk{
-							URI: to.StringPtr(fmt.Sprintf(vhdURItemplate, storageAccountName, vmName)),
-						},
-						CreateOption: compute.FromImage,
-					},
-				},
-				OsProfile: &compute.OSProfile{
-					ComputerName:  to.StringPtr(vmName),
-					AdminUsername: to.StringPtr(username),
-					AdminPassword: to.StringPtr(password),
-					LinuxConfiguration: &compute.LinuxConfiguration{
-						SSH: &compute.SSHConfiguration{
-							PublicKeys: &[]compute.SSHPublicKey{
-								{
-									Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", username)),
-									KeyData: to.StringPtr(sshKeyData),
-								},
-							},
-						},
-					},
-				},
-				NetworkProfile: &compute.NetworkProfile{
-					NetworkInterfaces: &[]compute.NetworkInterfaceReference{
-						{
-							ID: nic.ID,
-							NetworkInterfaceReferenceProperties: &compute.NetworkInterfaceReferenceProperties{
-								Primary: to.BoolPtr(true),
-							},
-						},
+	vmClient := getVMClient()
+	hardwareProfile := &compute.HardwareProfile{
+		VMSize: compute.StandardA1,
+	}
+	storageProfile := &compute.StorageProfile{
+		ImageReference: &compute.ImageReference{
+			Publisher: to.StringPtr(publisher),
+			Offer:     to.StringPtr(offer),
+			Sku:       to.StringPtr(sku),
+			Version:   to.StringPtr("latest"),
+		},
+		OsDisk: &compute.OSDisk{
+			Name: to.StringPtr("osDisk"),
+			Vhd: &compute.VirtualHardDisk{
+				URI: to.StringPtr(fmt.Sprintf(vhdURItemplate, storageAccountName, vmName)),
+			},
+			CreateOption: compute.FromImage,
+		},
+	}
+	osProfile := &compute.OSProfile{
+		ComputerName:  to.StringPtr(vmName),
+		AdminUsername: to.StringPtr(username),
+		AdminPassword: to.StringPtr(password),
+		LinuxConfiguration: &compute.LinuxConfiguration{
+			SSH: &compute.SSHConfiguration{
+				PublicKeys: &[]compute.SSHPublicKey{
+					{
+						Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", username)),
+						KeyData: to.StringPtr(sshKeyData),
 					},
 				},
 			},
 		},
+	}
+	networkProfile := &compute.NetworkProfile{
+		NetworkInterfaces: &[]compute.NetworkInterfaceReference{
+			{
+				ID: nic.ID,
+				NetworkInterfaceReferenceProperties: &compute.NetworkInterfaceReferenceProperties{
+					Primary: to.BoolPtr(true),
+				},
+			},
+		},
+	}
+	virtualMachine := compute.VirtualMachine{
+		Location: to.StringPtr(helpers.Location()),
+		VirtualMachineProperties: &compute.VirtualMachineProperties{
+			HardwareProfile: hardwareProfile,
+			StorageProfile:  storageProfile,
+			OsProfile:       osProfile,
+			NetworkProfile:  networkProfile,
+		},
+	}
+	future, err := vmClient.CreateOrUpdate(
+		cntx,
+		helpers.ResourceGroupName(),
+		vmName,
+		virtualMachine,
 	)
 	if err != nil {
 		return vm, fmt.Errorf("cannot create vm: %v", err)

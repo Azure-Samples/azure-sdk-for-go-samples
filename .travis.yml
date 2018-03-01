@@ -1,7 +1,7 @@
 sudo: required
 language: go
 services:
-  - docker
+- docker
 go:
 - master
 - 1.10.x
@@ -18,3 +18,7 @@ script:
 - dep ensure
 - test -z "`for d in $dirs; do go build $d | grep -v 'no non-test Go files in' | tee /dev/stderr; done`"
 - bash tools/build_on_travis.sh
+env:
+  global:
+  - secure: kugIjyFmKc8KbR9LJ1LRMI5qmY6ewbxOzlX/o5EtR1jZV+ZQufMflGsjuIyDKzN+oq/IHMMWk+jNDGc/yEusO6qxq5AxzaoTM7wBAD2I/pl48WHRp1csPUqdC4Py1reOhhxbC8rsgkn9NLQiglwDHX2hHZykCrHFHInJYlunxWG9BPP84kQ2XZnxwp9YW9xlCip7hrI2cSKOTWtBfuvSM+cjvu7SHWDwA2Qcm3J7EsIGyTVRpT1ZYF8jBiDGXubWv1DGA3VnDATKSL4sKuI1XJbM90iOk93AM6jfgOmnVrd8DkFj/8IwnF1Yg3fOvIV3RgBzr2NtDhNMkF3Im8qzCu/qK0wnrRFeMhnaZJZwiCcG5iSq+NrO1rmP9/XgnNIX1AivpTEGNbJH1LYY24pSzRNrWdqpBudnxhUnO6nnCZGSzRjteq+SghB7sakBYPxx7T+t+jTe7HcspJzeKg/pcYf6L9m60CAlvzSMfjluZFGeoloIR9Pi0s2ZOtrOKmZgk6uXV4moPUKAy3meZUI8n4jsBjXdhDYzba8fhAYnM1SdgqVd+USd2DjYc1zq3egJIKnrL09rH9ON47o2EDPOKQIHtCnkh1ZBz3AzjIcffH82fslqMbvrPe3rfE8QjpN1tQQhKjaHQEh0uKbfovo5AKYxKy19X8TevQCEEJfy4sw=
+  - secure: PsuxI4VopZNEHFrh3ZSn2wLhWxAhX7O35qfbNtnr4QjsXOfb4NfzzAJzSsIE41CGSnlkL2cHF0xNQ6G+nMlPxTrC6NHMN05Y6kAOO5gGhA6pBy/rxfSJx/IqySxw7a+1SOE1Vwh7AT+hKmCD/by1F6MuQsgW/VaTIVjyHHQWLgAAXINIR+1k3sG+nY4+W0KuLd4qLFXX9m19OLx+8JjhBEzcGrTp0sYEuk0Jmw1RaBJ7n7VO7iVrMibWebiwJB1bFT2f271JleGbRSL2lEv6r0yu/hZhh1Y10wTOoipgn9XRkCVXhC6/hecZ5DlElAdmUUk/gVyhtx3ydREp7HPPWlFfnZgSOv05g0L/ICZexmZSQAxmqKw/eyEqZfXfAQDFamFLdpjWGFeKPUf/E66RH+X4/NioVFoCsUzAu1i5IaR1eDwp19UQQm05/VVQCeJD61szM6YWNAy0sIDSVJN/g5ALdvAIk915V9QL0WPzPsv5ZDkbIAltlCZ98czsHf9y49JFmteUB/CKTCM7SWbLtfN7/lsgzCikcXcYwPSPN4y/vFV7gwYcbhAgBlus2lLTzTdETbsX6k+QBZnWb6VmTs1dq/oXCZ78LGpSlTk7oUhA9+P9zr/n+qaGjjbFeK8TPUyRt/G8Ph/HQWPEk+gqEYMbNwDyDqeKsU1zrpQVPgM=

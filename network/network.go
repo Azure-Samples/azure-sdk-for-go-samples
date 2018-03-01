@@ -281,7 +281,59 @@ func CreateNIC(ctx context.Context, vnetName, subnetName, nsgName, ipName, nicNa
 
 	nicClient := getNicClient()
 	future, err := nicClient.CreateOrUpdate(ctx, helpers.ResourceGroupName(), nicName, nicParams)
+	if err != nil {
+		return nic, fmt.Errorf("cannot create nic: %v", err)
+	}
 
+	err = future.WaitForCompletion(ctx, nicClient.Client)
+	if err != nil {
+		return nic, fmt.Errorf("cannot get nic create or update future response: %v", err)
+	}
+
+	return future.Result(nicClient)
+}
+
+// CreateNICWithLoadBalancer creats a network interface, wich is set up with a loadbalancer's NAT rule
+func CreateNICWithLoadBalancer(ctx context.Context, lbName, vnetName, subnetName, nicName string, natRule int) (nic network.Interface, err error) {
+	subnet, err := GetVirtualNetworkSubnet(ctx, vnetName, subnetName)
+	if err != nil {
+		return
+	}
+
+	lb, err := GetLoadBalancer(ctx, lbName)
+	if err != nil {
+		return
+	}
+
+	nicClient := getNicClient()
+	future, err := nicClient.CreateOrUpdate(ctx,
+		helpers.ResourceGroupName(),
+		nicName,
+		network.Interface{
+			Location: to.StringPtr(helpers.Location()),
+			InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
+				IPConfigurations: &[]network.InterfaceIPConfiguration{
+					{
+						Name: to.StringPtr("pipConfig"),
+						InterfaceIPConfigurationPropertiesFormat: &network.InterfaceIPConfigurationPropertiesFormat{
+							Subnet: &network.Subnet{
+								ID: subnet.ID,
+							},
+							LoadBalancerBackendAddressPools: &[]network.BackendAddressPool{
+								{
+									ID: (*lb.BackendAddressPools)[0].ID,
+								},
+							},
+							LoadBalancerInboundNatRules: &[]network.InboundNatRule{
+								{
+									ID: (*lb.InboundNatRules)[natRule].ID,
+								},
+							},
+						},
+					},
+				},
+			},
+		})
 	if err != nil {
 		return nic, fmt.Errorf("cannot create nic: %v", err)
 	}
@@ -355,4 +407,130 @@ func GetPublicIP(ctx context.Context, ipName string) (network.PublicIPAddress, e
 func DeletePublicIP(ctx context.Context, ipName string) (result network.PublicIPAddressesDeleteFuture, err error) {
 	ipClient := getIPClient()
 	return ipClient.Delete(ctx, helpers.ResourceGroupName(), ipName)
+}
+
+// Load balancers
+
+func getLBClient() network.LoadBalancersClient {
+	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
+	lbClient := network.NewLoadBalancersClient(helpers.SubscriptionID())
+	lbClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	lbClient.AddToUserAgent(helpers.UserAgent())
+	return lbClient
+}
+
+// GetLoadBalancer gets info on a loadbalancer
+func GetLoadBalancer(ctx context.Context, lbName string) (network.LoadBalancer, error) {
+	lbClient := getLBClient()
+	return lbClient.Get(ctx, helpers.ResourceGroupName(), lbName, "")
+}
+
+// CreateLoadBalancer creates a load balancer with 2 inbound NAT rules.
+func CreateLoadBalancer(ctx context.Context, lbName, pipName string) (lb network.LoadBalancer, err error) {
+	probeName := "probe"
+	frontEndIPConfigName := "fip"
+	backEndAddressPoolName := "backEndPool"
+	idPrefix := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers", helpers.SubscriptionID(), helpers.ResourceGroupName())
+
+	pip, err := GetPublicIP(ctx, pipName)
+	if err != nil {
+		return
+	}
+
+	lbClient := getLBClient()
+	future, err := lbClient.CreateOrUpdate(ctx,
+		helpers.ResourceGroupName(),
+		lbName,
+		network.LoadBalancer{
+			Location: to.StringPtr(helpers.Location()),
+			LoadBalancerPropertiesFormat: &network.LoadBalancerPropertiesFormat{
+				FrontendIPConfigurations: &[]network.FrontendIPConfiguration{
+					{
+						Name: &frontEndIPConfigName,
+						FrontendIPConfigurationPropertiesFormat: &network.FrontendIPConfigurationPropertiesFormat{
+							PrivateIPAllocationMethod: network.Dynamic,
+							PublicIPAddress:           &pip,
+						},
+					},
+				},
+				BackendAddressPools: &[]network.BackendAddressPool{
+					{
+						Name: &backEndAddressPoolName,
+					},
+				},
+				Probes: &[]network.Probe{
+					{
+						Name: &probeName,
+						ProbePropertiesFormat: &network.ProbePropertiesFormat{
+							Protocol:          network.ProbeProtocolHTTP,
+							Port:              to.Int32Ptr(80),
+							IntervalInSeconds: to.Int32Ptr(15),
+							NumberOfProbes:    to.Int32Ptr(4),
+							RequestPath:       to.StringPtr("healthprobe.aspx"),
+						},
+					},
+				},
+				LoadBalancingRules: &[]network.LoadBalancingRule{
+					{
+						Name: to.StringPtr("lbRule"),
+						LoadBalancingRulePropertiesFormat: &network.LoadBalancingRulePropertiesFormat{
+							Protocol:             network.TransportProtocolTCP,
+							FrontendPort:         to.Int32Ptr(80),
+							BackendPort:          to.Int32Ptr(80),
+							IdleTimeoutInMinutes: to.Int32Ptr(4),
+							EnableFloatingIP:     to.BoolPtr(false),
+							LoadDistribution:     network.Default,
+							FrontendIPConfiguration: &network.SubResource{
+								ID: to.StringPtr(fmt.Sprintf("/%s/%s/frontendIPConfigurations/%s", idPrefix, lbName, frontEndIPConfigName)),
+							},
+							BackendAddressPool: &network.SubResource{
+								ID: to.StringPtr(fmt.Sprintf("/%s/%s/backendAddressPools/%s", idPrefix, lbName, backEndAddressPoolName)),
+							},
+							Probe: &network.SubResource{
+								ID: to.StringPtr(fmt.Sprintf("/%s/%s/probes/%s", idPrefix, lbName, probeName)),
+							},
+						},
+					},
+				},
+				InboundNatRules: &[]network.InboundNatRule{
+					{
+						Name: to.StringPtr("natRule1"),
+						InboundNatRulePropertiesFormat: &network.InboundNatRulePropertiesFormat{
+							Protocol:             network.TransportProtocolTCP,
+							FrontendPort:         to.Int32Ptr(21),
+							BackendPort:          to.Int32Ptr(22),
+							EnableFloatingIP:     to.BoolPtr(false),
+							IdleTimeoutInMinutes: to.Int32Ptr(4),
+							FrontendIPConfiguration: &network.SubResource{
+								ID: to.StringPtr(fmt.Sprintf("/%s/%s/frontendIPConfigurations/%s", idPrefix, lbName, frontEndIPConfigName)),
+							},
+						},
+					},
+					{
+						Name: to.StringPtr("natRule2"),
+						InboundNatRulePropertiesFormat: &network.InboundNatRulePropertiesFormat{
+							Protocol:             network.TransportProtocolTCP,
+							FrontendPort:         to.Int32Ptr(23),
+							BackendPort:          to.Int32Ptr(22),
+							EnableFloatingIP:     to.BoolPtr(false),
+							IdleTimeoutInMinutes: to.Int32Ptr(4),
+							FrontendIPConfiguration: &network.SubResource{
+								ID: to.StringPtr(fmt.Sprintf("/%s/%s/frontendIPConfigurations/%s", idPrefix, lbName, frontEndIPConfigName)),
+							},
+						},
+					},
+				},
+			},
+		})
+
+	if err != nil {
+		return lb, fmt.Errorf("cannot create load balancer: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, lbClient.Client)
+	if err != nil {
+		return lb, fmt.Errorf("cannot get load balancer create or update future response: %v", err)
+	}
+
+	return future.Result(lbClient)
 }

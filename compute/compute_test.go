@@ -33,6 +33,7 @@ var (
 	subnet2Name        = "subnet2"
 	nsgName            = "nsg1"
 	ipName             = "ip1"
+	lbName             = "lb"
 )
 
 func TestMain(m *testing.M) {

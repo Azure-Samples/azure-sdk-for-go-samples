@@ -15,10 +15,10 @@ import (
 // Cleanup deletes the rescource group created for the sample
 func Cleanup(ctx context.Context) error {
 	if helpers.KeepResources() {
-		log.Println("keeping resources")
+		log.Println("Hybrid resources cleanup: keeping resources")
 		return nil
 	}
-	log.Println("deleting resources")
+	log.Println("Hybrid resources cleanup: deleting resources")
 	_, err := DeleteGroup(ctx)
 	return err
 }

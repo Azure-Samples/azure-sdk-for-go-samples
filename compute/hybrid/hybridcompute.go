@@ -21,9 +21,10 @@ import (
 )
 
 const (
-	publisher = "Canonical"
-	offer     = "UbuntuServer"
-	sku       = "16.04-LTS"
+	publisher   = "Canonical"
+	offer       = "UbuntuServer"
+	sku         = "16.04-LTS"
+	errorPrefix = "Cannot create VM, reason: %v"
 )
 
 // fakepubkey is used if a key isn't available at the specified path in CreateVM(...)
@@ -32,7 +33,7 @@ var fakepubkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7laRyN4B3YZmVrDEZLZoIuU
 func getVMClient() compute.VirtualMachinesClient {
 	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Cannot generate token. Error details: %s.", err.Error()))
+		log.Fatal(fmt.Sprintf(errorPrefix, fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
 	vmClient := compute.NewVirtualMachinesClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	vmClient.Authorizer = autorest.NewBearerAuthorizer(token)
@@ -50,7 +51,7 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, storageA
 	if err == nil {
 		sshBytes, err := ioutil.ReadFile(sshPublicKeyPath)
 		if err != nil {
-			log.Fatalf("failed to read SSH key data: %v", err)
+			log.Fatalf(fmt.Sprintf(errorPrefix, fmt.Sprintf("failed to read SSH key data: %v", err)))
 		}
 		sshKeyData = string(sshBytes)
 	} else {
@@ -117,11 +118,11 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, storageA
 		virtualMachine,
 	)
 	if err != nil {
-		return vm, fmt.Errorf("cannot create vm: %v", err)
+		return vm, fmt.Errorf(fmt.Sprintf(errorPrefix, err))
 	}
 	err = future.WaitForCompletion(cntx, vmClient.Client)
 	if err != nil {
-		return vm, fmt.Errorf("cannot get the vm create or update future response: %v", err)
+		return vm, fmt.Errorf(fmt.Sprintf(errorPrefix, err))
 	}
 	return future.Result(vmClient)
 }

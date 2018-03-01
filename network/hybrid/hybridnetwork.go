@@ -17,10 +17,14 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
+const (
+	errorPrefix = "Cannot create %v, reason: %v"
+)
+
 func getVnetClient() network.VirtualNetworksClient {
 	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Cannot generate token. Error details: %s.", err.Error()))
+		log.Fatal(fmt.Sprintf(errorPrefix, "virtual network", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
 	vnetClient := network.NewVirtualNetworksClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	vnetClient.Authorizer = autorest.NewBearerAuthorizer(token)
@@ -31,7 +35,7 @@ func getVnetClient() network.VirtualNetworksClient {
 func getNsgClient() network.SecurityGroupsClient {
 	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Cannot generate token. Error details: %s.", err.Error()))
+		log.Fatal(fmt.Sprintf(errorPrefix, "security group", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
 	nsgClient := network.NewSecurityGroupsClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	nsgClient.Authorizer = autorest.NewBearerAuthorizer(token)
@@ -41,7 +45,7 @@ func getNsgClient() network.SecurityGroupsClient {
 func getIPClient() network.PublicIPAddressesClient {
 	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Cannot generate token. Error details: %s.", err.Error()))
+		log.Fatal(fmt.Sprintf(errorPrefix, "public IP address", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
 	ipClient := network.NewPublicIPAddressesClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	ipClient.Authorizer = autorest.NewBearerAuthorizer(token)
@@ -51,7 +55,7 @@ func getIPClient() network.PublicIPAddressesClient {
 func getNicClient() network.InterfacesClient {
 	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Cannot generate token. Error details: %s.", err.Error()))
+		log.Fatal(fmt.Sprintf(errorPrefix, "network interface", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
 	nicClient := network.NewInterfacesClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	nicClient.Authorizer = autorest.NewBearerAuthorizer(token)
@@ -61,7 +65,7 @@ func getNicClient() network.InterfacesClient {
 func getSubnetsClient() network.SubnetsClient {
 	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Cannot generate token. Error details: %s.", err.Error()))
+		log.Fatal(fmt.Sprintf(errorPrefix, "subnet", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
 	subnetsClient := network.NewSubnetsClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	subnetsClient.Authorizer = autorest.NewBearerAuthorizer(token)
@@ -70,6 +74,7 @@ func getSubnetsClient() network.SubnetsClient {
 
 // CreateVirtualNetworkAndSubnets creates a virtual network with two subnets
 func CreateVirtualNetworkAndSubnets(cntx context.Context, vnetName, subnetName string) (vnet network.VirtualNetwork, err error) {
+	resourceName := "virtual network and subnet"
 	vnetClient := getVnetClient()
 	future, err := vnetClient.CreateOrUpdate(
 		cntx,
@@ -93,12 +98,12 @@ func CreateVirtualNetworkAndSubnets(cntx context.Context, vnetName, subnetName s
 		})
 
 	if err != nil {
-		return vnet, fmt.Errorf("cannot create virtual network: %v", err)
+		return vnet, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, err))
 	}
 
 	err = future.WaitForCompletion(cntx, vnetClient.Client)
 	if err != nil {
-		return vnet, fmt.Errorf("cannot get the vnet create or update future response: %v", err)
+		return vnet, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, fmt.Sprintf("cannot get the vnet create or update future response: %v", err)))
 	}
 
 	return future.Result(vnetClient)
@@ -106,6 +111,7 @@ func CreateVirtualNetworkAndSubnets(cntx context.Context, vnetName, subnetName s
 
 // CreateNetworkSecurityGroup creates a new network security group
 func CreateNetworkSecurityGroup(cntx context.Context, nsgName string) (nsg network.SecurityGroup, err error) {
+	resourceName := "security group"
 	nsgClient := getNsgClient()
 	future, err := nsgClient.CreateOrUpdate(
 		cntx,
@@ -147,12 +153,12 @@ func CreateNetworkSecurityGroup(cntx context.Context, nsgName string) (nsg netwo
 	)
 
 	if err != nil {
-		return nsg, fmt.Errorf("cannot create nsg: %v", err)
+		return nsg, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, err))
 	}
 
 	err = future.WaitForCompletion(cntx, nsgClient.Client)
 	if err != nil {
-		return nsg, fmt.Errorf("cannot get nsg create or update future response: %v", err)
+		return nsg, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, fmt.Sprintf("cannot get nsg create or update future response: %v", err)))
 	}
 
 	return future.Result(nsgClient)
@@ -160,6 +166,7 @@ func CreateNetworkSecurityGroup(cntx context.Context, nsgName string) (nsg netwo
 
 // CreatePublicIP creates a new public IP
 func CreatePublicIP(cntx context.Context, ipName string) (ip network.PublicIPAddress, err error) {
+	resourceName := "public IP"
 	ipClient := getIPClient()
 	future, err := ipClient.CreateOrUpdate(
 		cntx,
@@ -175,29 +182,30 @@ func CreatePublicIP(cntx context.Context, ipName string) (ip network.PublicIPAdd
 	)
 
 	if err != nil {
-		return ip, fmt.Errorf("cannot create public ip address: %v", err)
+		return ip, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, err))
 	}
 
 	err = future.WaitForCompletion(cntx, ipClient.Client)
 	if err != nil {
-		return ip, fmt.Errorf("cannot get public ip address create or update future response: %v", err)
+		return ip, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, fmt.Sprintf("cannot get public ip address create or update future response: %v", err)))
 	}
 	return future.Result(ipClient)
 }
 
 // CreateNetworkInterface creates a new network interface
 func CreateNetworkInterface(cntx context.Context, netInterfaceName, nsgName, vnetName, subnetName, ipName string) (nic network.Interface, err error) {
+	resourceName := "network interface"
 	nsg, err := GetNetworkSecurityGroup(cntx, nsgName)
 	if err != nil {
-		log.Fatalf("failed to get netwrok security group: %v", err)
+		return nic, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, fmt.Sprintf("failed to get netwrok security group: %v", err)))
 	}
 	subnet, err := GetVirtualNetworkSubnet(cntx, vnetName, subnetName)
 	if err != nil {
-		log.Fatalf("failed to get subnet: %v", err)
+		return nic, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, fmt.Sprintf("failed to get subnet: %v", err)))
 	}
 	ip, err := GetPublicIP(cntx, ipName)
 	if err != nil {
-		log.Fatalf("failed to get ip address: %v", err)
+		return nic, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, fmt.Sprintf("failed to get ip address: %v", err)))
 	}
 	nicClient := getNicClient()
 	future, err := nicClient.CreateOrUpdate(
@@ -223,11 +231,11 @@ func CreateNetworkInterface(cntx context.Context, netInterfaceName, nsgName, vne
 		},
 	)
 	if err != nil {
-		return nic, fmt.Errorf("cannot create nic: %v", err)
+		return nic, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, err))
 	}
 	err = future.WaitForCompletion(cntx, nicClient.Client)
 	if err != nil {
-		return nic, fmt.Errorf("cannot get nic create or update future response: %v", err)
+		return nic, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, fmt.Sprintf("cannot get nic create or update future response: %v", err)))
 	}
 	return future.Result(nicClient)
 }

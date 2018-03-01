@@ -32,3 +32,17 @@ func ExampleCreateGroup() {
 	// Output:
 	// resource group created
 }
+
+func ExampleCreateGroupWithAuthFile() {
+	helpers.SetResourceGroupName("CreateGroupWithAuthFile")
+	defer Cleanup(context.Background())
+
+	_, err := CreateGroupWithAuthFile(context.Background(), helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("resource group created, authentication was set up with an Azure CLI auth file")
+
+	// Output:
+	// resource group created, authentication was set up with an Azure CLI auth file
+}

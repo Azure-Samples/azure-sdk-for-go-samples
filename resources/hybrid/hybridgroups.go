@@ -16,10 +16,14 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 )
 
+const (
+	errorPrefix = "Cannot create resource group, reason: %v"
+)
+
 func getGroupsClient() resources.GroupsClient {
 	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Cannot generate token. Error details: %s.", err.Error()))
+		log.Fatal(fmt.Sprintf(errorPrefix, fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
 	groupsClient := resources.NewGroupsClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	groupsClient.Authorizer = autorest.NewBearerAuthorizer(token)

@@ -12,10 +12,14 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
+const (
+	errorPrefix = "Cannot create storage account, reason: %v"
+)
+
 func getStorageAccountsClient() storage.AccountsClient {
 	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Cannot generate token. Error details: %s.", err.Error()))
+		log.Fatal(fmt.Sprintf(errorPrefix, fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
 	storageAccountsClient := storage.NewAccountsClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	storageAccountsClient.Authorizer = autorest.NewBearerAuthorizer(token)
@@ -32,10 +36,10 @@ func CreateStorageAccount(cntx context.Context, accountName string) (s storage.A
 			Type: to.StringPtr("Microsoft.Storage/storageAccounts"),
 		})
 	if err != nil {
-		log.Fatalf("%s: %v", "storage account creation failed", err)
+		return s, fmt.Errorf(errorPrefix, err)
 	}
 	if *result.NameAvailable != true {
-		log.Fatalf("%s [%s]: %v", "storage account name not available", accountName, err)
+		return s, fmt.Errorf(errorPrefix, fmt.Sprintf("storage account name [%v] not available", accountName))
 	}
 	future, err := storageAccountsClient.Create(
 		cntx,
@@ -48,11 +52,11 @@ func CreateStorageAccount(cntx context.Context, accountName string) (s storage.A
 			AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{},
 		})
 	if err != nil {
-		return s, fmt.Errorf("cannot create storage account: %v", err)
+		return s, fmt.Errorf(fmt.Sprintf(errorPrefix, err))
 	}
 	err = future.WaitForCompletion(cntx, storageAccountsClient.Client)
 	if err != nil {
-		return s, fmt.Errorf("cannot get the storage account create future response: %v", err)
+		return s, fmt.Errorf(fmt.Sprintf(errorPrefix, fmt.Sprintf("cannot get the storage account create future response: %v", err)))
 	}
 	return future.Result(storageAccountsClient)
 }

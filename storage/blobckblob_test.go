@@ -7,17 +7,21 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
-func ExampleAppendBlobOperations() {
+// Example creates a resource group and a storage account. Then it adds a container and a blob in that account.
+// Finally it removes the blob, container, account, and group.
+// more examples available at https://github.com/Azure/azure-storage-blob-go/2016-05-31/azblob/zt_examples_test.go
+func ExampleBlockBlobOperations() {
 	accountName = getAccountName()
 	containerName = strings.ToLower(containerName)
 
-	helpers.SetResourceGroupName("AppendBlob")
+	helpers.SetResourceGroupName("BlockBlob")
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
 	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
@@ -37,19 +41,31 @@ func ExampleAppendBlobOperations() {
 	}
 	helpers.PrintAndLog("created container")
 
-	_, err = CreateAppendBlob(ctx, accountName, containerName, blobName)
+	_, err = CreateBlockBlob(ctx, accountName, containerName, blobName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created append blob")
+	helpers.PrintAndLog("created blob")
 
-	for _, m := range messages {
-		err = AppendToBlob(ctx, accountName, containerName, blobName, m)
+	for i, m := range messages {
+		err = PutBlockOnBlob(ctx, accountName, containerName, blobName, m, i)
 		if err != nil {
 			helpers.PrintAndLog(err.Error())
 		}
-		helpers.PrintAndLog("appended data to blob")
+		helpers.PrintAndLog("put block")
 	}
+
+	list, err := GetUncommitedBlocks(ctx, accountName, containerName, blobName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog(fmt.Sprintf("list of uncommitted blocks has %d elements", len(list.UncommittedBlocks)))
+
+	err = CommitBlocks(ctx, accountName, containerName, blobName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("committed blocks")
 
 	message, err := GetBlob(ctx, accountName, containerName, blobName)
 	if err != nil {
@@ -61,11 +77,13 @@ func ExampleAppendBlobOperations() {
 	// Output:
 	// created storage account
 	// created container
-	// created append blob
-	// appended data to blob
-	// appended data to blob
-	// appended data to blob
-	// appended data to blob
+	// created blob
+	// put block
+	// put block
+	// put block
+	// put block
+	// list of uncommitted blocks has 4 elements
+	// committed blocks
 	// downloaded blob
 	// HelloWorld!HelloGalaxy!
 }

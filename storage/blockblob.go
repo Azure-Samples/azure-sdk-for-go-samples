@@ -7,6 +7,7 @@ package storage
 
 import (
 	"context"
+	"encoding/base64"
 	"strings"
 
 	blob "github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
@@ -34,4 +35,32 @@ func CreateBlockBlob(ctx context.Context, accountName, containerName, blobName s
 	)
 
 	return b, err
+}
+
+func PutBlockOnBlob(ctx context.Context, accountName, containerName, blobName, message string, blockNum int) error {
+	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
+	id := base64.StdEncoding.EncodeToString([]byte(string(blockNum)))
+	_, err := b.PutBlock(ctx, id, strings.NewReader(message), blob.LeaseAccessConditions{})
+	return err
+}
+
+func GetUncommitedBlocks(ctx context.Context, accountName, containerName, blobName string) (*blob.BlockList, error) {
+	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
+	return b.GetBlockList(ctx, blob.BlockListUncommitted, blob.LeaseAccessConditions{})
+}
+
+func CommitBlocks(ctx context.Context, accountName, containerName, blobName string) error {
+	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
+	list, err := GetUncommitedBlocks(ctx, accountName, containerName, blobName)
+	if err != nil {
+		return err
+	}
+
+	IDs := []string{}
+	for _, u := range list.UncommittedBlocks {
+		IDs = append(IDs, u.Name)
+	}
+
+	_, err = b.PutBlockList(ctx, IDs, blob.BlobHTTPHeaders{}, blob.Metadata{}, blob.BlobAccessConditions{})
+	return err
 }

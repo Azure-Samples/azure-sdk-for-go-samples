@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"time"
 
@@ -28,24 +27,59 @@ const (
 	stderrFile string = "stderr.txt"
 )
 
-// CreateAzureBatchAccount creates a new azure batch account
-func CreateAzureBatchAccount(ctx context.Context, accountName, location, resourceGroupName string) (a batchARM.Account, err error) {
-	token, err := iam.GetResourceManagementToken(iam.AuthGrantType())
-
-	if err != nil {
-		return batchARM.Account{}, fmt.Errorf("cannot get auth token: %v", err)
-	}
-
+func getAccountClient() batchARM.AccountClient {
+	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	accountClient := batchARM.NewAccountClient(helpers.SubscriptionID())
 	accountClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	accountClient.AddToUserAgent(helpers.UserAgent())
+	return accountClient
+}
 
+func getPoolClient(accountName, accountLocation string) batch.PoolClient {
+	token, _ := iam.GetBatchToken(iam.AuthGrantType())
+	poolClient := batch.NewPoolClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
+	poolClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	poolClient.AddToUserAgent(helpers.UserAgent())
+	poolClient.RequestInspector = fixContentTypeInspector()
+	return poolClient
+}
+
+func getJobClient(accountName, accountLocation string) batch.JobClient {
+	token, _ := iam.GetBatchToken(iam.AuthGrantType())
+	jobClient := batch.NewJobClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
+	jobClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	jobClient.AddToUserAgent(helpers.UserAgent())
+	jobClient.RequestInspector = fixContentTypeInspector()
+	return jobClient
+}
+
+func getTaskClient(accountName, accountLocation string) batch.TaskClient {
+	token, _ := iam.GetBatchToken(iam.AuthGrantType())
+	taskClient := batch.NewTaskClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
+	taskClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	taskClient.AddToUserAgent(helpers.UserAgent())
+	taskClient.RequestInspector = fixContentTypeInspector()
+	return taskClient
+}
+
+func getFileClient(accountName, accountLocation string) batch.FileClient {
+	token, _ := iam.GetBatchToken(iam.AuthGrantType())
+	fileClient := batch.NewFileClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
+	fileClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	fileClient.AddToUserAgent(helpers.UserAgent())
+	fileClient.RequestInspector = fixContentTypeInspector()
+	return fileClient
+}
+
+// CreateAzureBatchAccount creates a new azure batch account
+func CreateAzureBatchAccount(ctx context.Context, accountName, location, resourceGroupName string) (a batchARM.Account, err error) {
+	accountClient := getAccountClient()
 	res, err := accountClient.Create(ctx, resourceGroupName, accountName, batchARM.AccountCreateParameters{
 		Location: to.StringPtr(location),
 	})
 
 	if err != nil {
-		return batchARM.Account{}, err
+		return a, err
 	}
 
 	err = res.WaitForCompletion(ctx, accountClient.Client)
@@ -57,7 +91,7 @@ func CreateAzureBatchAccount(ctx context.Context, accountName, location, resourc
 	account, err := res.Result(accountClient)
 
 	if err != nil {
-		return batchARM.Account{}, fmt.Errorf("failed retreiving for account: %v", err)
+		return a, fmt.Errorf("failed retreiving for account: %v", err)
 	}
 
 	return account, nil
@@ -65,17 +99,7 @@ func CreateAzureBatchAccount(ctx context.Context, accountName, location, resourc
 
 // CreateBatchPool creates an Azure Batch compute pool
 func CreateBatchPool(ctx context.Context, accountName, accountLocation, poolID string) error {
-	token, err := iam.GetBatchToken(iam.AuthGrantType())
-
-	if err != nil {
-		return fmt.Errorf("cannot get auth token: %v", err)
-	}
-
-	poolClient := batch.NewPoolClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
-	poolClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	poolClient.AddToUserAgent(helpers.UserAgent())
-	poolClient.RequestInspector = fixContentTypeInspector()
-
+	poolClient := getPoolClient(accountName, accountLocation)
 	toCreate := batch.PoolAddParameter{
 		ID: &poolID,
 		VirtualMachineConfiguration: &batch.VirtualMachineConfiguration{
@@ -92,8 +116,8 @@ func CreateBatchPool(ctx context.Context, accountName, accountLocation, poolID s
 		// Create a startup task to run a script on each pool machine
 		StartTask: &batch.StartTask{
 			ResourceFiles: &[]batch.ResourceFile{
-				batch.ResourceFile{
-					BlobSource: to.StringPtr("https://gist.githubusercontent.com/lawrencegripper/795a9e809b52a0b8f874251c62a5a106/raw/8bfe4f4c80440204c994287e415c56f140dfd747/echohello.sh"),
+				{
+					BlobSource: to.StringPtr("https://raw.githubusercontent.com/lawrencegripper/azure-sdk-for-go-samples/1441a1dc4a6f7e47c4f6d8b537cf77ce4f7c452c/batch/examplestartup.sh"),
 					FilePath:   to.StringPtr("echohello.sh"),
 					FileMode:   to.StringPtr("777"),
 				},
@@ -110,15 +134,10 @@ func CreateBatchPool(ctx context.Context, accountName, accountLocation, poolID s
 		VMSize: to.StringPtr("standard_a1"),
 	}
 
-	poolCreate, err := poolClient.Add(ctx, toCreate, nil, nil, nil, nil)
+	_, err := poolClient.Add(ctx, toCreate, nil, nil, nil, nil)
 
 	if err != nil {
 		return fmt.Errorf("cannot create pool: %v", err)
-	}
-
-	if poolCreate.StatusCode != 201 {
-		log.Println(poolCreate)
-		return errors.New("error creating pool, wasn't created")
 	}
 
 	return nil
@@ -126,33 +145,17 @@ func CreateBatchPool(ctx context.Context, accountName, accountLocation, poolID s
 
 // CreateBatchJob create an azure batch job
 func CreateBatchJob(ctx context.Context, accountName, accountLocation, poolID, jobID string) error {
-	token, err := iam.GetBatchToken(iam.AuthGrantType())
-
-	if err != nil {
-		return fmt.Errorf("cannot get auth token: %v", err)
-	}
-
-	jobClient := batch.NewJobClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
-	jobClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	jobClient.AddToUserAgent(helpers.UserAgent())
-	jobClient.RequestInspector = fixContentTypeInspector()
-
+	jobClient := getJobClient(accountName, accountLocation)
 	jobToCreate := batch.JobAddParameter{
 		ID: to.StringPtr(jobID),
 		PoolInfo: &batch.PoolInformation{
 			PoolID: to.StringPtr(poolID),
 		},
 	}
-	// reqID := uuid.NewV4()
-	res, err := jobClient.Add(ctx, jobToCreate, nil, nil, nil, nil)
+	_, err := jobClient.Add(ctx, jobToCreate, nil, nil, nil, nil)
 
 	if err != nil {
 		return err
-	}
-
-	if res.StatusCode != 201 {
-		log.Println(res)
-		return errors.New("error creating job, wasn't created")
 	}
 
 	return nil
@@ -161,7 +164,7 @@ func CreateBatchJob(ctx context.Context, accountName, accountLocation, poolID, j
 // CreateBatchTask create an azure batch job
 func CreateBatchTask(ctx context.Context, accountName, accountLocation, jobID string) (string, error) {
 	taskID := uuid.NewV4().String()
-	taskClient := must(getTaskClient(accountName, accountLocation))
+	taskClient := getTaskClient(accountName, accountLocation)
 	taskToAdd := batch.TaskAddParameter{
 		ID:          &taskID,
 		CommandLine: to.StringPtr("/bin/bash -c 'set -e; set -o pipefail; echo Hello world from the Batch Hello world sample!; wait'"),
@@ -172,15 +175,10 @@ func CreateBatchTask(ctx context.Context, accountName, accountLocation, jobID st
 			},
 		},
 	}
-	res, err := taskClient.Add(ctx, jobID, taskToAdd, nil, nil, nil, nil)
+	_, err := taskClient.Add(ctx, jobID, taskToAdd, nil, nil, nil, nil)
 
 	if err != nil {
 		return "", err
-	}
-
-	if res.StatusCode != 201 {
-		log.Println(res)
-		return "", errors.New("error creating job, wasn't created")
 	}
 
 	return taskID, nil
@@ -188,29 +186,33 @@ func CreateBatchTask(ctx context.Context, accountName, accountLocation, jobID st
 
 // WaitForTaskResult polls the task and retreives it's stdout once it has completed
 func WaitForTaskResult(ctx context.Context, accountName, accountLocation, jobID, taskID string) (stdout string, err error) {
-	taskClient := must(getTaskClient(accountName, accountLocation))
+	taskClient := getTaskClient(accountName, accountLocation)
 	res, err := taskClient.Get(ctx, jobID, taskID, "", "", nil, nil, nil, nil, "", "", nil, nil)
 	if err != nil {
 		return "", err
 	}
+	waitCtx, cancel := context.WithTimeout(ctx, time.Minute*4)
+	defer cancel()
 
 	if res.State != batch.TaskStateCompleted {
 		for {
+			_, ok := waitCtx.Deadline()
+			if !ok {
+				return stdout, errors.New("timedout waiting for task to execute")
+			}
 			time.Sleep(time.Second * 15)
 			res, err = taskClient.Get(ctx, jobID, taskID, "", "", nil, nil, nil, nil, "", "", nil, nil)
 			if err != nil {
 				return "", err
 			}
 			if res.State == batch.TaskStateCompleted {
+				waitCtx.Done()
 				break
 			}
 		}
 	}
 
-	fileClient := batch.NewFileClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
-	fileClient.Authorizer = taskClient.Authorizer
-	fileClient.AddToUserAgent(helpers.UserAgent())
-	fileClient.RequestInspector = fixContentTypeInspector()
+	fileClient := getFileClient(accountName, accountLocation)
 
 	reader, err := fileClient.GetFromTask(ctx, jobID, taskID, stdoutFile, nil, nil, nil, nil, "", nil, nil)
 
@@ -225,27 +227,6 @@ func WaitForTaskResult(ctx context.Context, accountName, accountLocation, jobID,
 	}
 
 	return string(bytes), nil
-}
-
-func must(t *batch.TaskClient, err error) *batch.TaskClient {
-	if err != nil {
-		panic(err)
-	}
-	return t
-}
-
-func getTaskClient(accountName, accountLocation string) (*batch.TaskClient, error) {
-	token, err := iam.GetBatchToken(iam.AuthGrantType())
-
-	if err != nil {
-		return &batch.TaskClient{}, fmt.Errorf("cannot get auth token: %v", err)
-	}
-
-	taskClient := batch.NewTaskClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
-	taskClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	taskClient.AddToUserAgent(helpers.UserAgent())
-	taskClient.RequestInspector = fixContentTypeInspector()
-	return &taskClient, nil
 }
 
 func getBatchBaseURL(accountName, accountLocation string) string {

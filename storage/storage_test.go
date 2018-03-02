@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	accountName   = "azuresamplesgo" + helpers.GetRandomLetterSequence(10)
+	accountName   string
 	containerName = "container1"
 	blobName      = "blob1"
 )
@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 		accountName = name
 	}
 
-	flag.StringVar(&accountName, "storageAccoutName", accountName, "Provide a name for the storage account to be created")
+	flag.StringVar(&accountName, "storageAccoutName", getAccountName(), "Provide a name for the storage account to be created")
 	flag.StringVar(&containerName, "containerName", containerName, "Provide a name for the container.")
 	flag.StringVar(&blobName, "blobName", blobName, "Provide a name for the blob.")
 
@@ -47,7 +47,7 @@ func TestMain(m *testing.M) {
 // Finally it removes the blob, container, account, and group.
 // more examples available at https://github.com/Azure/azure-storage-blob-go/2016-05-31/azblob/zt_examples_test.go
 func ExampleUploadBlockBlob() {
-	accountName = strings.ToLower(accountName)
+	accountName = getAccountName()
 	containerName = strings.ToLower(containerName)
 
 	helpers.SetResourceGroupName("UploadBlockBlob")

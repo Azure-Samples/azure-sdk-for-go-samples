@@ -18,4 +18,4 @@ environments:
     type: secret
     value: sp.objectid
   - name: AZ_LOCATION
-    type: arg-mode
+    type: argument-value-mode

@@ -35,6 +35,7 @@ func CreatePageBlob(ctx context.Context, accountName, containerName, blobName st
 	return b, err
 }
 
+// PutPage adds a page to the page blob
 func PutPage(ctx context.Context, accountName, containerName, blobName, message string, page int) error {
 	b := getPageBlobURL(ctx, accountName, containerName, blobName)
 
@@ -54,6 +55,7 @@ func PutPage(ctx context.Context, accountName, containerName, blobName, message 
 	return err
 }
 
+// ClearPage clears the specified page in the page blob
 func ClearPage(ctx context.Context, accountName, containerName, blobName string, page int) error {
 	b := getPageBlobURL(ctx, accountName, containerName, blobName)
 
@@ -67,6 +69,7 @@ func ClearPage(ctx context.Context, accountName, containerName, blobName string,
 	return err
 }
 
+// GetPageRanges gets a list of valid page ranges in the page blob
 func GetPageRanges(ctx context.Context, accountName, containerName, blobName string, pages int) (*blob.PageList, error) {
 	b := getPageBlobURL(ctx, accountName, containerName, blobName)
 	return b.GetPageRanges(

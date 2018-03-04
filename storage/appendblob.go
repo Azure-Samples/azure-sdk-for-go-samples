@@ -18,12 +18,14 @@ func getAppendBlobURL(ctx context.Context, accountName, containerName, blobName 
 	return blob
 }
 
+// CreateAppendBlob creates an empty append blob
 func CreateAppendBlob(ctx context.Context, accountName, containerName, blobName string) (blob.AppendBlobURL, error) {
 	b := getAppendBlobURL(ctx, accountName, containerName, blobName)
 	_, err := b.Create(ctx, blob.BlobHTTPHeaders{}, blob.Metadata{}, blob.BlobAccessConditions{})
 	return b, err
 }
 
+// AppendToBlob appends new data to the specified append blob
 func AppendToBlob(ctx context.Context, accountName, containerName, blobName, message string) error {
 	b := getAppendBlobURL(ctx, accountName, containerName, blobName)
 	_, err := b.AppendBlock(ctx, strings.NewReader(message), blob.BlobAccessConditions{})

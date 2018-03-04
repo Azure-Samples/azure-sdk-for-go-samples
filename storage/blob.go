@@ -18,6 +18,7 @@ func getBlobURL(ctx context.Context, accountName, containerName, blobName string
 	return blob
 }
 
+// GetBlob downloads the specified blob contents
 func GetBlob(ctx context.Context, accountName, containerName, blobName string) (string, error) {
 	b := getBlobURL(ctx, accountName, containerName, blobName)
 

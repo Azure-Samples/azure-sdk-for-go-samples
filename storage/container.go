@@ -57,6 +57,7 @@ func DeleteContainer(ctx context.Context, accountName, containerName string) err
 	return err
 }
 
+// ListBlobs lists blobs on the specified container
 func ListBlobs(ctx context.Context, accountName, containerName string) (*blob.ListBlobsResponse, error) {
 	c := getContainerURL(ctx, accountName, containerName)
 	return c.ListBlobs(

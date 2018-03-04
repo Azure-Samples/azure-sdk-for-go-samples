@@ -19,7 +19,7 @@ func getBlockBlobURL(ctx context.Context, accountName, containerName, blobName s
 	return blob
 }
 
-// CreateBlockBlob creates a new test blob in the container specified by env var
+// CreateBlockBlob creates a new block blob
 func CreateBlockBlob(ctx context.Context, accountName, containerName, blobName string) (blob.BlockBlobURL, error) {
 	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
 	data := "blob created by Azure-Samples, okay to delete!"
@@ -37,6 +37,7 @@ func CreateBlockBlob(ctx context.Context, accountName, containerName, blobName s
 	return b, err
 }
 
+// PutBlockOnBlob adds a block to a block blob. It does not commit the block.
 func PutBlockOnBlob(ctx context.Context, accountName, containerName, blobName, message string, blockNum int) error {
 	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
 	id := base64.StdEncoding.EncodeToString([]byte(string(blockNum)))
@@ -44,11 +45,13 @@ func PutBlockOnBlob(ctx context.Context, accountName, containerName, blobName, m
 	return err
 }
 
+// GetUncommitedBlocks gets a list of uncommited blobs 
 func GetUncommitedBlocks(ctx context.Context, accountName, containerName, blobName string) (*blob.BlockList, error) {
 	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
 	return b.GetBlockList(ctx, blob.BlockListUncommitted, blob.LeaseAccessConditions{})
 }
 
+// CommitBlocks commits the uncommitted blocks to the blob
 func CommitBlocks(ctx context.Context, accountName, containerName, blobName string) error {
 	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
 	list, err := GetUncommitedBlocks(ctx, accountName, containerName, blobName)

@@ -6,7 +6,6 @@ go:
 - master
 - 1.10.x
 - 1.9.x
-- 1.8.x
 install:
 - go get -u github.com/golang/lint/golint
 - go get -u github.com/golang/dep/cmd/dep

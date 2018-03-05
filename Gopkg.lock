@@ -9,30 +9,9 @@
 
 [[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
-  packages = [
-    "services/authorization/mgmt/2015-07-01/authorization",
-    "services/cognitiveservices/mgmt/2017-04-18/cognitiveservices",
-    "services/cognitiveservices/v1.0/customsearch",
-    "services/cognitiveservices/v1.0/entitysearch",
-    "services/cognitiveservices/v1.0/imagesearch",
-    "services/cognitiveservices/v1.0/newssearch",
-    "services/cognitiveservices/v1.0/spellcheck",
-    "services/cognitiveservices/v1.0/videosearch",
-    "services/cognitiveservices/v1.0/websearch",
-    "services/compute/mgmt/2017-03-30/compute",
-    "services/containerinstance/mgmt/2017-08-01-preview/containerinstance",
-    "services/containerservice/mgmt/2017-09-30/containerservice",
-    "services/graphrbac/1.6/graphrbac",
-    "services/keyvault/2016-10-01/keyvault",
-    "services/keyvault/mgmt/2016-10-01/keyvault",
-    "services/network/mgmt/2017-09-01/network",
-    "services/resources/mgmt/2017-05-10/resources",
-    "services/sql/mgmt/2015-05-01-preview/sql",
-    "services/storage/mgmt/2017-06-01/storage",
-    "version"
-  ]
-  revision = "5bf28521f7a6f72f2dde3e5a5fb0d27d7a8aeee9"
-  version = "v14.0.0"
+  packages = ["services/authorization/mgmt/2015-07-01/authorization","services/cognitiveservices/mgmt/2017-04-18/cognitiveservices","services/cognitiveservices/v1.0/customsearch","services/cognitiveservices/v1.0/entitysearch","services/cognitiveservices/v1.0/imagesearch","services/cognitiveservices/v1.0/newssearch","services/cognitiveservices/v1.0/spellcheck","services/cognitiveservices/v1.0/videosearch","services/cognitiveservices/v1.0/websearch","services/compute/mgmt/2017-03-30/compute","services/containerinstance/mgmt/2017-08-01-preview/containerinstance","services/containerservice/mgmt/2017-09-30/containerservice","services/graphrbac/1.6/graphrbac","services/keyvault/2016-10-01/keyvault","services/keyvault/mgmt/2016-10-01/keyvault","services/network/mgmt/2017-09-01/network","services/resources/mgmt/2017-05-10/resources","services/sql/mgmt/2015-05-01-preview/sql","services/storage/mgmt/2017-06-01/storage","version"]
+  revision = "1e334c402ea1460704b0263e5d188f28ad946ce1"
+  version = "14.1.1"
 
 [[projects]]
   branch = "master"
@@ -42,17 +21,9 @@
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
-  packages = [
-    "autorest",
-    "autorest/adal",
-    "autorest/azure",
-    "autorest/date",
-    "autorest/to",
-    "autorest/utils",
-    "autorest/validation"
-  ]
-  revision = "5a06e9ddbe3c22262059b8e061777b9934f982bd"
-  version = "v10.1.0"
+  packages = ["autorest","autorest/adal","autorest/azure","autorest/azure/auth","autorest/date","autorest/to","autorest/utils","autorest/validation"]
+  revision = "1e3943ee722538420f21945f4bc820347abe433d"
+  version = "v10.1.2"
 
 [[projects]]
   branch = "master"
@@ -67,26 +38,32 @@
   version = "v3.1.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/dimchansky/utfbom"
+  packages = ["."]
+  revision = "6c6132ff69f0f6c088739067407b5d32c52e1d0f"
+
+[[projects]]
   name = "github.com/satori/go.uuid"
   packages = ["."]
   revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
   version = "v1.2.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/subosito/gotenv"
   packages = ["."]
   revision = "009e1f9581dc712aba5682a279dee155ca3eeded"
+  version = "v1.1.0"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["md4"]
-  revision = "9de5f2eaf759b4c4550b3db39fed2e9e5f86f45c"
+  packages = ["md4","pkcs12","pkcs12/internal/rc2"]
+  revision = "91a49db82a88618983a78a06c1cbd4e00ab749ab"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4010d055ba3ab0a56b198dd714dff34c48b17fbff05068a18b9f326a11fd53bc"
+  inputs-digest = "d08692251c2f0b273da196030b34bad7e6f209585b851540ca7e767731ad3c5d"
   solver-name = "gps-cdcl"
   solver-version = 1

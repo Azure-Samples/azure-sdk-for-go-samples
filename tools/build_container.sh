@@ -13,10 +13,12 @@ mv tools/Dockerfile .
 
 echo 'Building docker image'
 docker build -t azureclidev.azurecr.io/azuresdk-test-$image_owner:go1.10-$build .
+docker build -t azureclidev.azurecr.io/azuresdk-test-$image_owner:go1.10-latest .
 EXIT_CODE=$(($EXIT_CODE+$?))
 
 echo 'Pushing docker image'
 docker push azureclidev.azurecr.io/azuresdk-test-$image_owner:go1.10-$build
+docker push azureclidev.azurecr.io/azuresdk-test-$image_owner:go1.10-latest
 EXIT_CODE=$(($EXIT_CODE+$?))
 
 mv Dockerfile tools

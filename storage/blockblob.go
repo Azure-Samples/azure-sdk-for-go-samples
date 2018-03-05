@@ -45,7 +45,7 @@ func PutBlockOnBlob(ctx context.Context, accountName, containerName, blobName, m
 	return err
 }
 
-// GetUncommitedBlocks gets a list of uncommited blobs 
+// GetUncommitedBlocks gets a list of uncommited blobs
 func GetUncommitedBlocks(ctx context.Context, accountName, containerName, blobName string) (*blob.BlockList, error) {
 	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
 	return b.GetBlockList(ctx, blob.BlockListUncommitted, blob.LeaseAccessConditions{})

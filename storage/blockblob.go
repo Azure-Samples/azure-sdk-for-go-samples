@@ -7,28 +7,19 @@ package storage
 
 import (
 	"context"
-	"fmt"
-	"net/url"
+	"encoding/base64"
 	"strings"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	blob "github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
 )
 
 func getBlockBlobURL(ctx context.Context, accountName, containerName, blobName string) blob.BlockBlobURL {
-	key := getFirstKey(ctx, accountName)
-	c := blob.NewSharedKeyCredential(accountName, key)
-	p := blob.NewPipeline(c, blob.PipelineOptions{
-		Telemetry: blob.TelemetryOptions{Value: helpers.UserAgent()},
-	})
-	u, _ := url.Parse(fmt.Sprintf(blobFormatString, accountName))
-	service := blob.NewServiceURL(*u, p)
-	container := service.NewContainerURL(containerName)
+	container := getContainerURL(ctx, accountName, containerName)
 	blob := container.NewBlockBlobURL(blobName)
 	return blob
 }
 
-// CreateBlockBlob creates a new test blob in the container specified by env var
+// CreateBlockBlob creates a new block blob
 func CreateBlockBlob(ctx context.Context, accountName, containerName, blobName string) (blob.BlockBlobURL, error) {
 	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
 	data := "blob created by Azure-Samples, okay to delete!"
@@ -44,4 +35,35 @@ func CreateBlockBlob(ctx context.Context, accountName, containerName, blobName s
 	)
 
 	return b, err
+}
+
+// PutBlockOnBlob adds a block to a block blob. It does not commit the block.
+func PutBlockOnBlob(ctx context.Context, accountName, containerName, blobName, message string, blockNum int) error {
+	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
+	id := base64.StdEncoding.EncodeToString([]byte(string(blockNum)))
+	_, err := b.PutBlock(ctx, id, strings.NewReader(message), blob.LeaseAccessConditions{})
+	return err
+}
+
+// GetUncommitedBlocks gets a list of uncommited blobs
+func GetUncommitedBlocks(ctx context.Context, accountName, containerName, blobName string) (*blob.BlockList, error) {
+	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
+	return b.GetBlockList(ctx, blob.BlockListUncommitted, blob.LeaseAccessConditions{})
+}
+
+// CommitBlocks commits the uncommitted blocks to the blob
+func CommitBlocks(ctx context.Context, accountName, containerName, blobName string) error {
+	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
+	list, err := GetUncommitedBlocks(ctx, accountName, containerName, blobName)
+	if err != nil {
+		return err
+	}
+
+	IDs := []string{}
+	for _, u := range list.UncommittedBlocks {
+		IDs = append(IDs, u.Name)
+	}
+
+	_, err = b.PutBlockList(ctx, IDs, blob.BlobHTTPHeaders{}, blob.Metadata{}, blob.BlobAccessConditions{})
+	return err
 }

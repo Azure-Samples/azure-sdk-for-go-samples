@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
@@ -17,6 +18,11 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
+
+func getAccountName() string {
+	accountName := "azuresamplesgo" + helpers.GetRandomLetterSequence(10)
+	return strings.ToLower(accountName)
+}
 
 func getStorageAccountsClient() storage.AccountsClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())

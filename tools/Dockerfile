@@ -9,7 +9,7 @@ RUN apk add --no-cache git bash && \
     chmod +x /app/a01droid && \
     chmod +x /app/a01dispatcher && \
     mv /go/src/github.com/Azure-Samples/azure-sdk-for-go-samples/tools/get_index /app/get_index && \
-    mv /go/src/github.com/Azure-Samples/azure-sdk-for-go-samples/tools/metadata.yaml /app/metadata.yaml && \
+    mv /go/src/github.com/Azure-Samples/azure-sdk-for-go-samples/tools/metadata.yml /app/metadata.yml && \
     go run /go/src/github.com/Azure-Samples/azure-sdk-for-go-samples/tools/list/list.go > /app/test_index
 
 

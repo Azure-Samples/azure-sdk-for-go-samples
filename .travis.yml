@@ -6,7 +6,6 @@ go:
 - master
 - 1.10.x
 - 1.9.x
-- 1.8.x
 install:
 - go get -u github.com/golang/lint/golint
 - go get -u github.com/golang/dep/cmd/dep
@@ -16,8 +15,7 @@ script:
 - test -z "`for d in $dirs; do golint $d | tee /dev/stderr; done`"
 - test -z "$(go vet ./... |  grep -v 'refers to unknown identifier' | tee /dev/stderr)"
 - dep ensure
-- test -z "`for d in $dirs; do go build $d | grep -v 'no non-test Go files in' | tee /dev/stderr; done`"
-- echo 'Login to docker'
+- bash tools/build.sh
 - bash tools/build_on_travis.sh
 env:
   global:

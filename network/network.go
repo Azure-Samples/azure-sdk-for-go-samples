@@ -598,6 +598,8 @@ func CreateDenyOutRule(ctx context.Context, nsgName string) (rule network.Securi
 	}
 
 	return future.Result(rulesClient)
+}
+
 // Load balancers
 
 func getLBClient() network.LoadBalancersClient {

@@ -1,8 +1,8 @@
 FROM golang:1.10-alpine
 
 COPY . /go/src/github.com/Azure-Samples/azure-sdk-for-go-samples
-ADD https://a01tools.blob.core.windows.net/droid/latest/linux/a01droid /app/a01droid
-ADD https://a01tools.blob.core.windows.net/droid/latest/linux/a01dispatcher /app/a01dispatcher
+ADD https://a01tools.blob.core.windows.net/droid/0.19.0/linux/a01droid /app/a01droid
+ADD https://a01tools.blob.core.windows.net/droid/0.19.0/linux/a01dispatcher /app/a01dispatcher
 
 RUN apk add --no-cache git bash && \
     go get github.com/golang/dep/cmd/dep && \

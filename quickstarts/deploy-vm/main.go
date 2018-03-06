@@ -148,12 +148,3 @@ func getLogin() {
 		vmPass["value"].(string))
 }
 
-func readJSON(path string) (*map[string]interface{}, error) {
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		log.Fatalf("failed to read template file: %v\n", err)
-	}
-	contents := make(map[string]interface{})
-	json.Unmarshal(data, &contents)
-	return &contents, nil
-}

@@ -6,7 +6,9 @@
 package helpers
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"time"
@@ -43,4 +45,14 @@ func contains(array []string, element string) bool {
 // UserAgent return the string to be appended to user agent header
 func UserAgent() string {
 	return "samples " + utils.GetCommit()
+}
+
+func ReadJSON(path string) (*map[string]interface{}, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatalf("failed to read template file: %v\n", err)
+	}
+	contents := make(map[string]interface{})
+	json.Unmarshal(data, &contents)
+	return &contents, nil
 }

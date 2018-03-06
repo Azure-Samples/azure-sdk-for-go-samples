@@ -9,7 +9,7 @@
 
 [[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
-  packages = ["profiles/latest/cdn/mgmt/cdn","services/authorization/mgmt/2015-07-01/authorization","services/cdn/mgmt/2017-10-12/cdn","services/cognitiveservices/mgmt/2017-04-18/cognitiveservices","services/cognitiveservices/v1.0/customsearch","services/cognitiveservices/v1.0/entitysearch","services/cognitiveservices/v1.0/imagesearch","services/cognitiveservices/v1.0/newssearch","services/cognitiveservices/v1.0/spellcheck","services/cognitiveservices/v1.0/videosearch","services/cognitiveservices/v1.0/websearch","services/compute/mgmt/2017-03-30/compute","services/containerinstance/mgmt/2017-08-01-preview/containerinstance","services/containerservice/mgmt/2017-09-30/containerservice","services/graphrbac/1.6/graphrbac","services/keyvault/2016-10-01/keyvault","services/keyvault/mgmt/2016-10-01/keyvault","services/network/mgmt/2017-09-01/network","services/resources/mgmt/2017-05-10/resources","services/sql/mgmt/2015-05-01-preview/sql","services/storage/mgmt/2017-06-01/storage","version"]
+  packages = ["services/authorization/mgmt/2015-07-01/authorization","services/cdn/mgmt/2017-10-12/cdn","services/cognitiveservices/mgmt/2017-04-18/cognitiveservices","services/cognitiveservices/v1.0/customsearch","services/cognitiveservices/v1.0/entitysearch","services/cognitiveservices/v1.0/imagesearch","services/cognitiveservices/v1.0/newssearch","services/cognitiveservices/v1.0/spellcheck","services/cognitiveservices/v1.0/videosearch","services/cognitiveservices/v1.0/websearch","services/compute/mgmt/2017-03-30/compute","services/containerinstance/mgmt/2017-08-01-preview/containerinstance","services/containerservice/mgmt/2017-09-30/containerservice","services/graphrbac/1.6/graphrbac","services/keyvault/2016-10-01/keyvault","services/keyvault/mgmt/2016-10-01/keyvault","services/network/mgmt/2017-09-01/network","services/resources/mgmt/2017-05-10/resources","services/sql/mgmt/2015-05-01-preview/sql","services/storage/mgmt/2017-06-01/storage","version"]
   revision = "1e334c402ea1460704b0263e5d188f28ad946ce1"
   version = "14.1.1"
 
@@ -64,6 +64,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "79fb928be710a3e37f537798854e3291684767e439aed6edad88211c7852184f"
+  inputs-digest = "79c7af3ff883a47ab903a6f9473ad70984dbf4a86bdbe1d5d2eff74b4d0e8f19"
   solver-name = "gps-cdcl"
   solver-version = 1

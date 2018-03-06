@@ -17,12 +17,9 @@ import (
 )
 
 var (
-	resourceName string
-	clientID     string
-	clientSecret string
-	accountName  string
-	jobID        string
-	poolID       string
+	accountName string
+	jobID       string
+	poolID      string
 )
 
 func TestMain(m *testing.M) {
@@ -40,15 +37,12 @@ func parseArgs() error {
 	}
 
 	accountName = os.Getenv("AZ_BATCH_NAME")
-	if !(len(resourceName) > 0) {
+	if !(len(accountName) > 0) {
 		accountName = strings.ToLower("b" + helpers.GetRandomLetterSequence(10))
 	}
 
 	jobID = strings.ToLower("j" + helpers.GetRandomLetterSequence(10))
 	poolID = strings.ToLower("p" + helpers.GetRandomLetterSequence(10))
-
-	clientID = os.Getenv("AZ_CLIENT_ID")
-	clientSecret = os.Getenv("AZ_CLIENT_SECRET")
 
 	return nil
 }

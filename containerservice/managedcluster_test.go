@@ -51,6 +51,8 @@ func parseArgs() error {
 		agentPoolCount = int32(i)
 	}
 
+	helpers.OverrideCanaryLocation("eastus2euap")
+
 	// AKS managed clusters are not yet available in many Azure locations
 	helpers.OverrideLocation([]string{
 		"eastus",

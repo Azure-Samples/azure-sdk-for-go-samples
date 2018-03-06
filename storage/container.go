@@ -51,8 +51,21 @@ func GetContainer(ctx context.Context, accountName, containerName string) (blob.
 
 // DeleteContainer deletes the named container.
 func DeleteContainer(ctx context.Context, accountName, containerName string) error {
-	c := getContainerURL(ctx, containerName, containerName)
+	c := getContainerURL(ctx, accountName, containerName)
 
 	_, err := c.Delete(context.Background(), blob.ContainerAccessConditions{})
 	return err
+}
+
+// ListBlobs lists blobs on the specified container
+func ListBlobs(ctx context.Context, accountName, containerName string) (*blob.ListBlobsResponse, error) {
+	c := getContainerURL(ctx, accountName, containerName)
+	return c.ListBlobs(
+		ctx,
+		blob.Marker{},
+		blob.ListBlobsOptions{
+			Details: blob.BlobListingDetails{
+				Snapshots: true,
+			},
+		})
 }

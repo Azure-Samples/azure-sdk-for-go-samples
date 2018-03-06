@@ -139,6 +139,37 @@ func CreateVirtualNetworkSubnet(ctx context.Context, vnetName, subnetName string
 	return future.Result(subnetsClient)
 }
 
+// CreateSubnetWithNetowrkSecurityGroup create a subnet referencing a network secuiry group
+func CreateSubnetWithNetowrkSecurityGroup(ctx context.Context, vnetName, subnetName, addressPrefix, nsgName string) (subnet network.Subnet, err error) {
+	nsg, err := GetNetworkSecurityGroup(ctx, nsgName)
+	if err != nil {
+		return subnet, fmt.Errorf("cannot get nsg: %v", err)
+	}
+
+	subnetsClient := getSubnetsClient()
+	future, err := subnetsClient.CreateOrUpdate(
+		ctx,
+		helpers.ResourceGroupName(),
+		vnetName,
+		subnetName,
+		network.Subnet{
+			SubnetPropertiesFormat: &network.SubnetPropertiesFormat{
+				AddressPrefix:        to.StringPtr(addressPrefix),
+				NetworkSecurityGroup: &nsg,
+			},
+		})
+	if err != nil {
+		return subnet, fmt.Errorf("cannot create subnet: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, subnetsClient.Client)
+	if err != nil {
+		return subnet, fmt.Errorf("cannot get the subnet create or update future response: %v", err)
+	}
+
+	return future.Result(subnetsClient)
+}
+
 // DeleteVirtualNetworkSubnet deletes a subnet
 func DeleteVirtualNetworkSubnet() {}
 
@@ -158,7 +189,7 @@ func getNsgClient() network.SecurityGroupsClient {
 	return nsgClient
 }
 
-// CreateNetworkSecurityGroup creates a new network security group
+// CreateNetworkSecurityGroup creates a new network security group with rules set for allowing SSH and HTTPS use
 func CreateNetworkSecurityGroup(ctx context.Context, nsgName string) (nsg network.SecurityGroup, err error) {
 	nsgClient := getNsgClient()
 	future, err := nsgClient.CreateOrUpdate(
@@ -197,6 +228,30 @@ func CreateNetworkSecurityGroup(ctx context.Context, nsgName string) (nsg networ
 					},
 				},
 			},
+		},
+	)
+
+	if err != nil {
+		return nsg, fmt.Errorf("cannot create nsg: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, nsgClient.Client)
+	if err != nil {
+		return nsg, fmt.Errorf("cannot get nsg create or update future response: %v", err)
+	}
+
+	return future.Result(nsgClient)
+}
+
+// CreateSimpleNetworkSecurityGroup creates a new network security group, without rules (rules can be set later)
+func CreateSimpleNetworkSecurityGroup(ctx context.Context, nsgName string) (nsg network.SecurityGroup, err error) {
+	nsgClient := getNsgClient()
+	future, err := nsgClient.CreateOrUpdate(
+		ctx,
+		helpers.ResourceGroupName(),
+		nsgName,
+		network.SecurityGroup{
+			Location: to.StringPtr(helpers.Location()),
 		},
 	)
 
@@ -407,6 +462,142 @@ func GetPublicIP(ctx context.Context, ipName string) (network.PublicIPAddress, e
 func DeletePublicIP(ctx context.Context, ipName string) (result network.PublicIPAddressesDeleteFuture, err error) {
 	ipClient := getIPClient()
 	return ipClient.Delete(ctx, helpers.ResourceGroupName(), ipName)
+}
+
+func getSecurityRulesClient() network.SecurityRulesClient {
+	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
+	rulesClient := network.NewSecurityRulesClient(helpers.SubscriptionID())
+	rulesClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	rulesClient.AddToUserAgent(helpers.UserAgent())
+	return rulesClient
+}
+
+// CreateSSHRule creates an inbound network security rule that allows using port 22
+func CreateSSHRule(ctx context.Context, nsgName string) (rule network.SecurityRule, err error) {
+	rulesClient := getSecurityRulesClient()
+	future, err := rulesClient.CreateOrUpdate(ctx,
+		helpers.ResourceGroupName(),
+		nsgName,
+		"ALLOW-SSH",
+		network.SecurityRule{
+			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
+				Access: network.SecurityRuleAccessAllow,
+				DestinationAddressPrefix: to.StringPtr("*"),
+				DestinationPortRange:     to.StringPtr("22"),
+				Direction:                network.SecurityRuleDirectionInbound,
+				Description:              to.StringPtr("Allow SSH"),
+				Priority:                 to.Int32Ptr(103),
+				Protocol:                 network.SecurityRuleProtocolTCP,
+				SourceAddressPrefix:      to.StringPtr("*"),
+				SourcePortRange:          to.StringPtr("*"),
+			},
+		})
+	if err != nil {
+		return rule, fmt.Errorf("cannot create SSH security rule: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, rulesClient.Client)
+	if err != nil {
+		return rule, fmt.Errorf("cannot get security rule create or update future response: %v", err)
+	}
+
+	return future.Result(rulesClient)
+}
+
+// CreateHTTPRule creates an inbound network security rule that allows using port 80
+func CreateHTTPRule(ctx context.Context, nsgName string) (rule network.SecurityRule, err error) {
+	rulesClient := getSecurityRulesClient()
+	future, err := rulesClient.CreateOrUpdate(ctx,
+		helpers.ResourceGroupName(),
+		nsgName,
+		"ALLOW-HTTP",
+		network.SecurityRule{
+			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
+				Access: network.SecurityRuleAccessAllow,
+				DestinationAddressPrefix: to.StringPtr("*"),
+				DestinationPortRange:     to.StringPtr("80"),
+				Direction:                network.SecurityRuleDirectionInbound,
+				Description:              to.StringPtr("Allow HTTP"),
+				Priority:                 to.Int32Ptr(101),
+				Protocol:                 network.SecurityRuleProtocolTCP,
+				SourceAddressPrefix:      to.StringPtr("*"),
+				SourcePortRange:          to.StringPtr("*"),
+			},
+		})
+	if err != nil {
+		return rule, fmt.Errorf("cannot create HTTP security rule: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, rulesClient.Client)
+	if err != nil {
+		return rule, fmt.Errorf("cannot get security rule create or update future response: %v", err)
+	}
+
+	return future.Result(rulesClient)
+}
+
+// CreateSQLRule creates an inbound network security rule that allows using port 1433
+func CreateSQLRule(ctx context.Context, nsgName, frontEndAddressPrefix string) (rule network.SecurityRule, err error) {
+	rulesClient := getSecurityRulesClient()
+	future, err := rulesClient.CreateOrUpdate(ctx,
+		helpers.ResourceGroupName(),
+		nsgName,
+		"ALLOW-SQL",
+		network.SecurityRule{
+			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
+				Access: network.SecurityRuleAccessAllow,
+				DestinationAddressPrefix: to.StringPtr("*"),
+				DestinationPortRange:     to.StringPtr("1433"),
+				Direction:                network.SecurityRuleDirectionInbound,
+				Description:              to.StringPtr("Allow SQL"),
+				Priority:                 to.Int32Ptr(102),
+				Protocol:                 network.SecurityRuleProtocolTCP,
+				SourceAddressPrefix:      &frontEndAddressPrefix,
+				SourcePortRange:          to.StringPtr("*"),
+			},
+		})
+	if err != nil {
+		return rule, fmt.Errorf("cannot create SQL security rule: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, rulesClient.Client)
+	if err != nil {
+		return rule, fmt.Errorf("cannot get security rule create or update future response: %v", err)
+	}
+
+	return future.Result(rulesClient)
+}
+
+// CreateDenyOutRule creates an network security rule that denies outbound traffic
+func CreateDenyOutRule(ctx context.Context, nsgName string) (rule network.SecurityRule, err error) {
+	rulesClient := getSecurityRulesClient()
+	future, err := rulesClient.CreateOrUpdate(ctx,
+		helpers.ResourceGroupName(),
+		nsgName,
+		"DENY-OUT",
+		network.SecurityRule{
+			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
+				Access: network.SecurityRuleAccessDeny,
+				DestinationAddressPrefix: to.StringPtr("*"),
+				DestinationPortRange:     to.StringPtr("*"),
+				Direction:                network.SecurityRuleDirectionOutbound,
+				Description:              to.StringPtr("Deny outbound traffic"),
+				Priority:                 to.Int32Ptr(100),
+				Protocol:                 network.SecurityRuleProtocolAsterisk,
+				SourceAddressPrefix:      to.StringPtr("*"),
+				SourcePortRange:          to.StringPtr("*"),
+			},
+		})
+	if err != nil {
+		return rule, fmt.Errorf("cannot create deny out security rule: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, rulesClient.Client)
+	if err != nil {
+		return rule, fmt.Errorf("cannot get security rule create or update future response: %v", err)
+	}
+
+	return future.Result(rulesClient)
 }
 
 // Load balancers

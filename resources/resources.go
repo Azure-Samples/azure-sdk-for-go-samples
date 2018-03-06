@@ -8,6 +8,7 @@ package resources
 import (
 	"context"
 	"net/http"
+	"net/url"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
@@ -27,9 +28,14 @@ func GetResource(ctx context.Context, provider, resourceType, resourceName, apiV
 	resourcesClient := getResourcesClient()
 	requestInspector := func(p autorest.Preparer) autorest.Preparer {
 		return autorest.PreparerFunc(func(r *http.Request) (*http.Request, error) {
-			r.URL.Query().Set("api-version", apiVersion)
-			helpers.PrintAndLog(r.URL.String())
-			return p.Prepare(r)
+			v := r.URL.Query()
+			d, err := url.QueryUnescape(apiVersion)
+			if err != nil {
+				return r, err
+			}
+			v.Set("api-version", d)
+			r.URL.RawQuery = v.Encode()
+			return r, nil
 		})
 	}
 	resourcesClient.RequestInspector = requestInspector

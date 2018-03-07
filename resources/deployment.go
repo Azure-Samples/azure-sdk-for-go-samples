@@ -25,18 +25,8 @@ func getDeploymentsClient() resources.DeploymentsClient {
 
 // CreateDeployment creates a template deployment using the
 // referenced JSON files for the template and its parameters
-func CreateDeployment(ctx context.Context, deploymentName, templateFile, parametersFile string) (de resources.DeploymentExtended, err error) {
-	template, err := helpers.ReadJSON(templateFile)
-	if err != nil {
-		return
-	}
-	params, err := helpers.ReadJSON(parametersFile)
-	if err != nil {
-		return
-	}
-
+func CreateDeployment(ctx context.Context, deploymentName string, template, params *map[string]interface{}) (de resources.DeploymentExtended, err error) {
 	deployClient := getDeploymentsClient()
-
 	future, err := deployClient.CreateOrUpdate(
 		ctx,
 		helpers.ResourceGroupName(),
@@ -61,16 +51,7 @@ func CreateDeployment(ctx context.Context, deploymentName, templateFile, paramet
 	return future.Result(deployClient)
 }
 
-func ValidateDeployment(ctx context.Context, deploymentName, templateFile, parametersFile string) (valid resources.DeploymentValidateResult, err error) {
-	template, err := helpers.ReadJSON(templateFile)
-	if err != nil {
-		return
-	}
-	params, err := helpers.ReadJSON(parametersFile)
-	if err != nil {
-		return
-	}
-
+func ValidateDeployment(ctx context.Context, deploymentName string, template, params *map[string]interface{}) (valid resources.DeploymentValidateResult, err error) {
 	deployClient := getDeploymentsClient()
 	return deployClient.Validate(ctx,
 		helpers.ResourceGroupName(),

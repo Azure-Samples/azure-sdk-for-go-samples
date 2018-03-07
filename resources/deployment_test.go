@@ -25,19 +25,30 @@ func ExampleCreateTemplateDeployment() {
 
 	gopath := build.Default.GOPATH
 	repo := filepath.Join("github.com", "Azure-Samples", "azure-sdk-for-go-samples")
-	template := filepath.Join(gopath, "src", repo, "testdata", "template.json")
-	parameters := filepath.Join(gopath, "src", repo, "testdata", "parameters.json")
+	templateFile := filepath.Join(gopath, "src", repo, "testdata", "template.json")
+	parametersFile := filepath.Join(gopath, "src", repo, "testdata", "parameters.json")
+	deployName := "VMdeploy"
 
-	_, err = CreateDeployment(ctx, "VMdeploy", template, parameters)
+	template, err := helpers.ReadJSON(templateFile)
+	if err != nil {
+		return
+	}
+	params, err := helpers.ReadJSON(parametersFile)
+	if err != nil {
+		return
+	}
+
+	_, err = ValidateDeployment(ctx, deployName, template, params)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("validated VM template deployment")
+
+	_, err = CreateDeployment(ctx, deployName, template, params)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("created VM template deployment")
-
-	params, err := helpers.ReadJSON(parameters)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
 
 	ipName := (*params)["publicIPAddresses_QuickstartVM_ip_name"].(map[string]interface{})["value"].(string)
 	vmUser := (*params)["vm_user"].(map[string]interface{})["value"].(string)
@@ -59,6 +70,7 @@ func ExampleCreateTemplateDeployment() {
 		vmPass)
 
 	// Output:
+	// validated VM template deployment
 	// created VM template deployment
 	// got public IP info via get generic resource
 }

@@ -24,6 +24,10 @@ func getResourcesClient() resources.Client {
 	return resourcesClient
 }
 
+// GetResource gets a resource, the generic way.
+// The API version parameter overrides the API version in
+// the SDK, this is needed because not all resources are
+// supported on all API versions.
 func GetResource(ctx context.Context, provider, resourceType, resourceName, apiVersion string) (resources.GenericResource, error) {
 	resourcesClient := getResourcesClient()
 	requestInspector := func(p autorest.Preparer) autorest.Preparer {

@@ -51,6 +51,8 @@ func CreateDeployment(ctx context.Context, deploymentName string, template, para
 	return future.Result(deployClient)
 }
 
+// ValidateDeployment validates the template deployments and their
+// parameters are correct and will produce a successful deployment.GetResource
 func ValidateDeployment(ctx context.Context, deploymentName string, template, params *map[string]interface{}) (valid resources.DeploymentValidateResult, err error) {
 	deployClient := getDeploymentsClient()
 	return deployClient.Validate(ctx,

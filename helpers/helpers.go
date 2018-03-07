@@ -47,6 +47,8 @@ func UserAgent() string {
 	return "samples " + utils.GetCommit()
 }
 
+// ReadJSON reads a json file, and unmashals it.
+// Very useful for template deployments.
 func ReadJSON(path string) (*map[string]interface{}, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {

@@ -1,6 +1,7 @@
 kind: DroidMetadata
 version: v3
 product: azuresdkforgo
+storage: true
 environments:
   - name: AZ_SUBSCRIPTION_ID
     type: secret

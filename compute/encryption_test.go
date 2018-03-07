@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/graphrbac"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/keyvault"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"

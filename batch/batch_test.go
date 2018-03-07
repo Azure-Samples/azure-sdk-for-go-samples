@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
@@ -31,71 +31,71 @@ func TestMain(m *testing.M) {
 }
 
 func parseArgs() error {
-	err := helpers.ParseArgs()
+	err := internal.ParseArgs()
 	if err != nil {
 		return fmt.Errorf("cannot parse args: %v", err)
 	}
 
 	accountName = os.Getenv("AZ_BATCH_NAME")
 	if !(len(accountName) > 0) {
-		accountName = strings.ToLower("b" + helpers.GetRandomLetterSequence(10))
+		accountName = strings.ToLower("b" + internal.GetRandomLetterSequence(10))
 	}
 
-	jobID = strings.ToLower("j" + helpers.GetRandomLetterSequence(10))
-	poolID = strings.ToLower("p" + helpers.GetRandomLetterSequence(10))
+	jobID = strings.ToLower("j" + internal.GetRandomLetterSequence(10))
+	poolID = strings.ToLower("p" + internal.GetRandomLetterSequence(10))
 
 	return nil
 }
 
 func ExampleCreateAzureBatchAccount() {
-	helpers.SetResourceGroupName("CreateBatch")
+	internal.SetResourceGroupName("CreateBatch")
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	_, err := resources.CreateGroup(ctx, internal.ResourceGroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
 
-	_, err = CreateAzureBatchAccount(ctx, accountName, helpers.Location(), helpers.ResourceGroupName())
+	_, err = CreateAzureBatchAccount(ctx, accountName, internal.Location(), internal.ResourceGroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 		return
 	}
 
-	helpers.PrintAndLog("created batch account")
+	internal.PrintAndLog("created batch account")
 
-	err = CreateBatchPool(ctx, accountName, helpers.Location(), poolID)
+	err = CreateBatchPool(ctx, accountName, internal.Location(), poolID)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 		return
 	}
 
-	helpers.PrintAndLog("created batch pool")
+	internal.PrintAndLog("created batch pool")
 
-	err = CreateBatchJob(ctx, accountName, helpers.Location(), poolID, jobID)
+	err = CreateBatchJob(ctx, accountName, internal.Location(), poolID, jobID)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 		return
 	}
 
-	helpers.PrintAndLog("created batch job")
+	internal.PrintAndLog("created batch job")
 
-	taskID, err := CreateBatchTask(ctx, accountName, helpers.Location(), jobID)
+	taskID, err := CreateBatchTask(ctx, accountName, internal.Location(), jobID)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 		return
 	}
 
-	helpers.PrintAndLog("created batch task")
+	internal.PrintAndLog("created batch task")
 
-	taskOutput, err := WaitForTaskResult(ctx, accountName, helpers.Location(), jobID, taskID)
+	taskOutput, err := WaitForTaskResult(ctx, accountName, internal.Location(), jobID, taskID)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 		return
 	}
 
-	helpers.PrintAndLog("output from task:")
-	helpers.PrintAndLog(taskOutput)
+	internal.PrintAndLog("output from task:")
+	internal.PrintAndLog(taskOutput)
 
 	// Output:
 	// created batch account

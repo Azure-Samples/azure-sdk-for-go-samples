@@ -9,8 +9,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/Azure/go-autorest/autorest"
@@ -19,9 +19,9 @@ import (
 
 func getAvailabilitySetsClient() compute.AvailabilitySetsClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	avaSetClient := compute.NewAvailabilitySetsClient(helpers.SubscriptionID())
+	avaSetClient := compute.NewAvailabilitySetsClient(internal.SubscriptionID())
 	avaSetClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	avaSetClient.AddToUserAgent(helpers.UserAgent())
+	avaSetClient.AddToUserAgent(internal.UserAgent())
 	return avaSetClient
 }
 
@@ -29,10 +29,10 @@ func getAvailabilitySetsClient() compute.AvailabilitySetsClient {
 func CreateAvailabilitySet(ctx context.Context, avaSetName string) (compute.AvailabilitySet, error) {
 	avaSetClient := getAvailabilitySetsClient()
 	return avaSetClient.CreateOrUpdate(ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		avaSetName,
 		compute.AvailabilitySet{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(internal.Location()),
 			AvailabilitySetProperties: &compute.AvailabilitySetProperties{
 				PlatformFaultDomainCount:  to.Int32Ptr(2),
 				PlatformUpdateDomainCount: to.Int32Ptr(2),
@@ -46,7 +46,7 @@ func CreateAvailabilitySet(ctx context.Context, avaSetName string) (compute.Avai
 // GetAvailabilitySet gets info on an availability set
 func GetAvailabilitySet(ctx context.Context, avaSetName string) (compute.AvailabilitySet, error) {
 	avaSetClient := getAvailabilitySetsClient()
-	return avaSetClient.Get(ctx, helpers.ResourceGroupName(), avaSetName)
+	return avaSetClient.Get(ctx, internal.ResourceGroupName(), avaSetName)
 }
 
 // CreateVMWithLoadBalancer creates a virtual machine inside an availability set
@@ -72,10 +72,10 @@ func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, sub
 	vmClient := getVMClient()
 	future, err := vmClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		vmName,
 		compute.VirtualMachine{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(internal.Location()),
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
 				HardwareProfile: &compute.HardwareProfile{
 					VMSize: compute.StandardDS1V2,

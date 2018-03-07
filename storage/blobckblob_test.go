@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
@@ -21,58 +21,58 @@ func ExampleBlockBlobOperations() {
 	accountName = getAccountName()
 	containerName = strings.ToLower(containerName)
 
-	helpers.SetResourceGroupName("BlockBlob")
+	internal.SetResourceGroupName("BlockBlob")
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	_, err := resources.CreateGroup(ctx, internal.ResourceGroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
 
 	_, err = CreateStorageAccount(ctx, accountName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created storage account")
+	internal.PrintAndLog("created storage account")
 
 	_, err = CreateContainer(ctx, accountName, containerName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created container")
+	internal.PrintAndLog("created container")
 
 	_, err = CreateBlockBlob(ctx, accountName, containerName, blobName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created blob")
+	internal.PrintAndLog("created blob")
 
 	for i, m := range messages {
 		err = PutBlockOnBlob(ctx, accountName, containerName, blobName, m, i)
 		if err != nil {
-			helpers.PrintAndLog(err.Error())
+			internal.PrintAndLog(err.Error())
 		}
-		helpers.PrintAndLog("put block")
+		internal.PrintAndLog("put block")
 	}
 
 	list, err := GetUncommitedBlocks(ctx, accountName, containerName, blobName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog(fmt.Sprintf("list of uncommitted blocks has %d elements", len(list.UncommittedBlocks)))
+	internal.PrintAndLog(fmt.Sprintf("list of uncommitted blocks has %d elements", len(list.UncommittedBlocks)))
 
 	err = CommitBlocks(ctx, accountName, containerName, blobName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("committed blocks")
+	internal.PrintAndLog("committed blocks")
 
 	message, err := GetBlob(ctx, accountName, containerName, blobName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("downloaded blob")
-	helpers.PrintAndLog(message)
+	internal.PrintAndLog("downloaded blob")
+	internal.PrintAndLog(message)
 
 	// Output:
 	// created storage account

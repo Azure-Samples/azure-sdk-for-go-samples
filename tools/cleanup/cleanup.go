@@ -13,7 +13,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
@@ -21,20 +21,20 @@ func main() {
 	var quiet bool
 	var resourceGroupNamePrefix string
 	flag.BoolVar(&quiet, "quiet", false, "Run quietly")
-	flag.StringVar(&resourceGroupNamePrefix, "groupPrefix", helpers.GroupPrefix(), "Specify prefix name of resource group for sample resources.")
+	flag.StringVar(&resourceGroupNamePrefix, "groupPrefix", internal.GroupPrefix(), "Specify prefix name of resource group for sample resources.")
 
-	err := helpers.ParseSubscriptionID()
+	err := internal.ParseSubscriptionID()
 	if err != nil {
 		log.Fatalf("Error parsing subscriptionID: %v\n", err)
 		os.Exit(1)
 	}
-	err = helpers.ParseDeviceFlow()
+	err = internal.ParseDeviceFlow()
 	if err != nil {
 		log.Fatalf("Error parsing device flow: %v\n", err)
-		log.Fatalf("Using device flow: %v", helpers.DeviceFlow())
+		log.Fatalf("Using device flow: %v", internal.DeviceFlow())
 	}
 	flag.Parse()
-	helpers.SetPrefix(resourceGroupNamePrefix)
+	internal.SetPrefix(resourceGroupNamePrefix)
 
 	if !quiet {
 		fmt.Println("Are you sure you want to delete all resource groups in the subscription? (yes | no)")
@@ -46,7 +46,7 @@ func main() {
 		}
 	}
 
-	futures, groups := resources.DeleteAllGroupsWithPrefix(context.Background(), helpers.GroupPrefix())
+	futures, groups := resources.DeleteAllGroupsWithPrefix(context.Background(), internal.GroupPrefix())
 
 	var wg sync.WaitGroup
 	resources.WaitForDeleteCompletion(context.Background(), &wg, futures, groups)

@@ -9,39 +9,39 @@ import (
 	"context"
 	"log"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 )
 
 func init() {
-	err := helpers.ParseArgs()
+	err := internal.ParseArgs()
 	if err != nil {
 		log.Fatalf("cannot parse arguments: %v", err)
 	}
 }
 
 func ExampleCreateGroup() {
-	helpers.SetResourceGroupName("CreateGroup")
+	internal.SetResourceGroupName("CreateGroup")
 	defer Cleanup(context.Background())
 
-	_, err := CreateGroup(context.Background(), helpers.ResourceGroupName())
+	_, err := CreateGroup(context.Background(), internal.ResourceGroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("resource group created")
+	internal.PrintAndLog("resource group created")
 
 	// Output:
 	// resource group created
 }
 
 func ExampleCreateGroupWithAuthFile() {
-	helpers.SetResourceGroupName("CreateGroupWithAuthFile")
+	internal.SetResourceGroupName("CreateGroupWithAuthFile")
 	defer Cleanup(context.Background())
 
-	_, err := CreateGroupWithAuthFile(context.Background(), helpers.ResourceGroupName())
+	_, err := CreateGroupWithAuthFile(context.Background(), internal.ResourceGroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("resource group created, authentication was set up with an Azure CLI auth file")
+	internal.PrintAndLog("resource group created, authentication was set up with an Azure CLI auth file")
 
 	// Output:
 	// resource group created, authentication was set up with an Azure CLI auth file

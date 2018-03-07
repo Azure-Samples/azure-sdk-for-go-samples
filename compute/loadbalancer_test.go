@@ -8,63 +8,63 @@ package compute
 import (
 	"context"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 func ExampleCreateVMsWithLoadBalancer() {
-	helpers.SetResourceGroupName("CreateVMsWithLoadBalancer")
+	internal.SetResourceGroupName("CreateVMsWithLoadBalancer")
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	_, err := resources.CreateGroup(ctx, internal.ResourceGroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
 
 	avaSetName := "availSet"
 
 	_, err = network.CreatePublicIP(ctx, ipName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created public IP")
+	internal.PrintAndLog("created public IP")
 
 	_, err = network.CreateLoadBalancer(ctx, lbName, ipName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created load balancer")
+	internal.PrintAndLog("created load balancer")
 
 	_, err = network.CreateVirtualNetwork(ctx, virtualNetworkName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created vnet")
+	internal.PrintAndLog("created vnet")
 
 	_, err = network.CreateVirtualNetworkSubnet(ctx, virtualNetworkName, subnet1Name)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created subnet")
+	internal.PrintAndLog("created subnet")
 
 	_, err = CreateAvailabilitySet(ctx, avaSetName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created availability set")
+	internal.PrintAndLog("created availability set")
 
 	_, err = CreateVMWithLoadBalancer(ctx, "vm1", lbName, virtualNetworkName, subnet1Name, ipName, avaSetName, 0)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created virtual machine on load balance, with NAT rule 1")
+	internal.PrintAndLog("created virtual machine on load balance, with NAT rule 1")
 
 	_, err = CreateVMWithLoadBalancer(ctx, "vm2", lbName, virtualNetworkName, subnet1Name, ipName, avaSetName, 1)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created virtual machine on load balance, with NAT rule 2")
+	internal.PrintAndLog("created virtual machine on load balance, with NAT rule 2")
 
 	// Output:
 	// created public IP

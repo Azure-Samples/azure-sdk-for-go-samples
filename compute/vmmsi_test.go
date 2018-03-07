@@ -9,73 +9,73 @@ import (
 	"context"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/authorization"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 func ExampleCreateVMForMSI() {
-	helpers.SetResourceGroupName("CreateVMForMSI")
+	internal.SetResourceGroupName("CreateVMForMSI")
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	_, err := resources.CreateGroup(ctx, internal.ResourceGroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
 
 	_, err = network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created vnet and 2 subnets")
+	internal.PrintAndLog("created vnet and 2 subnets")
 
 	_, err = network.CreateNetworkSecurityGroup(ctx, nsgName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created network security group")
+	internal.PrintAndLog("created network security group")
 
 	_, err = network.CreatePublicIP(ctx, ipName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created public IP")
+	internal.PrintAndLog("created public IP")
 
 	_, err = network.CreateNIC(ctx, virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created nic")
+	internal.PrintAndLog("created nic")
 
 	_, err = CreateVMForMSI(ctx, vmName, nicName, username, password)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created VM")
+	internal.PrintAndLog("created VM")
 
 	_, err = AddMSIExtension(ctx, vmName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("added MSI extension")
+	internal.PrintAndLog("added MSI extension")
 
 	vm, err := GetVM(ctx, vmName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("got VM")
+	internal.PrintAndLog("got VM")
 
 	list, err := authorization.ListRoles(ctx, "roleName eq 'Contributor'")
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("got role definitions list")
+	internal.PrintAndLog("got role definitions list")
 
 	_, err = authorization.AssignRole(ctx, *vm.Identity.PrincipalID, *list.Values()[0].ID)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("role assigned")
+	internal.PrintAndLog("role assigned")
 
 	// Output:
 	// created vnet and 2 subnets

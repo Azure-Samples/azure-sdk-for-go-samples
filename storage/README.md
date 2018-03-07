@@ -105,12 +105,12 @@ func CreateStorageAccount() (<-chan storage.Account, <-chan error) {
 	}
 
 	return storageAccountsClient.Create(
-		helpers.ResourceGroupName,
+		internal.ResourceGroupName,
 		accountName,
 		storage.AccountCreateParameters{
 			Sku: &storage.Sku{
 				Name: storage.StandardLRS},
-			Location: to.StringPtr(helpers.Location),
+			Location: to.StringPtr(internal.Location),
 			AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{}},
 		nil /* cancel <-chan struct{} */)
 }

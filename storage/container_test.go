@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
@@ -18,40 +18,40 @@ func ExampleListBlobs() {
 	accountName = getAccountName()
 	containerName = strings.ToLower(containerName)
 
-	helpers.SetResourceGroupName("ListBlobs")
+	internal.SetResourceGroupName("ListBlobs")
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	_, err := resources.CreateGroup(ctx, internal.ResourceGroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
 
 	_, err = CreateStorageAccount(ctx, accountName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created storage account")
+	internal.PrintAndLog("created storage account")
 
 	_, err = CreateContainer(ctx, accountName, containerName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created container")
+	internal.PrintAndLog("created container")
 
 	for i := 0; i < 3; i++ {
 		name := fmt.Sprintf("blob%d", i)
 		_, err = CreateBlockBlob(ctx, accountName, containerName, name)
 		if err != nil {
-			helpers.PrintAndLog(err.Error())
+			internal.PrintAndLog(err.Error())
 		}
-		helpers.PrintAndLog("created blob")
+		internal.PrintAndLog("created blob")
 	}
 
 	list, err := ListBlobs(ctx, accountName, containerName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog(fmt.Sprintf("listed blobs: %d", len(list.Blobs.Blob)))
+	internal.PrintAndLog(fmt.Sprintf("listed blobs: %d", len(list.Blobs.Blob)))
 
 	// Output:
 	// created storage account

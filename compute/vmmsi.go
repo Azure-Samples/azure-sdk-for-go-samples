@@ -9,7 +9,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -22,10 +22,10 @@ func CreateVMForMSI(ctx context.Context, vmName, nicName, username, password str
 	vmClient := getVMClient()
 	future, err := vmClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		vmName,
 		compute.VirtualMachine{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(internal.Location()),
 			Identity: &compute.VirtualMachineIdentity{
 				Type: compute.SystemAssigned, // needed to add MSI authentication
 			},
@@ -77,10 +77,10 @@ func AddMSIExtension(ctx context.Context, vmName string) (ext compute.VirtualMac
 
 	future, err := extClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		vmName,
 		"msiextension", compute.VirtualMachineExtension{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(internal.Location()),
 			VirtualMachineExtensionProperties: &compute.VirtualMachineExtensionProperties{
 				Publisher:               to.StringPtr("Microsoft.ManagedIdentity"),
 				Type:                    to.StringPtr("ManagedIdentityExtensionForLinux"),

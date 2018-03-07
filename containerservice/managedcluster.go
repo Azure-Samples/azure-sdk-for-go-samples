@@ -7,8 +7,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -23,9 +23,9 @@ func getAKSClient() (containerservice.ManagedClustersClient, error) {
 		return containerservice.ManagedClustersClient{}, fmt.Errorf("cannot get token: %v", err)
 	}
 
-	aksClient := containerservice.NewManagedClustersClient(helpers.SubscriptionID())
+	aksClient := containerservice.NewManagedClustersClient(internal.SubscriptionID())
 	aksClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	aksClient.AddToUserAgent(helpers.UserAgent())
+	aksClient.AddToUserAgent(internal.UserAgent())
 	return aksClient, nil
 }
 

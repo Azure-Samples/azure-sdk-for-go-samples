@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-package helpers
+package internal
 
 import (
 	"errors"
@@ -57,7 +57,7 @@ var (
 )
 
 // ParseArgs picks up shared env vars and flags and finishes parsing flags
-// Other packages should declare their flags then call helpers.ParseArgs()
+// Other packages should declare their flags then call internal.ParseArgs()
 func ParseArgs() error {
 	err := ParseSubscriptionID()
 	if err != nil {

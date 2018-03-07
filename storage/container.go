@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	blob "github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
 )
 
@@ -22,7 +22,7 @@ func getContainerURL(ctx context.Context, accountName, containerName string) blo
 	key := getFirstKey(ctx, accountName)
 	c := blob.NewSharedKeyCredential(accountName, key)
 	p := blob.NewPipeline(c, blob.PipelineOptions{
-		Telemetry: blob.TelemetryOptions{Value: helpers.UserAgent()},
+		Telemetry: blob.TelemetryOptions{Value: internal.UserAgent()},
 	})
 	u, _ := url.Parse(fmt.Sprintf(blobFormatString, accountName))
 	service := blob.NewServiceURL(*u, p)

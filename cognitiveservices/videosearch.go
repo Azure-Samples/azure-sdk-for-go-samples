@@ -8,7 +8,7 @@ package cognitiveservices
 import (
 	"context"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/videosearch"
 	"github.com/Azure/go-autorest/autorest"
 )
@@ -18,7 +18,7 @@ func getVideoSearchClient(accountName string) videosearch.VideosClient {
 	videoSearchClient := videosearch.NewVideosClient()
 	csAuthorizer := autorest.NewCognitiveServicesAuthorizer(apiKey)
 	videoSearchClient.Authorizer = csAuthorizer
-	videoSearchClient.AddToUserAgent(helpers.UserAgent())
+	videoSearchClient.AddToUserAgent(internal.UserAgent())
 	return videoSearchClient
 }
 

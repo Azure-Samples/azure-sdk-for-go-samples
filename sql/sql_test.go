@@ -14,12 +14,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 var (
-	serverName = "sql-server-go-samples-" + helpers.GetRandomLetterSequence(10)
+	serverName = "sql-server-go-samples-" + internal.GetRandomLetterSequence(10)
 	dbName     = "sql-db1"
 	dbLogin    = "sql-db-user1"
 	dbPassword = "NoSoupForYou1!"
@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 	flag.StringVar(&dbLogin, "sqlDbUsername", dbLogin, "Provide a username for the SQL database.")
 	flag.StringVar(&dbPassword, "sqlDbPassword", dbPassword, "Provide a password for the username.")
 
-	err := helpers.ParseArgs()
+	err := internal.ParseArgs()
 	if err != nil {
 		log.Fatalln("failed to parse args")
 	}
@@ -41,38 +41,38 @@ func TestMain(m *testing.M) {
 // Example creates a SQL server and database, then creates a table and inserts a record.
 func ExampleDatabaseQueries() {
 	serverName = strings.ToLower(serverName)
-	helpers.SetResourceGroupName("DatabaseQueries")
+	internal.SetResourceGroupName("DatabaseQueries")
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	_, err := resources.CreateGroup(ctx, internal.ResourceGroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
 
 	_, err = CreateServer(ctx, serverName, dbLogin, dbPassword)
 	if err != nil {
-		helpers.PrintAndLog(fmt.Sprintf("cannot create sql server: %v", err))
+		internal.PrintAndLog(fmt.Sprintf("cannot create sql server: %v", err))
 	}
 
-	helpers.PrintAndLog("sql server created")
+	internal.PrintAndLog("sql server created")
 
 	_, err = CreateDB(ctx, serverName, dbName)
 	if err != nil {
-		helpers.PrintAndLog(fmt.Sprintf("cannot create sql database: %v", err))
+		internal.PrintAndLog(fmt.Sprintf("cannot create sql database: %v", err))
 	}
-	helpers.PrintAndLog("database created")
+	internal.PrintAndLog("database created")
 
 	err = CreateFirewallRules(ctx, serverName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("database firewall rules set")
+	internal.PrintAndLog("database firewall rules set")
 
 	err = DbOperations(serverName, dbName, dbLogin, dbPassword)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("database operations performed")
+	internal.PrintAndLog("database operations performed")
 
 	// Output:
 	// sql server created

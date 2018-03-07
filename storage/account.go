@@ -11,8 +11,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -20,21 +20,21 @@ import (
 )
 
 func getAccountName() string {
-	accountName := "azuresamplesgo" + helpers.GetRandomLetterSequence(10)
+	accountName := "azuresamplesgo" + internal.GetRandomLetterSequence(10)
 	return strings.ToLower(accountName)
 }
 
 func getStorageAccountsClient() storage.AccountsClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	storageAccountsClient := storage.NewAccountsClient(helpers.SubscriptionID())
+	storageAccountsClient := storage.NewAccountsClient(internal.SubscriptionID())
 	storageAccountsClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	storageAccountsClient.AddToUserAgent(helpers.UserAgent())
+	storageAccountsClient.AddToUserAgent(internal.UserAgent())
 	return storageAccountsClient
 }
 
 func getFirstKey(ctx context.Context, accountName string) string {
 	accountsClient := getStorageAccountsClient()
-	res, err := accountsClient.ListKeys(ctx, helpers.ResourceGroupName(), accountName)
+	res, err := accountsClient.ListKeys(ctx, internal.ResourceGroupName(), accountName)
 	if err != nil {
 		log.Fatalf("failed to list keys: %v", err)
 	}
@@ -60,13 +60,13 @@ func CreateStorageAccount(ctx context.Context, accountName string) (s storage.Ac
 
 	future, err := storageAccountsClient.Create(
 		ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		accountName,
 		storage.AccountCreateParameters{
 			Sku: &storage.Sku{
 				Name: storage.StandardLRS},
 			Kind:     storage.Storage,
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(internal.Location()),
 			AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{},
 		})
 
@@ -85,11 +85,11 @@ func CreateStorageAccount(ctx context.Context, accountName string) (s storage.Ac
 // GetStorageAccount gets details on the specified storage account
 func GetStorageAccount(ctx context.Context, accountName string) (storage.Account, error) {
 	storageAccountsClient := getStorageAccountsClient()
-	return storageAccountsClient.GetProperties(ctx, helpers.ResourceGroupName(), accountName)
+	return storageAccountsClient.GetProperties(ctx, internal.ResourceGroupName(), accountName)
 }
 
 // DeleteStorageAccount deletes an existing storate account
 func DeleteStorageAccount(ctx context.Context, accountName string) (autorest.Response, error) {
 	storageAccountsClient := getStorageAccountsClient()
-	return storageAccountsClient.Delete(ctx, helpers.ResourceGroupName(), accountName)
+	return storageAccountsClient.Delete(ctx, internal.ResourceGroupName(), accountName)
 }

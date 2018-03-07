@@ -9,7 +9,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
@@ -17,59 +17,59 @@ func ExamplePageBlobOperations() {
 	accountName = getAccountName()
 	containerName = strings.ToLower(containerName)
 
-	helpers.SetResourceGroupName("PageBlob")
+	internal.SetResourceGroupName("PageBlob")
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	_, err := resources.CreateGroup(ctx, internal.ResourceGroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
 
 	_, err = CreateStorageAccount(ctx, accountName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created storage account")
+	internal.PrintAndLog("created storage account")
 
 	_, err = CreateContainer(ctx, accountName, containerName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created container")
+	internal.PrintAndLog("created container")
 
 	_, err = CreatePageBlob(ctx, accountName, containerName, blobName, len(messages))
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created page blob")
+	internal.PrintAndLog("created page blob")
 
 	for i, m := range messages {
 		err = PutPage(ctx, accountName, containerName, blobName, m, i)
 		if err != nil {
-			helpers.PrintAndLog(err.Error())
+			internal.PrintAndLog(err.Error())
 		}
-		helpers.PrintAndLog("put page")
+		internal.PrintAndLog("put page")
 	}
 
 	err = ClearPage(ctx, accountName, containerName, blobName, 2)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("cleared page")
+	internal.PrintAndLog("cleared page")
 
 	_, err = GetPageRanges(ctx, accountName, containerName, blobName, len(messages))
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("got page ranges")
+	internal.PrintAndLog("got page ranges")
 
 	message, err := GetBlob(ctx, accountName, containerName, blobName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("downloaded blob")
+	internal.PrintAndLog("downloaded blob")
 	var empty byte
-	helpers.PrintAndLog(strings.Replace(message, string([]byte{empty}), "", -1))
+	internal.PrintAndLog(strings.Replace(message, string([]byte{empty}), "", -1))
 
 	// Output:
 	// created storage account

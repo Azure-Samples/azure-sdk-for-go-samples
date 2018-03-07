@@ -9,8 +9,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -22,10 +22,10 @@ func CreateManagedDisk(ctx context.Context, diskName string) (disk compute.Disk,
 	disksClient := getDisksClient()
 	future, err := disksClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		diskName,
 		compute.Disk{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(internal.Location()),
 			DiskProperties: &compute.DiskProperties{
 				CreationData: &compute.CreationData{
 					CreateOption: compute.Empty,
@@ -53,9 +53,9 @@ func CreateVMWithManagedDisk(ctx context.Context, nicName, diskName, vmName stri
 	vmClient := getVMClient()
 	future, err := vmClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		vmName, compute.VirtualMachine{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(internal.Location()),
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
 				HardwareProfile: &compute.HardwareProfile{
 					VMSize: compute.StandardDS2V2,
@@ -118,11 +118,11 @@ func AddEncyptionExtension(ctx context.Context, vmName, vaultName, keyID string)
 	extClient := getExtensionClient()
 	future, err := extClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		vmName,
 		"AzureDiskEncryptionForLinux",
 		compute.VirtualMachineExtension{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(internal.Location()),
 			VirtualMachineExtensionProperties: &compute.VirtualMachineExtensionProperties{
 				AutoUpgradeMinorVersion: to.BoolPtr(true),
 				ProtectedSettings: &map[string]interface{}{

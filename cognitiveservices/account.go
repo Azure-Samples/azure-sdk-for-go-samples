@@ -10,23 +10,23 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/Azure/go-autorest/autorest"
 )
 
 func getCognitiveSevicesManagementClient() cognitiveservices.AccountsClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	accountClient := cognitiveservices.NewAccountsClient(helpers.SubscriptionID())
+	accountClient := cognitiveservices.NewAccountsClient(internal.SubscriptionID())
 	accountClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	accountClient.AddToUserAgent(helpers.UserAgent())
+	accountClient.AddToUserAgent(internal.UserAgent())
 	return accountClient
 }
 
 func getFirstKey(accountName string) string {
 	managementClient := getCognitiveSevicesManagementClient()
-	keys, err := managementClient.ListKeys(context.Background(), helpers.ResourceGroupName(), accountName)
+	keys, err := managementClient.ListKeys(context.Background(), internal.ResourceGroupName(), accountName)
 	if err != nil {
 		log.Fatalf("failed to list keys: %v", err)
 	}
@@ -40,7 +40,7 @@ func CreateCSAccount(accountName string, accountKind cognitiveservices.Kind) (*c
 
 	csAccount, err := managementClient.Create(
 		context.Background(),
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		accountName,
 		cognitiveservices.AccountCreateParameters{
 			Kind: accountKind,

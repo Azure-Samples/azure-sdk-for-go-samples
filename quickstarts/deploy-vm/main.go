@@ -2,10 +2,9 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"io/ioutil"
 	"log"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 
@@ -90,11 +89,11 @@ func createGroup() (group resources.Group, err error) {
 
 // Create the deployment
 func createDeployment() (deployment resources.DeploymentExtended, err error) {
-	template, err := readJSON(templateFile)
+	template, err := helpers.ReadJSON(templateFile)
 	if err != nil {
 		return
 	}
-	params, err := readJSON(parametersFile)
+	params, err := helpers.ReadJSON(parametersFile)
 	if err != nil {
 		return
 	}
@@ -126,7 +125,7 @@ func createDeployment() (deployment resources.DeploymentExtended, err error) {
 
 // Get login information by querying the deployed public IP resource.
 func getLogin() {
-	params, err := readJSON(parametersFile)
+	params, err := helpers.ReadJSON(parametersFile)
 	if err != nil {
 		log.Fatalf("Unable to read parameters. Get login information with `az network public-ip list -g %s", resourceGroupName)
 	}
@@ -147,4 +146,3 @@ func getLogin() {
 		*ipAddress.PublicIPAddressPropertiesFormat.IPAddress,
 		vmPass["value"].(string))
 }
-

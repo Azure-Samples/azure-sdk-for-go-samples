@@ -28,6 +28,7 @@ var (
 	clientID    string
 	oauthConfig *adal.OAuthConfig
 	armToken    adal.OAuthTokenProvider
+	batchToken  adal.OAuthTokenProvider
 	graphToken  adal.OAuthTokenProvider
 
 	// for service principal
@@ -115,6 +116,22 @@ func GetResourceManagementToken(grantType OAuthGrantType) (adal.OAuthTokenProvid
 	token, err := getToken(grantType, azure.PublicCloud.ResourceManagerEndpoint)
 	if err == nil {
 		armToken = token
+	}
+
+	return token, err
+}
+
+const batchManagementEndpoint = "https://batch.core.windows.net/"
+
+// GetBatchToken gets an OAuth token for Azure batch using the specified grant type.
+func GetBatchToken(grantType OAuthGrantType) (adal.OAuthTokenProvider, error) {
+	if batchToken != nil {
+		return batchToken, nil
+	}
+
+	token, err := getToken(grantType, batchManagementEndpoint)
+	if err == nil {
+		batchToken = token
 	}
 
 	return token, err

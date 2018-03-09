@@ -32,9 +32,16 @@ func getStorageAccountsClient() storage.AccountsClient {
 	return storageAccountsClient
 }
 
+func getUsageClient() storage.UsageClient {
+	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
+	usageClient := storage.NewUsageClient(helpers.SubscriptionID())
+	usageClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	usageClient.AddToUserAgent(helpers.UserAgent())
+	return usageClient
+}
+
 func getFirstKey(ctx context.Context, accountName string) string {
-	accountsClient := getStorageAccountsClient()
-	res, err := accountsClient.ListKeys(ctx, helpers.ResourceGroupName(), accountName)
+	res, err := GetAccountKeys(ctx, accountName)
 	if err != nil {
 		log.Fatalf("failed to list keys: %v", err)
 	}
@@ -92,4 +99,69 @@ func GetStorageAccount(ctx context.Context, accountName string) (storage.Account
 func DeleteStorageAccount(ctx context.Context, accountName string) (autorest.Response, error) {
 	storageAccountsClient := getStorageAccountsClient()
 	return storageAccountsClient.Delete(ctx, helpers.ResourceGroupName(), accountName)
+}
+
+// CheckAccountAvailability checkts if the storage account name is available.
+// Storage aqccount names should be unique across all of Azure
+func CheckAccountAvailability(ctx context.Context, accountName string) (bool, error) {
+	storageAccountsClient := getStorageAccountsClient()
+	result, err := storageAccountsClient.CheckNameAvailability(ctx, storage.AccountCheckNameAvailabilityParameters{
+		Name: to.StringPtr(accountName),
+		Type: to.StringPtr("Microsoft.Storage/storageAccounts"),
+	})
+	return *result.NameAvailable, err
+}
+
+// ListAccountsByResourceGroup lists storage accounts by resource group
+func ListAccountsByResourceGroup(ctx context.Context) (storage.AccountListResult, error) {
+	storageAccountsClient := getStorageAccountsClient()
+	return storageAccountsClient.ListByResourceGroup(ctx, helpers.ResourceGroupName())
+}
+
+// ListAccountsBySubscription lists storage accounts by subscription
+func ListAccountsBySubscription(ctx context.Context) (storage.AccountListResult, error) {
+	storageAccountsClient := getStorageAccountsClient()
+	return storageAccountsClient.List(ctx)
+}
+
+// GetAccountKeys gets the storage account keys
+func GetAccountKeys(ctx context.Context, accountName string) (storage.AccountListKeysResult, error) {
+	accountsClient := getStorageAccountsClient()
+	return accountsClient.ListKeys(ctx, helpers.ResourceGroupName(), accountName)
+}
+
+// RegenerateAccountKey regenerates the selected storage account key
+func RegenerateAccountKey(ctx context.Context, accountName string, key int) (list storage.AccountListKeysResult, err error) {
+	oldKeys, err := GetAccountKeys(ctx, accountName)
+	if err != nil {
+		return list, err
+	}
+	accountsClient := getStorageAccountsClient()
+	return accountsClient.RegenerateKey(
+		ctx,
+		helpers.ResourceGroupName(),
+		accountName,
+		storage.AccountRegenerateKeyParameters{
+			KeyName: (*oldKeys.Keys)[key].KeyName,
+		})
+}
+
+// UpdateAccount updates a storage account by adding tags
+func UpdateAccount(ctx context.Context, accountName string) (storage.Account, error) {
+	accountsClient := getStorageAccountsClient()
+	return accountsClient.Update(
+		ctx,
+		helpers.ResourceGroupName(),
+		accountName,
+		storage.AccountUpdateParameters{
+			Tags: map[string]*string{
+				"who rocks": to.StringPtr("golang"),
+				"where":     to.StringPtr("on azure")},
+		})
+}
+
+// ListUsage gets the usage count and limits for the resources in the subscription
+func ListUsage(ctx context.Context) (storage.UsageListResult, error) {
+	usageClient := getUsageClient()
+	return usageClient.List(ctx)
 }

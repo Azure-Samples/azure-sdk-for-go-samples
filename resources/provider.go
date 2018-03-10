@@ -22,6 +22,7 @@ func getProviderClient() resources.ProvidersClient {
 	return providerClient
 }
 
+// RegisterProvider registers an azure resource provider for the subscription
 func RegisterProvider(ctx context.Context, provider string) (resources.Provider, error) {
 	providerClient := getProviderClient()
 	return providerClient.Register(ctx, provider)

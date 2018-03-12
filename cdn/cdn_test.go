@@ -4,9 +4,19 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 )
+
+func TestMain(m *testing.M) {
+	err := helpers.ParseArgs()
+	if err != nil {
+		log.Fatalln("failed to parse args")
+	}
+	os.Exit(m.Run())
+}
 
 func ExampleCheckNameAvailability() {
 	ctx := context.Background()

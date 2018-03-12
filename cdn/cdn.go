@@ -3,8 +3,8 @@ package cdn
 import (
 	"context"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -16,9 +16,9 @@ func getCDNClient() (cdn.BaseClient, error) {
 		return cdn.BaseClient{}, err
 	}
 
-	cdnClient := cdn.New(helpers.SubscriptionID())
+	cdnClient := cdn.New(internal.SubscriptionID())
 	cdnClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	cdnClient.AddToUserAgent(helpers.UserAgent())
+	cdnClient.AddToUserAgent(internal.UserAgent())
 	return cdnClient, nil
 }
 

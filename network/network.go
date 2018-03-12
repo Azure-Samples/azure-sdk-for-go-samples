@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -21,9 +21,9 @@ import (
 
 func getVnetClient() network.VirtualNetworksClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	vnetClient := network.NewVirtualNetworksClient(helpers.SubscriptionID())
+	vnetClient := network.NewVirtualNetworksClient(internal.SubscriptionID())
 	vnetClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	vnetClient.AddToUserAgent(helpers.UserAgent())
+	vnetClient.AddToUserAgent(internal.UserAgent())
 	return vnetClient
 }
 
@@ -32,10 +32,10 @@ func CreateVirtualNetwork(ctx context.Context, vnetName string) (vnet network.Vi
 	vnetClient := getVnetClient()
 	future, err := vnetClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		vnetName,
 		network.VirtualNetwork{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(internal.Location()),
 			VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
 				AddressSpace: &network.AddressSpace{
 					AddressPrefixes: &[]string{"10.0.0.0/8"},
@@ -60,10 +60,10 @@ func CreateVirtualNetworkAndSubnets(ctx context.Context, vnetName, subnet1Name, 
 	vnetClient := getVnetClient()
 	future, err := vnetClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		vnetName,
 		network.VirtualNetwork{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(internal.Location()),
 			VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
 				AddressSpace: &network.AddressSpace{
 					AddressPrefixes: &[]string{"10.0.0.0/8"},
@@ -100,16 +100,16 @@ func CreateVirtualNetworkAndSubnets(ctx context.Context, vnetName, subnet1Name, 
 // DeleteVirtualNetwork deletes a virtual network given an existing virtual network
 func DeleteVirtualNetwork(ctx context.Context, vnetName string) (result network.VirtualNetworksDeleteFuture, err error) {
 	vnetClient := getVnetClient()
-	return vnetClient.Delete(ctx, helpers.ResourceGroupName(), vnetName)
+	return vnetClient.Delete(ctx, internal.ResourceGroupName(), vnetName)
 }
 
 // VNet Subnets
 
 func getSubnetsClient() network.SubnetsClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	subnetsClient := network.NewSubnetsClient(helpers.SubscriptionID())
+	subnetsClient := network.NewSubnetsClient(internal.SubscriptionID())
 	subnetsClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	subnetsClient.AddToUserAgent(helpers.UserAgent())
+	subnetsClient.AddToUserAgent(internal.UserAgent())
 	return subnetsClient
 }
 
@@ -119,7 +119,7 @@ func CreateVirtualNetworkSubnet(ctx context.Context, vnetName, subnetName string
 
 	future, err := subnetsClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		vnetName,
 		subnetName,
 		network.Subnet{
@@ -149,7 +149,7 @@ func CreateSubnetWithNetowrkSecurityGroup(ctx context.Context, vnetName, subnetN
 	subnetsClient := getSubnetsClient()
 	future, err := subnetsClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		vnetName,
 		subnetName,
 		network.Subnet{
@@ -176,16 +176,16 @@ func DeleteVirtualNetworkSubnet() {}
 // GetVirtualNetworkSubnet returns an existing subnet from a virtual network
 func GetVirtualNetworkSubnet(ctx context.Context, vnetName string, subnetName string) (network.Subnet, error) {
 	subnetsClient := getSubnetsClient()
-	return subnetsClient.Get(ctx, helpers.ResourceGroupName(), vnetName, subnetName, "")
+	return subnetsClient.Get(ctx, internal.ResourceGroupName(), vnetName, subnetName, "")
 }
 
 // Network Security Groups
 
 func getNsgClient() network.SecurityGroupsClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	nsgClient := network.NewSecurityGroupsClient(helpers.SubscriptionID())
+	nsgClient := network.NewSecurityGroupsClient(internal.SubscriptionID())
 	nsgClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	nsgClient.AddToUserAgent(helpers.UserAgent())
+	nsgClient.AddToUserAgent(internal.UserAgent())
 	return nsgClient
 }
 
@@ -194,10 +194,10 @@ func CreateNetworkSecurityGroup(ctx context.Context, nsgName string) (nsg networ
 	nsgClient := getNsgClient()
 	future, err := nsgClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		nsgName,
 		network.SecurityGroup{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(internal.Location()),
 			SecurityGroupPropertiesFormat: &network.SecurityGroupPropertiesFormat{
 				SecurityRules: &[]network.SecurityRule{
 					{
@@ -248,10 +248,10 @@ func CreateSimpleNetworkSecurityGroup(ctx context.Context, nsgName string) (nsg 
 	nsgClient := getNsgClient()
 	future, err := nsgClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		nsgName,
 		network.SecurityGroup{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(internal.Location()),
 		},
 	)
 
@@ -270,13 +270,13 @@ func CreateSimpleNetworkSecurityGroup(ctx context.Context, nsgName string) (nsg 
 // DeleteNetworkSecurityGroup deletes an existing network security group
 func DeleteNetworkSecurityGroup(ctx context.Context, nsgName string) (result network.SecurityGroupsDeleteFuture, err error) {
 	nsgClient := getNsgClient()
-	return nsgClient.Delete(ctx, helpers.ResourceGroupName(), nsgName)
+	return nsgClient.Delete(ctx, internal.ResourceGroupName(), nsgName)
 }
 
 // GetNetworkSecurityGroup returns an existing network security group
 func GetNetworkSecurityGroup(ctx context.Context, nsgName string) (network.SecurityGroup, error) {
 	nsgClient := getNsgClient()
-	return nsgClient.Get(ctx, helpers.ResourceGroupName(), nsgName, "")
+	return nsgClient.Get(ctx, internal.ResourceGroupName(), nsgName, "")
 }
 
 // Network Security Group Rules
@@ -291,9 +291,9 @@ func DeleteNetworkSecurityGroupRule() {}
 
 func getNicClient() network.InterfacesClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	nicClient := network.NewInterfacesClient(helpers.SubscriptionID())
+	nicClient := network.NewInterfacesClient(internal.SubscriptionID())
 	nicClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	nicClient.AddToUserAgent(helpers.UserAgent())
+	nicClient.AddToUserAgent(internal.UserAgent())
 	return nicClient
 }
 
@@ -311,7 +311,7 @@ func CreateNIC(ctx context.Context, vnetName, subnetName, nsgName, ipName, nicNa
 
 	nicParams := network.Interface{
 		Name:     to.StringPtr(nicName),
-		Location: to.StringPtr(helpers.Location()),
+		Location: to.StringPtr(internal.Location()),
 		InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
 			IPConfigurations: &[]network.InterfaceIPConfiguration{
 				{
@@ -335,7 +335,7 @@ func CreateNIC(ctx context.Context, vnetName, subnetName, nsgName, ipName, nicNa
 	}
 
 	nicClient := getNicClient()
-	future, err := nicClient.CreateOrUpdate(ctx, helpers.ResourceGroupName(), nicName, nicParams)
+	future, err := nicClient.CreateOrUpdate(ctx, internal.ResourceGroupName(), nicName, nicParams)
 	if err != nil {
 		return nic, fmt.Errorf("cannot create nic: %v", err)
 	}
@@ -362,10 +362,10 @@ func CreateNICWithLoadBalancer(ctx context.Context, lbName, vnetName, subnetName
 
 	nicClient := getNicClient()
 	future, err := nicClient.CreateOrUpdate(ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		nicName,
 		network.Interface{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(internal.Location()),
 			InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
 				IPConfigurations: &[]network.InterfaceIPConfiguration{
 					{
@@ -404,22 +404,22 @@ func CreateNICWithLoadBalancer(ctx context.Context, lbName, vnetName, subnetName
 // GetNic returns an existing network interface
 func GetNic(ctx context.Context, nicName string) (network.Interface, error) {
 	nicClient := getNicClient()
-	return nicClient.Get(ctx, helpers.ResourceGroupName(), nicName, "")
+	return nicClient.Get(ctx, internal.ResourceGroupName(), nicName, "")
 }
 
 // DeleteNic deletes an existing network interface
 func DeleteNic(ctx context.Context, nic string) (result network.InterfacesDeleteFuture, err error) {
 	nicClient := getNicClient()
-	return nicClient.Delete(ctx, helpers.ResourceGroupName(), nic)
+	return nicClient.Delete(ctx, internal.ResourceGroupName(), nic)
 }
 
 // Public IP Addresses
 
 func getIPClient() network.PublicIPAddressesClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	ipClient := network.NewPublicIPAddressesClient(helpers.SubscriptionID())
+	ipClient := network.NewPublicIPAddressesClient(internal.SubscriptionID())
 	ipClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	ipClient.AddToUserAgent(helpers.UserAgent())
+	ipClient.AddToUserAgent(internal.UserAgent())
 	return ipClient
 }
 
@@ -428,11 +428,11 @@ func CreatePublicIP(ctx context.Context, ipName string) (ip network.PublicIPAddr
 	ipClient := getIPClient()
 	future, err := ipClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		ipName,
 		network.PublicIPAddress{
 			Name:     to.StringPtr(ipName),
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(internal.Location()),
 			PublicIPAddressPropertiesFormat: &network.PublicIPAddressPropertiesFormat{
 				PublicIPAddressVersion:   network.IPv4,
 				PublicIPAllocationMethod: network.Static,
@@ -455,20 +455,20 @@ func CreatePublicIP(ctx context.Context, ipName string) (ip network.PublicIPAddr
 // GetPublicIP returns an existing public IP
 func GetPublicIP(ctx context.Context, ipName string) (network.PublicIPAddress, error) {
 	ipClient := getIPClient()
-	return ipClient.Get(ctx, helpers.ResourceGroupName(), ipName, "")
+	return ipClient.Get(ctx, internal.ResourceGroupName(), ipName, "")
 }
 
 // DeletePublicIP deletes an existing public IP
 func DeletePublicIP(ctx context.Context, ipName string) (result network.PublicIPAddressesDeleteFuture, err error) {
 	ipClient := getIPClient()
-	return ipClient.Delete(ctx, helpers.ResourceGroupName(), ipName)
+	return ipClient.Delete(ctx, internal.ResourceGroupName(), ipName)
 }
 
 func getSecurityRulesClient() network.SecurityRulesClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	rulesClient := network.NewSecurityRulesClient(helpers.SubscriptionID())
+	rulesClient := network.NewSecurityRulesClient(internal.SubscriptionID())
 	rulesClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	rulesClient.AddToUserAgent(helpers.UserAgent())
+	rulesClient.AddToUserAgent(internal.UserAgent())
 	return rulesClient
 }
 
@@ -476,7 +476,7 @@ func getSecurityRulesClient() network.SecurityRulesClient {
 func CreateSSHRule(ctx context.Context, nsgName string) (rule network.SecurityRule, err error) {
 	rulesClient := getSecurityRulesClient()
 	future, err := rulesClient.CreateOrUpdate(ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		nsgName,
 		"ALLOW-SSH",
 		network.SecurityRule{
@@ -508,7 +508,7 @@ func CreateSSHRule(ctx context.Context, nsgName string) (rule network.SecurityRu
 func CreateHTTPRule(ctx context.Context, nsgName string) (rule network.SecurityRule, err error) {
 	rulesClient := getSecurityRulesClient()
 	future, err := rulesClient.CreateOrUpdate(ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		nsgName,
 		"ALLOW-HTTP",
 		network.SecurityRule{
@@ -540,7 +540,7 @@ func CreateHTTPRule(ctx context.Context, nsgName string) (rule network.SecurityR
 func CreateSQLRule(ctx context.Context, nsgName, frontEndAddressPrefix string) (rule network.SecurityRule, err error) {
 	rulesClient := getSecurityRulesClient()
 	future, err := rulesClient.CreateOrUpdate(ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		nsgName,
 		"ALLOW-SQL",
 		network.SecurityRule{
@@ -572,7 +572,7 @@ func CreateSQLRule(ctx context.Context, nsgName, frontEndAddressPrefix string) (
 func CreateDenyOutRule(ctx context.Context, nsgName string) (rule network.SecurityRule, err error) {
 	rulesClient := getSecurityRulesClient()
 	future, err := rulesClient.CreateOrUpdate(ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		nsgName,
 		"DENY-OUT",
 		network.SecurityRule{
@@ -604,16 +604,16 @@ func CreateDenyOutRule(ctx context.Context, nsgName string) (rule network.Securi
 
 func getLBClient() network.LoadBalancersClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	lbClient := network.NewLoadBalancersClient(helpers.SubscriptionID())
+	lbClient := network.NewLoadBalancersClient(internal.SubscriptionID())
 	lbClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	lbClient.AddToUserAgent(helpers.UserAgent())
+	lbClient.AddToUserAgent(internal.UserAgent())
 	return lbClient
 }
 
 // GetLoadBalancer gets info on a loadbalancer
 func GetLoadBalancer(ctx context.Context, lbName string) (network.LoadBalancer, error) {
 	lbClient := getLBClient()
-	return lbClient.Get(ctx, helpers.ResourceGroupName(), lbName, "")
+	return lbClient.Get(ctx, internal.ResourceGroupName(), lbName, "")
 }
 
 // CreateLoadBalancer creates a load balancer with 2 inbound NAT rules.
@@ -621,7 +621,7 @@ func CreateLoadBalancer(ctx context.Context, lbName, pipName string) (lb network
 	probeName := "probe"
 	frontEndIPConfigName := "fip"
 	backEndAddressPoolName := "backEndPool"
-	idPrefix := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers", helpers.SubscriptionID(), helpers.ResourceGroupName())
+	idPrefix := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers", internal.SubscriptionID(), internal.ResourceGroupName())
 
 	pip, err := GetPublicIP(ctx, pipName)
 	if err != nil {
@@ -630,10 +630,10 @@ func CreateLoadBalancer(ctx context.Context, lbName, pipName string) (lb network
 
 	lbClient := getLBClient()
 	future, err := lbClient.CreateOrUpdate(ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		lbName,
 		network.LoadBalancer{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(internal.Location()),
 			LoadBalancerPropertiesFormat: &network.LoadBalancerPropertiesFormat{
 				FrontendIPConfigurations: &[]network.FrontendIPConfiguration{
 					{

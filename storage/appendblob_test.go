@@ -9,7 +9,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
@@ -17,46 +17,46 @@ func ExampleAppendBlobOperations() {
 	accountName = getAccountName()
 	containerName = strings.ToLower(containerName)
 
-	helpers.SetResourceGroupName("AppendBlob")
+	internal.SetResourceGroupName("AppendBlob")
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	_, err := resources.CreateGroup(ctx, internal.ResourceGroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
 
 	_, err = CreateStorageAccount(ctx, accountName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created storage account")
+	internal.PrintAndLog("created storage account")
 
 	_, err = CreateContainer(ctx, accountName, containerName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created container")
+	internal.PrintAndLog("created container")
 
 	_, err = CreateAppendBlob(ctx, accountName, containerName, blobName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created append blob")
+	internal.PrintAndLog("created append blob")
 
 	for _, m := range messages {
 		err = AppendToBlob(ctx, accountName, containerName, blobName, m)
 		if err != nil {
-			helpers.PrintAndLog(err.Error())
+			internal.PrintAndLog(err.Error())
 		}
-		helpers.PrintAndLog("appended data to blob")
+		internal.PrintAndLog("appended data to blob")
 	}
 
 	message, err := GetBlob(ctx, accountName, containerName, blobName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("downloaded blob")
-	helpers.PrintAndLog(message)
+	internal.PrintAndLog("downloaded blob")
+	internal.PrintAndLog(message)
 
 	// Output:
 	// created storage account

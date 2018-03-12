@@ -11,12 +11,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 func TestMain(m *testing.M) {
-	err := helpers.ParseArgs()
+	err := internal.ParseArgs()
 	if err != nil {
 		log.Fatalln("failed to parse args")
 	}
@@ -25,41 +25,41 @@ func TestMain(m *testing.M) {
 }
 
 func ExampleAssignRole() {
-	helpers.SetResourceGroupName("AssignRole")
+	internal.SetResourceGroupName("AssignRole")
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	_, err := resources.CreateGroup(ctx, internal.ResourceGroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
 
 	list, err := ListRoles(ctx, "roleName eq 'Contributor'")
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("got role definitions list")
+	internal.PrintAndLog("got role definitions list")
 
-	rgRole, err := AssignRole(ctx, helpers.ServicePrincipalObjectID(), *list.Values()[0].ID)
+	rgRole, err := AssignRole(ctx, internal.ServicePrincipalObjectID(), *list.Values()[0].ID)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("role assigned with resource group scope")
+	internal.PrintAndLog("role assigned with resource group scope")
 
-	subRole, err := AssignRoleWithSubscriptionScope(ctx, helpers.ServicePrincipalObjectID(), *list.Values()[0].ID)
+	subRole, err := AssignRoleWithSubscriptionScope(ctx, internal.ServicePrincipalObjectID(), *list.Values()[0].ID)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("role assigned with subscription scope")
+	internal.PrintAndLog("role assigned with subscription scope")
 
-	if !helpers.KeepResources() {
+	if !internal.KeepResources() {
 		DeleteRoleAssignment(ctx, *rgRole.ID)
 		if err != nil {
-			helpers.PrintAndLog(err.Error())
+			internal.PrintAndLog(err.Error())
 		}
 
 		DeleteRoleAssignment(ctx, *subRole.ID)
 		if err != nil {
-			helpers.PrintAndLog(err.Error())
+			internal.PrintAndLog(err.Error())
 		}
 	}
 

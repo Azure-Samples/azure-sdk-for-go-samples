@@ -12,7 +12,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
@@ -29,18 +29,18 @@ func TestMain(m *testing.M) {
 }
 
 func parseArgs() error {
-	err := helpers.ParseArgs()
+	err := internal.ParseArgs()
 	if err != nil {
 		return fmt.Errorf("cannot parse args: %v", err)
 	}
 
 	containerGroupName = os.Getenv("AZ_CONTAINERINSTANCE_CONTAINER_GROUP_NAME")
 	if !(len(containerGroupName) > 0) {
-		containerGroupName = "az-samples-go-container-group-" + helpers.GetRandomLetterSequence(10)
+		containerGroupName = "az-samples-go-container-group-" + internal.GetRandomLetterSequence(10)
 	}
 
 	// Container instance is not yet available in many Azure locations
-	helpers.OverrideLocation([]string{
+	internal.OverrideLocation([]string{
 		"westus",
 		"eastus",
 		"westeurope",
@@ -49,45 +49,45 @@ func parseArgs() error {
 }
 
 func ExampleCreateContainerGroup() {
-	helpers.SetResourceGroupName("CreateContainerGroup")
+	internal.SetResourceGroupName("CreateContainerGroup")
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	_, err := resources.CreateGroup(ctx, internal.ResourceGroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
 
-	_, err = CreateContainerGroup(ctx, containerGroupName, helpers.Location(), helpers.ResourceGroupName())
+	_, err = CreateContainerGroup(ctx, containerGroupName, internal.Location(), internal.ResourceGroupName())
 	if err != nil {
 		log.Fatalf("cannot create container group: %v", err)
 	}
 
-	helpers.PrintAndLog("created container group")
+	internal.PrintAndLog("created container group")
 
-	c, err := GetContainerGroup(ctx, helpers.ResourceGroupName(), containerGroupName)
+	c, err := GetContainerGroup(ctx, internal.ResourceGroupName(), containerGroupName)
 	if err != nil {
-		log.Fatalf("cannot get container group %v from resource group %v", containerGroupName, helpers.ResourceGroupName())
+		log.Fatalf("cannot get container group %v from resource group %v", containerGroupName, internal.ResourceGroupName())
 	}
 
 	if *c.Name != containerGroupName {
 		log.Fatalf("incorrect name of container group: expected %v, got %v", containerGroupName, *c.Name)
 	}
 
-	helpers.PrintAndLog("retrieved container group")
+	internal.PrintAndLog("retrieved container group")
 
-	_, err = UpdateContainerGroup(ctx, helpers.ResourceGroupName(), containerGroupName)
+	_, err = UpdateContainerGroup(ctx, internal.ResourceGroupName(), containerGroupName)
 	if err != nil {
 		log.Fatalf("cannot upate container group: %v", err)
 	}
 
-	helpers.PrintAndLog("updated container group")
+	internal.PrintAndLog("updated container group")
 
-	_, err = DeleteContainerGroup(ctx, helpers.ResourceGroupName(), containerGroupName)
+	_, err = DeleteContainerGroup(ctx, internal.ResourceGroupName(), containerGroupName)
 	if err != nil {
-		log.Fatalf("cannot delete container group %v from resource group %v: %v", containerGroupName, helpers.ResourceGroupName(), err)
+		log.Fatalf("cannot delete container group %v from resource group %v: %v", containerGroupName, internal.ResourceGroupName(), err)
 	}
 
-	helpers.PrintAndLog("deleted container group")
+	internal.PrintAndLog("deleted container group")
 
 	// Output:
 	// created container group

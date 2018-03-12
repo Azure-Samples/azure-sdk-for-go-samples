@@ -13,7 +13,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -21,9 +21,9 @@ import (
 )
 
 var (
-	vmName           = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
-	diskName         = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
-	nicName          = "nic" + helpers.GetRandomLetterSequence(10)
+	vmName           = "az-samples-go-" + internal.GetRandomLetterSequence(10)
+	diskName         = "az-samples-go-" + internal.GetRandomLetterSequence(10)
+	nicName          = "nic" + internal.GetRandomLetterSequence(10)
 	username         = "az-samples-go-user"
 	password         = "NoSoupForYou1!"
 	sshPublicKeyPath = os.Getenv("HOME") + "/.ssh/id_rsa.pub"
@@ -51,7 +51,7 @@ func parseArgs() error {
 	virtualNetworkName = os.Getenv("AZ_VNET_NAME")
 	flag.StringVar(&virtualNetworkName, "vnetName", virtualNetworkName, "Specify a name for the vnet.")
 
-	err := helpers.ParseArgs()
+	err := internal.ParseArgs()
 	if err != nil {
 		return fmt.Errorf("cannot parse args: %v", err)
 	}
@@ -64,43 +64,43 @@ func parseArgs() error {
 }
 
 func ExampleCreateVM() {
-	helpers.SetResourceGroupName("CreateVM")
+	internal.SetResourceGroupName("CreateVM")
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	_, err := resources.CreateGroup(ctx, internal.ResourceGroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
 
 	_, err = network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created vnet and 2 subnets")
+	internal.PrintAndLog("created vnet and 2 subnets")
 
 	_, err = network.CreateNetworkSecurityGroup(ctx, nsgName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created network security group")
+	internal.PrintAndLog("created network security group")
 
 	_, err = network.CreatePublicIP(ctx, ipName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created public IP")
+	internal.PrintAndLog("created public IP")
 
 	_, err = network.CreateNIC(ctx, virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created nic")
+	internal.PrintAndLog("created nic")
 
 	_, err = CreateVM(ctx, vmName, nicName, username, password, sshPublicKeyPath)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created VM")
+	internal.PrintAndLog("created VM")
 
 	// Now that the Vm has been created, we can do some simple operations on the VM
 
@@ -109,45 +109,45 @@ func ExampleCreateVM() {
 		"where":     to.StringPtr("on azure"),
 	})
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("updated VM")
+	internal.PrintAndLog("updated VM")
 
 	_, err = AttachDataDisks(ctx, vmName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("attached data disks")
+	internal.PrintAndLog("attached data disks")
 
 	_, err = DetachDataDisks(ctx, vmName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("detached data disks")
+	internal.PrintAndLog("detached data disks")
 
 	_, err = UpdateOSDiskSize(ctx, vmName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("updated OS disk size")
+	internal.PrintAndLog("updated OS disk size")
 
 	_, err = StartVM(ctx, vmName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("started VM")
+	internal.PrintAndLog("started VM")
 
 	_, err = RestartVM(ctx, vmName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("restarted VM")
+	internal.PrintAndLog("restarted VM")
 
 	_, err = PowerOffVM(ctx, vmName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("stopped VM")
+	internal.PrintAndLog("stopped VM")
 
 	// Output:
 	// created vnet and 2 subnets

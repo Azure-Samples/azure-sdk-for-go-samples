@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
@@ -30,14 +30,14 @@ func TestMain(m *testing.M) {
 }
 
 func parseArgs() error {
-	err := helpers.ParseArgs()
+	err := internal.ParseArgs()
 	if err != nil {
 		return fmt.Errorf("cannot parse args: %v", err)
 	}
 
 	resourceName = os.Getenv("AZ_AKS_NAME")
 	if !(len(resourceName) > 0) {
-		resourceName = "az-samples-go-aks-" + helpers.GetRandomLetterSequence(10)
+		resourceName = "az-samples-go-aks-" + internal.GetRandomLetterSequence(10)
 	}
 
 	clientID = os.Getenv("AZ_CLIENT_ID")
@@ -51,10 +51,10 @@ func parseArgs() error {
 		agentPoolCount = int32(i)
 	}
 
-	helpers.OverrideCanaryLocation("eastus2euap")
+	internal.OverrideCanaryLocation("eastus2euap")
 
 	// AKS managed clusters are not yet available in many Azure locations
-	helpers.OverrideLocation([]string{
+	internal.OverrideLocation([]string{
 		"eastus",
 		"westeurope",
 		"centralus",
@@ -65,34 +65,34 @@ func parseArgs() error {
 }
 
 func ExampleCreateAKS() {
-	helpers.SetResourceGroupName("CreateAKS")
+	internal.SetResourceGroupName("CreateAKS")
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	_, err := resources.CreateGroup(ctx, internal.ResourceGroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
 
-	_, err = CreateAKS(ctx, resourceName, helpers.Location(), helpers.ResourceGroupName(), username, sshPublicKeyPath, clientID, clientSecret, agentPoolCount)
+	_, err = CreateAKS(ctx, resourceName, internal.Location(), internal.ResourceGroupName(), username, sshPublicKeyPath, clientID, clientSecret, agentPoolCount)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
 
-	helpers.PrintAndLog("created AKS cluster")
+	internal.PrintAndLog("created AKS cluster")
 
-	_, err = GetAKS(ctx, helpers.ResourceGroupName(), resourceName)
+	_, err = GetAKS(ctx, internal.ResourceGroupName(), resourceName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
 
-	helpers.PrintAndLog("retrieved AKS cluster")
+	internal.PrintAndLog("retrieved AKS cluster")
 
-	_, err = DeleteAKS(ctx, helpers.ResourceGroupName(), resourceName)
+	_, err = DeleteAKS(ctx, internal.ResourceGroupName(), resourceName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
 
-	helpers.PrintAndLog("deleted AKS cluster")
+	internal.PrintAndLog("deleted AKS cluster")
 
 	// Output:
 	// created AKS cluster

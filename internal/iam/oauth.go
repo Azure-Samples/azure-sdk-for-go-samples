@@ -12,7 +12,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -57,7 +57,7 @@ func init() {
 }
 
 func parseArgs() error {
-	err := helpers.LoadEnvVars()
+	err := internal.LoadEnvVars()
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func ClientSecret() string {
 
 // AuthGrantType returns what kind of authentication is going to be used: device flow or service principal
 func AuthGrantType() OAuthGrantType {
-	if helpers.DeviceFlow() {
+	if internal.DeviceFlow() {
 		return OAuthGrantTypeDeviceFlow
 	}
 	return OAuthGrantTypeServicePrincipal

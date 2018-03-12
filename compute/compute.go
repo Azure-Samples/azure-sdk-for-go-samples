@@ -12,8 +12,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/Azure/go-autorest/autorest"
@@ -31,25 +31,25 @@ var fakepubkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7laRyN4B3YZmVrDEZLZoIuU
 
 func getVMClient() compute.VirtualMachinesClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	vmClient := compute.NewVirtualMachinesClient(helpers.SubscriptionID())
+	vmClient := compute.NewVirtualMachinesClient(internal.SubscriptionID())
 	vmClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	vmClient.AddToUserAgent(helpers.UserAgent())
+	vmClient.AddToUserAgent(internal.UserAgent())
 	return vmClient
 }
 
 func getExtensionClient() compute.VirtualMachineExtensionsClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	extClient := compute.NewVirtualMachineExtensionsClient(helpers.SubscriptionID())
+	extClient := compute.NewVirtualMachineExtensionsClient(internal.SubscriptionID())
 	extClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	extClient.AddToUserAgent(helpers.UserAgent())
+	extClient.AddToUserAgent(internal.UserAgent())
 	return extClient
 }
 
 func getDisksClient() compute.DisksClient {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	disksClient := compute.NewDisksClient(helpers.SubscriptionID())
+	disksClient := compute.NewDisksClient(internal.SubscriptionID())
 	disksClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	disksClient.AddToUserAgent(helpers.UserAgent())
+	disksClient.AddToUserAgent(internal.UserAgent())
 	return disksClient
 }
 
@@ -72,10 +72,10 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, sshPubli
 	vmClient := getVMClient()
 	future, err := vmClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		internal.ResourceGroupName(),
 		vmName,
 		compute.VirtualMachine{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(internal.Location()),
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
 				HardwareProfile: &compute.HardwareProfile{
 					VMSize: compute.StandardDS1V2,
@@ -131,7 +131,7 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, sshPubli
 // GetVM gets the specified VM info
 func GetVM(ctx context.Context, vmName string) (compute.VirtualMachine, error) {
 	vmClient := getVMClient()
-	return vmClient.Get(ctx, helpers.ResourceGroupName(), vmName, compute.InstanceView)
+	return vmClient.Get(ctx, internal.ResourceGroupName(), vmName, compute.InstanceView)
 }
 
 // UpdateVM adds tags to the VM
@@ -144,7 +144,7 @@ func UpdateVM(ctx context.Context, vmName string, tags map[string]*string) (vm c
 	vm.Tags = tags
 
 	vmClient := getVMClient()
-	future, err := vmClient.CreateOrUpdate(ctx, helpers.ResourceGroupName(), vmName, vm)
+	future, err := vmClient.CreateOrUpdate(ctx, internal.ResourceGroupName(), vmName, vm)
 	if err != nil {
 		return vm, fmt.Errorf("cannot update vm: %v", err)
 	}
@@ -174,7 +174,7 @@ func AttachDataDisks(ctx context.Context, vmName string) (vm compute.VirtualMach
 	}
 
 	vmClient := getVMClient()
-	future, err := vmClient.CreateOrUpdate(ctx, helpers.ResourceGroupName(), vmName, vm)
+	future, err := vmClient.CreateOrUpdate(ctx, internal.ResourceGroupName(), vmName, vm)
 	if err != nil {
 		return vm, fmt.Errorf("cannot update vm: %v", err)
 	}
@@ -197,7 +197,7 @@ func DetachDataDisks(ctx context.Context, vmName string) (vm compute.VirtualMach
 	vm.StorageProfile.DataDisks = &[]compute.DataDisk{}
 
 	vmClient := getVMClient()
-	future, err := vmClient.CreateOrUpdate(ctx, helpers.ResourceGroupName(), vmName, vm)
+	future, err := vmClient.CreateOrUpdate(ctx, internal.ResourceGroupName(), vmName, vm)
 	if err != nil {
 		return vm, fmt.Errorf("cannot update vm: %v", err)
 	}
@@ -213,7 +213,7 @@ func DetachDataDisks(ctx context.Context, vmName string) (vm compute.VirtualMach
 // Deallocate deallocates the selected VM
 func Deallocate(ctx context.Context, vmName string) (osr compute.OperationStatusResponse, err error) {
 	vmClient := getVMClient()
-	future, err := vmClient.Deallocate(ctx, helpers.ResourceGroupName(), vmName)
+	future, err := vmClient.Deallocate(ctx, internal.ResourceGroupName(), vmName)
 	if err != nil {
 		return osr, fmt.Errorf("cannot deallocate vm: %v", err)
 	}
@@ -228,7 +228,7 @@ func Deallocate(ctx context.Context, vmName string) (osr compute.OperationStatus
 
 func getDisk(ctx context.Context, diskName string) (disk compute.Disk, err error) {
 	disksClient := getDisksClient()
-	return disksClient.Get(ctx, helpers.ResourceGroupName(), diskName)
+	return disksClient.Get(ctx, internal.ResourceGroupName(), diskName)
 }
 
 // UpdateOSDiskSize increases the selected VM's OS disk size
@@ -253,7 +253,7 @@ func UpdateOSDiskSize(ctx context.Context, vmName string) (d compute.Disk, err e
 	}
 
 	disksClient := getDisksClient()
-	future, err := disksClient.Update(ctx, helpers.ResourceGroupName(), *vm.StorageProfile.OsDisk.Name, compute.DiskUpdate{
+	future, err := disksClient.Update(ctx, internal.ResourceGroupName(), *vm.StorageProfile.OsDisk.Name, compute.DiskUpdate{
 		DiskUpdateProperties: &compute.DiskUpdateProperties{
 			DiskSizeGB: size,
 		},
@@ -270,7 +270,7 @@ func UpdateOSDiskSize(ctx context.Context, vmName string) (d compute.Disk, err e
 // StartVM starts the selected VM
 func StartVM(ctx context.Context, vmName string) (osr compute.OperationStatusResponse, err error) {
 	vmClient := getVMClient()
-	future, err := vmClient.Start(ctx, helpers.ResourceGroupName(), vmName)
+	future, err := vmClient.Start(ctx, internal.ResourceGroupName(), vmName)
 	if err != nil {
 		return osr, fmt.Errorf("cannot start vm: %v", err)
 	}
@@ -286,7 +286,7 @@ func StartVM(ctx context.Context, vmName string) (osr compute.OperationStatusRes
 // RestartVM restarts the selected VM
 func RestartVM(ctx context.Context, vmName string) (osr compute.OperationStatusResponse, err error) {
 	vmClient := getVMClient()
-	future, err := vmClient.Restart(ctx, helpers.ResourceGroupName(), vmName)
+	future, err := vmClient.Restart(ctx, internal.ResourceGroupName(), vmName)
 	if err != nil {
 		return osr, fmt.Errorf("cannot restart vm: %v", err)
 	}
@@ -302,7 +302,7 @@ func RestartVM(ctx context.Context, vmName string) (osr compute.OperationStatusR
 // PowerOffVM stops the selected VM
 func PowerOffVM(ctx context.Context, vmName string) (osr compute.OperationStatusResponse, err error) {
 	vmClient := getVMClient()
-	future, err := vmClient.PowerOff(ctx, helpers.ResourceGroupName(), vmName)
+	future, err := vmClient.PowerOff(ctx, internal.ResourceGroupName(), vmName)
 	if err != nil {
 		return osr, fmt.Errorf("cannot power off vm: %v", err)
 	}

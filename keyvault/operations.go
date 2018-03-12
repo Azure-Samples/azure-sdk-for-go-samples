@@ -3,28 +3,28 @@ package keyvault
 import (
 	"context"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 var (
-	keyName = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
+	keyName = "az-samples-go-" + internal.GetRandomLetterSequence(10)
 )
 
 func getKeysClient() keyvault.BaseClient {
 	token, _ := iam.GetKeyvaultToken(iam.AuthGrantType())
 	vmClient := keyvault.New()
 	vmClient.Authorizer = token
-	vmClient.AddToUserAgent(helpers.UserAgent())
+	vmClient.AddToUserAgent(internal.UserAgent())
 	return vmClient
 }
 
 // CreateKeyBundle creates a key in the specified keyvault
 func CreateKeyBundle(ctx context.Context, vaultName string) (key keyvault.KeyBundle, err error) {
 	vaultsClient := getVaultsClient()
-	vault, err := vaultsClient.Get(ctx, helpers.ResourceGroupName(), vaultName)
+	vault, err := vaultsClient.Get(ctx, internal.ResourceGroupName(), vaultName)
 	if err != nil {
 		return
 	}

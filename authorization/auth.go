@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/go-autorest/autorest"
@@ -15,17 +15,17 @@ import (
 
 func getRoleDefClient() (authorization.RoleDefinitionsClient, error) {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	roleDefClient := authorization.NewRoleDefinitionsClient(helpers.SubscriptionID())
+	roleDefClient := authorization.NewRoleDefinitionsClient(internal.SubscriptionID())
 	roleDefClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	roleDefClient.AddToUserAgent(helpers.UserAgent())
+	roleDefClient.AddToUserAgent(internal.UserAgent())
 	return roleDefClient, nil
 }
 
 func getRoleClient() (authorization.RoleAssignmentsClient, error) {
 	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	roleClient := authorization.NewRoleAssignmentsClient(helpers.SubscriptionID())
+	roleClient := authorization.NewRoleAssignmentsClient(internal.SubscriptionID())
 	roleClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	roleClient.AddToUserAgent(helpers.UserAgent())
+	roleClient.AddToUserAgent(internal.UserAgent())
 	return roleClient, nil
 }
 
@@ -58,7 +58,7 @@ func AssignRole(ctx context.Context, principalID, roleDefID string) (role author
 
 // AssignRoleWithSubscriptionScope assigns a role, with a subscription scope
 func AssignRoleWithSubscriptionScope(ctx context.Context, principalID, roleDefID string) (role authorization.RoleAssignment, err error) {
-	scope := fmt.Sprintf("/subscriptions/%s", helpers.SubscriptionID())
+	scope := fmt.Sprintf("/subscriptions/%s", internal.SubscriptionID())
 
 	roleClient, _ := getRoleClient()
 	return roleClient.Create(ctx, scope, uuid.NewV1().String(), authorization.RoleAssignmentCreateParameters{

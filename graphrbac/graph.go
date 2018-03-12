@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
@@ -16,7 +16,7 @@ func getServicePrincipalClient() graphrbac.ServicePrincipalsClient {
 	token, _ := iam.GetGraphToken(iam.AuthGrantType())
 	spClient := graphrbac.NewServicePrincipalsClient(iam.TenantID())
 	spClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	spClient.AddToUserAgent(helpers.UserAgent())
+	spClient.AddToUserAgent(internal.UserAgent())
 	return spClient
 }
 
@@ -24,7 +24,7 @@ func getApplicationsClient() graphrbac.ApplicationsClient {
 	token, _ := iam.GetGraphToken(iam.AuthGrantType())
 	appClient := graphrbac.NewApplicationsClient(iam.TenantID())
 	appClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	appClient.AddToUserAgent(helpers.UserAgent())
+	appClient.AddToUserAgent(internal.UserAgent())
 	return appClient
 }
 
@@ -44,7 +44,7 @@ func CreateADApplication(ctx context.Context) (graphrbac.Application, error) {
 		AvailableToOtherTenants: to.BoolPtr(false),
 		DisplayName:             to.StringPtr("go SDK samples"),
 		Homepage:                to.StringPtr("http://gosdksamples"),
-		IdentifierUris:          &[]string{"http://gosdksamples" + helpers.GetRandomLetterSequence(10)},
+		IdentifierUris:          &[]string{"http://gosdksamples" + internal.GetRandomLetterSequence(10)},
 	})
 }
 
@@ -73,7 +73,7 @@ func getObjectsClient() graphrbac.ObjectsClient {
 	token, _ := iam.GetGraphToken(iam.AuthGrantType())
 	objClient := graphrbac.NewObjectsClient(iam.TenantID())
 	objClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	objClient.AddToUserAgent(helpers.UserAgent())
+	objClient.AddToUserAgent(internal.UserAgent())
 	return objClient
 }
 

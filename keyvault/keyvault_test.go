@@ -12,18 +12,18 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 var (
-	vaultName = "vault-sample-go-" + helpers.GetRandomLetterSequence(5)
+	vaultName = "vault-sample-go-" + internal.GetRandomLetterSequence(5)
 )
 
 func TestMain(m *testing.M) {
 	flag.StringVar(&vaultName, "vaultName", vaultName, "Specify name of vault to create.")
 
-	err := helpers.ParseArgs()
+	err := internal.ParseArgs()
 	if err != nil {
 		log.Fatalln("failed to parse args")
 	}
@@ -31,25 +31,25 @@ func TestMain(m *testing.M) {
 }
 
 func ExampleSetVaultPermissions() {
-	helpers.SetResourceGroupName("SetVaultPermissions")
+	internal.SetResourceGroupName("SetVaultPermissions")
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	_, err := resources.CreateGroup(ctx, internal.ResourceGroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
 
 	_, err = CreateVault(ctx, vaultName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("vault created")
+	internal.PrintAndLog("vault created")
 
 	_, err = SetVaultPermissions(ctx, vaultName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		internal.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("set vault permissions")
+	internal.PrintAndLog("set vault permissions")
 
 	// Output:
 	// vault created

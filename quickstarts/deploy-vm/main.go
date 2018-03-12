@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"io/ioutil"
 	"log"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -89,11 +89,11 @@ func createGroup() (group resources.Group, err error) {
 
 // Create the deployment
 func createDeployment() (deployment resources.DeploymentExtended, err error) {
-	template, err := helpers.ReadJSON(templateFile)
+	template, err := readJSON(templateFile)
 	if err != nil {
 		return
 	}
-	params, err := helpers.ReadJSON(parametersFile)
+	params, err := readJSON(parametersFile)
 	if err != nil {
 		return
 	}
@@ -125,7 +125,7 @@ func createDeployment() (deployment resources.DeploymentExtended, err error) {
 
 // Get login information by querying the deployed public IP resource.
 func getLogin() {
-	params, err := helpers.ReadJSON(parametersFile)
+	params, err := readJSON(parametersFile)
 	if err != nil {
 		log.Fatalf("Unable to read parameters. Get login information with `az network public-ip list -g %s", resourceGroupName)
 	}
@@ -145,4 +145,14 @@ func getLogin() {
 		vmUser["value"].(string),
 		*ipAddress.PublicIPAddressPropertiesFormat.IPAddress,
 		vmPass["value"].(string))
+}
+
+func readJSON(path string) (*map[string]interface{}, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatalf("failed to read template file: %v\n", err)
+	}
+	contents := make(map[string]interface{})
+	json.Unmarshal(data, &contents)
+	return &contents, nil
 }

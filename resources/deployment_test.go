@@ -25,8 +25,8 @@ func ExampleCreateTemplateDeployment() {
 
 	gopath := build.Default.GOPATH
 	repo := filepath.Join("github.com", "Azure-Samples", "azure-sdk-for-go-samples")
-	templateFile := filepath.Join(gopath, "src", repo, "testdata", "template.json")
-	parametersFile := filepath.Join(gopath, "src", repo, "testdata", "parameters.json")
+	templateFile := filepath.Join(gopath, "src", repo, "resources", "testdata", "template.json")
+	parametersFile := filepath.Join(gopath, "src", repo, "resources", "testdata", "parameters.json")
 	deployName := "VMdeploy"
 
 	template, err := helpers.ReadJSON(templateFile)

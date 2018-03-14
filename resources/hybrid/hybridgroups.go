@@ -35,11 +35,13 @@ func getGroupsClient() resources.GroupsClient {
 func CreateGroup(cntx context.Context) (resources.Group, error) {
 	groupClient := getGroupsClient()
 	location := helpers.Location()
+	helpers.SetResourceGroupName("hybridResourceGroup")
 	return groupClient.CreateOrUpdate(cntx, helpers.ResourceGroupName(), resources.Group{Location: &location})
 }
 
 // DeleteGroup removes the resource group named by env var
 func DeleteGroup(ctx context.Context) (result resources.GroupsDeleteFuture, err error) {
 	groupsClient := getGroupsClient()
+	helpers.SetResourceGroupName("hybridResourceGroup")
 	return groupsClient.Delete(ctx, helpers.ResourceGroupName())
 }

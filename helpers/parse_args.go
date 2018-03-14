@@ -12,10 +12,12 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/subosito/gotenv"
 )
 
 var (
+<<<<<<< HEAD
 	resourceGroupNamePrefix  string
 	resourceGroupName        string
 	location                 string
@@ -23,6 +25,20 @@ var (
 	servicePrincipalObjectID string
 	keepResources            bool
 	deviceFlow               bool
+=======
+	resourceGroupName         string
+	location                  string
+	subscriptionID            string
+	keepResources             bool
+	deviceFlow                bool
+	armEndpointString         string
+	activeDirectoryResourceID string
+	storageEndpointSuffix     string
+	activeDirectoryEndpoint   string
+	tenantID                  string
+	clientID                  string
+	clientSecret              string
+>>>>>>> modified oauth and parser_args to meet azure stack needs
 
 	allLocations = []string{
 		"eastasia",
@@ -82,6 +98,11 @@ func ParseArgs() error {
 	if os.Getenv("AZ_SAMPLES_KEEP_RESOURCES") == "1" {
 		keepResources = true
 	}
+	armEndpointString = os.Getenv("AZ_ARM_ENDPOINT")
+	storageEndpointSuffix = os.Getenv("AZ_STORAGE_SUFFIX")
+	tenantID = os.Getenv("AZ_TENANT_ID")
+	clientID = os.Getenv("AZ_CLIENT_ID")
+	clientSecret = os.Getenv("AZ_CLIENT_SECRET")
 
 	// flags override envvars
 	flag.StringVar(&resourceGroupNamePrefix, "groupPrefix", GroupPrefix(), "Specify prefix name of resource group for sample resources.")
@@ -97,6 +118,29 @@ func ParseArgs() error {
 	if !(len(location) > 0) {
 		location = "westus2" // lots of space, most new features
 	}
+
+	if !(len(armEndpointString) > 0) {
+		armEndpointString = "https://management.azure.com/"
+	}
+
+	if !(len(storageEndpointSuffix) > 0) {
+		storageEndpointSuffix = "core.windows.net"
+	}
+
+	err = GetAadResourceID(armEndpointString, &activeDirectoryResourceID, &activeDirectoryEndpoint)
+	if err != nil {
+		activeDirectoryResourceID = azure.PublicCloud.ActiveDirectoryEndpoint
+		activeDirectoryEndpoint = azure.PublicCloud.ActiveDirectoryEndpoint
+	}
+
+	if !(len(activeDirectoryResourceID) > 0) {
+		activeDirectoryResourceID = azure.PublicCloud.ActiveDirectoryEndpoint
+	}
+
+	if !(len(activeDirectoryEndpoint) > 0) {
+		activeDirectoryEndpoint = azure.PublicCloud.ActiveDirectoryEndpoint
+	}
+
 	return nil
 }
 
@@ -170,6 +214,41 @@ func GroupPrefix() string {
 // DeviceFlow returns if device flow has been set as auth grant type
 func DeviceFlow() bool {
 	return deviceFlow
+}
+
+// ArmEndpoint specifies resource manager URI
+func ArmEndpoint() string {
+	return armEndpointString
+}
+
+// ActiveDirectoryResourceID specifies active directory resource ID
+func ActiveDirectoryResourceID() string {
+	return activeDirectoryResourceID
+}
+
+// ActiveDirectoryEndpoint specifies active directory endpoint
+func ActiveDirectoryEndpoint() string {
+	return activeDirectoryEndpoint
+}
+
+// StorageEndpointSuffix specifies storage endpoint suffix
+func StorageEndpointSuffix() string {
+	return storageEndpointSuffix
+}
+
+// ClientID gets the client ID
+func ClientID() string {
+	return clientID
+}
+
+// TenantID gets the client ID
+func TenantID() string {
+	return tenantID
+}
+
+// ClientSecret gets the client ID
+func ClientSecret() string {
+	return clientSecret
 }
 
 // end getters

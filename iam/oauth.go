@@ -163,7 +163,24 @@ func getToken(grantType OAuthGrantType, endpoint string) (token adal.OAuthTokenP
 	return
 }
 
+<<<<<<< HEAD
 func getServicePrincipalToken(endpoint string) (adal.OAuthTokenProvider, error) {
+=======
+// GetResourceManagementTokenHybrid retrieves auth token for hybrid environment
+func GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tenantID, clientID, clientSecret, activeDirectoryResourceID string) (adal.OAuthTokenProvider, error) {
+	var token adal.OAuthTokenProvider
+	oauthConfig, err := adal.NewOAuthConfig(activeDirectoryEndpoint, tenantID)
+	token, err = adal.NewServicePrincipalToken(
+		*oauthConfig,
+		clientID,
+		clientSecret,
+		activeDirectoryResourceID)
+
+	return token, err
+}
+
+func getServicePrincipalToken() (adal.OAuthTokenProvider, error) {
+>>>>>>> modified oauth and parser_args to meet azure stack needs
 	return adal.NewServicePrincipalToken(
 		*oauthConfig,
 		clientID,

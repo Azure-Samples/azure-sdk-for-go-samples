@@ -17,18 +17,11 @@ import (
 )
 
 var (
-<<<<<<< HEAD
-	resourceGroupNamePrefix  string
-	resourceGroupName        string
-	location                 string
-	subscriptionID           string
-	servicePrincipalObjectID string
-	keepResources            bool
-	deviceFlow               bool
-=======
+	resourceGroupNamePrefix   string
 	resourceGroupName         string
 	location                  string
 	subscriptionID            string
+	servicePrincipalObjectID  string
 	keepResources             bool
 	deviceFlow                bool
 	armEndpointString         string
@@ -38,7 +31,6 @@ var (
 	tenantID                  string
 	clientID                  string
 	clientSecret              string
->>>>>>> modified oauth and parser_args to meet azure stack needs
 
 	allLocations = []string{
 		"eastasia",

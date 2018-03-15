@@ -27,9 +27,6 @@ const (
 	errorPrefix = "Cannot create VM, reason: %v"
 )
 
-// fakepubkey is used if a key isn't available at the specified path in CreateVM(...)
-var fakepubkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7laRyN4B3YZmVrDEZLZoIuUA72pQ0DpGuZBZWykCofIfCPrFZAJgFvonKGgKJl6FGKIunkZL9Us/mV4ZPkZhBlE7uX83AAf5i9Q8FmKpotzmaxN10/1mcnEE7pFvLoSkwqrQSkrrgSm8zaJ3g91giXSbtqvSIj/vk2f05stYmLfhAwNo3Oh27ugCakCoVeuCrZkvHMaJgcYrIGCuFo6q0Pfk9rsZyriIqEa9AtiUOtViInVYdby7y71wcbl0AbbCZsTSqnSoVxm2tRkOsXV6+8X4SnwcmZbao3H+zfO1GBhQOLxJ4NQbzAa8IJh810rYARNLptgmsd4cYXVOSosTX azureuser"
-
 func getVMClient() compute.VirtualMachinesClient {
 	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
 	if err != nil {
@@ -46,17 +43,6 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, storageA
 	cntx := context.Background()
 	nic, _ := hybridnetwork.GetNic(cntx, nicName)
 
-	var sshKeyData string
-	_, err = os.Stat(sshPublicKeyPath)
-	if err == nil {
-		sshBytes, err := ioutil.ReadFile(sshPublicKeyPath)
-		if err != nil {
-			log.Fatalf(fmt.Sprintf(errorPrefix, fmt.Sprintf("failed to read SSH key data: %v", err)))
-		}
-		sshKeyData = string(sshBytes)
-	} else {
-		sshKeyData = fakepubkey
-	}
 	vhdURItemplate := "https://%s.blob." + helpers.StorageEndpointSuffix() + "/vhds/%s.vhd"
 	vmClient := getVMClient()
 	hardwareProfile := &compute.HardwareProfile{
@@ -81,17 +67,28 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, storageA
 		ComputerName:  to.StringPtr(vmName),
 		AdminUsername: to.StringPtr(username),
 		AdminPassword: to.StringPtr(password),
-		LinuxConfiguration: &compute.LinuxConfiguration{
+	}
+
+	_, err = os.Stat(sshPublicKeyPath)
+	if err == nil {
+		sshBytes, err := ioutil.ReadFile(sshPublicKeyPath)
+		if err != nil {
+			log.Fatalf(fmt.Sprintf(errorPrefix, fmt.Sprintf("failed to read SSH key data: %v", err)))
+		}
+
+		// if a key is available at the specified path then populate LinuxConfiguration
+		osProfile.LinuxConfiguration = &compute.LinuxConfiguration{
 			SSH: &compute.SSHConfiguration{
 				PublicKeys: &[]compute.SSHPublicKey{
 					{
 						Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", username)),
-						KeyData: to.StringPtr(sshKeyData),
+						KeyData: to.StringPtr(string(sshBytes)),
 					},
 				},
 			},
-		},
+		}
 	}
+
 	networkProfile := &compute.NetworkProfile{
 		NetworkInterfaces: &[]compute.NetworkInterfaceReference{
 			{

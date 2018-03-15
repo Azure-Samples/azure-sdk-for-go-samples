@@ -213,7 +213,7 @@ func ArmEndpoint() string {
 	return armEndpointString
 }
 
-// ActiveDirectoryResourceID specifies active directory resource ID
+//ActiveDirectoryResourceID specifies active directory resource ID
 func ActiveDirectoryResourceID() string {
 	return activeDirectoryResourceID
 }

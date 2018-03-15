@@ -20,5 +20,3 @@ environments:
     value: sp.objectid
   - name: AZ_LOCATION
     type: argument-value-mode
-owners:
-  - mcardoso

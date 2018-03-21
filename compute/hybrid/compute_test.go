@@ -38,10 +38,8 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalln("failed to parse args")
 	}
-
 	ctx := context.Background()
 	defer hybridresources.Cleanup(ctx)
-
 	_, err = hybridresources.CreateGroup(ctx)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())

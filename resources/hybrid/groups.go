@@ -14,14 +14,15 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 )
 
 const (
 	errorPrefix = "Cannot create resource group, reason: %v"
 )
 
-func getGroupsClient() resources.GroupsClient {
-	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
+func getGroupsClient(activeDirectoryEndpoint, tokenAudience string) resources.GroupsClient {
+	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience, helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret())
 	if err != nil {
 		log.Fatal(fmt.Sprintf(errorPrefix, fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
@@ -33,7 +34,8 @@ func getGroupsClient() resources.GroupsClient {
 
 // CreateGroup creates a new resource group named by env var
 func CreateGroup(cntx context.Context) (resources.Group, error) {
-	groupClient := getGroupsClient()
+	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())
+	groupClient := getGroupsClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
 	location := helpers.Location()
 	helpers.SetResourceGroupName("hybridResourceGroup")
 	return groupClient.CreateOrUpdate(cntx, helpers.ResourceGroupName(), resources.Group{Location: &location})
@@ -41,7 +43,8 @@ func CreateGroup(cntx context.Context) (resources.Group, error) {
 
 // DeleteGroup removes the resource group named by env var
 func DeleteGroup(ctx context.Context) (result resources.GroupsDeleteFuture, err error) {
-	groupsClient := getGroupsClient()
+	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())
+	groupsClient := getGroupsClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
 	helpers.SetResourceGroupName("hybridResourceGroup")
 	return groupsClient.Delete(ctx, helpers.ResourceGroupName())
 }

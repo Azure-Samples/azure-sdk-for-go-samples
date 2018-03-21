@@ -17,6 +17,7 @@ import (
 	hybridnetwork "github.com/Azure-Samples/azure-sdk-for-go-samples/network/hybrid"
 	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/compute/mgmt/compute"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
@@ -27,8 +28,8 @@ const (
 	errorPrefix = "Cannot create VM, reason: %v"
 )
 
-func getVMClient() compute.VirtualMachinesClient {
-	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
+func getVMClient(activeDirectoryEndpoint, tokenAudience string) compute.VirtualMachinesClient {
+	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience, helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret())
 	if err != nil {
 		log.Fatal(fmt.Sprintf(errorPrefix, fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
@@ -42,9 +43,10 @@ func getVMClient() compute.VirtualMachinesClient {
 func CreateVM(ctx context.Context, vmName, nicName, username, password, storageAccountName, sshPublicKeyPath string) (vm compute.VirtualMachine, err error) {
 	cntx := context.Background()
 	nic, _ := hybridnetwork.GetNic(cntx, nicName)
+	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())
+	vhdURItemplate := "https://%s.blob." + environment.StorageEndpointSuffix + "/vhds/%s.vhd"
 
-	vhdURItemplate := "https://%s.blob." + helpers.StorageEndpointSuffix() + "/vhds/%s.vhd"
-	vmClient := getVMClient()
+	vmClient := getVMClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
 	hardwareProfile := &compute.HardwareProfile{
 		VMSize: compute.StandardA1,
 	}

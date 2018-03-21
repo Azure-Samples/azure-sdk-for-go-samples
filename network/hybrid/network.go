@@ -14,6 +14,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/network/mgmt/network"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
@@ -21,8 +22,8 @@ const (
 	errorPrefix = "Cannot create %v, reason: %v"
 )
 
-func getVnetClient() network.VirtualNetworksClient {
-	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
+func getVnetClient(activeDirectoryEndpoint, tokenAudience string) network.VirtualNetworksClient {
+	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience, helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret())
 	if err != nil {
 		log.Fatal(fmt.Sprintf(errorPrefix, "virtual network", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
@@ -32,8 +33,8 @@ func getVnetClient() network.VirtualNetworksClient {
 	return vnetClient
 }
 
-func getNsgClient() network.SecurityGroupsClient {
-	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
+func getNsgClient(activeDirectoryEndpoint, tokenAudience string) network.SecurityGroupsClient {
+	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience, helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret())
 	if err != nil {
 		log.Fatal(fmt.Sprintf(errorPrefix, "security group", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
@@ -42,8 +43,8 @@ func getNsgClient() network.SecurityGroupsClient {
 	return nsgClient
 }
 
-func getIPClient() network.PublicIPAddressesClient {
-	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
+func getIPClient(activeDirectoryEndpoint, tokenAudience string) network.PublicIPAddressesClient {
+	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience, helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret())
 	if err != nil {
 		log.Fatal(fmt.Sprintf(errorPrefix, "public IP address", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
@@ -52,8 +53,8 @@ func getIPClient() network.PublicIPAddressesClient {
 	return ipClient
 }
 
-func getNicClient() network.InterfacesClient {
-	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
+func getNicClient(activeDirectoryEndpoint, tokenAudience string) network.InterfacesClient {
+	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience, helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret())
 	if err != nil {
 		log.Fatal(fmt.Sprintf(errorPrefix, "network interface", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
@@ -62,8 +63,8 @@ func getNicClient() network.InterfacesClient {
 	return nicClient
 }
 
-func getSubnetsClient() network.SubnetsClient {
-	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
+func getSubnetsClient(activeDirectoryEndpoint, tokenAudience string) network.SubnetsClient {
+	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience, helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret())
 	if err != nil {
 		log.Fatal(fmt.Sprintf(errorPrefix, "subnet", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
@@ -75,7 +76,8 @@ func getSubnetsClient() network.SubnetsClient {
 // CreateVirtualNetworkAndSubnets creates a virtual network with two subnets
 func CreateVirtualNetworkAndSubnets(cntx context.Context, vnetName, subnetName string) (vnet network.VirtualNetwork, err error) {
 	resourceName := "virtual network and subnet"
-	vnetClient := getVnetClient()
+	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())
+	vnetClient := getVnetClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
 	future, err := vnetClient.CreateOrUpdate(
 		cntx,
 		helpers.ResourceGroupName(),
@@ -112,7 +114,8 @@ func CreateVirtualNetworkAndSubnets(cntx context.Context, vnetName, subnetName s
 // CreateNetworkSecurityGroup creates a new network security group
 func CreateNetworkSecurityGroup(cntx context.Context, nsgName string) (nsg network.SecurityGroup, err error) {
 	resourceName := "security group"
-	nsgClient := getNsgClient()
+	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())
+	nsgClient := getNsgClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
 	future, err := nsgClient.CreateOrUpdate(
 		cntx,
 		helpers.ResourceGroupName(),
@@ -167,7 +170,8 @@ func CreateNetworkSecurityGroup(cntx context.Context, nsgName string) (nsg netwo
 // CreatePublicIP creates a new public IP
 func CreatePublicIP(cntx context.Context, ipName string) (ip network.PublicIPAddress, err error) {
 	resourceName := "public IP"
-	ipClient := getIPClient()
+	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())
+	ipClient := getIPClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
 	future, err := ipClient.CreateOrUpdate(
 		cntx,
 		helpers.ResourceGroupName(),
@@ -207,7 +211,8 @@ func CreateNetworkInterface(cntx context.Context, netInterfaceName, nsgName, vne
 	if err != nil {
 		return nic, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, fmt.Sprintf("failed to get ip address: %v", err)))
 	}
-	nicClient := getNicClient()
+	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())
+	nicClient := getNicClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
 	future, err := nicClient.CreateOrUpdate(
 		cntx,
 		helpers.ResourceGroupName(),
@@ -242,24 +247,28 @@ func CreateNetworkInterface(cntx context.Context, netInterfaceName, nsgName, vne
 
 // GetNetworkSecurityGroup retrieves a netwrok resource group by its name
 func GetNetworkSecurityGroup(cntx context.Context, nsgName string) (network.SecurityGroup, error) {
-	nsgClient := getNsgClient()
+	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())
+	nsgClient := getNsgClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
 	return nsgClient.Get(cntx, helpers.ResourceGroupName(), nsgName, "")
 }
 
 // GetVirtualNetworkSubnet retrieves a virtual netwrok subnet by its name
 func GetVirtualNetworkSubnet(cntx context.Context, vnetName string, subnetName string) (network.Subnet, error) {
-	subnetsClient := getSubnetsClient()
+	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())
+	subnetsClient := getSubnetsClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
 	return subnetsClient.Get(cntx, helpers.ResourceGroupName(), vnetName, subnetName, "")
 }
 
 // GetPublicIP retrieves a public IP by its name
 func GetPublicIP(cntx context.Context, ipName string) (network.PublicIPAddress, error) {
-	ipClient := getIPClient()
+	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())
+	ipClient := getIPClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
 	return ipClient.Get(cntx, helpers.ResourceGroupName(), ipName, "")
 }
 
 // GetNic retrieves a network interface by its name
 func GetNic(cntx context.Context, nicName string) (network.Interface, error) {
-	nicClient := getNicClient()
+	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())
+	nicClient := getNicClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
 	return nicClient.Get(cntx, helpers.ResourceGroupName(), nicName, "")
 }

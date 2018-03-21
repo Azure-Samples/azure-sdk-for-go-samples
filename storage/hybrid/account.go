@@ -9,6 +9,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/storage/mgmt/storage"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
@@ -16,8 +17,8 @@ const (
 	errorPrefix = "Cannot create storage account, reason: %v"
 )
 
-func getStorageAccountsClient() storage.AccountsClient {
-	token, err := iam.GetResourceManagementTokenHybrid(helpers.ActiveDirectoryEndpoint(), helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret(), helpers.ActiveDirectoryResourceID())
+func getStorageAccountsClient(activeDirectoryEndpoint, tokenAudience string) storage.AccountsClient {
+	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience, helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret())
 	if err != nil {
 		log.Fatal(fmt.Sprintf(errorPrefix, fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
@@ -28,7 +29,8 @@ func getStorageAccountsClient() storage.AccountsClient {
 
 // CreateStorageAccount creates a new storage account.
 func CreateStorageAccount(cntx context.Context, accountName string) (s storage.Account, err error) {
-	storageAccountsClient := getStorageAccountsClient()
+	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())
+	storageAccountsClient := getStorageAccountsClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
 	result, err := storageAccountsClient.CheckNameAvailability(
 		cntx,
 		storage.AccountCheckNameAvailabilityParameters{

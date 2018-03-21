@@ -12,25 +12,21 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/subosito/gotenv"
 )
 
 var (
-	resourceGroupNamePrefix   string
-	resourceGroupName         string
-	location                  string
-	subscriptionID            string
-	servicePrincipalObjectID  string
-	keepResources             bool
-	deviceFlow                bool
-	armEndpointString         string
-	activeDirectoryResourceID string
-	storageEndpointSuffix     string
-	activeDirectoryEndpoint   string
-	tenantID                  string
-	clientID                  string
-	clientSecret              string
+	resourceGroupNamePrefix  string
+	resourceGroupName        string
+	location                 string
+	subscriptionID           string
+	servicePrincipalObjectID string
+	keepResources            bool
+	deviceFlow               bool
+	armEndpointString        string
+	tenantID                 string
+	clientID                 string
+	clientSecret             string
 
 	allLocations = []string{
 		"eastasia",
@@ -114,32 +110,6 @@ func ParseArgs() error {
 		armEndpointString = "https://management.azure.com/"
 	}
 
-	envFromArmEndpoint, err := azure.EnvironmentFromURL(armEndpointString)
-	if err == nil {
-		activeDirectoryResourceID = envFromArmEndpoint.TokenAudience
-		activeDirectoryEndpoint = envFromArmEndpoint.ActiveDirectoryEndpoint
-		storageEndpointSuffix = envFromArmEndpoint.StorageEndpointSuffix
-	} else {
-		activeDirectoryResourceID = azure.PublicCloud.ActiveDirectoryEndpoint
-		activeDirectoryEndpoint = azure.PublicCloud.ActiveDirectoryEndpoint
-		storageEndpointSuffix = azure.PublicCloud.StorageEndpointSuffix
-	}
-
-	// If retrieved aadResourceId from armEnpoint is empty then use Public Azure value
-	if !(len(activeDirectoryResourceID) > 0) {
-		activeDirectoryResourceID = azure.PublicCloud.ActiveDirectoryEndpoint
-	}
-
-	// If retrieved aadEndpoint from armEnpoint is empty then use Public Azure value
-	if !(len(activeDirectoryEndpoint) > 0) {
-		activeDirectoryEndpoint = azure.PublicCloud.ActiveDirectoryEndpoint
-	}
-
-	// If retrieved storage suffix from armEnpoint is empty then use Public Azure value
-	if !(len(activeDirectoryEndpoint) > 0) {
-		storageEndpointSuffix = azure.PublicCloud.StorageEndpointSuffix
-	}
-
 	return nil
 }
 
@@ -218,21 +188,6 @@ func DeviceFlow() bool {
 // ArmEndpoint specifies resource manager URI
 func ArmEndpoint() string {
 	return armEndpointString
-}
-
-//ActiveDirectoryResourceID specifies active directory resource ID
-func ActiveDirectoryResourceID() string {
-	return activeDirectoryResourceID
-}
-
-// ActiveDirectoryEndpoint specifies active directory endpoint
-func ActiveDirectoryEndpoint() string {
-	return activeDirectoryEndpoint
-}
-
-// StorageEndpointSuffix specifies storage endpoint suffix
-func StorageEndpointSuffix() string {
-	return storageEndpointSuffix
 }
 
 // ClientID gets the client ID

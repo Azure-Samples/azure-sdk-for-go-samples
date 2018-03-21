@@ -240,21 +240,25 @@ func CreateNetworkInterface(cntx context.Context, netInterfaceName, nsgName, vne
 	return future.Result(nicClient)
 }
 
+// GetNetworkSecurityGroup retrieves a netwrok resource group by its name
 func GetNetworkSecurityGroup(cntx context.Context, nsgName string) (network.SecurityGroup, error) {
 	nsgClient := getNsgClient()
 	return nsgClient.Get(cntx, helpers.ResourceGroupName(), nsgName, "")
 }
 
+// GetVirtualNetworkSubnet retrieves a virtual netwrok subnet by its name
 func GetVirtualNetworkSubnet(cntx context.Context, vnetName string, subnetName string) (network.Subnet, error) {
 	subnetsClient := getSubnetsClient()
 	return subnetsClient.Get(cntx, helpers.ResourceGroupName(), vnetName, subnetName, "")
 }
 
+// GetPublicIP retrieves a public IP by its name
 func GetPublicIP(cntx context.Context, ipName string) (network.PublicIPAddress, error) {
 	ipClient := getIPClient()
 	return ipClient.Get(cntx, helpers.ResourceGroupName(), ipName, "")
 }
 
+// GetNic retrieves a network interface by its name
 func GetNic(cntx context.Context, nicName string) (network.Interface, error) {
 	nicClient := getNicClient()
 	return nicClient.Get(cntx, helpers.ResourceGroupName(), nicName, "")

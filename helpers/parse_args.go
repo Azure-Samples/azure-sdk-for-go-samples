@@ -91,7 +91,6 @@ func ParseArgs() error {
 		keepResources = true
 	}
 	armEndpointString = os.Getenv("AZ_ARM_ENDPOINT")
-	storageEndpointSuffix = os.Getenv("AZ_STORAGE_SUFFIX")
 	tenantID = os.Getenv("AZ_TENANT_ID")
 	clientID = os.Getenv("AZ_CLIENT_ID")
 	clientSecret = os.Getenv("AZ_CLIENT_SECRET")
@@ -115,22 +114,30 @@ func ParseArgs() error {
 		armEndpointString = "https://management.azure.com/"
 	}
 
-	if !(len(storageEndpointSuffix) > 0) {
-		storageEndpointSuffix = "core.windows.net"
-	}
-
-	activeDirectoryResourceID, activeDirectoryEndpoint, err = GetAadResourceID(armEndpointString)
-	if err != nil {
+	envFromArmEndpoint, err := azure.EnvironmentFromURL(armEndpointString)
+	if err == nil {
+		activeDirectoryResourceID = envFromArmEndpoint.TokenAudience
+		activeDirectoryEndpoint = envFromArmEndpoint.ActiveDirectoryEndpoint
+		storageEndpointSuffix = envFromArmEndpoint.StorageEndpointSuffix
+	} else {
 		activeDirectoryResourceID = azure.PublicCloud.ActiveDirectoryEndpoint
 		activeDirectoryEndpoint = azure.PublicCloud.ActiveDirectoryEndpoint
+		storageEndpointSuffix = azure.PublicCloud.StorageEndpointSuffix
 	}
 
+	// If retrieved aadResourceId from armEnpoint is empty then use Public Azure value
 	if !(len(activeDirectoryResourceID) > 0) {
 		activeDirectoryResourceID = azure.PublicCloud.ActiveDirectoryEndpoint
 	}
 
+	// If retrieved aadEndpoint from armEnpoint is empty then use Public Azure value
 	if !(len(activeDirectoryEndpoint) > 0) {
 		activeDirectoryEndpoint = azure.PublicCloud.ActiveDirectoryEndpoint
+	}
+
+	// If retrieved storage suffix from armEnpoint is empty then use Public Azure value
+	if !(len(activeDirectoryEndpoint) > 0) {
+		storageEndpointSuffix = azure.PublicCloud.StorageEndpointSuffix
 	}
 
 	return nil

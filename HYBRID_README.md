@@ -17,7 +17,6 @@ the following instructions to find or create these values if necessary.
     * `AZ_CLIENT_SECRET`*
     * `AZ_LOCATION`*
     * `AZ_ARM_ENDPOINT`*
-    * `AZ_STORAGE_SUFFIX`*
     * `AZ_RESOURCE_GROUP_NAME`
     * `AZ_KEEP_SAMPLE_RESOURCES`
 

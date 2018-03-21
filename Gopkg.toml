@@ -1,6 +1,6 @@
 [[constraint]]
   name = "github.com/Azure/azure-sdk-for-go"
-  version = "14.1.1"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/Azure/azure-storage-blob-go"

@@ -23,7 +23,7 @@
   name = "github.com/Azure/go-autorest"
   packages = ["autorest","autorest/adal","autorest/azure","autorest/azure/auth","autorest/date","autorest/to","autorest/utils","autorest/validation"]
   revision = "1e3943ee722538420f21945f4bc820347abe433d"
-  version = "v10.1.2"
+  version = "v10.3.0"
 
 [[projects]]
   branch = "master"

@@ -177,13 +177,13 @@ func ExampleCreateNetworkSecurityGroup() {
 	util.PrintAndLog("created backend network security group")
 
 	frontEndAddressPrefix := "10.0.0.0/16"
-	_, err = CreateSubnetWithNetowrkSecurityGroup(ctx, virtualNetworkName, "frontend", frontEndAddressPrefix, frontNSGName)
+	_, err = CreateSubnetWithNetworkSecurityGroup(ctx, virtualNetworkName, "frontend", frontEndAddressPrefix, frontNSGName)
 	if err != nil {
 		util.PrintAndLog(err.Error())
 	}
 	util.PrintAndLog("created subnet with frontend network security group")
 
-	_, err = CreateSubnetWithNetowrkSecurityGroup(ctx, virtualNetworkName, "backend", "10.1.0.0/16", backNSGName)
+	_, err = CreateSubnetWithNetworkSecurityGroup(ctx, virtualNetworkName, "backend", "10.1.0.0/16", backNSGName)
 	if err != nil {
 		util.PrintAndLog(err.Error())
 	}

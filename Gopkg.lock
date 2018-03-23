@@ -9,9 +9,33 @@
 
 [[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
-  packages = ["services/authorization/mgmt/2015-07-01/authorization","services/cdn/mgmt/2017-10-12/cdn","services/cognitiveservices/mgmt/2017-04-18/cognitiveservices","services/cognitiveservices/v1.0/customsearch","services/cognitiveservices/v1.0/entitysearch","services/cognitiveservices/v1.0/imagesearch","services/cognitiveservices/v1.0/newssearch","services/cognitiveservices/v1.0/spellcheck","services/cognitiveservices/v1.0/videosearch","services/cognitiveservices/v1.0/websearch","services/compute/mgmt/2017-03-30/compute","services/containerinstance/mgmt/2017-08-01-preview/containerinstance","services/containerservice/mgmt/2017-09-30/containerservice","services/graphrbac/1.6/graphrbac","services/keyvault/2016-10-01/keyvault","services/keyvault/mgmt/2016-10-01/keyvault","services/network/mgmt/2017-09-01/network","services/resources/mgmt/2017-05-10/resources","services/sql/mgmt/2015-05-01-preview/sql","services/storage/mgmt/2017-06-01/storage","version"]
-  revision = "1e334c402ea1460704b0263e5d188f28ad946ce1"
-  version = "14.1.1"
+  packages = [
+    "services/authorization/mgmt/2015-07-01/authorization",
+    "services/batch/2017-09-01.6.0/batch",
+    "services/batch/mgmt/2017-09-01/batch",
+    "services/cdn/mgmt/2017-10-12/cdn",
+    "services/cognitiveservices/mgmt/2017-04-18/cognitiveservices",
+    "services/cognitiveservices/v1.0/customsearch",
+    "services/cognitiveservices/v1.0/entitysearch",
+    "services/cognitiveservices/v1.0/imagesearch",
+    "services/cognitiveservices/v1.0/newssearch",
+    "services/cognitiveservices/v1.0/spellcheck",
+    "services/cognitiveservices/v1.0/videosearch",
+    "services/cognitiveservices/v1.0/websearch",
+    "services/compute/mgmt/2017-03-30/compute",
+    "services/containerinstance/mgmt/2017-08-01-preview/containerinstance",
+    "services/containerservice/mgmt/2017-09-30/containerservice",
+    "services/graphrbac/1.6/graphrbac",
+    "services/keyvault/2016-10-01/keyvault",
+    "services/keyvault/mgmt/2016-10-01/keyvault",
+    "services/network/mgmt/2017-09-01/network",
+    "services/resources/mgmt/2017-05-10/resources",
+    "services/sql/mgmt/2015-05-01-preview/sql",
+    "services/storage/mgmt/2017-06-01/storage",
+    "version"
+  ]
+  revision = "e67cd39e942c417ae5e9ae1165f778d9fe8996e0"
+  version = "v14.5.0"
 
 [[projects]]
   branch = "master"
@@ -21,7 +45,16 @@
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
-  packages = ["autorest","autorest/adal","autorest/azure","autorest/azure/auth","autorest/date","autorest/to","autorest/utils","autorest/validation"]
+  packages = [
+    "autorest",
+    "autorest/adal",
+    "autorest/azure",
+    "autorest/azure/auth",
+    "autorest/date",
+    "autorest/to",
+    "autorest/utils",
+    "autorest/validation"
+  ]
   revision = "1e3943ee722538420f21945f4bc820347abe433d"
   version = "v10.1.2"
 
@@ -58,12 +91,16 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["md4","pkcs12","pkcs12/internal/rc2"]
+  packages = [
+    "md4",
+    "pkcs12",
+    "pkcs12/internal/rc2"
+  ]
   revision = "91a49db82a88618983a78a06c1cbd4e00ab749ab"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "79c7af3ff883a47ab903a6f9473ad70984dbf4a86bdbe1d5d2eff74b4d0e8f19"
+  inputs-digest = "756c55faddca897667336ffddf52fb71fcabd4c10eab4ab7211a1ebf34f1eebb"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -15,7 +15,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	hybridnetwork "github.com/Azure-Samples/azure-sdk-for-go-samples/network/hybrid"
-	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/compute/mgmt/compute"
+	hybridcompute "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/compute/mgmt/compute"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -28,44 +28,44 @@ const (
 	errorPrefix = "Cannot create VM, reason: %v"
 )
 
-func getVMClient(activeDirectoryEndpoint, tokenAudience string) compute.VirtualMachinesClient {
+func getVMClient(activeDirectoryEndpoint, tokenAudience string) hybridcompute.VirtualMachinesClient {
 	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience, helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret())
 	if err != nil {
 		log.Fatal(fmt.Sprintf(errorPrefix, fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
-	vmClient := compute.NewVirtualMachinesClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
+	vmClient := hybridcompute.NewVirtualMachinesClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	vmClient.Authorizer = autorest.NewBearerAuthorizer(token)
 	return vmClient
 }
 
 // CreateVM creates a new virtual machine with the specified name using the specified network interface and storage account.
 // Username, password, and sshPublicKeyPath determine logon credentials.
-func CreateVM(ctx context.Context, vmName, nicName, username, password, storageAccountName, sshPublicKeyPath string) (vm compute.VirtualMachine, err error) {
+func CreateVM(ctx context.Context, vmName, nicName, username, password, storageAccountName, sshPublicKeyPath string) (vm hybridcompute.VirtualMachine, err error) {
 	cntx := context.Background()
 	nic, _ := hybridnetwork.GetNic(cntx, nicName)
 	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())
 	vhdURItemplate := "https://%s.blob." + environment.StorageEndpointSuffix + "/vhds/%s.vhd"
 
 	vmClient := getVMClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
-	hardwareProfile := &compute.HardwareProfile{
-		VMSize: compute.StandardA1,
+	hardwareProfile := &hybridcompute.HardwareProfile{
+		VMSize: hybridcompute.StandardA1,
 	}
-	storageProfile := &compute.StorageProfile{
-		ImageReference: &compute.ImageReference{
+	storageProfile := &hybridcompute.StorageProfile{
+		ImageReference: &hybridcompute.ImageReference{
 			Publisher: to.StringPtr(publisher),
 			Offer:     to.StringPtr(offer),
 			Sku:       to.StringPtr(sku),
 			Version:   to.StringPtr("latest"),
 		},
-		OsDisk: &compute.OSDisk{
+		OsDisk: &hybridcompute.OSDisk{
 			Name: to.StringPtr("osDisk"),
-			Vhd: &compute.VirtualHardDisk{
+			Vhd: &hybridcompute.VirtualHardDisk{
 				URI: to.StringPtr(fmt.Sprintf(vhdURItemplate, storageAccountName, vmName)),
 			},
-			CreateOption: compute.FromImage,
+			CreateOption: hybridcompute.FromImage,
 		},
 	}
-	osProfile := &compute.OSProfile{
+	osProfile := &hybridcompute.OSProfile{
 		ComputerName:  to.StringPtr(vmName),
 		AdminUsername: to.StringPtr(username),
 		AdminPassword: to.StringPtr(password),
@@ -79,9 +79,9 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, storageA
 		}
 
 		// if a key is available at the specified path then populate LinuxConfiguration
-		osProfile.LinuxConfiguration = &compute.LinuxConfiguration{
-			SSH: &compute.SSHConfiguration{
-				PublicKeys: &[]compute.SSHPublicKey{
+		osProfile.LinuxConfiguration = &hybridcompute.LinuxConfiguration{
+			SSH: &hybridcompute.SSHConfiguration{
+				PublicKeys: &[]hybridcompute.SSHPublicKey{
 					{
 						Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", username)),
 						KeyData: to.StringPtr(string(sshBytes)),
@@ -91,19 +91,19 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, storageA
 		}
 	}
 
-	networkProfile := &compute.NetworkProfile{
-		NetworkInterfaces: &[]compute.NetworkInterfaceReference{
+	networkProfile := &hybridcompute.NetworkProfile{
+		NetworkInterfaces: &[]hybridcompute.NetworkInterfaceReference{
 			{
 				ID: nic.ID,
-				NetworkInterfaceReferenceProperties: &compute.NetworkInterfaceReferenceProperties{
+				NetworkInterfaceReferenceProperties: &hybridcompute.NetworkInterfaceReferenceProperties{
 					Primary: to.BoolPtr(true),
 				},
 			},
 		},
 	}
-	virtualMachine := compute.VirtualMachine{
+	virtualMachine := hybridcompute.VirtualMachine{
 		Location: to.StringPtr(helpers.Location()),
-		VirtualMachineProperties: &compute.VirtualMachineProperties{
+		VirtualMachineProperties: &hybridcompute.VirtualMachineProperties{
 			HardwareProfile: hardwareProfile,
 			StorageProfile:  storageProfile,
 			OsProfile:       osProfile,

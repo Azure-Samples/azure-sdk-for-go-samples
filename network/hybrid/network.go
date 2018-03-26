@@ -23,7 +23,7 @@ const (
 )
 
 func getVnetClient(activeDirectoryEndpoint, tokenAudience string) network.VirtualNetworksClient {
-	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience, helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret())
+	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience)
 	if err != nil {
 		log.Fatal(fmt.Sprintf(errorPrefix, "virtual network", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
@@ -34,7 +34,7 @@ func getVnetClient(activeDirectoryEndpoint, tokenAudience string) network.Virtua
 }
 
 func getNsgClient(activeDirectoryEndpoint, tokenAudience string) network.SecurityGroupsClient {
-	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience, helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret())
+	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience)
 	if err != nil {
 		log.Fatal(fmt.Sprintf(errorPrefix, "security group", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
@@ -44,7 +44,7 @@ func getNsgClient(activeDirectoryEndpoint, tokenAudience string) network.Securit
 }
 
 func getIPClient(activeDirectoryEndpoint, tokenAudience string) network.PublicIPAddressesClient {
-	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience, helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret())
+	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience)
 	if err != nil {
 		log.Fatal(fmt.Sprintf(errorPrefix, "public IP address", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
@@ -54,7 +54,7 @@ func getIPClient(activeDirectoryEndpoint, tokenAudience string) network.PublicIP
 }
 
 func getNicClient(activeDirectoryEndpoint, tokenAudience string) network.InterfacesClient {
-	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience, helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret())
+	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience)
 	if err != nil {
 		log.Fatal(fmt.Sprintf(errorPrefix, "network interface", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
@@ -64,7 +64,7 @@ func getNicClient(activeDirectoryEndpoint, tokenAudience string) network.Interfa
 }
 
 func getSubnetsClient(activeDirectoryEndpoint, tokenAudience string) network.SubnetsClient {
-	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience, helpers.TenantID(), helpers.ClientID(), helpers.ClientSecret())
+	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience)
 	if err != nil {
 		log.Fatal(fmt.Sprintf(errorPrefix, "subnet", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}

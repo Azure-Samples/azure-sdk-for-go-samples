@@ -164,7 +164,7 @@ func getToken(grantType OAuthGrantType, endpoint string) (token adal.OAuthTokenP
 }
 
 // GetResourceManagementTokenHybrid retrieves auth token for hybrid environment
-func GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience, tenantID, clientID, clientSecret string) (adal.OAuthTokenProvider, error) {
+func GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience string) (adal.OAuthTokenProvider, error) {
 	var token adal.OAuthTokenProvider
 	oauthConfig, err := adal.NewOAuthConfig(activeDirectoryEndpoint, tenantID)
 	token, err = adal.NewServicePrincipalToken(

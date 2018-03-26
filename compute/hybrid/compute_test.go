@@ -7,10 +7,8 @@ package hybridcompute
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
@@ -30,7 +28,7 @@ var (
 	subnetName         = "subnet1"
 	nsgName            = "nsg1"
 	ipName             = "ip1"
-	storageAccountName = strings.ToLower("samplesa" + helpers.GetRandomLetterSequence(10))
+	storageAccountName = "storageaccount1"
 )
 
 func TestMain(m *testing.M) {
@@ -38,21 +36,18 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalln("failed to parse args")
 	}
-	ctx := context.Background()
-	defer hybridresources.Cleanup(ctx)
-	_, err = hybridresources.CreateGroup(ctx)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
 
 	os.Exit(m.Run())
 }
 
 func ExampleCreateVM() {
 	ctx := context.Background()
-
-	_, err := hybridnetwork.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnetName)
+	defer hybridresources.Cleanup(ctx)
+	_, err := hybridresources.CreateGroup(ctx)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	_, err = hybridnetwork.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnetName)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())
 	}

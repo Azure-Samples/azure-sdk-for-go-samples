@@ -31,20 +31,17 @@ func TestMain(m *testing.M) {
 		log.Fatalln("failed to parse args")
 	}
 
-	ctx := context.Background()
-	defer hybridresources.Cleanup(ctx)
-
-	_, err = hybridresources.CreateGroup(ctx)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog(fmt.Sprintf("resource group created on location: %s", helpers.Location()))
-
 	os.Exit(m.Run())
 }
 
 func ExampleCreateVirtualNetworkAndSubnets() {
-	_, err := CreateVirtualNetworkAndSubnets(context.Background(), virtualNetworkName, subnetName)
+	ctx := context.Background()
+	defer hybridresources.Cleanup(ctx)
+	_, err := hybridresources.CreateGroup(ctx)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	_, err = CreateVirtualNetworkAndSubnets(context.Background(), virtualNetworkName, subnetName)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Cannot create virtual network. Error details: %s", err.Error()))
 	}
@@ -55,7 +52,13 @@ func ExampleCreateVirtualNetworkAndSubnets() {
 }
 
 func ExampleCreateNetworkSecurityGroup() {
-	_, err := CreateNetworkSecurityGroup(context.Background(), nsgName)
+	ctx := context.Background()
+	defer hybridresources.Cleanup(ctx)
+	_, err := hybridresources.CreateGroup(ctx)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	_, err = CreateNetworkSecurityGroup(context.Background(), nsgName)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Cannot create network security group. Error details: %s", err.Error()))
 	}
@@ -66,7 +69,13 @@ func ExampleCreateNetworkSecurityGroup() {
 }
 
 func ExampleCreatePublicIP() {
-	_, err := CreatePublicIP(context.Background(), ipName)
+	ctx := context.Background()
+	defer hybridresources.Cleanup(ctx)
+	_, err := hybridresources.CreateGroup(ctx)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	_, err = CreatePublicIP(context.Background(), ipName)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Cannot create public IP. Error details: %s", err.Error()))
 	}
@@ -77,7 +86,13 @@ func ExampleCreatePublicIP() {
 }
 
 func ExampleCreateNetworkInterface() {
-	_, err := CreateNetworkInterface(context.Background(), networkInterfaceName, nsgName, virtualNetworkName, subnetName, ipName)
+	ctx := context.Background()
+	defer hybridresources.Cleanup(ctx)
+	_, err := hybridresources.CreateGroup(ctx)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	_, err = CreateNetworkInterface(context.Background(), networkInterfaceName, nsgName, virtualNetworkName, subnetName, ipName)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Cannot create network interface. Error details: %s", err.Error()))
 	}

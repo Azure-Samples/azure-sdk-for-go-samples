@@ -29,7 +29,7 @@ func getVnetClient(activeDirectoryEndpoint, tokenAudience string) network.Virtua
 	}
 	vnetClient := network.NewVirtualNetworksClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	vnetClient.Authorizer = autorest.NewBearerAuthorizer(token)
-
+	vnetClient.AddToUserAgent(helpers.UserAgent())
 	return vnetClient
 }
 
@@ -40,6 +40,7 @@ func getNsgClient(activeDirectoryEndpoint, tokenAudience string) network.Securit
 	}
 	nsgClient := network.NewSecurityGroupsClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	nsgClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	nsgClient.AddToUserAgent(helpers.UserAgent())
 	return nsgClient
 }
 
@@ -50,6 +51,7 @@ func getIPClient(activeDirectoryEndpoint, tokenAudience string) network.PublicIP
 	}
 	ipClient := network.NewPublicIPAddressesClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	ipClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	ipClient.AddToUserAgent(helpers.UserAgent())
 	return ipClient
 }
 
@@ -60,6 +62,7 @@ func getNicClient(activeDirectoryEndpoint, tokenAudience string) network.Interfa
 	}
 	nicClient := network.NewInterfacesClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	nicClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	nicClient.AddToUserAgent(helpers.UserAgent())
 	return nicClient
 }
 
@@ -70,6 +73,7 @@ func getSubnetsClient(activeDirectoryEndpoint, tokenAudience string) network.Sub
 	}
 	subnetsClient := network.NewSubnetsClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	subnetsClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	subnetsClient.AddToUserAgent(helpers.UserAgent())
 	return subnetsClient
 }
 

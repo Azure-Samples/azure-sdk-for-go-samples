@@ -24,6 +24,7 @@ func getStorageAccountsClient(activeDirectoryEndpoint, tokenAudience string) sto
 	}
 	storageAccountsClient := storage.NewAccountsClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	storageAccountsClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	storageAccountsClient.AddToUserAgent(helpers.UserAgent())
 	return storageAccountsClient
 }
 
@@ -50,6 +51,7 @@ func CreateStorageAccount(cntx context.Context, accountName string) (s storage.A
 		storage.AccountCreateParameters{
 			Sku: &storage.Sku{
 				Name: storage.StandardLRS},
+			Kind:     storage.Storage,
 			Location: to.StringPtr(helpers.Location()),
 			AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{},
 		})

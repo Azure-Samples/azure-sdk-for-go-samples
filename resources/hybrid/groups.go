@@ -28,7 +28,7 @@ func getGroupsClient(activeDirectoryEndpoint, tokenAudience string) resources.Gr
 	}
 	groupsClient := resources.NewGroupsClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	groupsClient.Authorizer = autorest.NewBearerAuthorizer(token)
-
+	groupsClient.AddToUserAgent(helpers.UserAgent())
 	return groupsClient
 }
 

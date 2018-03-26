@@ -35,6 +35,7 @@ func getVMClient(activeDirectoryEndpoint, tokenAudience string) hybridcompute.Vi
 	}
 	vmClient := hybridcompute.NewVirtualMachinesClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
 	vmClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	vmClient.AddToUserAgent(helpers.UserAgent())
 	return vmClient
 }
 

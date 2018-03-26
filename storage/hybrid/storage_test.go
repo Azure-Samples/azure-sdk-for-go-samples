@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	accountName = strings.ToLower("samplesa" + helpers.GetRandomLetterSequence(10))
+	accountName = strings.ToLower("storageaccount" + helpers.GetRandomLetterSequence(10))
 )
 
 func TestMain(m *testing.M) {

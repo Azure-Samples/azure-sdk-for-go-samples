@@ -9,6 +9,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
@@ -28,7 +29,7 @@ var (
 	subnetName         = "subnet1"
 	nsgName            = "nsg1"
 	ipName             = "ip1"
-	storageAccountName = "storageaccount1"
+	storageAccountName = strings.ToLower("storageaccount" + helpers.GetRandomLetterSequence(10))
 )
 
 func TestMain(m *testing.M) {

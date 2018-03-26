@@ -24,9 +24,6 @@ var (
 	keepResources            bool
 	deviceFlow               bool
 	armEndpointString        string
-	tenantID                 string
-	clientID                 string
-	clientSecret             string
 
 	allLocations = []string{
 		"eastasia",
@@ -87,9 +84,6 @@ func ParseArgs() error {
 		keepResources = true
 	}
 	armEndpointString = os.Getenv("AZ_ARM_ENDPOINT")
-	tenantID = os.Getenv("AZ_TENANT_ID")
-	clientID = os.Getenv("AZ_CLIENT_ID")
-	clientSecret = os.Getenv("AZ_CLIENT_SECRET")
 
 	// flags override envvars
 	flag.StringVar(&resourceGroupNamePrefix, "groupPrefix", GroupPrefix(), "Specify prefix name of resource group for sample resources.")
@@ -188,21 +182,6 @@ func DeviceFlow() bool {
 // ArmEndpoint specifies resource manager URI
 func ArmEndpoint() string {
 	return armEndpointString
-}
-
-// ClientID gets the client ID
-func ClientID() string {
-	return clientID
-}
-
-// TenantID gets the client ID
-func TenantID() string {
-	return tenantID
-}
-
-// ClientSecret gets the client ID
-func ClientSecret() string {
-	return clientSecret
 }
 
 // end getters

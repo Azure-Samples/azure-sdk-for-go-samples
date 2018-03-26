@@ -77,7 +77,7 @@ func getSubnetsClient(activeDirectoryEndpoint, tokenAudience string) network.Sub
 	return subnetsClient
 }
 
-// CreateVirtualNetworkAndSubnets creates a virtual network with two subnets
+// CreateVirtualNetworkAndSubnets creates a virtual network with one subnet
 func CreateVirtualNetworkAndSubnets(cntx context.Context, vnetName, subnetName string) (vnet network.VirtualNetwork, err error) {
 	resourceName := "virtual network and subnet"
 	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())

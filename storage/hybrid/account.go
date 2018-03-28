@@ -1,4 +1,4 @@
-package hybridstorage
+package storage
 
 import (
 	"context"

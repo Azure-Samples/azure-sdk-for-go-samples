@@ -16,6 +16,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/azure/auth"
 )
 
 const (
@@ -25,11 +26,11 @@ const (
 
 var (
 	// for service principal and device
-	clientID    string
-	oauthConfig *adal.OAuthConfig
-	armToken    adal.OAuthTokenProvider
-	batchToken  adal.OAuthTokenProvider
-	graphToken  adal.OAuthTokenProvider
+	clientID      string
+	oauthConfig   *adal.OAuthConfig
+	armAuthorizer autorest.Authorizer
+	batchToken    adal.OAuthTokenProvider
+	graphToken    adal.OAuthTokenProvider
 
 	// for service principal
 	subscriptionID string
@@ -62,15 +63,15 @@ func parseArgs() error {
 		return err
 	}
 
-	tenantID = os.Getenv("AZ_TENANT_ID")
+	tenantID = os.Getenv("AZURE_TENANT_ID")
 	if tenantID == "" {
 		log.Println("tenant id missing")
 	}
-	clientID = os.Getenv("AZ_CLIENT_ID")
+	clientID = os.Getenv("AZURE_CLIENT_ID")
 	if clientID == "" {
 		log.Println("client id missing")
 	}
-	clientSecret = os.Getenv("AZ_CLIENT_SECRET")
+	clientSecret = os.Getenv("AZURE_CLIENT_SECRET")
 	if clientSecret == "" {
 		log.Println("client secret missing")
 	}
@@ -107,18 +108,27 @@ func AuthGrantType() OAuthGrantType {
 	return OAuthGrantTypeServicePrincipal
 }
 
-// GetResourceManagementToken gets an OAuth token for managing resources using the specified grant type.
-func GetResourceManagementToken(grantType OAuthGrantType) (adal.OAuthTokenProvider, error) {
-	if armToken != nil {
-		return armToken, nil
+// GetResourceManagementAuthorizer gets an OAuth token for managing resources using the specified grant type.
+func GetResourceManagementAuthorizer(grantType OAuthGrantType) (a autorest.Authorizer, err error) {
+	if armAuthorizer != nil {
+		return armAuthorizer, nil
 	}
 
-	token, err := getToken(grantType, azure.PublicCloud.ResourceManagerEndpoint)
+	switch grantType {
+	case OAuthGrantTypeServicePrincipal:
+		a, err = auth.NewAuthorizerFromEnvironment()
+	case OAuthGrantTypeDeviceFlow:
+		var token adal.OAuthTokenProvider
+		token, err = getDeviceToken(azure.PublicCloud.ResourceManagerEndpoint)
+		a = autorest.NewBearerAuthorizer(token)
+	default:
+		log.Fatalln("invalid token type specified")
+	}
+
 	if err == nil {
-		armToken = token
+		armAuthorizer = a
 	}
-
-	return token, err
+	return
 }
 
 const batchManagementEndpoint = "https://batch.core.windows.net/"

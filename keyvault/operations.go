@@ -15,10 +15,10 @@ var (
 
 func getKeysClient() keyvault.BaseClient {
 	token, _ := iam.GetKeyvaultToken(iam.AuthGrantType())
-	vmClient := keyvault.New()
-	vmClient.Authorizer = token
-	vmClient.AddToUserAgent(helpers.UserAgent())
-	return vmClient
+	keyClient := keyvault.New()
+	keyClient.Authorizer = token
+	keyClient.AddToUserAgent(helpers.UserAgent())
+	return keyClient
 }
 
 // CreateKeyBundle creates a key in the specified keyvault

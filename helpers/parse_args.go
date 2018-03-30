@@ -76,10 +76,10 @@ func ParseArgs() error {
 		return err
 	}
 
-	resourceGroupNamePrefix = os.Getenv("AZ_RESOURCE_GROUP_PREFIX")
-	servicePrincipalObjectID = os.Getenv("AZ_SP_OBJECT_ID")
-	location = os.Getenv("AZ_LOCATION")
-	if os.Getenv("AZ_SAMPLES_KEEP_RESOURCES") == "1" {
+	resourceGroupNamePrefix = os.Getenv("AZURE_RESOURCE_GROUP_PREFIX")
+	servicePrincipalObjectID = os.Getenv("AZURE_SP_OBJECT_ID")
+	location = os.Getenv("AZURE_LOCATION")
+	if os.Getenv("AZURE_SAMPLES_KEEP_RESOURCES") == "1" {
 		keepResources = true
 	}
 
@@ -108,7 +108,7 @@ func ParseSubscriptionID() error {
 		return err
 	}
 
-	subscriptionID = os.Getenv("AZ_SUBSCRIPTION_ID")
+	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	flag.StringVar(&subscriptionID, "subscription", subscriptionID, "Subscription to use for deployment.")
 
 	if !(len(subscriptionID) > 0) {
@@ -125,7 +125,7 @@ func ParseDeviceFlow() error {
 		return err
 	}
 
-	if os.Getenv("AZ_AUTH_DEVICEFLOW") != "" {
+	if os.Getenv("AZURE_AUTH_DEVICEFLOW") != "" {
 		deviceFlow = true
 	}
 	flag.BoolVar(&deviceFlow, "deviceFlow", deviceFlow, "Use device flow for authentication. This flag should be used with -v flag. Default authentication is service principal.")

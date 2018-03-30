@@ -29,7 +29,6 @@ func SpellCheck(accountName string) (spellcheck.SpellCheck, error) {
 
 	spellCheckResult, err := spellCheckClient.SpellCheckerMethod(
 		context.Background(), // context
-		"",                   // X-BingApis-SDK header
 		input,                // text to check
 		"",                   // Accept-Language header
 		"",                   // Pragma header
@@ -37,18 +36,18 @@ func SpellCheck(accountName string) (spellcheck.SpellCheck, error) {
 		"",                   // X-MSEdge-ClientID header
 		"",                   // X-MSEdge-ClientIP header
 		"",                   // X-Search-Location header
-		"",                   // action type
-		"",                   // app name
-		"",                   // country code
-		"",                   // client machine name
-		"",                   // doc ID
-		"",                   // market
-		"",                   // session ID
-		"",                   // set lang
-		"proof",              // user ID
-		"",                   // mode
-		"",                   // pre context text
-		"",                   // post context text
+		spellcheck.ActionType(""), // action type
+		"",      // app name
+		"",      // country code
+		"",      // client machine name
+		"",      // doc ID
+		"",      // market
+		"",      // session ID
+		"",      // set lang
+		"proof", // user ID
+		"",      // mode
+		"",      // pre context text
+		"",      // post context text
 	)
 
 	return spellCheckResult, err

@@ -3,20 +3,20 @@ version: v3
 product: azuresdkforgo
 storage: true
 environments:
-  - name: AZ_SUBSCRIPTION_ID
+  - name: AZURE_SUBSCRIPTION_ID
     type: secret
     value: sp.subscriptionid
-  - name: AZ_TENANT_ID
+  - name: AZURE_TENANT_ID
     type: secret
     value: sp.tenant
-  - name: AZ_CLIENT_ID
+  - name: AZURE_CLIENT_ID
     type: secret
     value: sp.clientid
-  - name: AZ_CLIENT_SECRET
+  - name: AZURE_CLIENT_SECRET
     type: secret
     value: sp.clientsecret
-  - name: AZ_SP_OBJECT_ID
+  - name: AZURE_SP_OBJECT_ID
     type: secret
     value: sp.objectid
-  - name: AZ_LOCATION
+  - name: AZURE_LOCATION
     type: argument-value-mode

@@ -13,13 +13,12 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
-	"github.com/Azure/go-autorest/autorest"
 )
 
 func getCognitiveSevicesManagementClient() cognitiveservices.AccountsClient {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	accountClient := cognitiveservices.NewAccountsClient(helpers.SubscriptionID())
-	accountClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	accountClient := cognitiveservices.NewAccountsClient(helpers.SubscriptionID(), "")
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	accountClient.Authorizer = auth
 	accountClient.AddToUserAgent(helpers.UserAgent())
 	return accountClient
 }

@@ -58,7 +58,7 @@ func CreateVMWithManagedDisk(ctx context.Context, nicName, diskName, vmName stri
 			Location: to.StringPtr(helpers.Location()),
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
 				HardwareProfile: &compute.HardwareProfile{
-					VMSize: compute.StandardDS2V2,
+					VMSize: compute.VirtualMachineSizeTypesBasicA0,
 				},
 				NetworkProfile: &compute.NetworkProfile{
 					NetworkInterfaces: &[]compute.NetworkInterfaceReference{

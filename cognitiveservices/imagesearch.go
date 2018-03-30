@@ -28,36 +28,35 @@ func SearchImages(accountName string) (imagesearch.Images, error) {
 	query := "canadian rockies"
 
 	images, err := imageSearchClient.Search(
-		context.Background(), // context
-		"",                   // X-BingApis-SDK header
-		query,                // query keyword
-		"",                   // Accept-Language header
-		"",                   // User-Agent header
-		"",                   // X-MSEdge-ClientID header
-		"",                   // X-MSEdge-ClientIP header
-		"",                   // X-Search-Location header
-		"",                   // image aspect
-		"",                   // image color
-		"",                   // country code
-		nil,                  // count
-		"",                   // freshness
-		nil,                  // height
-		"",                   // ID
-		"",                   // image content
-		"",                   // image type
-		"",                   // image license
-		"",                   // market
-		nil,                  // max file size
-		nil,                  // max height
-		nil,                  // max width
-		nil,                  // min file size
-		nil,                  // min height
-		nil,                  // min width
-		nil,                  // offset
-		"",                   // safe search
-		"",                   // image size
-		"",                   // set lang
-		nil,                  // width
+		context.Background(),  // context
+		query,                 // query keyword
+		"",                    // Accept-Language header
+		"",                    // User-Agent header
+		"",                    // X-MSEdge-ClientID header
+		"",                    // X-MSEdge-ClientIP header
+		"",                    // X-Search-Location header
+		imagesearch.Square,    // image aspect
+		imagesearch.ColorOnly, // image color
+		"",                // country code
+		nil,               // count
+		imagesearch.Month, // freshness
+		nil,               // height
+		"",                // ID
+		imagesearch.ImageContent(""), // image content
+		imagesearch.Photo,            // image type
+		imagesearch.ImageLicenseAll,  // image license
+		"",                       // market
+		nil,                      // max file size
+		nil,                      // max height
+		nil,                      // max width
+		nil,                      // min file size
+		nil,                      // min height
+		nil,                      // min width
+		nil,                      // offset
+		imagesearch.Strict,       // safe search
+		imagesearch.ImageSizeAll, // image size
+		"",  // set lang
+		nil, // width
 	)
 
 	return images, err

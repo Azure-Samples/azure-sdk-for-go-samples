@@ -28,9 +28,9 @@ const (
 )
 
 func getAccountClient() batchARM.AccountClient {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	accountClient := batchARM.NewAccountClient(helpers.SubscriptionID())
-	accountClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	accountClient.Authorizer = auth
 	accountClient.AddToUserAgent(helpers.UserAgent())
 	return accountClient
 }

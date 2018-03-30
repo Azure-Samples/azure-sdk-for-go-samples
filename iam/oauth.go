@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure/go-autorest/autorest"
@@ -56,7 +57,16 @@ func init() {
 }
 
 func parseArgs() error {
-	return helpers.LoadEnvVars()
+	err := helpers.LoadEnvVars()
+	if err != nil {
+		return err
+	}
+
+	tenantID = os.Getenv("AZURE_TENANT_ID")
+	clientID = os.Getenv("AZURE_CLIENT_ID")
+	clientSecret = os.Getenv("AZURE_CLIENT_SECRET")
+
+	return err
 }
 
 // ClientID gets the client ID

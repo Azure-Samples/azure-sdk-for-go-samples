@@ -6,11 +6,9 @@
 package iam
 
 import (
-	"errors"
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure/go-autorest/autorest"
@@ -58,31 +56,7 @@ func init() {
 }
 
 func parseArgs() error {
-	err := helpers.LoadEnvVars()
-	if err != nil {
-		return err
-	}
-
-	tenantID = os.Getenv("AZURE_TENANT_ID")
-	if tenantID == "" {
-		log.Println("tenant id missing")
-	}
-	clientID = os.Getenv("AZURE_CLIENT_ID")
-	if clientID == "" {
-		log.Println("client id missing")
-	}
-	clientSecret = os.Getenv("AZURE_CLIENT_SECRET")
-	if clientSecret == "" {
-		log.Println("client secret missing")
-	}
-
-	if !(len(tenantID) > 0) || !(len(clientID) > 0) || !(len(clientSecret) > 0) {
-		return errors.New("tenant id, client id, and client secret must be specified via env var or flags")
-	}
-
-	oauthConfig, err = adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantID)
-
-	return err
+	return helpers.LoadEnvVars()
 }
 
 // ClientID gets the client ID

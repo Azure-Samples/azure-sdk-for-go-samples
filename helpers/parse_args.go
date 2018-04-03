@@ -71,7 +71,7 @@ func ParseArgs() error {
 
 	// flags are prioritized over env vars,
 	// so read from env vars first, then check flags
-	err = LoadEnvVars()
+	err = ReadEnvFile()
 	if err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func ParseArgs() error {
 // ParseSubscriptionID gets the subscription id from either an env var, .env file or flag
 // The caller should do flag.Parse()
 func ParseSubscriptionID() error {
-	err := LoadEnvVars()
+	err := ReadEnvFile()
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func ParseSubscriptionID() error {
 // ParseDeviceFlow parses the auth grant type to be used
 // The caller should do flag.Parse()
 func ParseDeviceFlow() error {
-	err := LoadEnvVars()
+	err := ReadEnvFile()
 	if err != nil {
 		return err
 	}
@@ -203,8 +203,8 @@ func OverrideLocation(available []string) {
 	}
 }
 
-// LoadEnvVars loads environment variables.
-func LoadEnvVars() error {
+// ReadEnvFile reads the .env file and loads its environment variables.
+func ReadEnvFile() error {
 	err := gotenv.Load() // to allow use of .env file
 	if err != nil && !strings.HasPrefix(err.Error(), "open .env:") {
 		return err

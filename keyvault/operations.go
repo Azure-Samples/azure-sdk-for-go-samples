@@ -14,9 +14,9 @@ var (
 )
 
 func getKeysClient() keyvault.BaseClient {
-	token, _ := iam.GetKeyvaultToken(iam.AuthGrantType())
 	keyClient := keyvault.New()
-	keyClient.Authorizer = token
+	auth, _ := iam.GetKeyvaultAuthorizer(iam.AuthGrantType())
+	keyClient.Authorizer = auth
 	keyClient.AddToUserAgent(helpers.UserAgent())
 	return keyClient
 }

@@ -7,7 +7,6 @@ package iam
 
 import (
 	"log"
-	"net/http"
 	"net/url"
 	"os"
 
@@ -25,11 +24,12 @@ const (
 
 var (
 	// for service principal and device
-	clientID      string
-	oauthConfig   *adal.OAuthConfig
-	armAuthorizer autorest.Authorizer
-	batchToken    adal.OAuthTokenProvider
-	graphToken    adal.OAuthTokenProvider
+	clientID           string
+	oauthConfig        *adal.OAuthConfig
+	armAuthorizer      autorest.Authorizer
+	batchAuthorizer    autorest.Authorizer
+	graphAuthorizer    autorest.Authorizer
+	keyvaultAuthorizer autorest.Authorizer
 
 	// for service principal
 	subscriptionID string
@@ -57,7 +57,7 @@ func init() {
 }
 
 func parseArgs() error {
-	err := helpers.LoadEnvVars()
+	err := helpers.ReadEnvFile()
 	if err != nil {
 		return err
 	}
@@ -66,6 +66,7 @@ func parseArgs() error {
 	clientID = os.Getenv("AZURE_CLIENT_ID")
 	clientSecret = os.Getenv("AZURE_CLIENT_SECRET")
 
+	oauthConfig, err = adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantID)
 	return err
 }
 
@@ -102,9 +103,8 @@ func GetResourceManagementAuthorizer(grantType OAuthGrantType) (a autorest.Autho
 	case OAuthGrantTypeServicePrincipal:
 		a, err = auth.NewAuthorizerFromEnvironment()
 	case OAuthGrantTypeDeviceFlow:
-		var token adal.OAuthTokenProvider
-		token, err = getDeviceToken(azure.PublicCloud.ResourceManagerEndpoint)
-		a = autorest.NewBearerAuthorizer(token)
+		config := auth.NewDeviceFlowConfig(samplesAppID, tenantID)
+		a, err = config.Authorizer()
 	default:
 		log.Fatalln("invalid token type specified")
 	}
@@ -115,77 +115,59 @@ func GetResourceManagementAuthorizer(grantType OAuthGrantType) (a autorest.Autho
 	return
 }
 
-const batchManagementEndpoint = "https://batch.core.windows.net/"
-
-// GetBatchToken gets an OAuth token for Azure batch using the specified grant type.
-func GetBatchToken(grantType OAuthGrantType) (adal.OAuthTokenProvider, error) {
-	if batchToken != nil {
-		return batchToken, nil
+// GetBatchAuthorizer gets an authorizer for Azure batch using the specified grant type.
+func GetBatchAuthorizer(grantType OAuthGrantType) (a autorest.Authorizer, err error) {
+	if batchAuthorizer != nil {
+		return batchAuthorizer, nil
 	}
 
-	token, err := getToken(grantType, batchManagementEndpoint)
+	a, err = getAuthorizer(grantType, azure.PublicCloud.BatchManagementEndpoint)
 	if err == nil {
-		batchToken = token
+		batchAuthorizer = a
 	}
 
-	return token, err
+	return
 }
 
-// GetGraphToken gets an OAuth token for the graphrbac API using the specified grant type.
-func GetGraphToken(grantType OAuthGrantType) (adal.OAuthTokenProvider, error) {
-	if graphToken != nil {
-		return graphToken, nil
+// GetGraphAuthorizer gets an authorizer for the graphrbac API using the specified grant type.
+func GetGraphAuthorizer(grantType OAuthGrantType) (a autorest.Authorizer, err error) {
+	if graphAuthorizer != nil {
+		return graphAuthorizer, nil
 	}
 
-	token, err := getToken(grantType, azure.PublicCloud.GraphEndpoint)
+	a, err = getAuthorizer(grantType, azure.PublicCloud.GraphEndpoint)
 	if err == nil {
-		graphToken = token
+		graphAuthorizer = a
 	}
 
-	return token, err
+	return
 }
 
-func getToken(grantType OAuthGrantType, endpoint string) (token adal.OAuthTokenProvider, err error) {
+func getAuthorizer(grantType OAuthGrantType, endpoint string) (a autorest.Authorizer, err error) {
 	switch grantType {
 	case OAuthGrantTypeServicePrincipal:
-		token, err = getServicePrincipalToken(endpoint)
+		token, err := adal.NewServicePrincipalToken(*oauthConfig, clientID, clientSecret, endpoint)
+		if err != nil {
+			return a, err
+		}
+		a = autorest.NewBearerAuthorizer(token)
 	case OAuthGrantTypeDeviceFlow:
-		token, err = getDeviceToken(endpoint)
+		config := auth.NewDeviceFlowConfig(samplesAppID, tenantID)
+		config.Resource = endpoint
+		a, err = config.Authorizer()
 	default:
 		log.Fatalln("invalid token type specified")
 	}
 	return
 }
 
-func getServicePrincipalToken(endpoint string) (adal.OAuthTokenProvider, error) {
-	return adal.NewServicePrincipalToken(
-		*oauthConfig,
-		clientID,
-		clientSecret,
-		endpoint)
-}
-
-func getDeviceToken(endpoint string) (adal.OAuthTokenProvider, error) {
-	sender := &http.Client{}
-	cliID := samplesAppID
-	if UseCLIclientID {
-		cliID = azCLIclientID
-	}
-	code, err := adal.InitiateDeviceAuth(
-		sender,
-		*oauthConfig,
-		cliID, // clientID
-		endpoint)
-	if err != nil {
-		log.Fatalf("%s: %v\n", "failed to initiate device auth", err)
+// GetKeyvaultAuthorizer gets an authorizer for the keyvault dataplane
+func GetKeyvaultAuthorizer(grantType OAuthGrantType) (a autorest.Authorizer, err error) {
+	if keyvaultAuthorizer != nil {
+		return keyvaultAuthorizer, nil
 	}
 
-	log.Println(*code.Message)
-	return adal.WaitForUserCompletion(sender, code)
-}
-
-// GetKeyvaultToken gets an authorizer for the keyvault dataplane
-func GetKeyvaultToken(grantType OAuthGrantType) (authorizer autorest.Authorizer, err error) {
+	vaultEndpoint := "https://vault.azure.net"
 	config, err := adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantID)
 	updatedAuthorizeEndpoint, err := url.Parse("https://login.windows.net/" + tenantID + "/oauth2/token")
 	config.AuthorizeEndpoint = *updatedAuthorizeEndpoint
@@ -195,36 +177,22 @@ func GetKeyvaultToken(grantType OAuthGrantType) (authorizer autorest.Authorizer,
 
 	switch grantType {
 	case OAuthGrantTypeServicePrincipal:
-		spt, err := adal.NewServicePrincipalToken(
-			*config,
-			clientID,
-			clientSecret,
-			"https://vault.azure.net")
-
+		token, err := adal.NewServicePrincipalToken(*config, clientID, clientSecret, vaultEndpoint)
 		if err != nil {
-			return authorizer, err
+			return a, err
 		}
-		authorizer = autorest.NewBearerAuthorizer(spt)
+		a = autorest.NewBearerAuthorizer(token)
 	case OAuthGrantTypeDeviceFlow:
-		sender := &http.Client{}
-
-		code, err := adal.InitiateDeviceAuth(
-			sender,
-			*config,
-			samplesAppID, // clientID
-			"https://vault.azure.net")
-		if err != nil {
-			log.Fatalf("%s: %v\n", "failed to initiate device auth", err)
-		}
-
-		log.Println(*code.Message)
-		spt, err := adal.WaitForUserCompletion(sender, code)
-		if err != nil {
-			return authorizer, err
-		}
-		authorizer = autorest.NewBearerAuthorizer(spt)
+		deviceConfig := auth.NewDeviceFlowConfig(samplesAppID, tenantID)
+		deviceConfig.Resource = vaultEndpoint
+		deviceConfig.AADEndpoint = updatedAuthorizeEndpoint.String()
+		a, err = deviceConfig.Authorizer()
 	default:
 		log.Fatalln("invalid token type specified")
+	}
+
+	if err == nil {
+		keyvaultAuthorizer = a
 	}
 
 	return

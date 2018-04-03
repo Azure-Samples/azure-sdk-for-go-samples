@@ -36,36 +36,36 @@ func getAccountClient() batchARM.AccountClient {
 }
 
 func getPoolClient(accountName, accountLocation string) batch.PoolClient {
-	token, _ := iam.GetBatchToken(iam.AuthGrantType())
 	poolClient := batch.NewPoolClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
-	poolClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetBatchAuthorizer(iam.AuthGrantType())
+	poolClient.Authorizer = auth
 	poolClient.AddToUserAgent(helpers.UserAgent())
 	poolClient.RequestInspector = fixContentTypeInspector()
 	return poolClient
 }
 
 func getJobClient(accountName, accountLocation string) batch.JobClient {
-	token, _ := iam.GetBatchToken(iam.AuthGrantType())
 	jobClient := batch.NewJobClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
-	jobClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetBatchAuthorizer(iam.AuthGrantType())
+	jobClient.Authorizer = auth
 	jobClient.AddToUserAgent(helpers.UserAgent())
 	jobClient.RequestInspector = fixContentTypeInspector()
 	return jobClient
 }
 
 func getTaskClient(accountName, accountLocation string) batch.TaskClient {
-	token, _ := iam.GetBatchToken(iam.AuthGrantType())
 	taskClient := batch.NewTaskClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
-	taskClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetBatchAuthorizer(iam.AuthGrantType())
+	taskClient.Authorizer = auth
 	taskClient.AddToUserAgent(helpers.UserAgent())
 	taskClient.RequestInspector = fixContentTypeInspector()
 	return taskClient
 }
 
 func getFileClient(accountName, accountLocation string) batch.FileClient {
-	token, _ := iam.GetBatchToken(iam.AuthGrantType())
 	fileClient := batch.NewFileClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
-	fileClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetBatchAuthorizer(iam.AuthGrantType())
+	fileClient.Authorizer = auth
 	fileClient.AddToUserAgent(helpers.UserAgent())
 	fileClient.RequestInspector = fixContentTypeInspector()
 	return fileClient

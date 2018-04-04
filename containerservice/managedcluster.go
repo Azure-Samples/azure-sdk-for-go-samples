@@ -10,7 +10,6 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
@@ -18,13 +17,9 @@ import (
 var fakepubkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7laRyN4B3YZmVrDEZLZoIuUA72pQ0DpGuZBZWykCofIfCPrFZAJgFvonKGgKJl6FGKIunkZL9Us/mV4ZPkZhBlE7uX83AAf5i9Q8FmKpotzmaxN10/1mcnEE7pFvLoSkwqrQSkrrgSm8zaJ3g91giXSbtqvSIj/vk2f05stYmLfhAwNo3Oh27ugCakCoVeuCrZkvHMaJgcYrIGCuFo6q0Pfk9rsZyriIqEa9AtiUOtViInVYdby7y71wcbl0AbbCZsTSqnSoVxm2tRkOsXV6+8X4SnwcmZbao3H+zfO1GBhQOLxJ4NQbzAa8IJh810rYARNLptgmsd4cYXVOSosTX azureuser"
 
 func getAKSClient() (containerservice.ManagedClustersClient, error) {
-	token, err := iam.GetResourceManagementToken(iam.AuthGrantType())
-	if err != nil {
-		return containerservice.ManagedClustersClient{}, fmt.Errorf("cannot get token: %v", err)
-	}
-
 	aksClient := containerservice.NewManagedClustersClient(helpers.SubscriptionID())
-	aksClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	aksClient.Authorizer = auth
 	aksClient.AddToUserAgent(helpers.UserAgent())
 	return aksClient, nil
 }

@@ -36,7 +36,7 @@ func parseArgs() error {
 		return fmt.Errorf("cannot parse args: %v", err)
 	}
 
-	accountName = os.Getenv("AZ_BATCH_NAME")
+	accountName = os.Getenv("AZURE_BATCH_NAME")
 	if !(len(accountName) > 0) {
 		accountName = strings.ToLower("b" + helpers.GetRandomLetterSequence(10))
 	}

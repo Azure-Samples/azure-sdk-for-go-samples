@@ -24,8 +24,6 @@ var (
 	vmName           = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
 	diskName         = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
 	nicName          = "nic" + helpers.GetRandomLetterSequence(10)
-	username         = "az-samples-go-user"
-	password         = "NoSoupForYou1!"
 	sshPublicKeyPath = os.Getenv("HOME") + "/.ssh/id_rsa.pub"
 
 	virtualNetworkName = "vnet1"
@@ -48,7 +46,7 @@ func TestMain(m *testing.M) {
 func parseArgs() error {
 	gotenv.Load()
 
-	virtualNetworkName = os.Getenv("AZ_VNET_NAME")
+	virtualNetworkName = os.Getenv("AZURE_VNET_NAME")
 	flag.StringVar(&virtualNetworkName, "vnetName", virtualNetworkName, "Specify a name for the vnet.")
 
 	err := helpers.ParseArgs()

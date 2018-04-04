@@ -34,7 +34,7 @@ func parseArgs() error {
 		return fmt.Errorf("cannot parse args: %v", err)
 	}
 
-	containerGroupName = os.Getenv("AZ_CONTAINERINSTANCE_CONTAINER_GROUP_NAME")
+	containerGroupName = os.Getenv("AZURE_CONTAINERINSTANCE_CONTAINER_GROUP_NAME")
 	if !(len(containerGroupName) > 0) {
 		containerGroupName = "az-samples-go-container-group-" + helpers.GetRandomLetterSequence(10)
 	}

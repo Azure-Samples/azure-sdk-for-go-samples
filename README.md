@@ -17,28 +17,28 @@ Read the [main SDK README][] for more help getting started with the Go SDK.
 1. Set the following environment variables (those marked * are required). Use
 the following instructions to find or create these values if necessary.
 
-    * `AZ_SUBSCRIPTION_ID`*
-    * `AZ_TENANT_ID`*
-    * `AZ_CLIENT_ID`*
-    * `AZ_CLIENT_SECRET`*
-    * `AZ_SP_OBJECT_ID`
-    * `AZ_LOCATION`
-    * `AZ_RESOURCE_GROUP_PREFIX`
-    * `AZ_KEEP_SAMPLE_RESOURCES`
+    * `AZURE_SUBSCRIPTION_ID`*
+    * `AZURE_TENANT_ID`*
+    * `AZURE_CLIENT_ID`*
+    * `AZURE_CLIENT_SECRET`*
+    * `AZURE_SP_OBJECT_ID`
+    * `AZURE_LOCATION`
+    * `AZURE_RESOURCE_GROUP_PREFIX`
+    * `AZURE_KEEP_SAMPLE_RESOURCES`
 
     Using [the Azure CLI][azure-cli], you can get your subscription ID by running `az account
     list`. You can check your tenant ID and get a client ID and secret by
     running `az ad sp create-for-rbac -n "<yourAppName>"`.
 
-    If `AZ_RESOURCE_GROUP_PREFIX` isn't specified, `azure-samples-go` will be used.
+    If `AZURE_RESOURCE_GROUP_PREFIX` isn't specified, `azure-samples-go` will be used.
 
-    If `AZ_LOCATION` isn't specified `westus2` will be used.
+    If `AZURE_LOCATION` isn't specified `westus2` will be used.
 
-    If `AZ_KEEP_SAMPLE_RESOURCES` is set to `1` tests won't clean up resources
+    If `AZURE_KEEP_SAMPLE_RESOURCES` is set to `1` tests won't clean up resources
     they create when done. This can be helpful if you want to further experiment
     with those resources.
 
-    `AZ_SP_OBJECT_ID` represents a service principal ObjectID. It is needed to run the Create VM with encrypted managed disks sample.
+    `AZURE_SP_OBJECT_ID` represents a service principal ObjectID. It is needed to run the Create VM with encrypted managed disks sample.
 
     **NOTE:** the environment variables are listed in [.env.tpl](./.env.tpl)
     so you can copy that to .env (e.g. `cp .env.tpl .env`) and update for

@@ -71,15 +71,15 @@ func ParseArgs() error {
 
 	// flags are prioritized over env vars,
 	// so read from env vars first, then check flags
-	err = LoadEnvVars()
+	err = ReadEnvFile()
 	if err != nil {
 		return err
 	}
 
-	resourceGroupNamePrefix = os.Getenv("AZ_RESOURCE_GROUP_PREFIX")
-	servicePrincipalObjectID = os.Getenv("AZ_SP_OBJECT_ID")
-	location = os.Getenv("AZ_LOCATION")
-	if os.Getenv("AZ_SAMPLES_KEEP_RESOURCES") == "1" {
+	resourceGroupNamePrefix = os.Getenv("AZURE_RESOURCE_GROUP_PREFIX")
+	servicePrincipalObjectID = os.Getenv("AZURE_SP_OBJECT_ID")
+	location = os.Getenv("AZURE_LOCATION")
+	if os.Getenv("AZURE_SAMPLES_KEEP_RESOURCES") == "1" {
 		keepResources = true
 	}
 
@@ -103,12 +103,12 @@ func ParseArgs() error {
 // ParseSubscriptionID gets the subscription id from either an env var, .env file or flag
 // The caller should do flag.Parse()
 func ParseSubscriptionID() error {
-	err := LoadEnvVars()
+	err := ReadEnvFile()
 	if err != nil {
 		return err
 	}
 
-	subscriptionID = os.Getenv("AZ_SUBSCRIPTION_ID")
+	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	flag.StringVar(&subscriptionID, "subscription", subscriptionID, "Subscription to use for deployment.")
 
 	if !(len(subscriptionID) > 0) {
@@ -120,12 +120,12 @@ func ParseSubscriptionID() error {
 // ParseDeviceFlow parses the auth grant type to be used
 // The caller should do flag.Parse()
 func ParseDeviceFlow() error {
-	err := LoadEnvVars()
+	err := ReadEnvFile()
 	if err != nil {
 		return err
 	}
 
-	if os.Getenv("AZ_AUTH_DEVICEFLOW") != "" {
+	if os.Getenv("AZURE_AUTH_DEVICEFLOW") != "" {
 		deviceFlow = true
 	}
 	flag.BoolVar(&deviceFlow, "deviceFlow", deviceFlow, "Use device flow for authentication. This flag should be used with -v flag. Default authentication is service principal.")
@@ -203,8 +203,8 @@ func OverrideLocation(available []string) {
 	}
 }
 
-// LoadEnvVars loads environment variables.
-func LoadEnvVars() error {
+// ReadEnvFile reads the .env file and loads its environment variables.
+func ReadEnvFile() error {
 	err := gotenv.Load() // to allow use of .env file
 	if err != nil && !strings.HasPrefix(err.Error(), "open .env:") {
 		return err

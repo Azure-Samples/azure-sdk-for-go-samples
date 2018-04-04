@@ -36,15 +36,15 @@ func parseArgs() error {
 		return fmt.Errorf("cannot parse args: %v", err)
 	}
 
-	resourceName = os.Getenv("AZ_AKS_NAME")
+	resourceName = os.Getenv("AZURE_AKS_NAME")
 	if !(len(resourceName) > 0) {
 		resourceName = "az-samples-go-aks-" + helpers.GetRandomLetterSequence(10)
 	}
 
-	clientID = os.Getenv("AZ_CLIENT_ID")
-	clientSecret = os.Getenv("AZ_CLIENT_SECRET")
+	clientID = os.Getenv("AZURE_CLIENT_ID")
+	clientSecret = os.Getenv("AZURE_CLIENT_SECRET")
 
-	apc := os.Getenv("AZ_AKS_AGENTPOOLCOUNT")
+	apc := os.Getenv("AZURE_AKS_AGENTPOOLCOUNT")
 	if !(len(apc) > 0) {
 		agentPoolCount = int32(2)
 	} else {

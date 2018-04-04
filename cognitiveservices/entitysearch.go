@@ -29,7 +29,6 @@ func SearchEntities(accountName string) (entitysearch.Entities, error) {
 	market := "en-us"
 	searchResponse, err := entitySearchClient.Search(
 		context.Background(), // context
-		"",                   // X-BingApis-SDK header
 		query,                // query keyword
 		"",                   // Accept-Language header
 		"",                   // pragma header
@@ -39,10 +38,10 @@ func SearchEntities(accountName string) (entitysearch.Entities, error) {
 		"",                   // X-Search-Location header
 		"",                   // country code
 		market,               // market
-		nil,                  // response filter
-		nil,                  // response format
-		"",                   // safe search
-		"",                   // set lang
+		[]entitysearch.AnswerType{},     // response filter
+		[]entitysearch.ResponseFormat{}, // response format
+		entitysearch.Strict,             // safe search
+		"",                              // set lang
 	)
 
 	return *searchResponse.Entities, err

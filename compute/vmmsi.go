@@ -31,7 +31,7 @@ func CreateVMForMSI(ctx context.Context, vmName, nicName, username, password str
 			},
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
 				HardwareProfile: &compute.HardwareProfile{
-					VMSize: compute.StandardDS1V2,
+					VMSize: compute.VirtualMachineSizeTypesBasicA0,
 				},
 				StorageProfile: &compute.StorageProfile{
 					ImageReference: &compute.ImageReference{

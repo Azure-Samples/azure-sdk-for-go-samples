@@ -24,7 +24,7 @@ var (
 
 func TestMain(m *testing.M) {
 	gotenv.Load()
-	name := os.Getenv("AZ_STORAGE_ACCOUNT_NAME")
+	name := os.Getenv("AZURE_STORAGE_ACCOUNT_NAME")
 	if len(name) > 0 {
 		accountName = name
 	}

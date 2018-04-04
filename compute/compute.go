@@ -16,11 +16,12 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 const (
+	username  = "az-samples-go-user"
+	password  = "NoSoupForYou1!"
 	publisher = "Canonical"
 	offer     = "UbuntuServer"
 	sku       = "16.04.0-LTS"
@@ -30,25 +31,25 @@ const (
 var fakepubkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7laRyN4B3YZmVrDEZLZoIuUA72pQ0DpGuZBZWykCofIfCPrFZAJgFvonKGgKJl6FGKIunkZL9Us/mV4ZPkZhBlE7uX83AAf5i9Q8FmKpotzmaxN10/1mcnEE7pFvLoSkwqrQSkrrgSm8zaJ3g91giXSbtqvSIj/vk2f05stYmLfhAwNo3Oh27ugCakCoVeuCrZkvHMaJgcYrIGCuFo6q0Pfk9rsZyriIqEa9AtiUOtViInVYdby7y71wcbl0AbbCZsTSqnSoVxm2tRkOsXV6+8X4SnwcmZbao3H+zfO1GBhQOLxJ4NQbzAa8IJh810rYARNLptgmsd4cYXVOSosTX azureuser"
 
 func getVMClient() compute.VirtualMachinesClient {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	vmClient := compute.NewVirtualMachinesClient(helpers.SubscriptionID())
-	vmClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	vmClient.Authorizer = auth
 	vmClient.AddToUserAgent(helpers.UserAgent())
 	return vmClient
 }
 
 func getExtensionClient() compute.VirtualMachineExtensionsClient {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	extClient := compute.NewVirtualMachineExtensionsClient(helpers.SubscriptionID())
-	extClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	extClient.Authorizer = auth
 	extClient.AddToUserAgent(helpers.UserAgent())
 	return extClient
 }
 
 func getDisksClient() compute.DisksClient {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	disksClient := compute.NewDisksClient(helpers.SubscriptionID())
-	disksClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	disksClient.Authorizer = auth
 	disksClient.AddToUserAgent(helpers.UserAgent())
 	return disksClient
 }
@@ -78,7 +79,7 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, sshPubli
 			Location: to.StringPtr(helpers.Location()),
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
 				HardwareProfile: &compute.HardwareProfile{
-					VMSize: compute.StandardDS1V2,
+					VMSize: compute.VirtualMachineSizeTypesBasicA0,
 				},
 				StorageProfile: &compute.StorageProfile{
 					ImageReference: &compute.ImageReference{

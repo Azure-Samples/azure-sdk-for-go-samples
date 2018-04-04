@@ -13,17 +13,17 @@ import (
 )
 
 func getServicePrincipalClient() graphrbac.ServicePrincipalsClient {
-	token, _ := iam.GetGraphToken(iam.AuthGrantType())
 	spClient := graphrbac.NewServicePrincipalsClient(iam.TenantID())
-	spClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetGraphAuthorizer(iam.AuthGrantType())
+	spClient.Authorizer = auth
 	spClient.AddToUserAgent(helpers.UserAgent())
 	return spClient
 }
 
 func getApplicationsClient() graphrbac.ApplicationsClient {
-	token, _ := iam.GetGraphToken(iam.AuthGrantType())
 	appClient := graphrbac.NewApplicationsClient(iam.TenantID())
-	appClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetGraphAuthorizer(iam.AuthGrantType())
+	appClient.Authorizer = auth
 	appClient.AddToUserAgent(helpers.UserAgent())
 	return appClient
 }
@@ -70,9 +70,9 @@ func AddClientSecret(ctx context.Context, objID string) (autorest.Response, erro
 }
 
 func getObjectsClient() graphrbac.ObjectsClient {
-	token, _ := iam.GetGraphToken(iam.AuthGrantType())
 	objClient := graphrbac.NewObjectsClient(iam.TenantID())
-	objClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetGraphAuthorizer(iam.AuthGrantType())
+	objClient.Authorizer = auth
 	objClient.AddToUserAgent(helpers.UserAgent())
 	return objClient
 }

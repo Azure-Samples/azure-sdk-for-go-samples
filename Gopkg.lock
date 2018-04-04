@@ -34,14 +34,14 @@
     "services/storage/mgmt/2017-06-01/storage",
     "version"
   ]
-  revision = "e67cd39e942c417ae5e9ae1165f778d9fe8996e0"
-  version = "v14.5.0"
+  revision = "56332fec5b308fbb6615fa1af6117394cdba186d"
+  version = "v15.0.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/Azure/azure-storage-blob-go"
   packages = ["2016-05-31/azblob"]
-  revision = "38ca054dbe15000254766ebc6d91d5497cadaf2b"
+  revision = "70edea0000eaac722aa45821797ffdedba6b53b8"
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
@@ -55,20 +55,23 @@
     "autorest/utils",
     "autorest/validation"
   ]
-  revision = "1e3943ee722538420f21945f4bc820347abe433d"
-  version = "v10.1.2"
+  revision = "ed4b7f5bf1ec0c9ede1fda2681d96771282f2862"
+  version = "v10.4.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/denisenkom/go-mssqldb"
-  packages = ["."]
-  revision = "ee492709d4324cdcb051d2ac266b77ddc380f5c5"
+  packages = [
+    ".",
+    "internal/cp"
+  ]
+  revision = "b594cb31ff9cf2d061450ef0e1cc1f33fd211a5a"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
-  revision = "dbeaa9332f19a944acb5736b4456cfcc02140e29"
-  version = "v3.1.0"
+  revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
+  version = "v3.2.0"
 
 [[projects]]
   branch = "master"
@@ -96,11 +99,11 @@
     "pkcs12",
     "pkcs12/internal/rc2"
   ]
-  revision = "91a49db82a88618983a78a06c1cbd4e00ab749ab"
+  revision = "88942b9c40a4c9d203b82b3731787b672d6e809b"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "756c55faddca897667336ffddf52fb71fcabd4c10eab4ab7211a1ebf34f1eebb"
+  inputs-digest = "5c9a777433d60af074d0136e6cc02a4b5d3a35ca0fb6f2e7c986d942fbdcefcb"
   solver-name = "gps-cdcl"
   solver-version = 1

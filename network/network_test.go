@@ -38,7 +38,7 @@ func TestMain(m *testing.M) {
 func parseArgs() error {
 	gotenv.Load()
 
-	virtualNetworkName = os.Getenv("AZ_VNET_NAME")
+	virtualNetworkName = os.Getenv("AZURE_VNET_NAME")
 	flag.StringVar(&virtualNetworkName, "vnetName", virtualNetworkName, "Specify a name for the vnet.")
 
 	err := helpers.ParseArgs()

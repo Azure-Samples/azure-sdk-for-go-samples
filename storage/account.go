@@ -25,17 +25,17 @@ func getAccountName() string {
 }
 
 func getStorageAccountsClient() storage.AccountsClient {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	storageAccountsClient := storage.NewAccountsClient(helpers.SubscriptionID())
-	storageAccountsClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	storageAccountsClient.Authorizer = auth
 	storageAccountsClient.AddToUserAgent(helpers.UserAgent())
 	return storageAccountsClient
 }
 
 func getUsageClient() storage.UsageClient {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	usageClient := storage.NewUsageClient(helpers.SubscriptionID())
-	usageClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	usageClient.Authorizer = auth
 	usageClient.AddToUserAgent(helpers.UserAgent())
 	return usageClient
 }

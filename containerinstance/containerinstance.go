@@ -13,18 +13,13 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2017-08-01-preview/containerinstance"
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 func getContainerGroupsClient() (containerinstance.ContainerGroupsClient, error) {
-	token, err := iam.GetResourceManagementToken(iam.AuthGrantType())
-	if err != nil {
-		return containerinstance.ContainerGroupsClient{}, fmt.Errorf("cannot get token: %v", err)
-	}
-
 	containerGroupsClient := containerinstance.NewContainerGroupsClient(helpers.SubscriptionID())
-	containerGroupsClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	containerGroupsClient.Authorizer = auth
 	containerGroupsClient.AddToUserAgent(helpers.UserAgent())
 	return containerGroupsClient, nil
 }

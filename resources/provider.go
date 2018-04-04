@@ -11,13 +11,12 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
-	"github.com/Azure/go-autorest/autorest"
 )
 
 func getProviderClient() resources.ProvidersClient {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	providerClient := resources.NewProvidersClient(helpers.SubscriptionID())
-	providerClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	providerClient.Authorizer = auth
 	providerClient.AddToUserAgent(helpers.UserAgent())
 	return providerClient
 }

@@ -1,6 +1,6 @@
 [[constraint]]
   name = "github.com/Azure/azure-sdk-for-go"
-  version = "14.1.1"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/Azure/azure-storage-blob-go"
@@ -8,7 +8,11 @@
 
 [[constraint]]
   name = "github.com/Azure/go-autorest"
+<<<<<<< HEAD
   version = "10.3.0"
+=======
+  version = "10.4.0"
+>>>>>>> upstream/master
 
 [[constraint]]
   branch = "master"

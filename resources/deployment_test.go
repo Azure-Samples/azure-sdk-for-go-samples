@@ -7,6 +7,7 @@ package resources
 
 import (
 	"context"
+	"fmt"
 	"go/build"
 	"log"
 	"path/filepath"
@@ -63,6 +64,8 @@ func ExampleCreateTemplateDeployment() {
 		helpers.PrintAndLog(err.Error())
 	}
 	helpers.PrintAndLog("got public IP info via get generic resource")
+
+	fmt.Println(resource.Properties)
 
 	log.Printf("Log in with ssh: %s@%s, password: %s",
 		vmUser,

@@ -17,9 +17,9 @@ import (
 )
 
 func getResourcesClient() resources.Client {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	resourcesClient := resources.NewClient(helpers.SubscriptionID())
-	resourcesClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	resourcesClient.Authorizer = auth
 	resourcesClient.AddToUserAgent(helpers.UserAgent())
 	return resourcesClient
 }

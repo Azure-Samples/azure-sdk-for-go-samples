@@ -13,14 +13,13 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 func getAvailabilitySetsClient() compute.AvailabilitySetsClient {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	avaSetClient := compute.NewAvailabilitySetsClient(helpers.SubscriptionID())
-	avaSetClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	avaSetClient.Authorizer = auth
 	avaSetClient.AddToUserAgent(helpers.UserAgent())
 	return avaSetClient
 }
@@ -78,7 +77,7 @@ func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, sub
 			Location: to.StringPtr(helpers.Location()),
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
 				HardwareProfile: &compute.HardwareProfile{
-					VMSize: compute.StandardDS1V2,
+					VMSize: compute.VirtualMachineSizeTypesBasicA0,
 				},
 				StorageProfile: &compute.StorageProfile{
 					ImageReference: &compute.ImageReference{

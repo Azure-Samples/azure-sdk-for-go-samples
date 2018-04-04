@@ -8,23 +8,22 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/satori/go.uuid"
 )
 
 func getRoleDefClient() (authorization.RoleDefinitionsClient, error) {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	roleDefClient := authorization.NewRoleDefinitionsClient(helpers.SubscriptionID())
-	roleDefClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	roleDefClient.Authorizer = auth
 	roleDefClient.AddToUserAgent(helpers.UserAgent())
 	return roleDefClient, nil
 }
 
 func getRoleClient() (authorization.RoleAssignmentsClient, error) {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	roleClient := authorization.NewRoleAssignmentsClient(helpers.SubscriptionID())
-	roleClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	roleClient.Authorizer = auth
 	roleClient.AddToUserAgent(helpers.UserAgent())
 	return roleClient, nil
 }

@@ -20,9 +20,9 @@ import (
 // Servers
 
 func getServersClient() sql.ServersClient {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	serversClient := sql.NewServersClient(helpers.SubscriptionID())
-	serversClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	serversClient.Authorizer = auth
 	serversClient.AddToUserAgent(helpers.UserAgent())
 	return serversClient
 }
@@ -57,9 +57,9 @@ func CreateServer(ctx context.Context, serverName, dbLogin, dbPassword string) (
 // Databases
 
 func getDbClient() sql.DatabasesClient {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	dbClient := sql.NewDatabasesClient(helpers.SubscriptionID())
-	dbClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	dbClient.Authorizer = auth
 	dbClient.AddToUserAgent(helpers.UserAgent())
 	return dbClient
 }
@@ -101,9 +101,9 @@ func DeleteDB(ctx context.Context, serverName, dbName string) (autorest.Response
 // Firewall rukes
 
 func getFwRulesClient() sql.FirewallRulesClient {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
 	fwrClient := sql.NewFirewallRulesClient(helpers.SubscriptionID())
-	fwrClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	fwrClient.Authorizer = auth
 	fwrClient.AddToUserAgent(helpers.UserAgent())
 	return fwrClient
 }

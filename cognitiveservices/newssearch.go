@@ -29,7 +29,6 @@ func SearchNews(accountName string) (newssearch.News, error) {
 
 	news, err := newsSearchClient.Search(
 		context.Background(), // context
-		"",                   // X-BingApis-SDK header
 		query,                // query keyword
 		"",                   // Accept-Language header
 		"",                   // User-Agent header
@@ -38,15 +37,15 @@ func SearchNews(accountName string) (newssearch.News, error) {
 		"",                   // X-Search-Location header
 		"",                   // country code
 		nil,                  // count
-		"",                   // freshness
+		newssearch.Month,     // freshness
 		"",                   // market
 		nil,                  // offset
 		nil,                  // original image
-		"",                   // safe search
+		newssearch.Strict,    // safe search
 		"",                   // set lang
 		"",                   // sort by
 		nil,                  // text decorations
-		"",                   // text format
+		newssearch.Raw,       // text format
 	)
 
 	return news, err

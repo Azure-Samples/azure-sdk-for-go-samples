@@ -4,7 +4,9 @@ The goal of hybrid samples is to provide a library of code snippets for common
 operations in Azure Stack via the Go SDK. Currently "compute", "network", 
 "resource", and "storage" services are supported on Azure Stack. 
 Hybrid sample code is organized by snippet type and is placed in "hybrid" folder
-in the supported services folders. 
+in the supported services folders.
+
+Note: Device authentication is not been enabled for Hybrid samples. 
 
 ## To run tests
 

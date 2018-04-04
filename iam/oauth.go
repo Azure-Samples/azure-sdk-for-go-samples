@@ -143,6 +143,19 @@ func GetGraphAuthorizer(grantType OAuthGrantType) (a autorest.Authorizer, err er
 	return
 }
 
+// GetResourceManagementTokenHybrid retrieves auth token for hybrid environment
+func GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience string) (adal.OAuthTokenProvider, error) {
+	var token adal.OAuthTokenProvider
+	oauthConfig, err := adal.NewOAuthConfig(activeDirectoryEndpoint, tenantID)
+	token, err = adal.NewServicePrincipalToken(
+		*oauthConfig,
+		clientID,
+		clientSecret,
+		tokenAudience)
+
+	return token, err
+}
+
 func getAuthorizer(grantType OAuthGrantType, endpoint string) (a autorest.Authorizer, err error) {
 	switch grantType {
 	case OAuthGrantTypeServicePrincipal:

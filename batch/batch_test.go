@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
@@ -49,7 +50,8 @@ func parseArgs() error {
 
 func ExampleCreateAzureBatchAccount() {
 	helpers.SetResourceGroupName("CreateBatch")
-	ctx := context.Background()
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Minute*30))
+	defer cancel()
 	defer resources.Cleanup(ctx)
 	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
 	if err != nil {

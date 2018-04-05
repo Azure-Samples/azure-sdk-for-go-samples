@@ -13,14 +13,14 @@ Note: Device authentication is not been enabled for Hybrid samples.
 1. Set the following environment variables (those marked * are required). Use
 the following instructions to find or create these values if necessary.
 
-    * `AZ_SUBSCRIPTION_ID`*
-    * `AZ_TENANT_ID`*
-    * `AZ_CLIENT_ID`*
-    * `AZ_CLIENT_SECRET`*
-    * `AZ_LOCATION`*
-    * `AZ_ARM_ENDPOINT`*
-    * `AZ_RESOURCE_GROUP_NAME`
-    * `AZ_KEEP_SAMPLE_RESOURCES`
+    * `AZURE_SUBSCRIPTION_ID`*
+    * `AZURE_TENANT_ID`*
+    * `AZURE_CLIENT_ID`*
+    * `AZURE_CLIENT_SECRET`*
+    * `AZURE_LOCATION`*
+    * `AZURE_ARM_ENDPOINT`*
+    * `AZURE_RESOURCE_GROUP_NAME`
+    * `AZURE_SAMPLES_KEEP_RESOURCES`
 
     Using [the Azure CLI][azure-cli], you can get your subscription ID by running `az account
     list`. You can check your tenant ID and get a client ID and secret by

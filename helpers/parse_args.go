@@ -83,7 +83,7 @@ func ParseArgs() error {
 	if os.Getenv("AZURE_SAMPLES_KEEP_RESOURCES") == "1" {
 		keepResources = true
 	}
-	armEndpointString = os.Getenv("AZ_ARM_ENDPOINT")
+	armEndpointString = os.Getenv("AZURE_ARM_ENDPOINT")
 
 	// flags override envvars
 	flag.StringVar(&resourceGroupNamePrefix, "groupPrefix", GroupPrefix(), "Specify prefix name of resource group for sample resources.")

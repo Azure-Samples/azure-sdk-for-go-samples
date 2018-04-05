@@ -23,6 +23,7 @@ var (
 	servicePrincipalObjectID string
 	keepResources            bool
 	deviceFlow               bool
+	armEndpointString        string
 
 	allLocations = []string{
 		"eastasia",
@@ -82,6 +83,7 @@ func ParseArgs() error {
 	if os.Getenv("AZURE_SAMPLES_KEEP_RESOURCES") == "1" {
 		keepResources = true
 	}
+	armEndpointString = os.Getenv("AZURE_ARM_ENDPOINT")
 
 	// flags override envvars
 	flag.StringVar(&resourceGroupNamePrefix, "groupPrefix", GroupPrefix(), "Specify prefix name of resource group for sample resources.")
@@ -97,6 +99,11 @@ func ParseArgs() error {
 	if !(len(location) > 0) {
 		location = "westus2" // lots of space, most new features
 	}
+
+	if !(len(armEndpointString) > 0) {
+		armEndpointString = "https://management.azure.com/"
+	}
+
 	return nil
 }
 
@@ -170,6 +177,11 @@ func GroupPrefix() string {
 // DeviceFlow returns if device flow has been set as auth grant type
 func DeviceFlow() bool {
 	return deviceFlow
+}
+
+// ArmEndpoint specifies resource manager URI
+func ArmEndpoint() string {
+	return armEndpointString
 }
 
 // end getters

@@ -21,7 +21,7 @@ func ExampleCreateVMWithEncryptedManagedDisks() {
 	helpers.SetResourceGroupName("CreateVMEncryptedDisks")
 	vaultName := "az-samples-go-" + helpers.GetRandomLetterSequence(10)
 
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Minute*20))
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Minute*30))
 	defer cancel()
 	defer resources.Cleanup(ctx)
 	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())

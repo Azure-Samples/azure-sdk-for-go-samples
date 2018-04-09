@@ -23,6 +23,11 @@ func TestMain(m *testing.M) {
 		log.Fatalln("failed to parse args")
 	}
 
+	err = iam.ParseArgs()
+	if err != nil {
+		log.Fatalln("failed to parse IAM args")
+	}
+
 	if !helpers.DeviceFlow() {
 		helpers.PrintAndLog("It is best to run graph examples with device auth")
 	} else {

@@ -9,11 +9,11 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
-	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 )
 
@@ -35,7 +35,7 @@ var (
 	subscriptionID string
 	tenantID       string
 	clientSecret   string
-	// UseCLIclientID sets if the Azure CLI client iD should be used on device authentication
+	// UseCLIclientID sets if the Azure CLI client ID should be used on device authentication
 	UseCLIclientID bool
 )
 
@@ -49,14 +49,9 @@ const (
 	OAuthGrantTypeDeviceFlow
 )
 
-func init() {
-	err := parseArgs()
-	if err != nil {
-		log.Fatalf("failed to parse args: %s\n", err)
-	}
-}
-
-func parseArgs() error {
+// ParseArgs picks up shared env vars
+// Other packages should use this func after helpers.ParseArgs()
+func ParseArgs() error {
 	err := helpers.ReadEnvFile()
 	if err != nil {
 		return err
@@ -66,7 +61,7 @@ func parseArgs() error {
 	clientID = os.Getenv("AZURE_CLIENT_ID")
 	clientSecret = os.Getenv("AZURE_CLIENT_SECRET")
 
-	oauthConfig, err = adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantID)
+	oauthConfig, err = adal.NewOAuthConfig(helpers.Environment().ActiveDirectoryEndpoint, tenantID)
 	return err
 }
 
@@ -121,7 +116,7 @@ func GetBatchAuthorizer(grantType OAuthGrantType) (a autorest.Authorizer, err er
 		return batchAuthorizer, nil
 	}
 
-	a, err = getAuthorizer(grantType, azure.PublicCloud.BatchManagementEndpoint)
+	a, err = getAuthorizer(grantType, helpers.Environment().BatchManagementEndpoint)
 	if err == nil {
 		batchAuthorizer = a
 	}
@@ -135,7 +130,7 @@ func GetGraphAuthorizer(grantType OAuthGrantType) (a autorest.Authorizer, err er
 		return graphAuthorizer, nil
 	}
 
-	a, err = getAuthorizer(grantType, azure.PublicCloud.GraphEndpoint)
+	a, err = getAuthorizer(grantType, helpers.Environment().GraphEndpoint)
 	if err == nil {
 		graphAuthorizer = a
 	}
@@ -180,8 +175,8 @@ func GetKeyvaultAuthorizer(grantType OAuthGrantType) (a autorest.Authorizer, err
 		return keyvaultAuthorizer, nil
 	}
 
-	vaultEndpoint := "https://vault.azure.net"
-	config, err := adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantID)
+	vaultEndpoint := strings.TrimSuffix(helpers.Environment().KeyVaultEndpoint, "/")
+	config, err := adal.NewOAuthConfig(helpers.Environment().ActiveDirectoryEndpoint, tenantID)
 	updatedAuthorizeEndpoint, err := url.Parse("https://login.windows.net/" + tenantID + "/oauth2/token")
 	config.AuthorizeEndpoint = *updatedAuthorizeEndpoint
 	if err != nil {

@@ -12,10 +12,16 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/subosito/gotenv"
 )
 
+const (
+	publicCloudName = "AZUREPUBLICCLOUD"
+)
+
 var (
+	envName                  = publicCloudName
 	resourceGroupNamePrefix  string
 	resourceGroupName        string
 	location                 string
@@ -23,7 +29,6 @@ var (
 	servicePrincipalObjectID string
 	keepResources            bool
 	deviceFlow               bool
-	armEndpointString        string
 
 	allLocations = []string{
 		"eastasia",
@@ -83,12 +88,17 @@ func ParseArgs() error {
 	if os.Getenv("AZURE_SAMPLES_KEEP_RESOURCES") == "1" {
 		keepResources = true
 	}
-	armEndpointString = os.Getenv("AZURE_ARM_ENDPOINT")
+
+	envName = os.Getenv("AZURE_ENVIRONMENT")
+	if envName == "" {
+		envName = publicCloudName
+	}
 
 	// flags override envvars
 	flag.StringVar(&resourceGroupNamePrefix, "groupPrefix", GroupPrefix(), "Specify prefix name of resource group for sample resources.")
-	flag.StringVar(&location, "location", location, "Provide the Azure location where the resources will be be created")
+	flag.StringVar(&location, "location", location, "Provide the Azure location where the resources will be be created.")
 	flag.BoolVar(&keepResources, "keepResources", keepResources, "Keep resources created by samples.")
+	flag.StringVar(&envName, "environment", envName, "Azure environment.")
 	flag.Parse()
 
 	// defaults
@@ -98,10 +108,6 @@ func ParseArgs() error {
 
 	if !(len(location) > 0) {
 		location = "westus2" // lots of space, most new features
-	}
-
-	if !(len(armEndpointString) > 0) {
-		armEndpointString = "https://management.azure.com/"
 	}
 
 	return nil
@@ -179,9 +185,19 @@ func DeviceFlow() bool {
 	return deviceFlow
 }
 
+// Environment gets the Azure environment
+func Environment() azure.Environment {
+	env, err := azure.EnvironmentFromName(envName)
+	if err != nil {
+		log.Fatalf("failed to get environment from name (defaulting to Public Cloud): %s\n", err)
+		return azure.PublicCloud
+	}
+	return env
+}
+
 // ArmEndpoint specifies resource manager URI
 func ArmEndpoint() string {
-	return armEndpointString
+	return Environment().ResourceManagerEndpoint
 }
 
 // end getters

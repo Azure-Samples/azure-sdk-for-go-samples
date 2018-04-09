@@ -10,12 +10,17 @@ import (
 	"log"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 )
 
 func ExampleCreateGroup() {
 	err := helpers.ParseArgs()
 	if err != nil {
 		log.Fatal(err.Error())
+	}
+	err = iam.ParseArgs()
+	if err != nil {
+		log.Fatalln("failed to parse IAM args")
 	}
 	defer Cleanup(context.Background())
 

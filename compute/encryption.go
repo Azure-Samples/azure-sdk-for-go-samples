@@ -135,7 +135,7 @@ func AddEncyptionExtension(ctx context.Context, vmName, vaultName, keyID string)
 					"EncryptionOperation":       "EnableEncryption",
 					"KeyEncryptionAlgorithm":    "RSA-OAEP",
 					"KeyEncryptionKeyAlgorithm": keyID,
-					"KeyVaultURL":               fmt.Sprintf("https://%s.vault.azure.net/", vaultName),
+					"KeyVaultURL":               fmt.Sprintf("https://%s.%s/", vaultName, helpers.Environment().KeyVaultDNSSuffix),
 					"SequenceVersion":           uuid.NewV4().String(),
 					"VolumeType":                "ALL",
 				},

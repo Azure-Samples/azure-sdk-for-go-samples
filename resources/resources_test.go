@@ -10,12 +10,18 @@ import (
 	"log"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 )
 
 func init() {
 	err := helpers.ParseArgs()
 	if err != nil {
 		log.Fatalf("cannot parse arguments: %v", err)
+	}
+
+	err = iam.ParseArgs()
+	if err != nil {
+		log.Fatalln("failed to parse IAM args")
 	}
 }
 

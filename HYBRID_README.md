@@ -29,9 +29,9 @@ the following instructions to find or create these values if necessary.
     Using [the Azure CLI][azure-cli], you can get your ARM endpoint and storage suffix by running
     `az cloud show`.   
 
-    If `AZ_RESOURCE_GROUP_NAME` isn't specified a random name will be used.
+    If `AZURE_RESOURCE_GROUP_NAME` isn't specified a random name will be used.
 
-    If `AZ_KEEP_SAMPLE_RESOURCES` is set to `1` tests won't clean up resources
+    If `AZURE_KEEP_SAMPLE_RESOURCES` is set to `1` tests won't clean up resources
     they create when done. This can be helpful if you want to further experiment
     with those resources.
 

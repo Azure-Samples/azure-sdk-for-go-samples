@@ -11,45 +11,32 @@ import (
 )
 
 // GetCollection gets a mongoDB collection
-func GetCollection(session *mgo.Session, database, collectionName string) (*mgo.Collection, error) {
+func GetCollection(session *mgo.Session, database, collectionName string) *mgo.Collection {
 	collection := session.DB(database).C(collectionName)
-	return collection, nil
+	return collection
 }
 
 // InsertDocument inserts a mongoDB document in the specified collection
 func InsertDocument(session *mgo.Session, database, collectionName string, document map[string]interface{}) error {
-	collection, err := GetCollection(session, database, collectionName)
-	if err != nil {
-		return err
-	}
+	collection := GetCollection(session, database, collectionName)
 	return collection.Insert(document)
 }
 
 // GetDocument gets a mongoDB document in the specified collection
 func GetDocument(session *mgo.Session, database, collectionName string, query bson.M) (result map[string]interface{}, err error) {
-	collection, err := GetCollection(session, database, collectionName)
-	if err != nil {
-		return
-	}
-
+	collection := GetCollection(session, database, collectionName)
 	err = collection.Find(query).One(&result)
 	return
 }
 
 // UpdateDocument updates the mongoDB document with the specified ID
 func UpdateDocument(session *mgo.Session, database, collectionName string, id bson.ObjectId, change bson.M) error {
-	collection, err := GetCollection(session, database, collectionName)
-	if err != nil {
-		return err
-	}
+	collection := GetCollection(session, database, collectionName)
 	return collection.Update(bson.M{"_id": id}, change)
 }
 
 // DeleteDcoument deletes the mongoDB document with the specified ID
 func DeleteDcoument(session *mgo.Session, database, collectionName string, id bson.ObjectId) error {
-	collection, err := GetCollection(session, database, collectionName)
-	if err != nil {
-		return err
-	}
+	collection := GetCollection(session, database, collectionName)
 	return collection.Remove(bson.M{"_id": id})
 }

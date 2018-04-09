@@ -65,10 +65,7 @@ func ExampleCosmosDBOperations() {
 	}
 	helpers.PrintAndLog("got mongoDB session")
 
-	_, err = GetCollection(session, accountName, collection)
-	if err != nil {
-		helpers.PrintAndLog(fmt.Sprintf("cannot get collection: %v", err))
-	}
+	GetCollection(session, accountName, collection)
 	helpers.PrintAndLog("got collection")
 
 	err = InsertDocument(

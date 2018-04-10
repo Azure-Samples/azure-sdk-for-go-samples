@@ -10,6 +10,10 @@
 [[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
+    "profiles/2017-03-09/compute/mgmt/compute",
+    "profiles/2017-03-09/network/mgmt/network",
+    "profiles/2017-03-09/resources/mgmt/resources",
+    "profiles/2017-03-09/storage/mgmt/storage",
     "services/authorization/mgmt/2015-07-01/authorization",
     "services/batch/2017-09-01.6.0/batch",
     "services/batch/mgmt/2017-09-01/batch",
@@ -22,26 +26,32 @@
     "services/cognitiveservices/v1.0/spellcheck",
     "services/cognitiveservices/v1.0/videosearch",
     "services/cognitiveservices/v1.0/websearch",
+    "services/compute/mgmt/2016-03-30/compute",
     "services/compute/mgmt/2017-03-30/compute",
     "services/containerinstance/mgmt/2017-08-01-preview/containerinstance",
     "services/containerservice/mgmt/2017-09-30/containerservice",
+    "services/cosmos-db/mgmt/2015-04-08/documentdb",
+    "services/cosmos-db/mongodb",
     "services/graphrbac/1.6/graphrbac",
     "services/keyvault/2016-10-01/keyvault",
     "services/keyvault/mgmt/2016-10-01/keyvault",
+    "services/network/mgmt/2015-06-15/network",
     "services/network/mgmt/2017-09-01/network",
+    "services/resources/mgmt/2016-02-01/resources",
     "services/resources/mgmt/2017-05-10/resources",
     "services/sql/mgmt/2015-05-01-preview/sql",
+    "services/storage/mgmt/2016-01-01/storage",
     "services/storage/mgmt/2017-06-01/storage",
     "version"
   ]
-  revision = "56332fec5b308fbb6615fa1af6117394cdba186d"
-  version = "v15.0.0"
+  revision = "0b745831a99da5f43aa3cc641cfcb9ed323e1f9f"
+  version = "v15.1.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/Azure/azure-storage-blob-go"
   packages = ["2016-05-31/azblob"]
-  revision = "70edea0000eaac722aa45821797ffdedba6b53b8"
+  revision = "d38be03d2669a60175dc8f6bc64ac815a3ef8ba8"
+  version = "0.1.1"
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
@@ -55,8 +65,8 @@
     "autorest/utils",
     "autorest/validation"
   ]
-  revision = "ed4b7f5bf1ec0c9ede1fda2681d96771282f2862"
-  version = "v10.4.0"
+  revision = "9ad9326b278af8fa5cc67c30c0ce9a58cc0862b2"
+  version = "v10.6.0"
 
 [[projects]]
   branch = "master"
@@ -65,7 +75,7 @@
     ".",
     "internal/cp"
   ]
-  revision = "b594cb31ff9cf2d061450ef0e1cc1f33fd211a5a"
+  revision = "2e93935aa9096273693401939a61fb8a9b2c9d14"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -78,6 +88,17 @@
   name = "github.com/dimchansky/utfbom"
   packages = ["."]
   revision = "6c6132ff69f0f6c088739067407b5d32c52e1d0f"
+
+[[projects]]
+  name = "github.com/globalsign/mgo"
+  packages = [
+    ".",
+    "bson",
+    "internal/json",
+    "internal/sasl",
+    "internal/scram"
+  ]
+  revision = "f76e4f9da92ecd56e3be26f5ba92580af1ef97b4"
 
 [[projects]]
   name = "github.com/satori/go.uuid"
@@ -99,11 +120,11 @@
     "pkcs12",
     "pkcs12/internal/rc2"
   ]
-  revision = "88942b9c40a4c9d203b82b3731787b672d6e809b"
+  revision = "beb2a9779c3b677077c41673505f150149fce895"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5c9a777433d60af074d0136e6cc02a4b5d3a35ca0fb6f2e7c986d942fbdcefcb"
+  inputs-digest = "b71685c7851a9a82aab9978f253c478172008bf16acc285d9a5388664b81ccd9"
   solver-name = "gps-cdcl"
   solver-version = 1

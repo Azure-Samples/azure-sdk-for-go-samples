@@ -18,12 +18,8 @@ import (
 	"github.com/subosito/gotenv"
 )
 
-const (
-	publicCloudName = "AZUREPUBLICCLOUD"
-)
-
 var (
-	envName                  = publicCloudName
+	tangetEnv                = azure.PublicCloud.Name
 	resourceGroupNamePrefix  string
 	resourceGroupName        string
 	location                 string
@@ -109,12 +105,12 @@ func ParseArgs() error {
 		keepResourcesPtr = &keepResources
 	}
 
-	if envName == "" {
-		envName = os.Getenv("AZURE_ENVIRONMENT")
-		if envName == "" {
-			envName = publicCloudName
+	if tangetEnv == "" {
+		tangetEnv = os.Getenv("AZURE_ENVIRONMENT")
+		if tangetEnv == "" {
+			tangetEnv = azure.PublicCloud.Name
 		}
-		flag.StringVar(&envName, "environment", envName, "Azure environment.")
+		flag.StringVar(&tangetEnv, "environment", tangetEnv, "Azure environment.")
 	}
 
 	flag.Parse()
@@ -209,7 +205,7 @@ func DeviceFlow() bool {
 
 // Environment gets the Azure environment
 func Environment() azure.Environment {
-	env, err := azure.EnvironmentFromName(envName)
+	env, err := azure.EnvironmentFromName(tangetEnv)
 	if err != nil {
 		log.Fatalf("failed to get environment from name (defaulting to Public Cloud): %s\n", err)
 		return azure.PublicCloud

@@ -34,7 +34,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	err = iam.ParseArgs()
+	err := iam.ParseArgs()
 	if err != nil {
 		log.Fatalln("failed to parse IAM args")
 	}

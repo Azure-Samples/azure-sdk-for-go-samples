@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	tangetEnv                = azure.PublicCloud.Name
+	targetEnv                = azure.PublicCloud.Name
 	resourceGroupNamePrefix  string
 	resourceGroupName        string
 	location                 string
@@ -105,12 +105,12 @@ func ParseArgs() error {
 		keepResourcesPtr = &keepResources
 	}
 
-	if tangetEnv == "" {
-		tangetEnv = os.Getenv("AZURE_ENVIRONMENT")
-		if tangetEnv == "" {
-			tangetEnv = azure.PublicCloud.Name
+	if targetEnv == "" {
+		targetEnv = os.Getenv("AZURE_ENVIRONMENT")
+		if targetEnv == "" {
+			targetEnv = azure.PublicCloud.Name
 		}
-		flag.StringVar(&tangetEnv, "environment", tangetEnv, "Azure environment.")
+		flag.StringVar(&targetEnv, "environment", targetEnv, "Azure environment.")
 	}
 
 	flag.Parse()
@@ -205,7 +205,7 @@ func DeviceFlow() bool {
 
 // Environment gets the Azure environment
 func Environment() azure.Environment {
-	env, err := azure.EnvironmentFromName(tangetEnv)
+	env, err := azure.EnvironmentFromName(targetEnv)
 	if err != nil {
 		log.Fatalf("failed to get environment from name (defaulting to Public Cloud): %s\n", err)
 		return azure.PublicCloud

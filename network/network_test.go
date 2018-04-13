@@ -48,11 +48,6 @@ func parseArgs() error {
 	virtualNetworkName = os.Getenv("AZURE_VNET_NAME")
 	flag.StringVar(&virtualNetworkName, "vnetName", virtualNetworkName, "Specify a name for the vnet.")
 
-	err := helpers.ParseArgs()
-	if err != nil {
-		log.Fatalln("failed to parse args")
-	}
-
 	if !(len(virtualNetworkName) > 0) {
 		virtualNetworkName = "vnet1"
 	}

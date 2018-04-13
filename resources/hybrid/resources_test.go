@@ -14,11 +14,7 @@ import (
 )
 
 func ExampleCreateGroup() {
-	err := helpers.ParseArgs()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	err = iam.ParseArgs()
+	err := iam.ParseArgs()
 	if err != nil {
 		log.Fatalln("failed to parse IAM args")
 	}

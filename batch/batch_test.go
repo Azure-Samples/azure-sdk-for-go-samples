@@ -6,7 +6,6 @@ package batch
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -39,11 +38,6 @@ func TestMain(m *testing.M) {
 }
 
 func parseArgs() error {
-	err := helpers.ParseArgs()
-	if err != nil {
-		return fmt.Errorf("cannot parse args: %v", err)
-	}
-
 	accountName = os.Getenv("AZURE_BATCH_NAME")
 	if !(len(accountName) > 0) {
 		accountName = strings.ToLower("b" + helpers.GetRandomLetterSequence(10))

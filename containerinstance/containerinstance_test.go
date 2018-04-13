@@ -7,7 +7,6 @@ package containerinstance
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -36,11 +35,6 @@ func TestMain(m *testing.M) {
 }
 
 func parseArgs() error {
-	err := helpers.ParseArgs()
-	if err != nil {
-		return fmt.Errorf("cannot parse args: %v", err)
-	}
-
 	containerGroupName = os.Getenv("AZURE_CONTAINERINSTANCE_CONTAINER_GROUP_NAME")
 	if !(len(containerGroupName) > 0) {
 		containerGroupName = "az-samples-go-container-group-" + helpers.GetRandomLetterSequence(10)

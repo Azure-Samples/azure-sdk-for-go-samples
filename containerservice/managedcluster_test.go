@@ -2,7 +2,6 @@ package containerservice
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -34,15 +33,20 @@ func TestMain(m *testing.M) {
 		log.Fatalln("failed to parse IAM args")
 	}
 
+	// AKS managed clusters are not yet available in many Azure locations
+	helpers.OverrideCanaryLocation("eastus2euap")
+	helpers.OverrideLocation([]string{
+		"eastus",
+		"westeurope",
+		"centralus",
+		"canadacentral",
+		"canadaeast",
+	})
+
 	os.Exit(m.Run())
 }
 
 func parseArgs() error {
-	err := helpers.ParseArgs()
-	if err != nil {
-		return fmt.Errorf("cannot parse args: %v", err)
-	}
-
 	resourceName = os.Getenv("AZURE_AKS_NAME")
 	if !(len(resourceName) > 0) {
 		resourceName = "az-samples-go-aks-" + helpers.GetRandomLetterSequence(10)
@@ -58,17 +62,6 @@ func parseArgs() error {
 		i, _ := strconv.ParseInt(apc, 10, 32)
 		agentPoolCount = int32(i)
 	}
-
-	helpers.OverrideCanaryLocation("eastus2euap")
-
-	// AKS managed clusters are not yet available in many Azure locations
-	helpers.OverrideLocation([]string{
-		"eastus",
-		"westeurope",
-		"centralus",
-		"canadacentral",
-		"canadaeast",
-	})
 	return nil
 }
 

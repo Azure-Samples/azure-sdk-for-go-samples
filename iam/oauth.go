@@ -52,7 +52,12 @@ const (
 // ParseArgs picks up shared env vars
 // Other packages should use this func after helpers.ParseArgs()
 func ParseArgs() error {
-	err := helpers.ReadEnvFile()
+	err := helpers.ParseArgs()
+	if err != nil {
+		log.Fatalln("failed to parse args")
+	}
+
+	err = helpers.ReadEnvFile()
 	if err != nil {
 		return err
 	}

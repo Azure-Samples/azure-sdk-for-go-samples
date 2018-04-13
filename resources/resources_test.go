@@ -14,12 +14,7 @@ import (
 )
 
 func init() {
-	err := helpers.ParseArgs()
-	if err != nil {
-		log.Fatalf("cannot parse arguments: %v", err)
-	}
-
-	err = iam.ParseArgs()
+	err := iam.ParseArgs()
 	if err != nil {
 		log.Fatalln("failed to parse IAM args")
 	}

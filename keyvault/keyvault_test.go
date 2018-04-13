@@ -23,13 +23,7 @@ var (
 
 func TestMain(m *testing.M) {
 	flag.StringVar(&vaultName, "vaultName", vaultName, "Specify name of vault to create.")
-
-	err := helpers.ParseArgs()
-	if err != nil {
-		log.Fatalln("failed to parse args")
-	}
-
-	err = iam.ParseArgs()
+	err := iam.ParseArgs()
 	if err != nil {
 		log.Fatalln("failed to parse IAM args")
 	}

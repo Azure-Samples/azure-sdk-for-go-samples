@@ -19,12 +19,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	err := helpers.ParseArgs()
-	if err != nil {
-		log.Fatalln("failed to parse args")
-	}
-
-	err = iam.ParseArgs()
+	err := iam.ParseArgs()
 	if err != nil {
 		log.Fatalln("failed to parse IAM args")
 	}

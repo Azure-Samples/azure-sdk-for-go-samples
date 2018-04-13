@@ -8,7 +8,6 @@ package compute
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -54,12 +53,6 @@ func parseArgs() error {
 
 	virtualNetworkName = os.Getenv("AZURE_VNET_NAME")
 	flag.StringVar(&virtualNetworkName, "vnetName", virtualNetworkName, "Specify a name for the vnet.")
-
-	err := helpers.ParseArgs()
-	if err != nil {
-		return fmt.Errorf("cannot parse args: %v", err)
-	}
-
 	if !(len(virtualNetworkName) > 0) {
 		virtualNetworkName = "vnet1"
 	}

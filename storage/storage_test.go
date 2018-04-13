@@ -11,7 +11,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/subosito/gotenv"
 )
@@ -34,12 +33,7 @@ func TestMain(m *testing.M) {
 	flag.StringVar(&containerName, "containerName", containerName, "Provide a name for the container.")
 	flag.StringVar(&blobName, "blobName", blobName, "Provide a name for the blob.")
 
-	err := helpers.ParseArgs()
-	if err != nil {
-		log.Fatalln("failed to parse args")
-	}
-
-	err = iam.ParseArgs()
+	err := iam.ParseArgs()
 	if err != nil {
 		log.Fatalln("failed to parse IAM args")
 	}

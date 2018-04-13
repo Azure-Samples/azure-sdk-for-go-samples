@@ -12,6 +12,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Azure/go-autorest/autorest/to"
+
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/subosito/gotenv"
 )
@@ -27,8 +29,8 @@ var (
 	location                 string
 	subscriptionID           string
 	servicePrincipalObjectID string
-	keepResources            bool
-	deviceFlow               bool
+	keepResourcesPtr         *bool
+	deviceFlow               *bool
 
 	allLocations = []string{
 		"eastasia",
@@ -82,40 +84,49 @@ func ParseArgs() error {
 		return err
 	}
 
-	resourceGroupNamePrefix = os.Getenv("AZURE_RESOURCE_GROUP_PREFIX")
 	servicePrincipalObjectID = os.Getenv("AZURE_SP_OBJECT_ID")
-	location = os.Getenv("AZURE_LOCATION")
-	if os.Getenv("AZURE_SAMPLES_KEEP_RESOURCES") == "1" {
-		keepResources = true
-	}
-
-	envName = os.Getenv("AZURE_ENVIRONMENT")
-	if envName == "" {
-		envName = publicCloudName
-	}
 
 	// flags override envvars
-	flag.StringVar(&resourceGroupNamePrefix, "groupPrefix", GroupPrefix(), "Specify prefix name of resource group for sample resources.")
-	flag.StringVar(&location, "location", location, "Provide the Azure location where the resources will be be created.")
-	flag.BoolVar(&keepResources, "keepResources", keepResources, "Keep resources created by samples.")
-	flag.StringVar(&envName, "environment", envName, "Azure environment.")
+	if resourceGroupNamePrefix == "" {
+		resourceGroupNamePrefix = os.Getenv("AZURE_RESOURCE_GROUP_PREFIX")
+		flag.StringVar(&resourceGroupNamePrefix, "groupPrefix", GroupPrefix(), "Specify prefix name of resource group for sample resources.")
+	}
+
+	if location == "" {
+		location = os.Getenv("AZURE_LOCATION")
+		if location == "" {
+			location = "westus2" // lots of space, most new features
+		}
+		flag.StringVar(&location, "location", location, "Provide the Azure location where the resources will be be created.")
+	}
+
+	if keepResourcesPtr == nil {
+		keepResources := false
+		if os.Getenv("AZURE_SAMPLES_KEEP_RESOURCES") == "1" {
+			keepResources = true
+		}
+		flag.BoolVar(&keepResources, "keepResources", keepResources, "Keep resources created by samples.")
+		keepResourcesPtr = &keepResources
+	}
+
+	if envName == "" {
+		envName = os.Getenv("AZURE_ENVIRONMENT")
+		if envName == "" {
+			envName = publicCloudName
+		}
+		flag.StringVar(&envName, "environment", envName, "Azure environment.")
+	}
+
 	flag.Parse()
-
-	// defaults
-	if !(len(resourceGroupNamePrefix) > 0) {
-		resourceGroupNamePrefix = GroupPrefix()
-	}
-
-	if !(len(location) > 0) {
-		location = "westus2" // lots of space, most new features
-	}
-
 	return nil
 }
 
 // ParseSubscriptionID gets the subscription id from either an env var, .env file or flag
 // The caller should do flag.Parse()
 func ParseSubscriptionID() error {
+	if subscriptionID != "" {
+		return nil
+	}
 	err := ReadEnvFile()
 	if err != nil {
 		return err
@@ -133,15 +144,20 @@ func ParseSubscriptionID() error {
 // ParseDeviceFlow parses the auth grant type to be used
 // The caller should do flag.Parse()
 func ParseDeviceFlow() error {
+	if deviceFlow != nil {
+		return nil
+	}
 	err := ReadEnvFile()
 	if err != nil {
 		return err
 	}
 
+	deviceFlow = to.BoolPtr(false)
+
 	if os.Getenv("AZURE_AUTH_DEVICEFLOW") != "" {
-		deviceFlow = true
+		deviceFlow = to.BoolPtr(true)
 	}
-	flag.BoolVar(&deviceFlow, "deviceFlow", deviceFlow, "Use device flow for authentication. This flag should be used with -v flag. Default authentication is service principal.")
+	flag.BoolVar(deviceFlow, "deviceFlow", *deviceFlow, "Use device flow for authentication. This flag should be used with -v flag. Default authentication is service principal.")
 	return nil
 }
 
@@ -149,7 +165,10 @@ func ParseDeviceFlow() error {
 
 // KeepResources indicates whether resources created by samples should be retained.
 func KeepResources() bool {
-	return keepResources
+	if keepResourcesPtr == nil {
+		return false
+	}
+	return *keepResourcesPtr
 }
 
 // SubscriptionID returns the ID of the subscription to use.
@@ -182,7 +201,10 @@ func GroupPrefix() string {
 
 // DeviceFlow returns if device flow has been set as auth grant type
 func DeviceFlow() bool {
-	return deviceFlow
+	if deviceFlow == nil {
+		return false
+	}
+	return *deviceFlow
 }
 
 // Environment gets the Azure environment

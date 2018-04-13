@@ -32,12 +32,7 @@ func TestMain(m *testing.M) {
 	flag.StringVar(&dbLogin, "sqlDbUsername", dbLogin, "Provide a username for the SQL database.")
 	flag.StringVar(&dbPassword, "sqlDbPassword", dbPassword, "Provide a password for the username.")
 
-	err := helpers.ParseArgs()
-	if err != nil {
-		log.Fatalln("failed to parse args")
-	}
-
-	err = iam.ParseArgs()
+	err := iam.ParseArgs()
 	if err != nil {
 		log.Fatalln("failed to parse IAM args")
 	}

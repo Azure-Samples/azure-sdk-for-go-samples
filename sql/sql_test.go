@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
@@ -31,10 +32,11 @@ func TestMain(m *testing.M) {
 	flag.StringVar(&dbLogin, "sqlDbUsername", dbLogin, "Provide a username for the SQL database.")
 	flag.StringVar(&dbPassword, "sqlDbPassword", dbPassword, "Provide a password for the username.")
 
-	err := helpers.ParseArgs()
+	err := iam.ParseArgs()
 	if err != nil {
-		log.Fatalln("failed to parse args")
+		log.Fatalln("failed to parse IAM args")
 	}
+
 	os.Exit(m.Run())
 }
 

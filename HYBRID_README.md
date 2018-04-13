@@ -18,7 +18,7 @@ the following instructions to find or create these values if necessary.
     * `AZURE_CLIENT_ID`*
     * `AZURE_CLIENT_SECRET`*
     * `AZURE_LOCATION`*
-    * `AZURE_ARM_ENDPOINT`*
+    * `AZURE_ENVIRONMENT`*
     * `AZURE_RESOURCE_GROUP_NAME`
     * `AZURE_SAMPLES_KEEP_RESOURCES`
 

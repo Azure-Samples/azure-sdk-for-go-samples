@@ -7,12 +7,12 @@ package containerinstance
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
@@ -25,15 +25,16 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalln("failed to parse args")
 	}
+
+	err = iam.ParseArgs()
+	if err != nil {
+		log.Fatalln("failed to parse IAM args")
+	}
+
 	os.Exit(m.Run())
 }
 
 func parseArgs() error {
-	err := helpers.ParseArgs()
-	if err != nil {
-		return fmt.Errorf("cannot parse args: %v", err)
-	}
-
 	containerGroupName = os.Getenv("AZURE_CONTAINERINSTANCE_CONTAINER_GROUP_NAME")
 	if !(len(containerGroupName) > 0) {
 		containerGroupName = "az-samples-go-container-group-" + helpers.GetRandomLetterSequence(10)

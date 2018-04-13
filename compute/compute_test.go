@@ -8,12 +8,12 @@ package compute
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -40,6 +40,11 @@ func TestMain(m *testing.M) {
 		log.Fatalln("failed to parse args")
 	}
 
+	err = iam.ParseArgs()
+	if err != nil {
+		log.Fatalln("failed to parse IAM args")
+	}
+
 	os.Exit(m.Run())
 }
 
@@ -48,12 +53,6 @@ func parseArgs() error {
 
 	virtualNetworkName = os.Getenv("AZURE_VNET_NAME")
 	flag.StringVar(&virtualNetworkName, "vnetName", virtualNetworkName, "Specify a name for the vnet.")
-
-	err := helpers.ParseArgs()
-	if err != nil {
-		return fmt.Errorf("cannot parse args: %v", err)
-	}
-
 	if !(len(virtualNetworkName) > 0) {
 		virtualNetworkName = "vnet1"
 	}

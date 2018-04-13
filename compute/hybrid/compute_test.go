@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	hybridnetwork "github.com/Azure-Samples/azure-sdk-for-go-samples/network/hybrid"
 	hybridresources "github.com/Azure-Samples/azure-sdk-for-go-samples/resources/hybrid"
 	hybridstorage "github.com/Azure-Samples/azure-sdk-for-go-samples/storage/hybrid"
@@ -33,9 +34,9 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	err := helpers.ParseArgs()
+	err := iam.ParseArgs()
 	if err != nil {
-		log.Fatalln("failed to parse args")
+		log.Fatalln("failed to parse IAM args")
 	}
 
 	os.Exit(m.Run())

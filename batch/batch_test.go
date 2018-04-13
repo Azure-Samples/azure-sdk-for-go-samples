@@ -6,7 +6,6 @@ package batch
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -14,6 +13,7 @@ import (
 	"time"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
@@ -28,15 +28,16 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalln("failed to parse args")
 	}
+
+	err = iam.ParseArgs()
+	if err != nil {
+		log.Fatalln("failed to parse IAM args")
+	}
+
 	os.Exit(m.Run())
 }
 
 func parseArgs() error {
-	err := helpers.ParseArgs()
-	if err != nil {
-		return fmt.Errorf("cannot parse args: %v", err)
-	}
-
 	accountName = os.Getenv("AZURE_BATCH_NAME")
 	if !(len(accountName) > 0) {
 		accountName = strings.ToLower("b" + helpers.GetRandomLetterSequence(10))

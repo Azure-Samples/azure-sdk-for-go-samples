@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
@@ -22,11 +23,11 @@ var (
 
 func TestMain(m *testing.M) {
 	flag.StringVar(&vaultName, "vaultName", vaultName, "Specify name of vault to create.")
-
-	err := helpers.ParseArgs()
+	err := iam.ParseArgs()
 	if err != nil {
-		log.Fatalln("failed to parse args")
+		log.Fatalln("failed to parse IAM args")
 	}
+
 	os.Exit(m.Run())
 }
 

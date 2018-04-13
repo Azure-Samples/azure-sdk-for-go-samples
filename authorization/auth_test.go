@@ -12,13 +12,14 @@ import (
 	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 func TestMain(m *testing.M) {
-	err := helpers.ParseArgs()
+	err := iam.ParseArgs()
 	if err != nil {
-		log.Fatalln("failed to parse args")
+		log.Fatalln("failed to parse IAM args")
 	}
 
 	os.Exit(m.Run())
@@ -45,6 +46,7 @@ func ExampleAssignRole() {
 	}
 	helpers.PrintAndLog("role assigned with resource group scope")
 
+	helpers.PrintAndLog(*list.Values()[0].ID)
 	subRole, err := AssignRoleWithSubscriptionScope(ctx, helpers.ServicePrincipalObjectID(), *list.Values()[0].ID)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())

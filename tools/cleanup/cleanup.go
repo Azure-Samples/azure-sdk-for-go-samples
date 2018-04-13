@@ -14,6 +14,7 @@ import (
 	"sync"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
@@ -34,6 +35,12 @@ func main() {
 		log.Fatalf("Using device flow: %v", helpers.DeviceFlow())
 	}
 	flag.Parse()
+
+	err = iam.ParseArgs()
+	if err != nil {
+		log.Fatalf("failed to parse IAM args: %v\n", err)
+	}
+
 	helpers.SetPrefix(resourceGroupNamePrefix)
 
 	if !quiet {

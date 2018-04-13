@@ -18,9 +18,9 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	err := helpers.ParseArgs()
+	err := iam.ParseArgs()
 	if err != nil {
-		log.Fatalln("failed to parse args")
+		log.Fatalln("failed to parse IAM args")
 	}
 
 	if !helpers.DeviceFlow() {

@@ -24,7 +24,7 @@ func getResourcesClient() resources.Client {
 	return resourcesClient
 }
 
-// WithAPIVersion returns a prepare decorator thta changes the request's query for api-version
+// WithAPIVersion returns a prepare decorator that changes the request's query for api-version
 // This can be set up as a client's RequestInspector.
 func WithAPIVersion(apiVersion string) autorest.PrepareDecorator {
 	return func(p autorest.Preparer) autorest.Preparer {

@@ -22,7 +22,6 @@ func main() {
 	var quiet bool
 	var resourceGroupNamePrefix string
 	flag.BoolVar(&quiet, "quiet", false, "Run quietly")
-	flag.StringVar(&resourceGroupNamePrefix, "groupPrefix", helpers.GroupPrefix(), "Specify prefix name of resource group for sample resources.")
 
 	err := helpers.ParseSubscriptionID()
 	if err != nil {

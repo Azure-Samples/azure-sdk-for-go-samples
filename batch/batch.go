@@ -237,7 +237,10 @@ func getBatchBaseURL(accountName, accountLocation string) string {
 func fixContentTypeInspector() autorest.PrepareDecorator {
 	return func(p autorest.Preparer) autorest.Preparer {
 		return autorest.PreparerFunc(func(r *http.Request) (*http.Request, error) {
-			r.Header.Set("Content-Type", "application/json; odata=minimalmetadata")
+			r, err := p.Prepare(r)
+			if err == nil {
+				r.Header.Set("Content-Type", "application/json; odata=minimalmetadata")
+			}
 			return r, nil
 		})
 	}

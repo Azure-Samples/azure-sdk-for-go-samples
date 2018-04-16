@@ -46,7 +46,6 @@ func ExampleAssignRole() {
 	}
 	helpers.PrintAndLog("role assigned with resource group scope")
 
-	helpers.PrintAndLog(*list.Values()[0].ID)
 	subRole, err := AssignRoleWithSubscriptionScope(ctx, helpers.ServicePrincipalObjectID(), *list.Values()[0].ID)
 	if err != nil {
 		helpers.PrintAndLog(err.Error())

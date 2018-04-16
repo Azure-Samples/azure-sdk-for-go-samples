@@ -2,23 +2,6 @@
 
 
 [[projects]]
-  branch = "master"
-  name = "github.com/Azure-Samples/azure-sdk-for-go-samples"
-  packages = [
-    "authorization",
-    "graphrbac",
-    "helpers",
-    "iam",
-    "keyvault",
-    "network",
-    "network/hybrid",
-    "resources",
-    "resources/hybrid",
-    "storage/hybrid"
-  ]
-  revision = "3f431d0238deb6e48ed4549ca974ec1634ac2475"
-
-[[projects]]
   name = "github.com/Azure/azure-pipeline-go"
   packages = ["pipeline"]
   revision = "0f0dbf237bd47d5688310dbd3fac369353f280d0"
@@ -107,7 +90,6 @@
   revision = "6c6132ff69f0f6c088739067407b5d32c52e1d0f"
 
 [[projects]]
-  branch = "master"
   name = "github.com/globalsign/mgo"
   packages = [
     ".",
@@ -143,6 +125,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3f64206fa3bb0187fc42397071f1328997a4d81f6608d4d17526aa235f491655"
+  inputs-digest = "5a33af05339d41c109f9835d984a5cdea658001d76bfd815a4951d6ae799ee25"
   solver-name = "gps-cdcl"
   solver-version = 1

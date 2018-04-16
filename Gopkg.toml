@@ -7,10 +7,6 @@
   name = "github.com/Azure/azure-storage-blob-go"
 
 [[constraint]]
-  name = "github.com/Azure/go-autorest"
-  version = "10.6.0"
-
-[[constraint]]
   branch = "master"
   name = "github.com/denisenkom/go-mssqldb"
 

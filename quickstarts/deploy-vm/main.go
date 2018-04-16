@@ -5,21 +5,15 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
 )
-
-type authInfo struct {
-	TenantID               string
-	SubscriptionID         string
-	ServicePrincipalID     string
-	ServicePrincipalSecret string
-}
 
 const (
 	resourceGroupName     = "GoVMQuickstart"
@@ -30,33 +24,29 @@ const (
 	parametersFile = "vm-quickstart-params.json"
 )
 
+// Information loaded from the authorization file to identify the client
+type clientInfo struct {
+	SubscriptionID string
+	VMPassword     string
+}
+
 var (
-	config = authInfo{ // Your application credentials
-		TenantID:               "", // Azure account tenantID
-		SubscriptionID:         "", // Azure subscription subscriptionID
-		ServicePrincipalID:     "", // Service principal appId
-		ServicePrincipalSecret: "", // Service principal password/secret
-	}
-
-	ctx = context.Background()
-
-	token *adal.ServicePrincipalToken
+	ctx        = context.Background()
+	clientData clientInfo
+	authorizer autorest.Authorizer
 )
 
-// Authenticate with the Azure services over OAuth, using a service principal.
+// Authenticate with the Azure services using file-based authentication
 func init() {
-	oauthConfig, err := adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, config.TenantID)
+	var err error
+	authorizer, err = auth.NewAuthorizerFromFile(azure.PublicCloud.ResourceManagerEndpoint)
 	if err != nil {
-		log.Fatalf("Failed to get OAuth config: %v\n", err)
+		log.Fatalf("Failed to get OAuth config: %v", err)
 	}
-	token, err = adal.NewServicePrincipalToken(
-		*oauthConfig,
-		config.ServicePrincipalID,
-		config.ServicePrincipalSecret,
-		azure.PublicCloud.ResourceManagerEndpoint)
-	if err != nil {
-		log.Fatalf("faled to get token: %v\n", err)
-	}
+
+	authInfo, err := readJSON(os.Getenv("AZURE_AUTH_LOCATION"))
+	clientData.SubscriptionID = (*authInfo)["subscriptionId"].(string)
+	clientData.VMPassword = (*authInfo)["clientSecret"].(string)
 }
 
 func main() {
@@ -64,21 +54,25 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to create group: %v", err)
 	}
-	log.Printf("created group: %v\n", *group.Name)
+	log.Printf("Created group: %v", *group.Name)
 
-	log.Println("starting deployment")
+	log.Printf("Starting deployment: %s", deploymentName)
 	result, err := createDeployment()
 	if err != nil {
-		log.Fatalf("Failed to deploy correctly: %v", err)
+		log.Fatalf("Failed to deploy: %v", err)
 	}
-	log.Printf("Completed deployment: %v", *result.Name)
+	if result.Name != nil {
+		log.Printf("Completed deployment %v: %v", deploymentName, *result.Properties.ProvisioningState)
+	} else {
+		log.Printf("Completed deployment %v (no data returned to SDK)", deploymentName)
+	}
 	getLogin()
 }
 
 // Create a resource group for the deployment.
 func createGroup() (group resources.Group, err error) {
-	groupsClient := resources.NewGroupsClient(config.SubscriptionID)
-	groupsClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	groupsClient := resources.NewGroupsClient(clientData.SubscriptionID)
+	groupsClient.Authorizer = authorizer
 
 	return groupsClient.CreateOrUpdate(
 		ctx,
@@ -97,9 +91,12 @@ func createDeployment() (deployment resources.DeploymentExtended, err error) {
 	if err != nil {
 		return
 	}
+	(*params)["vm_password"] = map[string]string{
+		"value": clientData.VMPassword,
+	}
 
-	deploymentsClient := resources.NewDeploymentsClient(config.SubscriptionID)
-	deploymentsClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	deploymentsClient := resources.NewDeploymentsClient(clientData.SubscriptionID)
+	deploymentsClient.Authorizer = authorizer
 
 	deploymentFuture, err := deploymentsClient.CreateOrUpdate(
 		ctx,
@@ -114,13 +111,19 @@ func createDeployment() (deployment resources.DeploymentExtended, err error) {
 		},
 	)
 	if err != nil {
-		log.Fatalf("Failed to create deployment: %v", err)
+		return
 	}
 	err = deploymentFuture.Future.WaitForCompletion(ctx, deploymentsClient.BaseClient.Client)
 	if err != nil {
-		log.Fatalf("Error while waiting for deployment creation: %v", err)
+		return
 	}
-	return deploymentFuture.Result(deploymentsClient)
+	deployment, err = deploymentFuture.Result(deploymentsClient)
+
+	// Work around possible bugs or late-stage failures
+	if deployment.Name == nil || err != nil {
+		deployment, _ = deploymentsClient.Get(ctx, resourceGroupName, deploymentName)
+	}
+	return
 }
 
 // Get login information by querying the deployed public IP resource.
@@ -130,8 +133,8 @@ func getLogin() {
 		log.Fatalf("Unable to read parameters. Get login information with `az network public-ip list -g %s", resourceGroupName)
 	}
 
-	addressClient := network.NewPublicIPAddressesClient(config.SubscriptionID)
-	addressClient.Authorizer = autorest.NewBearerAuthorizer(token)
+	addressClient := network.NewPublicIPAddressesClient(clientData.SubscriptionID)
+	addressClient.Authorizer = authorizer
 	ipName := (*params)["publicIPAddresses_QuickstartVM_ip_name"].(map[string]interface{})
 	ipAddress, err := addressClient.Get(ctx, resourceGroupName, ipName["value"].(string), "")
 	if err != nil {
@@ -139,18 +142,17 @@ func getLogin() {
 	}
 
 	vmUser := (*params)["vm_user"].(map[string]interface{})
-	vmPass := (*params)["vm_password"].(map[string]interface{})
 
 	log.Printf("Log in with ssh: %s@%s, password: %s",
 		vmUser["value"].(string),
 		*ipAddress.PublicIPAddressPropertiesFormat.IPAddress,
-		vmPass["value"].(string))
+		clientData.VMPassword)
 }
 
 func readJSON(path string) (*map[string]interface{}, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Fatalf("failed to read template file: %v\n", err)
+		log.Fatalf("failed to read file: %v", err)
 	}
 	contents := make(map[string]interface{})
 	json.Unmarshal(data, &contents)

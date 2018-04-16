@@ -2,6 +2,23 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/Azure-Samples/azure-sdk-for-go-samples"
+  packages = [
+    "authorization",
+    "graphrbac",
+    "helpers",
+    "iam",
+    "keyvault",
+    "network",
+    "network/hybrid",
+    "resources",
+    "resources/hybrid",
+    "storage/hybrid"
+  ]
+  revision = "3f431d0238deb6e48ed4549ca974ec1634ac2475"
+
+[[projects]]
   name = "github.com/Azure/azure-pipeline-go"
   packages = ["pipeline"]
   revision = "0f0dbf237bd47d5688310dbd3fac369353f280d0"
@@ -44,14 +61,14 @@
     "services/storage/mgmt/2017-06-01/storage",
     "version"
   ]
-  revision = "0b745831a99da5f43aa3cc641cfcb9ed323e1f9f"
-  version = "v15.1.0"
+  revision = "060bf9b93ad98bc41813ca23f5328843f6c0e90b"
+  version = "v15.2.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/Azure/azure-storage-blob-go"
   packages = ["2016-05-31/azblob"]
-  revision = "d38be03d2669a60175dc8f6bc64ac815a3ef8ba8"
-  version = "0.1.1"
+  revision = "70edea0000eaac722aa45821797ffdedba6b53b8"
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
@@ -75,7 +92,7 @@
     ".",
     "internal/cp"
   ]
-  revision = "2e93935aa9096273693401939a61fb8a9b2c9d14"
+  revision = "e32faac87a2220f9342289f2c3b567d1424b8ec5"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -90,6 +107,7 @@
   revision = "6c6132ff69f0f6c088739067407b5d32c52e1d0f"
 
 [[projects]]
+  branch = "master"
   name = "github.com/globalsign/mgo"
   packages = [
     ".",
@@ -120,11 +138,11 @@
     "pkcs12",
     "pkcs12/internal/rc2"
   ]
-  revision = "beb2a9779c3b677077c41673505f150149fce895"
+  revision = "d6449816ce06963d9d136eee5a56fca5b0616e7e"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b71685c7851a9a82aab9978f253c478172008bf16acc285d9a5388664b81ccd9"
+  inputs-digest = "3f64206fa3bb0187fc42397071f1328997a4d81f6608d4d17526aa235f491655"
   solver-name = "gps-cdcl"
   solver-version = 1

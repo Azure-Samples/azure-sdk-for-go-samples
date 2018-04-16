@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
@@ -21,6 +22,7 @@ func getAKSClient() (containerservice.ManagedClustersClient, error) {
 	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
 	aksClient.Authorizer = auth
 	aksClient.AddToUserAgent(helpers.UserAgent())
+	aksClient.PollingDuration = time.Minute * 30
 	return aksClient, nil
 }
 

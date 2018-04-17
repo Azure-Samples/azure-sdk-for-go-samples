@@ -20,3 +20,6 @@ environments:
     value: sp.objectid
   - name: AZURE_LOCATION
     type: argument-value-mode
+secretFiles:
+  - path: authfile.json
+    value: sp.auth.file

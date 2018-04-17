@@ -22,4 +22,4 @@ environments:
     type: argument-value-mode
 secretFiles:
   - path: authfile.json
-    value: sp.auth.file
+    secretKey: sp.auth.file

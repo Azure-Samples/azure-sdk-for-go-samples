@@ -7,7 +7,6 @@ package iam
 
 import (
 	"log"
-	"net/url"
 	"os"
 	"strings"
 
@@ -54,7 +53,7 @@ const (
 func ParseArgs() error {
 	err := helpers.ParseArgs()
 	if err != nil {
-		log.Fatalln("failed to parse args")
+		log.Fatalf("failed to parse helper args: %v\n", err)
 	}
 
 	err = helpers.ReadEnvFile()
@@ -180,25 +179,12 @@ func GetKeyvaultAuthorizer(grantType OAuthGrantType) (a autorest.Authorizer, err
 		return keyvaultAuthorizer, nil
 	}
 
-	vaultEndpoint := strings.TrimSuffix(helpers.Environment().KeyVaultEndpoint, "/")
-	config, err := adal.NewOAuthConfig(helpers.Environment().ActiveDirectoryEndpoint, tenantID)
-	updatedAuthorizeEndpoint, err := url.Parse("https://login.windows.net/" + tenantID + "/oauth2/token")
-	config.AuthorizeEndpoint = *updatedAuthorizeEndpoint
-	if err != nil {
-		return
-	}
-
 	switch grantType {
 	case OAuthGrantTypeServicePrincipal:
-		token, err := adal.NewServicePrincipalToken(*config, clientID, clientSecret, vaultEndpoint)
-		if err != nil {
-			return a, err
-		}
-		a = autorest.NewBearerAuthorizer(token)
+		a, err = auth.NewKeyvaultAuthorizerFromEnvironment()
 	case OAuthGrantTypeDeviceFlow:
-		deviceConfig := auth.NewDeviceFlowConfig(samplesAppID, tenantID)
-		deviceConfig.Resource = vaultEndpoint
-		deviceConfig.AADEndpoint = updatedAuthorizeEndpoint.String()
+		deviceConfig := auth.NewDeviceFlowConfig(azCLIclientID, tenantID)
+		deviceConfig.Resource = strings.TrimSuffix(helpers.Environment().KeyVaultEndpoint, "/")
 		a, err = deviceConfig.Authorizer()
 	default:
 		log.Fatalln("invalid token type specified")

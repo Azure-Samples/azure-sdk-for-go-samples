@@ -12,17 +12,18 @@ import (
 	"os"
 	"testing"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/graphrbac"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 var (
-	vaultName = "vault-sample-go-" + helpers.GetRandomLetterSequence(5)
+	vaultName string
 )
 
 func TestMain(m *testing.M) {
-	flag.StringVar(&vaultName, "vaultName", vaultName, "Specify name of vault to create.")
+	flag.StringVar(&vaultName, "vaultName", getVaultName(), "Specify name of vault to create.")
 	err := iam.ParseArgs()
 	if err != nil {
 		log.Fatalln("failed to parse IAM args")
@@ -55,4 +56,43 @@ func ExampleSetVaultPermissions() {
 	// Output:
 	// vault created
 	// set vault permissions
+}
+
+func ExampleCreateKeyBundle() {
+	helpers.SetResourceGroupName("CreateKeyBundle")
+	ctx := context.Background()
+	defer resources.Cleanup(ctx)
+	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+
+	// If authenticating as a user, also add the user to the keyvault access policies
+	userID := ""
+	if iam.AuthGrantType() == iam.OAuthGrantTypeDeviceFlow {
+		cu, err := graphrbac.GetCurrentUser(ctx)
+		if err != nil {
+			helpers.PrintAndLog(err.Error())
+		}
+		userID = *cu.ObjectID
+	}
+
+	vaultName := getVaultName()
+
+	_, err = CreateComplexKeyVault(ctx, vaultName, userID)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+	}
+	helpers.PrintAndLog("created keyvault")
+
+	_, err = CreateKeyBundle(ctx, vaultName)
+	if err != nil {
+		helpers.PrintAndLog(err.Error())
+
+	}
+	helpers.PrintAndLog("created key bundle")
+
+	// Output:
+	// created keyvault
+	// created key bundle
 }

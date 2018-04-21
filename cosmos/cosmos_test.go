@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 
 	err := helpers.ParseArgs()
 	if err != nil {
-		log.Fatalln("failed to parse args")
+		log.Fatalf("failed to parse cosmosDB args: %v\n", err)
 	}
 	os.Exit(m.Run())
 }

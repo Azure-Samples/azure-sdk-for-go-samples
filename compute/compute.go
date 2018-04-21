@@ -259,6 +259,9 @@ func UpdateOSDiskSize(ctx context.Context, vmName string) (d compute.Disk, err e
 			DiskSizeGB: size,
 		},
 	})
+	if err != nil {
+		return d, fmt.Errorf("cannot update disk: %v", err)
+	}
 
 	err = future.WaitForCompletion(ctx, disksClient.Client)
 	if err != nil {

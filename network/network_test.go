@@ -31,7 +31,7 @@ var (
 func TestMain(m *testing.M) {
 	err := parseArgs()
 	if err != nil {
-		log.Fatalln("failed to parse args")
+		log.Fatalf("failed to parse network args: %v\n", err)
 	}
 
 	err = iam.ParseArgs()

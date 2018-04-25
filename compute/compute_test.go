@@ -45,6 +45,8 @@ func TestMain(m *testing.M) {
 		log.Fatalln("failed to parse IAM args")
 	}
 
+	helpers.OverrideCanaryLocation("eastus2euap")
+
 	os.Exit(m.Run())
 }
 

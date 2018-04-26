@@ -67,7 +67,7 @@ func parseArgs() error {
 
 func ExampleCreateAKS() {
 	helpers.SetResourceGroupName("CreateAKS")
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Minute*30))
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Hour*1))
 	defer cancel()
 	defer resources.Cleanup(ctx)
 	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())

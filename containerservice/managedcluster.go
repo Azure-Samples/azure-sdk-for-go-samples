@@ -22,7 +22,7 @@ func getAKSClient() (containerservice.ManagedClustersClient, error) {
 	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
 	aksClient.Authorizer = auth
 	aksClient.AddToUserAgent(helpers.UserAgent())
-	aksClient.PollingDuration = time.Minute * 30
+	aksClient.PollingDuration = time.Hour * 1
 	return aksClient, nil
 }
 

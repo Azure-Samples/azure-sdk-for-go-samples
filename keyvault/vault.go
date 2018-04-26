@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
@@ -24,6 +25,11 @@ func getVaultsClient() keyvault.VaultsClient {
 	vaultsClient.Authorizer = auth
 	vaultsClient.AddToUserAgent(helpers.UserAgent())
 	return vaultsClient
+}
+
+func getVaultName() string {
+	vault := "vault-sample-go-" + helpers.GetRandomLetterSequence(5)
+	return strings.ToLower(vault)
 }
 
 // CreateVault creates a new vault
@@ -72,9 +78,11 @@ func CreateComplexKeyVault(ctx context.Context, vaultName, userID string) (vault
 		TenantID: &tenantID,
 		Permissions: &keyvault.Permissions{
 			Keys: &[]keyvault.KeyPermissions{
+				keyvault.KeyPermissionsList,
 				keyvault.KeyPermissionsCreate,
 			},
 			Secrets: &[]keyvault.SecretPermissions{
+				keyvault.SecretPermissionsList,
 				keyvault.SecretPermissionsSet,
 			},
 		},

@@ -26,7 +26,6 @@ func TestMain(m *testing.M) {
 	if !helpers.DeviceFlow() {
 		helpers.PrintAndLog("It is best to run graph examples with device auth")
 	} else {
-		iam.UseCLIclientID = true
 		os.Exit(m.Run())
 	}
 }

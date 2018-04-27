@@ -17,14 +17,8 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 )
 
-const (
-	samplesAppID  = "bee3737f-b06f-444f-b3c3-5b0f3fce46ea"
-	azCLIclientID = "04b07795-8ddb-461a-bbee-02f9e1bf7b46"
-)
-
 var (
 	// for service principal and device
-	clientID           string
 	oauthConfig        *adal.OAuthConfig
 	armAuthorizer      autorest.Authorizer
 	batchAuthorizer    autorest.Authorizer
@@ -34,9 +28,11 @@ var (
 	// for service principal
 	subscriptionID string
 	tenantID       string
+	clientID       string
 	clientSecret   string
-	// UseCLIclientID sets if the Azure CLI client ID should be used on device authentication
-	UseCLIclientID bool
+
+	// for device
+	nativeClientID string
 )
 
 // OAuthGrantType specifies which grant type to use.
@@ -54,7 +50,7 @@ const (
 func ParseArgs() error {
 	err := helpers.ParseArgs()
 	if err != nil {
-		log.Fatalln("failed to parse args")
+		log.Fatalf("failed to parse args: %v\n", err)
 	}
 
 	err = helpers.ReadEnvFile()
@@ -65,6 +61,7 @@ func ParseArgs() error {
 	tenantID = os.Getenv("AZURE_TENANT_ID")
 	clientID = os.Getenv("AZURE_CLIENT_ID")
 	clientSecret = os.Getenv("AZURE_CLIENT_SECRET")
+	nativeClientID = os.Getenv("AZURE_NATIVE_CLIENT_ID")
 
 	oauthConfig, err = adal.NewOAuthConfig(helpers.Environment().ActiveDirectoryEndpoint, tenantID)
 	return err
@@ -103,7 +100,7 @@ func GetResourceManagementAuthorizer(grantType OAuthGrantType) (a autorest.Autho
 	case OAuthGrantTypeServicePrincipal:
 		a, err = auth.NewAuthorizerFromEnvironment()
 	case OAuthGrantTypeDeviceFlow:
-		config := auth.NewDeviceFlowConfig(samplesAppID, tenantID)
+		config := auth.NewDeviceFlowConfig(nativeClientID, tenantID)
 		a, err = config.Authorizer()
 	default:
 		log.Fatalln("invalid token type specified")
@@ -165,7 +162,7 @@ func getAuthorizer(grantType OAuthGrantType, endpoint string) (a autorest.Author
 		}
 		a = autorest.NewBearerAuthorizer(token)
 	case OAuthGrantTypeDeviceFlow:
-		config := auth.NewDeviceFlowConfig(samplesAppID, tenantID)
+		config := auth.NewDeviceFlowConfig(nativeClientID, tenantID)
 		config.Resource = endpoint
 		a, err = config.Authorizer()
 	default:
@@ -196,7 +193,7 @@ func GetKeyvaultAuthorizer(grantType OAuthGrantType) (a autorest.Authorizer, err
 		}
 		a = autorest.NewBearerAuthorizer(token)
 	case OAuthGrantTypeDeviceFlow:
-		deviceConfig := auth.NewDeviceFlowConfig(samplesAppID, tenantID)
+		deviceConfig := auth.NewDeviceFlowConfig(nativeClientID, tenantID)
 		deviceConfig.Resource = vaultEndpoint
 		deviceConfig.AADEndpoint = updatedAuthorizeEndpoint.String()
 		a, err = deviceConfig.Authorizer()

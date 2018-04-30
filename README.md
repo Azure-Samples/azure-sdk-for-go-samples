@@ -14,8 +14,7 @@ Read the [main SDK README][] for more help getting started with the Go SDK.
 
 ## To run tests
 
-1. Set the following environment variables. Use
-the following instructions to find or create these values if necessary.
+1. Set the following environment variables. Use the following instructions to find or create these values if necessary.
 
     * `AZURE_SUBSCRIPTION_ID` *
     * `AZURE_TENANT_ID` *
@@ -29,11 +28,15 @@ the following instructions to find or create these values if necessary.
 
     (* are required for service principal authentication)
     
-    (** is required for device flow authentication. See: [Integrating applications with Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-integrating-applications))
-
-    Using [the Azure CLI][azure-cli], you can get your subscription ID by running `az account
-    list`. You can check your tenant ID and get a client ID and secret by
+    (** is required for device flow authentication)
+    
+    Using [the Azure CLI][azure-cli], you can get your subscription ID and tenant ID by running `az account
+    show`.
+    
+    For service principal authentication, get a client ID and secret by
     running `az ad sp create-for-rbac -n "<yourAppName>"`.
+
+    For device flow authentication, get your client ID running `az ad app create --display-name "<yourAppName>" --native-app --requiredResourceAccess @manifest.json`.
 
     If `AZURE_RESOURCE_GROUP_PREFIX` isn't specified, `azure-samples-go` will be used.
 

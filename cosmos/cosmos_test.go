@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mongodb"
 	"github.com/globalsign/mgo/bson"
@@ -27,9 +28,9 @@ var (
 func TestMain(m *testing.M) {
 	flag.StringVar(&accountName, "cosmosDBAccountName", accountName, "Provide a name for the CosmosDB account to be created")
 
-	err := helpers.ParseArgs()
+	err := iam.ParseArgs()
 	if err != nil {
-		log.Fatalf("failed to parse cosmosDB args: %v\n", err)
+		log.Fatalf("failed to parse IAM args: %v\n", err)
 	}
 	os.Exit(m.Run())
 }

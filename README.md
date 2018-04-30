@@ -14,21 +14,29 @@ Read the [main SDK README][] for more help getting started with the Go SDK.
 
 ## To run tests
 
-1. Set the following environment variables (those marked * are required). Use
-the following instructions to find or create these values if necessary.
+1. Set the following environment variables. Use the following instructions to find or create these values if necessary.
 
-    * `AZURE_SUBSCRIPTION_ID`*
-    * `AZURE_TENANT_ID`*
-    * `AZURE_CLIENT_ID`*
-    * `AZURE_CLIENT_SECRET`*
+    * `AZURE_SUBSCRIPTION_ID` *
+    * `AZURE_TENANT_ID` *
+    * `AZURE_CLIENT_ID` *
+    * `AZURE_CLIENT_SECRET` *
+    * `AZURE_NATIVE_CLIENT_ID` **
     * `AZURE_SP_OBJECT_ID`
     * `AZURE_LOCATION`
     * `AZURE_RESOURCE_GROUP_PREFIX`
     * `AZURE_KEEP_SAMPLE_RESOURCES`
 
-    Using [the Azure CLI][azure-cli], you can get your subscription ID by running `az account
-    list`. You can check your tenant ID and get a client ID and secret by
+    (* are required for service principal authentication)
+    
+    (** is required for device flow authentication)
+    
+    Using [the Azure CLI][azure-cli], you can get your subscription ID and tenant ID by running `az account
+    show`.
+    
+    For service principal authentication, get a client ID and secret by
     running `az ad sp create-for-rbac -n "<yourAppName>"`.
+
+    For device flow authentication, get your client ID running `az ad app create --display-name "<yourAppName>" --native-app --requiredResourceAccess @manifest.json`.
 
     If `AZURE_RESOURCE_GROUP_PREFIX` isn't specified, `azure-samples-go` will be used.
 
@@ -52,6 +60,7 @@ the following instructions to find or create these values if necessary.
         * If you use a .env file, copy it into the folder first, e.g. `cp .env ./network/`.
     1. If you're feeling lucky and want to test all the samples, try `go test ./...`
         * This only requires the root .env file.
+    1. To run tests with device flow authentication, add the `--deviceFlow` flag.
 
 # Resources
 

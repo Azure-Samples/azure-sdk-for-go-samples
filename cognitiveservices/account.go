@@ -16,7 +16,7 @@ import (
 )
 
 func getCognitiveSevicesManagementClient() cognitiveservices.AccountsClient {
-	accountClient := cognitiveservices.NewAccountsClient(helpers.SubscriptionID(), "")
+	accountClient := cognitiveservices.NewAccountsClient(helpers.SubscriptionID())
 	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
 	accountClient.Authorizer = auth
 	accountClient.AddToUserAgent(helpers.UserAgent())

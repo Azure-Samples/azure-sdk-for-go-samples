@@ -44,14 +44,14 @@
     "services/storage/mgmt/2017-06-01/storage",
     "version"
   ]
-  revision = "060bf9b93ad98bc41813ca23f5328843f6c0e90b"
-  version = "v15.2.0"
+  revision = "4b3cf752d4d7bf6bbf3cde9d5c4d1157098726e3"
+  version = "v16.0.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/Azure/azure-storage-blob-go"
   packages = ["2016-05-31/azblob"]
-  revision = "70edea0000eaac722aa45821797ffdedba6b53b8"
+  revision = "d9b2979663489192f3aff3314a2b7bdf07a50edd"
+  version = "0.1.3"
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
@@ -65,8 +65,8 @@
     "autorest/utils",
     "autorest/validation"
   ]
-  revision = "9ad9326b278af8fa5cc67c30c0ce9a58cc0862b2"
-  version = "v10.6.0"
+  revision = "8d642cdaee69c1860886533711d7ff25ba2b8e04"
+  version = "v10.8.0"
 
 [[projects]]
   branch = "master"
@@ -90,6 +90,7 @@
   revision = "6c6132ff69f0f6c088739067407b5d32c52e1d0f"
 
 [[projects]]
+  branch = "master"
   name = "github.com/globalsign/mgo"
   packages = [
     ".",
@@ -98,7 +99,7 @@
     "internal/sasl",
     "internal/scram"
   ]
-  revision = "f76e4f9da92ecd56e3be26f5ba92580af1ef97b4"
+  revision = "efe0945164a7e582241f37ae8983c075f8f2e870"
 
 [[projects]]
   name = "github.com/satori/go.uuid"
@@ -120,11 +121,11 @@
     "pkcs12",
     "pkcs12/internal/rc2"
   ]
-  revision = "d6449816ce06963d9d136eee5a56fca5b0616e7e"
+  revision = "613d6eafa307c6881a737a3c35c0e312e8d3a8c5"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5a33af05339d41c109f9835d984a5cdea658001d76bfd815a4951d6ae799ee25"
+  inputs-digest = "8be6cda027922aa22e8c12734beb48388e7cdac7626d858b935644fdf446d3e7"
   solver-name = "gps-cdcl"
   solver-version = 1

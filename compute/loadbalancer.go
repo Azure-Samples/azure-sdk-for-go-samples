@@ -33,8 +33,8 @@ func CreateAvailabilitySet(ctx context.Context, avaSetName string) (compute.Avai
 		compute.AvailabilitySet{
 			Location: to.StringPtr(helpers.Location()),
 			AvailabilitySetProperties: &compute.AvailabilitySetProperties{
-				PlatformFaultDomainCount:  to.Int32Ptr(2),
-				PlatformUpdateDomainCount: to.Int32Ptr(2),
+				PlatformFaultDomainCount:  to.Int32Ptr(1),
+				PlatformUpdateDomainCount: to.Int32Ptr(1),
 			},
 			Sku: &compute.Sku{
 				Name: to.StringPtr("Aligned"),

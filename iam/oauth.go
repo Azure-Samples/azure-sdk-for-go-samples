@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	keyvault "github.com/Azure/azure-sdk-for-go/services/keyvault/auth"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
@@ -181,7 +182,7 @@ func GetKeyvaultAuthorizer(grantType OAuthGrantType) (a autorest.Authorizer, err
 
 	switch grantType {
 	case OAuthGrantTypeServicePrincipal:
-		a, err = auth.NewKeyvaultAuthorizerFromEnvironment()
+		a, err = keyvault.NewAuthorizerFromEnvironment()
 	case OAuthGrantTypeDeviceFlow:
 		deviceConfig := auth.NewDeviceFlowConfig(azCLIclientID, tenantID)
 		deviceConfig.Resource = strings.TrimSuffix(helpers.Environment().KeyVaultEndpoint, "/")

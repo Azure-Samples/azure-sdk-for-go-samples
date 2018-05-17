@@ -4,12 +4,47 @@
 [[projects]]
   name = "github.com/Azure/azure-pipeline-go"
   packages = ["pipeline"]
-  revision = "0f0dbf237bd47d5688310dbd3fac369353f280d0"
-  version = "0.1.5"
+  revision = "098e490af5dc2a905cdc5b64cafda6887b29164b"
+  version = "0.1.6"
 
 [[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
-  packages = ["profiles/2017-03-09/compute/mgmt/compute","profiles/2017-03-09/network/mgmt/network","profiles/2017-03-09/resources/mgmt/resources","profiles/2017-03-09/storage/mgmt/storage","services/authorization/mgmt/2015-07-01/authorization","services/batch/2017-09-01.6.0/batch","services/batch/mgmt/2017-09-01/batch","services/cdn/mgmt/2017-10-12/cdn","services/cognitiveservices/mgmt/2017-04-18/cognitiveservices","services/cognitiveservices/v1.0/customsearch","services/cognitiveservices/v1.0/entitysearch","services/cognitiveservices/v1.0/imagesearch","services/cognitiveservices/v1.0/newssearch","services/cognitiveservices/v1.0/spellcheck","services/cognitiveservices/v1.0/videosearch","services/cognitiveservices/v1.0/websearch","services/compute/mgmt/2016-03-30/compute","services/compute/mgmt/2017-03-30/compute","services/containerinstance/mgmt/2017-08-01-preview/containerinstance","services/containerservice/mgmt/2017-09-30/containerservice","services/cosmos-db/mgmt/2015-04-08/documentdb","services/cosmos-db/mongodb","services/graphrbac/1.6/graphrbac","services/keyvault/2016-10-01/keyvault","services/keyvault/mgmt/2016-10-01/keyvault","services/network/mgmt/2015-06-15/network","services/network/mgmt/2017-09-01/network","services/resources/mgmt/2016-02-01/resources","services/resources/mgmt/2017-05-10/resources","services/sql/mgmt/2015-05-01-preview/sql","services/storage/mgmt/2016-01-01/storage","services/storage/mgmt/2017-06-01/storage","version"]
+  packages = [
+    "profiles/2017-03-09/compute/mgmt/compute",
+    "profiles/2017-03-09/network/mgmt/network",
+    "profiles/2017-03-09/resources/mgmt/resources",
+    "profiles/2017-03-09/storage/mgmt/storage",
+    "services/authorization/mgmt/2015-07-01/authorization",
+    "services/batch/2017-09-01.6.0/batch",
+    "services/batch/mgmt/2017-09-01/batch",
+    "services/cdn/mgmt/2017-10-12/cdn",
+    "services/cognitiveservices/mgmt/2017-04-18/cognitiveservices",
+    "services/cognitiveservices/v1.0/customsearch",
+    "services/cognitiveservices/v1.0/entitysearch",
+    "services/cognitiveservices/v1.0/imagesearch",
+    "services/cognitiveservices/v1.0/newssearch",
+    "services/cognitiveservices/v1.0/spellcheck",
+    "services/cognitiveservices/v1.0/videosearch",
+    "services/cognitiveservices/v1.0/websearch",
+    "services/compute/mgmt/2016-03-30/compute",
+    "services/compute/mgmt/2017-03-30/compute",
+    "services/containerinstance/mgmt/2017-08-01-preview/containerinstance",
+    "services/containerservice/mgmt/2017-09-30/containerservice",
+    "services/cosmos-db/mgmt/2015-04-08/documentdb",
+    "services/cosmos-db/mongodb",
+    "services/graphrbac/1.6/graphrbac",
+    "services/keyvault/2016-10-01/keyvault",
+    "services/keyvault/mgmt/2016-10-01/keyvault",
+    "services/network/mgmt/2015-06-15/network",
+    "services/network/mgmt/2017-09-01/network",
+    "services/resources/mgmt/2016-02-01/resources",
+    "services/resources/mgmt/2017-05-10/resources",
+    "services/sql/mgmt/2015-05-01-preview/sql",
+    "services/storage/mgmt/2016-01-01/storage",
+    "services/storage/mgmt/2017-06-01/storage",
+    "services/web/mgmt/2016-09-01/web",
+    "version"
+  ]
   revision = "4b3cf752d4d7bf6bbf3cde9d5c4d1157098726e3"
   version = "v16.0.0"
 
@@ -21,14 +56,26 @@
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
-  packages = ["autorest","autorest/adal","autorest/azure","autorest/azure/auth","autorest/date","autorest/to","autorest/utils","autorest/validation"]
+  packages = [
+    "autorest",
+    "autorest/adal",
+    "autorest/azure",
+    "autorest/azure/auth",
+    "autorest/date",
+    "autorest/to",
+    "autorest/utils",
+    "autorest/validation"
+  ]
   revision = "8d642cdaee69c1860886533711d7ff25ba2b8e04"
   version = "v10.8.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/denisenkom/go-mssqldb"
-  packages = [".","internal/cp"]
+  packages = [
+    ".",
+    "internal/cp"
+  ]
   revision = "e32faac87a2220f9342289f2c3b567d1424b8ec5"
 
 [[projects]]
@@ -46,7 +93,13 @@
 [[projects]]
   branch = "master"
   name = "github.com/globalsign/mgo"
-  packages = [".","bson","internal/json","internal/sasl","internal/scram"]
+  packages = [
+    ".",
+    "bson",
+    "internal/json",
+    "internal/sasl",
+    "internal/scram"
+  ]
   revision = "efe0945164a7e582241f37ae8983c075f8f2e870"
 
 [[projects]]
@@ -64,12 +117,16 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["md4","pkcs12","pkcs12/internal/rc2"]
+  packages = [
+    "md4",
+    "pkcs12",
+    "pkcs12/internal/rc2"
+  ]
   revision = "613d6eafa307c6881a737a3c35c0e312e8d3a8c5"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8be6cda027922aa22e8c12734beb48388e7cdac7626d858b935644fdf446d3e7"
+  inputs-digest = "2e229cc269c97ea002ce008877f713f2e7e4f13b5f306e52958f20cb914df982"
   solver-name = "gps-cdcl"
   solver-version = 1

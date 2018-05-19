@@ -46,13 +46,12 @@ func ExampleWeb_DeployAppForContainer() {
 	}
 	defer resources.Cleanup(ctx)
 
-	asp, err := CreateAppServicePlan(ctx, appServicePlanName, "app,linux,container")
+	err = CreateSite(ctx, "myThing")
 
 	if err != nil {
 		fmt.Println("failed to create: ", err)
 		return
 	}
-	fmt.Println(*asp.Kind)
 
 	// Output: lol, this won't be the output
 }

@@ -2,15 +2,16 @@ package web
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
 	"github.com/Azure/go-autorest/autorest/to"
-	"fmt"
 	"github.com/Azure/go-autorest/autorest"
 )
 
-func CreateSite(ctx context.Context, name string) (err error) {
+func CreateContainerSite(ctx context.Context, name, image string) (createdConfig web.SiteConfigResource, err error) {
 	client := web.NewAppsClient(helpers.SubscriptionID())
 	client.Authorizer, err = iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
 	if err != nil {
@@ -26,7 +27,7 @@ func CreateSite(ctx context.Context, name string) (err error) {
 			Location: to.StringPtr(helpers.Location()),
 			SiteProperties: &web.SiteProperties{
 				SiteConfig: &web.SiteConfig{
-					LinuxFxVersion: to.StringPtr("DOCKER|marstr/mirrorcat:latest"),
+					LinuxFxVersion: to.StringPtr(fmt.Sprintf("DOCKER|%s", image)),
 				},
 			},
 		})
@@ -44,6 +45,11 @@ func CreateSite(ctx context.Context, name string) (err error) {
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return
+	}
+
+	createdConfig, err = client.GetConfiguration(ctx, helpers.ResourceGroupName(), name)
 	return
 }
 

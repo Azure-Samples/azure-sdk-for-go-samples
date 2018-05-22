@@ -17,14 +17,17 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
 )
 
 var (
 	appServicePlanName = "web-appserviceplan-go-samples" + helpers.GetRandomLetterSequence(10)
+	siteName = "web-site-go-samples" + helpers.GetRandomLetterSequence(10)
 )
 
 func TestMain(m *testing.M) {
-	flag.StringVar(&appServicePlanName, "appServicePlanName", appServicePlanName, "Optionally provide a name for the App Service Plan to be Created.")
+	flag.StringVar(&appServicePlanName, "appServicePlanName", appServicePlanName, "Optionally provide a name for the App Service Plan to be created.")
+	flag.StringVar(&siteName, "siteName", siteName, "Optionally provided a name for the Site to be created.")
 
 	err := iam.ParseArgs()
 	if err != nil {
@@ -46,12 +49,15 @@ func ExampleWeb_DeployAppForContainer() {
 	}
 	defer resources.Cleanup(ctx)
 
-	err = CreateSite(ctx, "myThing")
+	var configResource web.SiteConfigResource
+	configResource, err = CreateContainerSite(ctx, siteName, "nginx:alpine")
 
 	if err != nil {
 		fmt.Println("failed to create: ", err)
 		return
 	}
 
-	// Output: lol, this won't be the output
+	fmt.Println(*configResource.LinuxFxVersion)
+
+	// Output: DOCKER|nginx:alpine
 }

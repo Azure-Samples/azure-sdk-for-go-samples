@@ -7,8 +7,8 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/to"
 )
 
 func CreateContainerSite(ctx context.Context, name, image string) (createdConfig web.SiteConfigResource, err error) {
@@ -67,7 +67,7 @@ func CreateAppServicePlan(ctx context.Context, name, kind string) (created web.A
 		name,
 		web.AppServicePlan{
 			Location: to.StringPtr(helpers.Location()),
-			Kind: &kind,
+			Kind:     &kind,
 		},
 	)
 	if err != nil {

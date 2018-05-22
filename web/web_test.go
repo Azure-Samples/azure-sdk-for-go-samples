@@ -22,7 +22,7 @@ import (
 
 var (
 	appServicePlanName = "web-appserviceplan-go-samples" + helpers.GetRandomLetterSequence(10)
-	siteName = "web-site-go-samples" + helpers.GetRandomLetterSequence(10)
+	siteName           = "web-site-go-samples" + helpers.GetRandomLetterSequence(10)
 )
 
 func TestMain(m *testing.M) {

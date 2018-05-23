@@ -50,7 +50,7 @@ func ExampleWeb_DeployAppForContainer() {
 	defer resources.Cleanup(ctx)
 
 	var configResource web.SiteConfigResource
-	configResource, err = CreateContainerSite(ctx, siteName, "nginx:alpine")
+	configResource, err = CreateContainerSite(ctx, siteName, "appsvc/sample-hello-world:latest")
 
 	if err != nil {
 		fmt.Println("failed to create: ", err)
@@ -59,5 +59,5 @@ func ExampleWeb_DeployAppForContainer() {
 
 	fmt.Println(*configResource.LinuxFxVersion)
 
-	// Output: DOCKER|nginx:alpine
+	// Output: DOCKER|appsvc/sample-hello-world:latest
 }

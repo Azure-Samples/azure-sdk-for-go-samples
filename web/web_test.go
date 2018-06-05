@@ -17,7 +17,6 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
 )
 
 var (
@@ -49,8 +48,7 @@ func ExampleWeb_DeployAppForContainer() {
 	}
 	defer resources.Cleanup(ctx)
 
-	var configResource web.SiteConfigResource
-	configResource, err = CreateContainerSite(ctx, siteName, "appsvc/sample-hello-world:latest")
+	configResource, err := CreateContainerSite(ctx, siteName, "appsvc/sample-hello-world:latest")
 
 	if err != nil {
 		fmt.Println("failed to create: ", err)

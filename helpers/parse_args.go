@@ -8,13 +8,14 @@ package helpers
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest/to"
-
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/marstr/randname"
 	"github.com/subosito/gotenv"
 )
 
@@ -228,7 +229,7 @@ func SetPrefix(prefix string) {
 // SetResourceGroupName sets a name for the resource group. It takes into account the
 // resource group prefix, and adds some random letters to ensure uniqueness
 func SetResourceGroupName(suffix string) {
-	resourceGroupName = GroupPrefix() + "-" + suffix + "-" + GetRandomLetterSequence(5)
+	resourceGroupName = randname.GenerateWithPrefix(fmt.Sprintf("%s-%s-", GroupPrefix(), suffix), 5)
 }
 
 // OverrideCanaryLocation ovverrides the specified canary location where to create Azure resources.

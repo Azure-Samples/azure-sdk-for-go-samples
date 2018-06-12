@@ -17,13 +17,14 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/marstr/randname"
 	"github.com/subosito/gotenv"
 )
 
 var (
-	vmName           = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
-	diskName         = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
-	nicName          = "nic" + helpers.GetRandomLetterSequence(10)
+	vmName           = randname.GenerateWithPrefix("az-samples-go-", 10)
+	diskName         = randname.GenerateWithPrefix("az-samples-go-", 10)
+	nicName          = randname.GenerateWithPrefix("nic", 10)
 	sshPublicKeyPath = os.Getenv("HOME") + "/.ssh/id_rsa.pub"
 
 	virtualNetworkName = "vnet1"

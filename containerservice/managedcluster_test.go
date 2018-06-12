@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/marstr/randname"
+
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
@@ -49,7 +51,7 @@ func TestMain(m *testing.M) {
 func parseArgs() error {
 	resourceName = os.Getenv("AZURE_AKS_NAME")
 	if !(len(resourceName) > 0) {
-		resourceName = "az-samples-go-aks-" + helpers.GetRandomLetterSequence(10)
+		resourceName = randname.GenerateWithPrefix("az-samples-go-aks-", 10)
 	}
 
 	clientID = os.Getenv("AZURE_CLIENT_ID")

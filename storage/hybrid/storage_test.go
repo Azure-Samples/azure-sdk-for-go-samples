@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"testing"
+
+	"github.com/marstr/randname"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
@@ -14,7 +15,7 @@ import (
 )
 
 var (
-	accountName = strings.ToLower("storageaccount" + helpers.GetRandomLetterSequence(10))
+	accountName = randname.Prefixed{Prefix: "storageaccount", Len: 10, Acceptable: randname.LowercaseAlphabet}.Generate()
 )
 
 func TestMain(m *testing.M) {

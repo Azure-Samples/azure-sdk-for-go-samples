@@ -12,13 +12,15 @@ import (
 	"os"
 	"testing"
 
+	"github.com/marstr/randname"
+
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 var (
-	vaultName = "vault-sample-go-" + helpers.GetRandomLetterSequence(5)
+	vaultName = randname.GenerateWithPrefix("vault-sample-go-", 5)
 )
 
 func TestMain(m *testing.M) {

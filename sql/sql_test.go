@@ -6,6 +6,7 @@
 package sql
 
 import (
+	"github.com/marstr/randname"
 	"context"
 	"flag"
 	"fmt"
@@ -20,7 +21,7 @@ import (
 )
 
 var (
-	serverName = "sql-server-go-samples-" + helpers.GetRandomLetterSequence(10)
+	serverName = randname.GenerateWithPrefix("sql-server-go-samples-", 10)
 	dbName     = "sql-db1"
 	dbLogin    = "sql-db-user1"
 	dbPassword = "NoSoupForYou1!"

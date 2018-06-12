@@ -14,6 +14,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/marstr/randname"
+
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
@@ -22,7 +24,7 @@ import (
 )
 
 var (
-	accountName = "cosmos-db-account-samples-" + helpers.GetRandomLetterSequence(10)
+	accountName = randname.GenerateWithPrefix("cosmos-db-account-samples-", 10)
 )
 
 func TestMain(m *testing.M) {

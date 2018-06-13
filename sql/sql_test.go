@@ -6,7 +6,6 @@
 package sql
 
 import (
-	"github.com/marstr/randname"
 	"context"
 	"flag"
 	"fmt"
@@ -18,6 +17,8 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+
+	"github.com/marstr/randname"
 )
 
 var (

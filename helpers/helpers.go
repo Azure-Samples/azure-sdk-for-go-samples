@@ -10,8 +10,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math/rand"
-	"time"
 
 	"github.com/Azure/go-autorest/autorest/utils"
 )
@@ -20,17 +18,6 @@ import (
 func PrintAndLog(message string) {
 	log.Println(message)
 	fmt.Println(message)
-}
-
-// GetRandomLetterSequence returns a sequence of English characters of length n.
-func GetRandomLetterSequence(n int) string {
-	rand.Seed(time.Now().UTC().UnixNano())
-	letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(b)
 }
 
 func contains(array []string, element string) bool {

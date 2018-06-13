@@ -6,10 +6,12 @@ import (
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/marstr/randname"
 )
 
 func getServicePrincipalClient() graphrbac.ServicePrincipalsClient {
@@ -44,7 +46,7 @@ func CreateADApplication(ctx context.Context) (graphrbac.Application, error) {
 		AvailableToOtherTenants: to.BoolPtr(false),
 		DisplayName:             to.StringPtr("go SDK samples"),
 		Homepage:                to.StringPtr("http://gosdksamples"),
-		IdentifierUris:          &[]string{"http://gosdksamples" + helpers.GetRandomLetterSequence(10)},
+		IdentifierUris:          &[]string{randname.GenerateWithPrefix("http://gosdksamples", 10)},
 	})
 }
 

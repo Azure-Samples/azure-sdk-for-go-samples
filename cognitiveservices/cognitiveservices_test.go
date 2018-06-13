@@ -11,6 +11,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/marstr/randname"
+
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
@@ -30,7 +32,7 @@ func TestMain(m *testing.M) {
 // ExampleCognitiveServicesSearch creates a resource group and a Cognitive Services account of type Search. Then it executes searches
 // for web pages, images, videos, news and entities
 func ExampleCognitiveServicesSearch() {
-	accountName := "azuresamplesgo" + helpers.GetRandomLetterSequence(10)
+	accountName := randname.GenerateWithPrefix("azuresamplesgo", 10)
 
 	helpers.SetResourceGroupName("CognitiveServicesSearch")
 	ctx := context.Background()
@@ -70,7 +72,7 @@ func ExampleCognitiveServicesSearch() {
 // ExampleCognitiveServicesSpellCheck creates a resource group and a Cognitive Services account of type spell check. Then it executes
 // a spell check and inspects the corrections.
 func ExampleCognitiveServicesSpellCheck() {
-	accountName := "azuresamplesgo" + helpers.GetRandomLetterSequence(10)
+	accountName := randname.GenerateWithPrefix("azuresamplesgo", 10)
 
 	helpers.SetResourceGroupName("CognitiveServicesSpellcheck")
 	ctx := context.Background()

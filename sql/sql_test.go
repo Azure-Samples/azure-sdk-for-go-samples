@@ -17,10 +17,12 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+
+	"github.com/marstr/randname"
 )
 
 var (
-	serverName = "sql-server-go-samples-" + helpers.GetRandomLetterSequence(10)
+	serverName = randname.GenerateWithPrefix("sql-server-go-samples-", 10)
 	dbName     = "sql-db1"
 	dbLogin    = "sql-db-user1"
 	dbPassword = "NoSoupForYou1!"

@@ -9,6 +9,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/marstr/randname"
+
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/graphrbac"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
@@ -19,7 +21,7 @@ import (
 
 func ExampleCreateVMWithEncryptedManagedDisks() {
 	helpers.SetResourceGroupName("CreateVMEncryptedDisks")
-	vaultName := "az-samples-go-" + helpers.GetRandomLetterSequence(10)
+	vaultName := randname.GenerateWithPrefix("az-samples-go-", 10)
 
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Minute*30))
 	defer cancel()

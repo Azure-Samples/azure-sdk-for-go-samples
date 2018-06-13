@@ -5,12 +5,14 @@ import (
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/marstr/randname"
 )
 
 var (
-	keyName = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
+	keyName = randname.GenerateWithPrefix("az-samples-go-", 10)
 )
 
 func getKeysClient() keyvault.BaseClient {

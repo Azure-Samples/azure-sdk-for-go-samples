@@ -9,7 +9,6 @@ import (
 	"context"
 	"log"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
@@ -17,10 +16,12 @@ import (
 	hybridnetwork "github.com/Azure-Samples/azure-sdk-for-go-samples/network/hybrid"
 	hybridresources "github.com/Azure-Samples/azure-sdk-for-go-samples/resources/hybrid"
 	hybridstorage "github.com/Azure-Samples/azure-sdk-for-go-samples/storage/hybrid"
+
+	"github.com/marstr/randname"
 )
 
 var (
-	vmName           = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
+	vmName           = randname.GenerateWithPrefix("az-samples-go-", 10)
 	nicName          = "nic1"
 	username         = "az-samples-go-user"
 	password         = "NoSoupForYou1!"
@@ -30,7 +31,7 @@ var (
 	subnetName         = "subnet1"
 	nsgName            = "nsg1"
 	ipName             = "ip1"
-	storageAccountName = strings.ToLower("storageaccount" + helpers.GetRandomLetterSequence(10))
+	storageAccountName = randname.Prefixed{Prefix: "storageaccount", Acceptable: randname.LowercaseAlphabet, Len: 10}.Generate()
 )
 
 func TestMain(m *testing.M) {

@@ -8,13 +8,13 @@ import (
 	"context"
 	"log"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+	"github.com/marstr/randname"
 )
 
 var (
@@ -38,13 +38,20 @@ func TestMain(m *testing.M) {
 }
 
 func parseArgs() error {
+	namer := randname.Prefixed{
+		Prefix:     "b",
+		Len:        10,
+		Acceptable: randname.LowercaseAlphabet,
+	}
 	accountName = os.Getenv("AZURE_BATCH_NAME")
 	if !(len(accountName) > 0) {
-		accountName = strings.ToLower("b" + helpers.GetRandomLetterSequence(10))
+		accountName = namer.Generate()
 	}
 
-	jobID = strings.ToLower("j" + helpers.GetRandomLetterSequence(10))
-	poolID = strings.ToLower("p" + helpers.GetRandomLetterSequence(10))
+	namer.Prefix = "j"
+	jobID = namer.Generate()
+	namer.Prefix = "p"
+	poolID = namer.Generate()
 
 	return nil
 }

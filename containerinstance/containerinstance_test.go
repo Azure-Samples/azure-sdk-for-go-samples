@@ -11,6 +11,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/marstr/randname"
+
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
@@ -37,7 +39,7 @@ func TestMain(m *testing.M) {
 func parseArgs() error {
 	containerGroupName = os.Getenv("AZURE_CONTAINERINSTANCE_CONTAINER_GROUP_NAME")
 	if !(len(containerGroupName) > 0) {
-		containerGroupName = "az-samples-go-container-group-" + helpers.GetRandomLetterSequence(10)
+		containerGroupName = randname.GenerateWithPrefix("az-samples-go-container-group-", 10)
 	}
 
 	// Container instance is not yet available in many Azure locations

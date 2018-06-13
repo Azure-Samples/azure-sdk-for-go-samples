@@ -2,10 +2,16 @@
 
 
 [[projects]]
+  name = "cloud.google.com/go"
+  packages = ["civil"]
+  revision = "0fd7230b2a7505833d5f69b75cbd6c9582401479"
+  version = "v0.23.0"
+
+[[projects]]
   name = "github.com/Azure/azure-pipeline-go"
   packages = ["pipeline"]
-  revision = "098e490af5dc2a905cdc5b64cafda6887b29164b"
-  version = "0.1.6"
+  revision = "7571e8eb0876932ab505918ff7ed5107773e5ee2"
+  version = "0.1.7"
 
 [[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
@@ -45,14 +51,14 @@
     "services/web/mgmt/2016-09-01/web",
     "version"
   ]
-  revision = "4b3cf752d4d7bf6bbf3cde9d5c4d1157098726e3"
-  version = "v16.0.0"
+  revision = "4650843026a7fdec254a8d9cf893693a254edd0b"
+  version = "v16.2.1"
 
 [[projects]]
   name = "github.com/Azure/azure-storage-blob-go"
   packages = ["2016-05-31/azblob"]
-  revision = "d9b2979663489192f3aff3314a2b7bdf07a50edd"
-  version = "0.1.3"
+  revision = "66ba96e49ebbdc3cd26970c6c675c906d304b5e2"
+  version = "0.1.4"
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
@@ -66,8 +72,8 @@
     "autorest/utils",
     "autorest/validation"
   ]
-  revision = "8d642cdaee69c1860886533711d7ff25ba2b8e04"
-  version = "v10.8.0"
+  revision = "76796dcb80ab6491bf22e344402023c081a7a282"
+  version = "v10.11.1"
 
 [[projects]]
   branch = "master"
@@ -76,7 +82,7 @@
     ".",
     "internal/cp"
   ]
-  revision = "e32faac87a2220f9342289f2c3b567d1424b8ec5"
+  revision = "95cbf6513ab5f7a79e04b2baba760acdd3b45dd5"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -103,6 +109,18 @@
   revision = "efe0945164a7e582241f37ae8983c075f8f2e870"
 
 [[projects]]
+  name = "github.com/marstr/collection"
+  packages = ["."]
+  revision = "871b1cfa2ab97d3d8f54a034280907896190c346"
+  version = "v0.3.3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/marstr/randname"
+  packages = ["."]
+  revision = "48a63b6052f1f9373db9388a658da30c6ab53db1"
+
+[[projects]]
   name = "github.com/satori/go.uuid"
   packages = ["."]
   revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
@@ -111,8 +129,8 @@
 [[projects]]
   name = "github.com/subosito/gotenv"
   packages = ["."]
-  revision = "009e1f9581dc712aba5682a279dee155ca3eeded"
-  version = "v1.1.0"
+  revision = "69b5b6104433beb2cb9c3ce00bdadf3c7c2d3f34"
+  version = "v1.1.1"
 
 [[projects]]
   branch = "master"
@@ -122,11 +140,11 @@
     "pkcs12",
     "pkcs12/internal/rc2"
   ]
-  revision = "613d6eafa307c6881a737a3c35c0e312e8d3a8c5"
+  revision = "8ac0e0d97ce45cd83d1d7243c060cb8461dda5e9"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2e229cc269c97ea002ce008877f713f2e7e4f13b5f306e52958f20cb914df982"
+  inputs-digest = "947172d02e77f143e31ed317b1ba60c8c1be26e26c0c6b608489c8e36d14f637"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -14,14 +14,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/marstr/randname"
+
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 var (
-	appServicePlanName = "web-appserviceplan-go-samples" + helpers.GetRandomLetterSequence(10)
-	siteName           = "web-site-go-samples" + helpers.GetRandomLetterSequence(10)
+	appServicePlanName = randname.GenerateWithPrefix("web-appserviceplan-go-samples", 10)
+	siteName           = randname.GenerateWithPrefix("web-site-go-samples", 10)
 )
 
 func TestMain(m *testing.M) {

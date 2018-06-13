@@ -7,8 +7,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+
+	"github.com/marstr/randname"
 )
 
 func TestMain(m *testing.M) {
@@ -23,7 +24,7 @@ func TestMain(m *testing.M) {
 func ExampleCheckNameAvailability() {
 	ctx := context.Background()
 
-	available, err := CheckNameAvailability(ctx, "gocdnname"+helpers.GetRandomLetterSequence(6), "Microsoft.Cdn/Profiles/Endpoints")
+	available, err := CheckNameAvailability(ctx, randname.GenerateWithPrefix("gocdnname", 6), "Microsoft.Cdn/Profiles/Endpoints")
 	if err != nil {
 		log.Fatalf("cannot check availability: %v", err)
 	}

@@ -51,8 +51,8 @@
     "services/web/mgmt/2016-09-01/web",
     "version"
   ]
-  revision = "4650843026a7fdec254a8d9cf893693a254edd0b"
-  version = "v16.2.1"
+  revision = "7971189ecf5a584b9211f2527737f94bb979644e"
+  version = "v17.4.0"
 
 [[projects]]
   name = "github.com/Azure/azure-storage-blob-go"
@@ -72,8 +72,8 @@
     "autorest/utils",
     "autorest/validation"
   ]
-  revision = "76796dcb80ab6491bf22e344402023c081a7a282"
-  version = "v10.11.1"
+  revision = "f04d503958a4fe854c1b41667c73f8813c9dd9c3"
+  version = "v10.11.2"
 
 [[projects]]
   branch = "master"
@@ -145,6 +145,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "947172d02e77f143e31ed317b1ba60c8c1be26e26c0c6b608489c8e36d14f637"
+  inputs-digest = "dfd423ef2de12050b11b49b5311cbbfbed101b81c5a233349ab9f5ae30ccf90b"
   solver-name = "gps-cdcl"
   solver-version = 1

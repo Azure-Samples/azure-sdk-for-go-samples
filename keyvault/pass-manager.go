@@ -1,4 +1,4 @@
-package main
+package keyvault
 
 /*
  * You need to set four environment variables before using the app:

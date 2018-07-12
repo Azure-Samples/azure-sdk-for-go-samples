@@ -6,9 +6,9 @@
   name = "github.com/Azure/azure-storage-blob-go"
   branch = "master"
 
-[[constraint]]
+[[override]]
   name = "github.com/Azure/go-autorest"
-  branch = "master"
+  version = "^10.12.0"
 
 [[constraint]]
   branch = "master"

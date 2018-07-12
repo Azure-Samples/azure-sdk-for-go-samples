@@ -8,12 +8,16 @@ BASE = $(GOPATH)/src/$(ROOT)
 PKGS_SKIP_RE ?= ''
 PKGS         != $(GO) list ./... | sed 's@$(ROOT)/@./@' | grep -v -E "$(PKGS_SKIP_RE)"
 
+test_pr: lint build
+
 # uses Azure resources
 test: dep
 	$(GO) test -v $(PKGS)
 
-test_pr: lint
-	$(GO) build -v $(PKGS)
+build: dep
+	# have to relist packages here cause Travis doesn't pick up the global script-based var
+	$(GO) build -v \
+		$(shell $(GO) list ./... | sed 's@$(ROOT)/@./@' | grep -v -E "$(PKGS_SKIP_RE)")
 
 dep:
 	$(GO) get -u github.com/golang/dep/cmd/dep
@@ -21,7 +25,7 @@ dep:
 
 lint: dep
 	$(GO) get -v github.com/alecthomas/gometalinter
-	gometalinter --update
+	gometalinter --install
 	# TODO: fix problems and enable all tests
 	# TODO: address warnings
 	gometalinter --errors \
@@ -32,4 +36,4 @@ lint: dep
 		--disable=megacheck \
 		$(PKGS)
 
-.PHONY: test test_pr dep lint
+.PHONY: test test_pr build dep lint

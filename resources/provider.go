@@ -8,16 +8,17 @@ package resources
 import (
 	"context"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 )
 
 func getProviderClient() resources.ProvidersClient {
-	providerClient := resources.NewProvidersClient(helpers.SubscriptionID())
-	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
-	providerClient.Authorizer = auth
-	providerClient.AddToUserAgent(helpers.UserAgent())
+	providerClient := resources.NewProvidersClient(config.SubscriptionID())
+	a, _ := iam.GetResourceManagementAuthorizer()
+	providerClient.Authorizer = a
+	providerClient.AddToUserAgent(config.UserAgent())
 	return providerClient
 }
 

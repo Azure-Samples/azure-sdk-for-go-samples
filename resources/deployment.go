@@ -9,16 +9,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 )
 
 func getDeploymentsClient() resources.DeploymentsClient {
-	deployClient := resources.NewDeploymentsClient(helpers.SubscriptionID())
-	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
-	deployClient.Authorizer = auth
-	deployClient.AddToUserAgent(helpers.UserAgent())
+	deployClient := resources.NewDeploymentsClient(config.SubscriptionID())
+	a, _ := iam.GetResourceManagementAuthorizer()
+	deployClient.Authorizer = a
+	deployClient.AddToUserAgent(config.UserAgent())
 	return deployClient
 }
 
@@ -28,7 +29,7 @@ func CreateDeployment(ctx context.Context, deploymentName string, template, para
 	deployClient := getDeploymentsClient()
 	future, err := deployClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		deploymentName,
 		resources.Deployment{
 			Properties: &resources.DeploymentProperties{
@@ -55,7 +56,7 @@ func CreateDeployment(ctx context.Context, deploymentName string, template, para
 func ValidateDeployment(ctx context.Context, deploymentName string, template, params *map[string]interface{}) (valid resources.DeploymentValidateResult, err error) {
 	deployClient := getDeploymentsClient()
 	return deployClient.Validate(ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		deploymentName,
 		resources.Deployment{
 			Properties: &resources.DeploymentProperties{

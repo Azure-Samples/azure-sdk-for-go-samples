@@ -164,6 +164,22 @@
   revision = "113d3961e7311526535a1ef7042196563d442761"
 
 [[projects]]
+  digest = "1:f23957829bec661c8e4c3cd421383c8270b4e01c93cf2046bb8844532ac0022c"
+  name = "github.com/gobuffalo/envy"
+  packages = ["."]
+  pruneopts = ""
+  revision = "2d0f467653f3d961ce9ada4d32a230bdcb3bfe11"
+  version = "v1.6.3"
+
+[[projects]]
+  digest = "1:9e2d3c77cfb28d97073016bdc42d70e73d84876d8bacd4436f613dfbf93f8eda"
+  name = "github.com/joho/godotenv"
+  packages = ["."]
+  pruneopts = ""
+  revision = "a79fa1e548e2c689c241d10173efd51e5d689d5b"
+  version = "v1.2.0"
+
+[[projects]]
   digest = "1:a0cb5f41e61664683912f073ec14760a9f60b432d75afa01f64e1db5443a5539"
   name = "github.com/marstr/collection"
   packages = ["."]
@@ -304,6 +320,7 @@
     "github.com/denisenkom/go-mssqldb",
     "github.com/globalsign/mgo",
     "github.com/globalsign/mgo/bson",
+    "github.com/gobuffalo/envy",
     "github.com/marstr/randname",
     "github.com/satori/go.uuid",
     "github.com/subosito/gotenv",

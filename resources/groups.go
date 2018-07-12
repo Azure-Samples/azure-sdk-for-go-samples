@@ -12,38 +12,43 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 )
 
 func getGroupsClient() resources.GroupsClient {
-	groupsClient := resources.NewGroupsClient(helpers.SubscriptionID())
-	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
-	groupsClient.Authorizer = auth
-	groupsClient.AddToUserAgent(helpers.UserAgent())
+	groupsClient := resources.NewGroupsClient(config.SubscriptionID())
+	a, err := iam.GetResourceManagementAuthorizer()
+	if err != nil {
+		log.Fatalf("failed to initialize authorizer: %v\n", err)
+	}
+	groupsClient.Authorizer = a
+	groupsClient.AddToUserAgent(config.UserAgent())
 	return groupsClient
 }
 
 func getGroupsClientFromAuthFile() resources.GroupsClient {
-	groupsClient := resources.NewGroupsClient(helpers.SubscriptionID())
-	auth, _ := auth.NewAuthorizerFromFile(groupsClient.BaseURI)
-	groupsClient.Authorizer = auth
-	groupsClient.AddToUserAgent(helpers.UserAgent())
+	groupsClient := resources.NewGroupsClient(config.SubscriptionID())
+	a, _ := auth.NewAuthorizerFromFile(groupsClient.BaseURI)
+	groupsClient.Authorizer = a
+	groupsClient.AddToUserAgent(config.UserAgent())
 	return groupsClient
 }
 
 // CreateGroup creates a new resource group named by env var
 func CreateGroup(ctx context.Context, groupName string) (resources.Group, error) {
 	groupsClient := getGroupsClient()
-	log.Println(fmt.Sprintf("creating resource group '%s' on location: %v", groupName, helpers.Location()))
+	log.Println(fmt.Sprintf("creating resource group '%s' on location: %v", groupName, config.Location()))
 	return groupsClient.CreateOrUpdate(
 		ctx,
 		groupName,
 		resources.Group{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 		})
 }
 
@@ -51,12 +56,12 @@ func CreateGroup(ctx context.Context, groupName string) (resources.Group, error)
 // is set up based on an auth file created using the Azure CLI.
 func CreateGroupWithAuthFile(ctx context.Context, groupName string) (resources.Group, error) {
 	groupsClient := getGroupsClientFromAuthFile()
-	log.Println(fmt.Sprintf("creating resource group '%s' on location: %v", groupName, helpers.Location()))
+	log.Println(fmt.Sprintf("creating resource group '%s' on location: %v", groupName, config.Location()))
 	return groupsClient.CreateOrUpdate(
 		ctx,
 		groupName,
 		resources.Group{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 		})
 }
 
@@ -75,12 +80,12 @@ func ListGroups(ctx context.Context) (resources.GroupListResultIterator, error) 
 // GetGroup gets info on the resource group in use
 func GetGroup(ctx context.Context) (resources.Group, error) {
 	groupsClient := getGroupsClient()
-	return groupsClient.Get(ctx, helpers.ResourceGroupName())
+	return groupsClient.Get(ctx, config.GroupName())
 }
 
 // DeleteAllGroupsWithPrefix deletes all rescource groups that start with a certain prefix
 func DeleteAllGroupsWithPrefix(ctx context.Context, prefix string) (futures []resources.GroupsDeleteFuture, groups []string) {
-	if helpers.KeepResources() {
+	if config.KeepResources() {
 		log.Println("keeping resource groups")
 		return
 	}

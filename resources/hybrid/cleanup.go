@@ -9,12 +9,12 @@ import (
 	"context"
 	"log"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 )
 
 // Cleanup deletes the rescource group created for the sample
 func Cleanup(ctx context.Context) error {
-	if helpers.KeepResources() {
+	if config.KeepResources() {
 		log.Println("Hybrid resources cleanup: keeping resources")
 		return nil
 	}

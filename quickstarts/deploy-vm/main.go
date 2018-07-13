@@ -117,13 +117,7 @@ func createDeployment() (deployment resources.DeploymentExtended, err error) {
 	if err != nil {
 		return
 	}
-	deployment, err = deploymentFuture.Result(deploymentsClient)
-
-	// Work around possible bugs or late-stage failures
-	if deployment.Name == nil || err != nil {
-		deployment, _ = deploymentsClient.Get(ctx, resourceGroupName, deploymentName)
-	}
-	return
+	return deploymentFuture.Result(deploymentsClient)
 }
 
 // Get login information by querying the deployed public IP resource.

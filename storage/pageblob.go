@@ -9,75 +9,76 @@ import (
 	"bytes"
 	"context"
 
-	blob "github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
+	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
 )
 
-func getPageBlobURL(ctx context.Context, accountName, containerName, blobName string) blob.PageBlobURL {
-	container := getContainerURL(ctx, accountName, containerName)
+func getPageBlobURL(ctx context.Context, accountName, accountGroupName, containerName, blobName string) azblob.PageBlobURL {
+	container := getContainerURL(ctx, accountName, accountGroupName, containerName)
 	blob := container.NewPageBlobURL(blobName)
 	return blob
 }
 
-// CreatePageBlob creates a new test blob in the container specified by env var
-func CreatePageBlob(ctx context.Context, accountName, containerName, blobName string, pages int) (blob.PageBlobURL, error) {
-	b := getPageBlobURL(ctx, accountName, containerName, blobName)
+// CreatePageBlob creates a new test blob in the container specified.
+func CreatePageBlob(ctx context.Context, accountName, accountGroupName, containerName, blobName string, pages int) (azblob.PageBlobURL, error) {
+	b := getPageBlobURL(ctx, accountName, accountGroupName, containerName, blobName)
 
 	_, err := b.Create(
 		ctx,
-		int64(blob.PageBlobPageBytes*pages),
+		int64(pages*azblob.PageBlobPageBytes),
 		0,
-		blob.BlobHTTPHeaders{
+		azblob.BlobHTTPHeaders{
 			ContentType: "text/plain",
 		},
-		blob.Metadata{},
-		blob.BlobAccessConditions{},
+		azblob.Metadata{},
+		azblob.BlobAccessConditions{},
 	)
 	return b, err
 }
 
 // PutPage adds a page to the page blob
-func PutPage(ctx context.Context, accountName, containerName, blobName, message string, page int) error {
-	b := getPageBlobURL(ctx, accountName, containerName, blobName)
+// TODO: page should be []byte
+func PutPage(ctx context.Context, accountName, accountGroupName, containerName, blobName, page string, pages int) error {
+	b := getPageBlobURL(ctx, accountName, accountGroupName, containerName, blobName)
 
-	fullMessage := make([]byte, blob.PageBlobPageBytes)
-	for i, e := range []byte(message) {
-		fullMessage[i] = e
+	newPage := make([]byte, azblob.PageBlobPageBytes)
+	for i, c := range []byte(page) {
+		newPage[i] = c
 	}
 
 	_, err := b.PutPages(ctx,
-		blob.PageRange{
-			Start: int32(page * blob.PageBlobPageBytes),
-			End:   int32((page+1)*blob.PageBlobPageBytes - 1),
+		azblob.PageRange{
+			Start: int32(pages * azblob.PageBlobPageBytes),
+			End:   int32((pages+1)*azblob.PageBlobPageBytes - 1),
 		},
-		bytes.NewReader(fullMessage),
-		blob.BlobAccessConditions{},
+		bytes.NewReader(newPage),
+		azblob.BlobAccessConditions{},
 	)
 	return err
 }
 
 // ClearPage clears the specified page in the page blob
-func ClearPage(ctx context.Context, accountName, containerName, blobName string, page int) error {
-	b := getPageBlobURL(ctx, accountName, containerName, blobName)
+func ClearPage(ctx context.Context, accountName, accountGroupName, containerName, blobName string, pageNumber int) error {
+	b := getPageBlobURL(ctx, accountName, accountGroupName, containerName, blobName)
 
 	_, err := b.ClearPages(ctx,
-		blob.PageRange{
-			Start: int32(page * blob.PageBlobPageBytes),
-			End:   int32((page+1)*blob.PageBlobPageBytes - 1),
+		azblob.PageRange{
+			Start: int32(pageNumber * azblob.PageBlobPageBytes),
+			End:   int32((pageNumber+1)*azblob.PageBlobPageBytes - 1),
 		},
-		blob.BlobAccessConditions{},
+		azblob.BlobAccessConditions{},
 	)
 	return err
 }
 
 // GetPageRanges gets a list of valid page ranges in the page blob
-func GetPageRanges(ctx context.Context, accountName, containerName, blobName string, pages int) (*blob.PageList, error) {
-	b := getPageBlobURL(ctx, accountName, containerName, blobName)
+func GetPageRanges(ctx context.Context, accountName, accountGroupName, containerName, blobName string, pages int) (*azblob.PageList, error) {
+	b := getPageBlobURL(ctx, accountName, accountGroupName, containerName, blobName)
 	return b.GetPageRanges(
 		ctx,
-		blob.BlobRange{
-			Offset: 0 * blob.PageBlobPageBytes,
-			Count:  int64(pages*blob.PageBlobPageBytes - 1),
+		azblob.BlobRange{
+			Offset: 0 * azblob.PageBlobPageBytes,
+			Count:  int64(pages*azblob.PageBlobPageBytes - 1),
 		},
-		blob.BlobAccessConditions{},
+		azblob.BlobAccessConditions{},
 	)
 }

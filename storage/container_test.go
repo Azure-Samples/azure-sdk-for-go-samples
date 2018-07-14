@@ -8,56 +8,45 @@ package storage
 import (
 	"context"
 	"fmt"
-	"strings"
+	"time"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 )
 
-func ExampleListBlobs() {
-	accountName = getAccountName()
-	containerName = strings.ToLower(containerName)
+func ExampleContainerAndBlobs() {
+	var accountName = testAccountName
+	var accountGroupName = testAccountGroupName
+	var containerName = generateName("test-blobc")
+	var err error
 
-	helpers.SetResourceGroupName("ListBlobs")
-	ctx := context.Background()
-	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
+	defer cancel()
 
-	_, err = CreateStorageAccount(ctx, accountName)
+	_, err = CreateContainer(ctx, accountName, accountGroupName, containerName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created storage account")
-
-	_, err = CreateContainer(ctx, accountName, containerName)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("created container")
+	util.PrintAndLog("created container")
 
 	for i := 0; i < 3; i++ {
-		name := fmt.Sprintf("blob%d", i)
-		_, err = CreateBlockBlob(ctx, accountName, containerName, name)
+		blobName := fmt.Sprintf("test-blob%d", i)
+		_, err = CreateBlockBlob(ctx, accountName, accountGroupName, containerName, blobName)
 		if err != nil {
-			helpers.PrintAndLog(err.Error())
+			util.PrintAndLog(err.Error())
 		}
-		helpers.PrintAndLog("created blob")
+		util.PrintAndLog(fmt.Sprintf("created test-blob%d", i))
 	}
 
-	list, err := ListBlobs(ctx, accountName, containerName)
+	list, err := ListBlobs(ctx, accountName, accountGroupName, containerName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog(fmt.Sprintf("listed blobs: %d", len(list.Blobs.Blob)))
+	util.PrintAndLog(fmt.Sprintf("listed %d blobs", len(list.Blobs.Blob)))
 
 	// Output:
-	// created storage account
 	// created container
-	// created blob
-	// created blob
-	// created blob
-	// listed blobs: 3
+	// created test-blob0
+	// created test-blob1
+	// created test-blob2
+	// listed 3 blobs
 }

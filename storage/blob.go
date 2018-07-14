@@ -9,20 +9,20 @@ import (
 	"context"
 	"io/ioutil"
 
-	blob "github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
+	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
 )
 
-func getBlobURL(ctx context.Context, accountName, containerName, blobName string) blob.BlobURL {
-	container := getContainerURL(ctx, accountName, containerName)
+func getBlobURL(ctx context.Context, accountName, accountGroupName, containerName, blobName string) azblob.BlobURL {
+	container := getContainerURL(ctx, accountName, accountGroupName, containerName)
 	blob := container.NewBlobURL(blobName)
 	return blob
 }
 
 // GetBlob downloads the specified blob contents
-func GetBlob(ctx context.Context, accountName, containerName, blobName string) (string, error) {
-	b := getBlobURL(ctx, accountName, containerName, blobName)
+func GetBlob(ctx context.Context, accountName, accountGroupName, containerName, blobName string) (string, error) {
+	b := getBlobURL(ctx, accountName, accountGroupName, containerName, blobName)
 
-	resp, err := b.GetBlob(ctx, blob.BlobRange{}, blob.BlobAccessConditions{}, false)
+	resp, err := b.GetBlob(ctx, azblob.BlobRange{}, azblob.BlobAccessConditions{}, false)
 	if err != nil {
 		return "", err
 	}

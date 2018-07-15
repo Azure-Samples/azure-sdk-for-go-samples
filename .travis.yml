@@ -1,11 +1,10 @@
 sudo: required
 language: go
 go:
-- master
 - 1.10.x
 - 1.9.x
-script:
-- make test_pr
+go_import_path: github.com/Azure-Samples/azure-sdk-for-go-samples
+script: make test
 matrix:
   allow_failures:
   - go: master

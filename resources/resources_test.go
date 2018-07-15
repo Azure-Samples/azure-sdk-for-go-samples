@@ -16,6 +16,10 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 )
 
+const (
+	CI_KEY_NAME = "TRAVIS"
+)
+
 func TestMain(m *testing.M) {
 	err := setupEnvironment()
 	if err != nil {
@@ -60,6 +64,9 @@ func TestGroups(t *testing.T) {
 }
 
 func TestGroupsWithAuthFile(t *testing.T) {
+	if _, is_ci := os.LookupEnv(CI_KEY_NAME); is_ci == true {
+		t.Skipf("skipping auth file test in CI")
+	}
 	groupName := config.GenerateGroupName("resource-groups-authfile")
 	config.SetGroupName(groupName) // TODO: don't rely on globals
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)

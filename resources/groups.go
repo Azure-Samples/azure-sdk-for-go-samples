@@ -14,6 +14,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
 
@@ -32,9 +33,14 @@ func getGroupsClient() resources.GroupsClient {
 	return groupsClient
 }
 
-func getGroupsClientFromAuthFile() resources.GroupsClient {
+func getGroupsClientWithAuthFile() resources.GroupsClient {
 	groupsClient := resources.NewGroupsClient(config.SubscriptionID())
-	a, _ := auth.NewAuthorizerFromFile(groupsClient.BaseURI)
+	// requires env var AZURE_AUTH_LOCATION set to output of
+	// `az ad sp create-for-rbac --sdk-auth`
+	a, err := auth.NewAuthorizerFromFile(azure.PublicCloud.ResourceManagerEndpoint)
+	if err != nil {
+		log.Fatalf("failed to initialize authorizer: %v\n", err)
+	}
 	groupsClient.Authorizer = a
 	groupsClient.AddToUserAgent(config.UserAgent())
 	return groupsClient
@@ -55,7 +61,7 @@ func CreateGroup(ctx context.Context, groupName string) (resources.Group, error)
 // CreateGroupWithAuthFile creates a new resource group. The client authorizer
 // is set up based on an auth file created using the Azure CLI.
 func CreateGroupWithAuthFile(ctx context.Context, groupName string) (resources.Group, error) {
-	groupsClient := getGroupsClientFromAuthFile()
+	groupsClient := getGroupsClientWithAuthFile()
 	log.Println(fmt.Sprintf("creating resource group '%s' on location: %v", groupName, config.Location()))
 	return groupsClient.CreateOrUpdate(
 		ctx,

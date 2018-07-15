@@ -6,6 +6,7 @@
 package storage
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -16,6 +17,7 @@ import (
 	"github.com/marstr/randname"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 func addLocalEnvAndParse() error {
@@ -57,7 +59,7 @@ func addLocalFlagsAndParse() error {
 	return nil
 }
 
-func setupEnvironment() error {
+func setup() error {
 	var err error
 	err = addLocalEnvAndParse()
 	if err != nil {
@@ -78,6 +80,17 @@ func setupEnvironment() error {
 	return nil
 }
 
+func teardown() error {
+	if config.KeepResources() == false {
+		// does not wait
+		_, err := resources.DeleteGroup(context.Background(), testAccountGroupName)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // test helpers
 func generateName(prefix string) string {
 	return strings.ToLower(randname.GenerateWithPrefix(prefix, 5))
@@ -85,10 +98,22 @@ func generateName(prefix string) string {
 
 // TestMain sets up the environment and initiates tests.
 func TestMain(m *testing.M) {
-	err := setupEnvironment()
+	var err error
+	var code int
+
+	err = setup()
 	if err != nil {
 		log.Fatalf("could not set up environment: %v\n", err)
 	}
 
-	os.Exit(m.Run())
+	code = m.Run()
+
+	err = teardown()
+	if err != nil {
+		log.Fatalf(
+			"could not tear down environment: %v\n; original exit code: %v\n",
+			err, code)
+	}
+
+	os.Exit(code)
 }

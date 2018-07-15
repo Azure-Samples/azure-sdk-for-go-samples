@@ -10,14 +10,17 @@ import (
 	"go/build"
 	"log"
 	"path/filepath"
+	"time"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 )
 
 func ExampleCreateTemplateDeployment() {
-	config.SetGroupName("CreateTemplateDeploy")
-	ctx := context.Background()
+	groupName := config.GenerateGroupName("groups-template")
+	config.SetGroupName(groupName) // TODO: don't rely on globals
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	defer cancel()
 	defer Cleanup(ctx)
 
 	_, err := CreateGroup(ctx, config.GroupName())

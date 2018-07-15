@@ -148,7 +148,7 @@ func GetKeyvaultAuthorizer() (autorest.Authorizer, error) {
 		deviceConfig.AADEndpoint = alternateEndpoint.String()
 		a, err = deviceConfig.Authorizer()
 	default:
-		return a, fmt.Errorf("invalid grant type specified: %s\n", grantType)
+		return a, fmt.Errorf("invalid grant type specified")
 	}
 
 	if err == nil {
@@ -190,7 +190,7 @@ func getAuthorizerForResource(grantType OAuthGrantType, resource string) (autore
 		}
 
 	default:
-		return a, fmt.Errorf("invalid grant type specified: %s\n", grantType)
+		return a, fmt.Errorf("invalid grant type specified")
 	}
 
 	return a, err

@@ -9,16 +9,16 @@ package keyvault
  *
  * Usage
  * List the secrets currently in the vault (not the values though):
- * kv-pass -l
+ * kv-pass
  *
  * Get the value for a secret in the vault:
- * kv-pass -p YOUR_SECRETS_NAME
+ * kv-pass YOUR_SECRETS_NAME
  *
  * Add or Update a secret in the vault:
- * kv-pass -p YOUR_SECRETS_NAME -v YOUR_NEW_VALUE
+ * kv-pass -edit YOUR_NEW_VALUE YOUR_SECRETS_NAME
  *
  * Delete a secret in the vault:
- * kv-pass -d YOUR_SECRETS_NAME
+ * kv-pass -delete YOUR_SECRETS_NAME
  */
 
 import (
@@ -37,12 +37,10 @@ import (
 )
 
 var (
-	secretName    = flag.String("g", "", "get value of secret (p)")
-	secretVal     = flag.String("v", "", "set value of secret specified with -g")
-	secretDel     = flag.String("d", "", "delete secret")
-	doListSecrets = flag.Bool("l", false, "list all secrets")
-	setDebug      = flag.Bool("debug", false, "debug")
-	vaultName     string
+	secretVal = flag.String("edit", "", "set value of secret")
+	secretDel = flag.String("delete", "", "delete secret")
+	setDebug  = flag.Bool("debug", false, "debug")
+	vaultName string
 )
 
 func main() {
@@ -68,15 +66,18 @@ func main() {
 		basicClient.ResponseInspector = logResponse()
 	}
 
-	if *doListSecrets {
+	allArgs := flag.Args()
+
+	if flag.NArg() <= 0 && flag.NFlag() <= 0 {
 		listSecrets(basicClient)
 	}
 
-	if *secretName != "" && *secretVal == "" && *secretDel == "" {
-		getSecret(basicClient, *secretName)
+	if flag.NArg() == 1 && flag.NFlag() <= 0 {
+		getSecret(basicClient, allArgs[0])
 	}
-	if *secretName != "" && *secretVal != "" && *secretDel == "" {
-		createUpdateSecret(basicClient, *secretName, *secretVal)
+
+	if *secretVal != "" && *secretDel == "" {
+		createUpdateSecret(basicClient, allArgs[0], *secretVal)
 	}
 
 	if *secretDel != "" {

@@ -9,29 +9,31 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 func getAvailabilitySetsClient() compute.AvailabilitySetsClient {
-	avaSetClient := compute.NewAvailabilitySetsClient(helpers.SubscriptionID())
-	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
-	avaSetClient.Authorizer = auth
-	avaSetClient.AddToUserAgent(helpers.UserAgent())
+	asClient := compute.NewAvailabilitySetsClient(config.SubscriptionID())
+	a, _ := iam.GetResourceManagementAuthorizer()
+	asClient.Authorizer = a
+	avaSetClient.AddToUserAgent(config.UserAgent())
 	return avaSetClient
 }
 
 // CreateAvailabilitySet creates an availability set
-func CreateAvailabilitySet(ctx context.Context, avaSetName string) (compute.AvailabilitySet, error) {
-	avaSetClient := getAvailabilitySetsClient()
-	return avaSetClient.CreateOrUpdate(ctx,
-		helpers.ResourceGroupName(),
-		avaSetName,
+func CreateAvailabilitySet(ctx context.Context, asName string) (compute.AvailabilitySet, error) {
+	asClient := getAvailabilitySetsClient()
+	return asClient.CreateOrUpdate(ctx,
+		config.GroupName(),
+		asName,
 		compute.AvailabilitySet{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 			AvailabilitySetProperties: &compute.AvailabilitySetProperties{
 				PlatformFaultDomainCount:  to.Int32Ptr(1),
 				PlatformUpdateDomainCount: to.Int32Ptr(1),
@@ -43,15 +45,16 @@ func CreateAvailabilitySet(ctx context.Context, avaSetName string) (compute.Avai
 }
 
 // GetAvailabilitySet gets info on an availability set
-func GetAvailabilitySet(ctx context.Context, avaSetName string) (compute.AvailabilitySet, error) {
-	avaSetClient := getAvailabilitySetsClient()
-	return avaSetClient.Get(ctx, helpers.ResourceGroupName(), avaSetName)
+func GetAvailabilitySet(ctx context.Context, asName string) (compute.AvailabilitySet, error) {
+	asClient := getAvailabilitySetsClient()
+	return asClient.Get(ctx, config.GroupName(), asName)
 }
 
-// CreateVMWithLoadBalancer creates a virtual machine inside an availability set
-// It also creates the NIC needed by the virtual machine. The NIC is set up with
-// a loadbalancer's inbound NAT rule.
-func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, subnetName, pipName, availabilySetName string, natRule int) (vm compute.VirtualMachine, err error) {
+// CreateVMWithLoadBalancer creates a new VM in an availability set. It also
+// creates and configures a load balancer and associates that with the VM's
+// NIC.
+func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, subnetName, publicipName, availabilitySetName string, natRule int) (vm compute.VirtualMachine, err error) {
+
 	nicName := fmt.Sprintf("nic-%s", vmName)
 
 	_, err = network.CreateNICWithLoadBalancer(ctx, lbName, vnetName, subnetName, nicName, natRule)
@@ -63,7 +66,7 @@ func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, sub
 		return
 	}
 
-	avaSet, err := GetAvailabilitySet(ctx, availabilySetName)
+	as, err := GetAvailabilitySet(ctx, availabilitySetName)
 	if err != nil {
 		return
 	}
@@ -71,10 +74,10 @@ func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, sub
 	vmClient := getVMClient()
 	future, err := vmClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		vmName,
 		compute.VirtualMachine{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
 				HardwareProfile: &compute.HardwareProfile{
 					VMSize: compute.VirtualMachineSizeTypesStandardA0,
@@ -103,7 +106,7 @@ func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, sub
 					},
 				},
 				AvailabilitySet: &compute.SubResource{
-					ID: avaSet.ID,
+					ID: as.ID,
 				},
 			},
 		})

@@ -8,26 +8,56 @@ package compute
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
-// CreateVMForMSI creates a virtual machine with a systems assigned identity type
-func CreateVMForMSI(ctx context.Context, vmName, nicName, username, password string) (vm compute.VirtualMachine, err error) {
+const (
+	username   = "gosdkuser"
+	password   = "gosdkuserpass!1"
+	publisher  = "Canonical"
+	offer      = "UbuntuServer"
+	sku        = "18.04.0-LTS"
+	fakepubkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7laRyN4B3YZmVrDEZLZoIuUA72pQ0DpGuZBZWykCofIfCPrFZAJgFvonKGgKJl6FGKIunkZL9Us/mV4ZPkZhBlE7uX83AAf5i9Q8FmKpotzmaxN10/1mcnEE7pFvLoSkwqrQSkrrgSm8zaJ3g91giXSbtqvSIj/vk2f05stYmLfhAwNo3Oh27ugCakCoVeuCrZkvHMaJgcYrIGCuFo6q0Pfk9rsZyriIqEa9AtiUOtViInVYdby7y71wcbl0AbbCZsTSqnSoVxm2tRkOsXV6+8X4SnwcmZbao3H+zfO1GBhQOLxJ4NQbzAa8IJh810rYARNLptgmsd4cYXVOSosTX azureuser"
+)
+
+func getVMClient() compute.VirtualMachinesClient {
+	vmClient := compute.NewVirtualMachinesClient(config.SubscriptionID())
+	a, _ := iam.GetResourceManagementAuthorizer()
+	vmClient.Authorizer = a
+	vmClient.AddToUserAgent(config.UserAgent())
+	return vmClient
+}
+
+func getVMExtensionsClient() compute.VirtualMachineExtensionsClient {
+	extClient := compute.NewVirtualMachineExtensionsClient(config.SubscriptionID())
+	a, _ := iam.GetResourceManagementAuthorizer()
+	extClient.Authorizer = a
+	extClient.AddToUserAgent(config.UserAgent())
+	return extClient
+}
+
+// CreateVMWithMSI creates a virtual machine with a system-assigned managed identity.
+func CreateVMWithMSI(ctx context.Context, vmName, nicName, username, password string) (vm compute.VirtualMachine, err error) {
 	nic, _ := network.GetNic(ctx, nicName)
 
 	vmClient := getVMClient()
 	future, err := vmClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		vmName,
 		compute.VirtualMachine{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 			Identity: &compute.VirtualMachineIdentity{
-				Type: compute.SystemAssigned, // needed to add MSI authentication
+				Type: compute.SystemAssigned,
 			},
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
 				HardwareProfile: &compute.HardwareProfile{
@@ -71,16 +101,18 @@ func CreateVMForMSI(ctx context.Context, vmName, nicName, username, password str
 	return future.Result(vmClient)
 }
 
-// AddMSIExtension adds the MSI (managed service identity) extension to a virtual machine.
-func AddMSIExtension(ctx context.Context, vmName string) (ext compute.VirtualMachineExtension, err error) {
-	extClient := getExtensionClient()
+// AddIdentityToVM adds a managed identity to an existing VM by activating the
+// corresponding VM extension.
+func AddIdentityToVM(ctx context.Context, vmName string) (ext compute.VirtualMachineExtension, err error) {
+	extensionsClient := getVMExtensionsClient()
 
-	future, err := extClient.CreateOrUpdate(
+	future, err := extensionsClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		vmName,
-		"msiextension", compute.VirtualMachineExtension{
-			Location: to.StringPtr(helpers.Location()),
+		"msiextension",
+		compute.VirtualMachineExtension{
+			Location: to.StringPtr(config.Location()),
 			VirtualMachineExtensionProperties: &compute.VirtualMachineExtensionProperties{
 				Publisher:               to.StringPtr("Microsoft.ManagedIdentity"),
 				Type:                    to.StringPtr("ManagedIdentityExtensionForLinux"),
@@ -92,13 +124,13 @@ func AddMSIExtension(ctx context.Context, vmName string) (ext compute.VirtualMac
 			},
 		})
 	if err != nil {
-		return ext, fmt.Errorf("cannot add MSI extension: %v", err)
+		return ext, fmt.Errorf("failed to add MSI extension: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, extClient.Client)
+	err = future.WaitForCompletion(ctx, extensionsClient.Client)
 	if err != nil {
 		return ext, fmt.Errorf("cannot get the extension create or update future response: %v", err)
 	}
 
-	return future.Result(extClient)
+	return future.Result(extensionsClient)
 }

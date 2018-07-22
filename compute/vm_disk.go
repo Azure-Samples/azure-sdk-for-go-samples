@@ -8,9 +8,6 @@ package compute
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"os"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 
@@ -18,6 +15,8 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure/go-autorest/autorest/to"
+
+	"github.com/satori/go.uuid"
 )
 
 func getDisksClient() compute.DisksClient {
@@ -103,7 +102,7 @@ func UpdateOSDiskSize(ctx context.Context, vmName string) (d compute.Disk, err e
 	}
 	*sizeGB += 10
 
-	_, err = Deallocate(ctx, vmName)
+	_, err = DeallocateVM(ctx, vmName)
 	if err != nil {
 		return d, fmt.Errorf("cannot deallocate vm: %v", err)
 	}
@@ -229,7 +228,7 @@ func CreateVMWithDisk(ctx context.Context, nicName, diskName, vmName, username, 
 // AddDiskEncryptionToVM adds an extension to a VM to enable use of encryption
 // keys from Key Vault to decrypt disks.
 func AddDiskEncryptionToVM(ctx context.Context, vmName, vaultName, keyID string) (ext compute.VirtualMachineExtension, err error) {
-	extensionsClient := getExtensionClient()
+	extensionsClient := getVMExtensionsClient()
 	future, err := extensionsClient.CreateOrUpdate(
 		ctx,
 		config.GroupName(),
@@ -240,12 +239,12 @@ func AddDiskEncryptionToVM(ctx context.Context, vmName, vaultName, keyID string)
 			VirtualMachineExtensionProperties: &compute.VirtualMachineExtensionProperties{
 				AutoUpgradeMinorVersion: to.BoolPtr(true),
 				ProtectedSettings: &map[string]interface{}{
-					"AADClientSecret": iam.ClientSecret(), // replace with your own
+					"AADClientSecret": config.ClientSecret(), // replace with your own
 					"Passphrase":      "yourPassPhrase",
 				},
 				Publisher: to.StringPtr("Microsoft.Azure.Security"),
 				Settings: &map[string]interface{}{
-					"AADClientID":               iam.ClientID(), // replace with your own
+					"AADClientID":               config.ClientID(), // replace with your own
 					"EncryptionOperation":       "EnableEncryption",
 					"KeyEncryptionAlgorithm":    "RSA-OAEP",
 					"KeyEncryptionKeyAlgorithm": keyID,
@@ -261,10 +260,10 @@ func AddDiskEncryptionToVM(ctx context.Context, vmName, vaultName, keyID string)
 		return ext, fmt.Errorf("cannot create vm extension: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, extClient.Client)
+	err = future.WaitForCompletion(ctx, extensionsClient.Client)
 	if err != nil {
 		return ext, fmt.Errorf("cannot get the extension create or update future response: %v", err)
 	}
 
-	return future.Result(extClient)
+	return future.Result(extensionsClient)
 }

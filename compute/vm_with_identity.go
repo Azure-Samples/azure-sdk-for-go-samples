@@ -8,42 +8,13 @@ package compute
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"os"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure/go-autorest/autorest/to"
 )
-
-const (
-	username   = "gosdkuser"
-	password   = "gosdkuserpass!1"
-	publisher  = "Canonical"
-	offer      = "UbuntuServer"
-	sku        = "18.04.0-LTS"
-	fakepubkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7laRyN4B3YZmVrDEZLZoIuUA72pQ0DpGuZBZWykCofIfCPrFZAJgFvonKGgKJl6FGKIunkZL9Us/mV4ZPkZhBlE7uX83AAf5i9Q8FmKpotzmaxN10/1mcnEE7pFvLoSkwqrQSkrrgSm8zaJ3g91giXSbtqvSIj/vk2f05stYmLfhAwNo3Oh27ugCakCoVeuCrZkvHMaJgcYrIGCuFo6q0Pfk9rsZyriIqEa9AtiUOtViInVYdby7y71wcbl0AbbCZsTSqnSoVxm2tRkOsXV6+8X4SnwcmZbao3H+zfO1GBhQOLxJ4NQbzAa8IJh810rYARNLptgmsd4cYXVOSosTX azureuser"
-)
-
-func getVMClient() compute.VirtualMachinesClient {
-	vmClient := compute.NewVirtualMachinesClient(config.SubscriptionID())
-	a, _ := iam.GetResourceManagementAuthorizer()
-	vmClient.Authorizer = a
-	vmClient.AddToUserAgent(config.UserAgent())
-	return vmClient
-}
-
-func getVMExtensionsClient() compute.VirtualMachineExtensionsClient {
-	extClient := compute.NewVirtualMachineExtensionsClient(config.SubscriptionID())
-	a, _ := iam.GetResourceManagementAuthorizer()
-	extClient.Authorizer = a
-	extClient.AddToUserAgent(config.UserAgent())
-	return extClient
-}
 
 // CreateVMWithMSI creates a virtual machine with a system-assigned managed identity.
 func CreateVMWithMSI(ctx context.Context, vmName, nicName, username, password string) (vm compute.VirtualMachine, err error) {

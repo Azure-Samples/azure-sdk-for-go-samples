@@ -13,7 +13,6 @@ import (
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure/go-autorest/autorest/to"
 )
@@ -22,8 +21,8 @@ func getAvailabilitySetsClient() compute.AvailabilitySetsClient {
 	asClient := compute.NewAvailabilitySetsClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	asClient.Authorizer = a
-	avaSetClient.AddToUserAgent(config.UserAgent())
-	return avaSetClient
+	asClient.AddToUserAgent(config.UserAgent())
+	return asClient
 }
 
 // CreateAvailabilitySet creates an availability set

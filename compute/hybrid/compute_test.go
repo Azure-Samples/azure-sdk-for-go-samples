@@ -7,12 +7,12 @@ package compute
 
 import (
 	"context"
-	"log"
+	"flag"
 	"os"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	hybridnetwork "github.com/Azure-Samples/azure-sdk-for-go-samples/network/hybrid"
 	hybridresources "github.com/Azure-Samples/azure-sdk-for-go-samples/resources/hybrid"
 	hybridstorage "github.com/Azure-Samples/azure-sdk-for-go-samples/storage/hybrid"
@@ -35,11 +35,9 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	err := iam.ParseArgs()
-	if err != nil {
-		log.Fatalln("failed to parse IAM args")
-	}
-
+	config.ParseEnvironment()
+	config.AddFlags()
+	flag.Parse()
 	os.Exit(m.Run())
 }
 
@@ -48,43 +46,43 @@ func ExampleCreateVM() {
 	defer hybridresources.Cleanup(ctx)
 	_, err := hybridresources.CreateGroup(ctx)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 	_, err = hybridnetwork.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnetName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created vnet and a subnet")
+	util.PrintAndLog("created vnet and a subnet")
 
 	_, err = hybridnetwork.CreateNetworkSecurityGroup(ctx, nsgName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created network security group")
+	util.PrintAndLog("created network security group")
 
 	_, err = hybridnetwork.CreatePublicIP(ctx, ipName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created public IP")
+	util.PrintAndLog("created public IP")
 
 	_, err = hybridnetwork.CreateNetworkInterface(ctx, nicName, nsgName, virtualNetworkName, subnetName, ipName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created nic")
+	util.PrintAndLog("created nic")
 
 	_, err = hybridstorage.CreateStorageAccount(ctx, storageAccountName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created storage account")
+	util.PrintAndLog("created storage account")
 
 	_, err = CreateVM(ctx, vmName, nicName, username, password, storageAccountName, sshPublicKeyPath)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created VM")
+	util.PrintAndLog("created VM")
 
 	// Output:
 	// created vnet and a subnet

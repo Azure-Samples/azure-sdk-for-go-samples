@@ -7,7 +7,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 )
 
-var allLocations = []string{
+const allAzureLocations = []string{
 	"eastasia",
 	"southeastasia",
 	"centralus",
@@ -36,22 +36,14 @@ var allLocations = []string{
 	"koreasouth",
 }
 
-var locationOverrideTemplate = "overriding default location %s for this package because service is not available there. using location %s instead.\n"
+const AzureCanaryLocation = "eastus2euap"
 
-// OverrideCanaryLocation overrides the specified canary location where to create Azure resources.
-func OverrideCanaryLocation(usableLocation string) {
-	if strings.HasSuffix(location, "euap") {
-		log.Printf(locationOverrideTemplate, usableLocation, location)
-		location = usableLocation
+// Available returns whether a given resource type/version is available in the
+// specifed location.
+// TODO: use Azure SDK to dynamically check types/versions available in locations.
+func Available(location, resourceType, resourceVersion string) (bool, error) {
+	if !contains(allAzureLocations, location) {
+		return false, errors.Formatf("invalid location specified: %s\n", location)
 	}
-}
 
-// OverrideLocation overrides the specified location where to create Azure resources.
-// This can be used when the selection location does not have the desired resource provider available yet
-func OverrideLocation(available []string) {
-	// If location is not listed on all locations, don't override it. It might be a canary location
-	if util.Contains(allLocations, location) && !util.Contains(available, location) && len(available) > 0 {
-		log.Printf(locationOverrideTemplate, available[0], location)
-		location = available[0]
-	}
 }

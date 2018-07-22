@@ -7,35 +7,29 @@ package compute
 
 import (
 	"context"
-	"flag"
-	"fmt"
-	"log"
-	"os"
-	"strings"
-	"testing"
-
-	"github.com/marstr/randname"
+	"time"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/authorization"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/graphrbac"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/keyvault"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/marstr/randname"
 )
 
 // ExampleVM creates a group and network artifacts needed for a VM, then
 // creates a VM and tests operations on it.
 func ExampleCreateVM() {
-	const groupName = config.GenerateGroupName("CreateVM")
+	var groupName = config.GenerateGroupName("CreateVM")
 	// TODO: remove and use local `groupName` only
 	config.SetGroupName(groupName)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 6000*time.Second)
 	defer cancel()
-	// don't delete resources so dataplane tests can reuse them
-	// defer resources.Cleanup(ctx)
+	defer resources.Cleanup(ctx)
 
 	_, err := resources.CreateGroup(ctx, groupName)
 	if err != nil {
@@ -114,11 +108,11 @@ func ExampleCreateVM() {
 }
 
 func ExampleCreateVMWithMSI() {
-	const groupName = config.GenerateGroupName("CreateVMWithMSI")
+	var groupName = config.GenerateGroupName("CreateVMWithMSI")
 	// TODO: remove and use local `groupName` only
 	config.SetGroupName(groupName)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 6000*time.Second)
 	defer cancel()
 	defer resources.Cleanup(ctx)
 
@@ -169,7 +163,7 @@ func ExampleCreateVMWithMSI() {
 	}
 	util.PrintAndLog("got VM")
 
-	list, err := authorization.ListRoles(ctx, "roleName eq 'Contributor'")
+	list, err := authorization.ListRoleDefinitions(ctx, "roleName eq 'Contributor'")
 	if err != nil {
 		util.PrintAndLog(err.Error())
 	}
@@ -193,12 +187,13 @@ func ExampleCreateVMWithMSI() {
 	// role assigned
 }
 
-func ExampleCreateVMWithDisks() {
-	vaultName := generateName("gosdk-vault")
-	const groupName = config.GenerateGroupName("CreateVMEncryptedDisks")
+func ExampleCreateVMWithEncryptedDisks() {
+	vaultName := randname.GenerateWithPrefix("gosdk-vault", 10)
+
+	var groupName = config.GenerateGroupName("CreateVMWithEncryptedDisks")
 	config.SetGroupName(groupName)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 6000*time.Second)
 	defer cancel()
 	defer resources.Cleanup(ctx)
 
@@ -231,23 +226,20 @@ func ExampleCreateVMWithDisks() {
 	}
 	util.PrintAndLog("created disk")
 
-	_, err = CreateVMWithManagedDisk(ctx, nicName, diskName, vmName, username, password)
+	_, err = CreateVMWithDisk(ctx, nicName, diskName, vmName, username, password)
 	if err != nil {
 		util.PrintAndLog(err.Error())
 	}
 	util.PrintAndLog("created virtual machine")
 
-	// add current user to KeyVault policies
+	// create a KV Vault and grant rights to current user
 	var userID string
-	if iam.AuthGrantType() == iam.OAuthGrantTypeDeviceFlow {
-		currentUser, err := graphrbac.GetCurrentUser(ctx)
-		if err != nil {
-			util.PrintAndLog(err.Error())
-		}
-		userID = *currentUser.ObjectID
+	currentUser, err := graphrbac.GetCurrentUser(ctx)
+	if err != nil {
+		util.PrintAndLog(err.Error())
 	}
-
-	_, err = keyvault.CreateComplexKeyVault(ctx, vaultName, userID)
+	userID = *currentUser.ObjectID
+	_, err = keyvault.CreateVaultWithPolicies(ctx, vaultName, userID)
 	if err != nil {
 		util.PrintAndLog(err.Error())
 	}
@@ -260,7 +252,7 @@ func ExampleCreateVMWithDisks() {
 	}
 	util.PrintAndLog("created key bundle")
 
-	_, err = AddEncryptionExtension(ctx, vmName, vaultName, *key.Key.Kid)
+	_, err = AddDiskEncryptionToVM(ctx, vmName, vaultName, *key.Key.Kid)
 	if err != nil {
 		util.PrintAndLog(err.Error())
 	}
@@ -278,14 +270,14 @@ func ExampleCreateVMWithDisks() {
 }
 
 func ExampleCreateVMsWithLoadBalancer() {
-	const groupName = config.GenerateGroupName("CreateVMsWithLoadBalancer")
+	var groupName = config.GenerateGroupName("CreateVMsWithLoadBalancer")
 	config.SetGroupName(groupName)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 6000*time.Second)
 	defer cancel()
 	defer resources.Cleanup(ctx)
 
-	_, err := resources.CreateGroup(ctx, config.ResourceGroupName())
+	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
 		util.PrintAndLog(err.Error())
 	}
@@ -342,4 +334,67 @@ func ExampleCreateVMsWithLoadBalancer() {
 	// created availability set
 	// created virtual machine on load balance, with NAT rule 1
 	// created virtual machine on load balance, with NAT rule 2
+}
+
+func ExampleCreateVMWithDisks() {
+	var groupName = config.GenerateGroupName("CreateVMWithDisks")
+	// TODO: remove and use local `groupName` only
+	config.SetGroupName(groupName)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 6000*time.Second)
+	defer cancel()
+	defer resources.Cleanup(ctx)
+
+	_, err := resources.CreateGroup(ctx, groupName)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+	}
+
+	_, err = network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+	}
+	util.PrintAndLog("created vnet and 2 subnets")
+
+	_, err = network.CreateNetworkSecurityGroup(ctx, nsgName)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+	}
+	util.PrintAndLog("created network security group")
+
+	_, err = network.CreatePublicIP(ctx, ipName)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+	}
+	util.PrintAndLog("created public IP")
+
+	_, err = network.CreateNIC(ctx, virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+	}
+	util.PrintAndLog("created nic")
+
+	// Disks
+	_, err = AttachDataDisk(ctx, vmName)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+	}
+	util.PrintAndLog("attached data disks")
+
+	_, err = DetachDataDisks(ctx, vmName)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+	}
+	util.PrintAndLog("detached data disks")
+
+	_, err = UpdateOSDiskSize(ctx, vmName)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+	}
+	util.PrintAndLog("updated OS disk size")
+
+	// Output:
+	// attached data disks
+	// detached data disks
+	// updated OS disk size
 }

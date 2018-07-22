@@ -17,13 +17,13 @@ import (
 	"github.com/marstr/randname"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
-	"github.com/Azure/go-autorest/autorest/to"
 )
 
 var (
 	// names used in tests
+	username           = "gosdkuser"
+	password           = "gosdkuserpass!1"
 	vmName             = generateName("gosdk-vm1")
 	diskName           = generateName("gosdk-disk1")
 	nicName            = generateName("gosdk-nic1")
@@ -47,7 +47,7 @@ func addLocalEnvAndParse() error {
 	// add local env
 	vnetNameFromEnv := os.Getenv("AZURE_VNET_NAME")
 	if len(vnetNameFromEnv) > 0 {
-		testVnetName = vnetNameFromEnv
+		virtualNetworkName = vnetNameFromEnv
 	}
 	return nil
 }

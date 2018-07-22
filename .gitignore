@@ -1,5 +1,2 @@
 .env
 vendor/
-a01droid
-a01dispatcher
-resources/testdata/authfile.json

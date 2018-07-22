@@ -21,28 +21,6 @@ const (
 	port              int = 1433
 )
 
-// DbOperations executes some simple SQL queries
-func DbOperations(server, database, username, password string) error {
-	log.Printf("available drivers: %v", sql.Drivers())
-
-	db, err := Open(server, database, username, password)
-	if err != nil {
-		return err
-	}
-
-	err = CreateTable(db)
-	if err != nil {
-		return err
-	}
-
-	err = Insert(db)
-	if err != nil {
-		return err
-	}
-
-	return Query(db)
-}
-
 // Open opens a connection to the SQL server
 func Open(server, database, username, password string) (*sql.DB, error) {
 	query := url.Values{}

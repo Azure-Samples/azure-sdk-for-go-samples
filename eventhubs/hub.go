@@ -8,17 +8,17 @@ package eventhubs
 import (
 	"context"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 func getHubsClient() eventhub.EventHubsClient {
-	hubClient := eventhub.NewEventHubsClient(helpers.SubscriptionID())
-	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	hubClient := eventhub.NewEventHubsClient(config.SubscriptionID())
+	auth, _ := iam.GetResourceManagementAuthorizer()
 	hubClient.Authorizer = auth
-	hubClient.AddToUserAgent(helpers.UserAgent())
+	hubClient.AddToUserAgent(config.UserAgent())
 	return hubClient
 }
 
@@ -27,7 +27,7 @@ func CreateHub(ctx context.Context, nsName string, hubName string) (eventhub.Mod
 	hubClient := getHubsClient()
 	return hubClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		nsName,
 		hubName,
 		eventhub.Model{

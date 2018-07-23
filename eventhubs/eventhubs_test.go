@@ -7,38 +7,42 @@ package eventhubs
 
 import (
 	"context"
+	"flag"
 	"log"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 const (
 	location = "westus2"
-	nsName   = "ehtest-03-ns"
-	hubName  = "ehtest-03-hub"
+	nsName   = "ehtest-04-ns"
+	hubName  = "ehtest-04-hub"
 
 	// for storage.LeaserCheckpointer
 	storageAccountName   = "ehtest0001storage"
 	storageContainerName = "eventhubs0001leasercheckpointer"
 )
 
+// TestMain sets up the environment and initiates tests.
 func TestMain(m *testing.M) {
-	err := helpers.ParseArgs()
+	var err error
+	err = config.ParseEnvironment()
 	if err != nil {
-		log.Fatalf("failed to parse args: %v\n", err)
+		log.Fatalf("failed to parse env: %v\n", err)
 	}
-
-	err = iam.ParseArgs()
+	err = config.AddFlags()
 	if err != nil {
-		log.Fatalln("failed to parse IAM args")
+		log.Fatalf("failed to parse env: %v\n", err)
 	}
+	flag.Parse()
 
-	os.Exit(m.Run())
+	code := m.Run()
+	os.Exit(code)
 }
 
 func ExampleEventHubs() {
@@ -49,26 +53,28 @@ func ExampleEventHubs() {
 
 	// create group
 	var err error
-	helpers.SetResourceGroupName("eventhubstest")
-	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	var groupName = config.GenerateGroupName("gosdk-eventhubs")
+	config.SetGroupName(groupName)
+
+	_, err = resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created group")
+	util.PrintAndLog("created group")
 
 	// create Event Hubs namespace
 	_, err = CreateNamespace(ctx, nsName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created namespace")
+	util.PrintAndLog("created namespace")
 
 	// create Event Hubs hub
 	_, err = CreateHub(ctx, nsName, hubName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created hub")
+	util.PrintAndLog("created hub")
 
 	// send and receive messages
 	log.Printf("Send(ctx)\n")

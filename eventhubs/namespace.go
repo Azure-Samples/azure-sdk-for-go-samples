@@ -8,17 +8,17 @@ package eventhubs
 import (
 	"context"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 func getNamespacesClient() eventhub.NamespacesClient {
-	nsClient := eventhub.NewNamespacesClient(helpers.SubscriptionID())
-	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	nsClient := eventhub.NewNamespacesClient(config.SubscriptionID())
+	auth, _ := iam.GetResourceManagementAuthorizer()
 	nsClient.Authorizer = auth
-	nsClient.AddToUserAgent(helpers.UserAgent())
+	nsClient.AddToUserAgent(config.UserAgent())
 	return nsClient
 }
 
@@ -27,10 +27,10 @@ func CreateNamespace(ctx context.Context, nsName string) (*eventhub.EHNamespace,
 	nsClient := getNamespacesClient()
 	future, err := nsClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		nsName,
 		eventhub.EHNamespace{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 		},
 	)
 	if err != nil {

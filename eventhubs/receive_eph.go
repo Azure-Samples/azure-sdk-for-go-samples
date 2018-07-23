@@ -12,7 +12,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 
 	// imports within this repo
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/storage"
 )
 
@@ -27,20 +27,20 @@ func ReceiveViaEPH(ctx context.Context, nsName, hubName, storageAccountName, sto
 
 	// create a storage account and container to maintain dictionary of leases
 	// and checkpoints
-	_, err = storage.CreateStorageAccount(ctx, storageAccountName)
+	_, err = storage.CreateStorageAccount(ctx, storageAccountName, config.GroupName())
 	if err != nil {
 		log.Fatalf("could not create storage account: %s\n", err)
 	}
 	log.Printf("creating storage container\n")
-	_, err = storage.CreateContainer(ctx, storageAccountName, storageContainerName)
+	_, err = storage.CreateContainer(ctx, storageAccountName, config.GroupName(), storageContainerName)
 	if err != nil {
 		log.Fatalf("could not create storage container: %s\n", err)
 	}
 
 	// use helper method to exchange AAD credentials for SAS token
 	cred, err := eventhubsstorage.NewAADSASCredential(
-		helpers.SubscriptionID(),
-		helpers.ResourceGroupName(),
+		config.SubscriptionID(),
+		config.GroupName(),
 		storageAccountName,
 		storageContainerName,
 		eventhubsstorage.AADSASCredentialWithEnvironmentVars())

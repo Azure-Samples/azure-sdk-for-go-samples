@@ -12,13 +12,21 @@ import (
 	"github.com/marstr/randname"
 )
 
+// TestMain sets up the environment and initiates tests.
 func TestMain(m *testing.M) {
-	err := iam.ParseArgs()
+	var err error
+	err = config.ParseEnvironment()
 	if err != nil {
-		log.Fatalln("failed to parse IAM args")
+		log.Fatalf("failed to parse env: %v\n", err)
 	}
+	err = config.AddFlags()
+	if err != nil {
+		log.Fatalf("failed to parse env: %v\n", err)
+	}
+	flag.Parse()
 
-	os.Exit(m.Run())
+	code := m.Run()
+	os.Exit(code)
 }
 
 func ExampleCheckNameAvailability() {

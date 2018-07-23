@@ -47,6 +47,7 @@ func TestMain(m *testing.M) {
 func ExampleCosmosDBOperations() {
 	var groupName = config.GenerateGroupName("CosmosDB")
 	config.SetGroupName(groupName)
+
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
 

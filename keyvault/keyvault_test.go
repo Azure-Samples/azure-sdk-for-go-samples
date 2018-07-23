@@ -43,7 +43,9 @@ func TestMain(m *testing.M) {
 }
 
 func ExampleSetVaultPermissions() {
-	config.SetGroupName("SetVaultPermissions")
+	var groupName = config.GenerateGroupName("KeyVault")
+	config.SetGroupName(groupName)
+
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
 

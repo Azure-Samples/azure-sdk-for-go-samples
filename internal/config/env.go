@@ -21,8 +21,7 @@ func ParseEnvironment() error {
 	groupName = envy.Get("AZURE_GROUP_NAME", "azure-go-samples")
 	baseGroupName = envy.Get("AZURE_BASE_GROUP_NAME", groupName)
 
-	resourceURL = envy.Get("AZURE_RESOURCE_URL", azureEnv.ResourceManagerEndpoint)
-	location = envy.Get("AZURE_LOCATION_DEFAULT", "westus2")
+	locationDefault = envy.Get("AZURE_LOCATION_DEFAULT", "westus2")
 
 	var err error
 	useDeviceFlow, err = strconv.ParseBool(envy.Get("AZURE_USE_DEVICEFLOW", "0"))

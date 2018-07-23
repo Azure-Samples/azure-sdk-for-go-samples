@@ -49,8 +49,9 @@ func addLocalConfig() error {
 }
 
 func TestGroups(t *testing.T) {
-	groupName := config.GenerateGroupName("resource-groups")
+	groupName := config.GenerateGroupName("Groups")
 	config.SetGroupName(groupName) // TODO: don't rely on globals
+
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
 	defer cancel()
 	defer Cleanup(ctx)

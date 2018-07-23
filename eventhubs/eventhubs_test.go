@@ -53,7 +53,7 @@ func ExampleEventHubs() {
 
 	// create group
 	var err error
-	var groupName = config.GenerateGroupName("gosdk-eventhubs")
+	var groupName = config.GenerateGroupName("EventHubs")
 	config.SetGroupName(groupName)
 
 	_, err = resources.CreateGroup(ctx, config.GroupName())

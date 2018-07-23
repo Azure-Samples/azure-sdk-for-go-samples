@@ -1,6 +1,4 @@
 // package config manages loading configuration from environment and command-line params
-// Some of these should be considered base names and defaults rather than exact
-// settings.
 package config
 
 import (
@@ -20,8 +18,7 @@ var (
 	clientSecret           string
 	tenantID               string
 	subscriptionID         string
-	location               string
-	resourceURL            string
+	locationDefault        string
 	authorizationServerURL string
 	cloudName              string = "AzurePublicCloud"
 	useDeviceFlow          bool
@@ -29,6 +26,7 @@ var (
 	groupName              string // deprecated, use baseGroupName instead
 	baseGroupName          string
 	userAgent              string
+	environment            *azure.Environment
 )
 
 // ClientID is the OAuth client ID.
@@ -46,13 +44,6 @@ func TenantID() string {
 	return tenantID
 }
 
-// TODO: shouldn't be global. deprecate and manage within packages.
-// ResourceURL is the URL of a resource for which access is to be requested via
-// OAuth.
-func ResourceURL() string {
-	return resourceURL
-}
-
 // SubscriptionID is a target subscription for Azure resources.
 func SubscriptionID() string {
 	return subscriptionID
@@ -61,14 +52,14 @@ func SubscriptionID() string {
 // deprecated: use DefaultLocation() instead
 // Location returns the Azure location to be utilized.
 func Location() string {
-	return location
+	return locationDefault
 }
 
 // DefaultLocation() returns the default location wherein to create new resources.
 // Some resource types are not available in all locations so another location might need
 // to be chosen.
 func DefaultLocation() string {
-	return location
+	return locationDefault
 }
 
 // AuthorizationServerURL is the OAuth authorization server URL.
@@ -112,9 +103,6 @@ func UserAgent() string {
 	}
 	return "sdk-samples"
 }
-
-// cache
-var environment *azure.Environment
 
 // Environment() returns an `azure.Environment{...}` for the current cloud.
 func Environment() *azure.Environment {

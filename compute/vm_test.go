@@ -23,7 +23,7 @@ import (
 // ExampleVM creates a group and network artifacts needed for a VM, then
 // creates a VM and tests operations on it.
 func ExampleCreateVM() {
-	var groupName = config.GenerateGroupName("CreateVM")
+	var groupName = config.GenerateGroupName("VM")
 	// TODO: remove and use local `groupName` only
 	config.SetGroupName(groupName)
 
@@ -108,7 +108,7 @@ func ExampleCreateVM() {
 }
 
 func ExampleCreateVMWithMSI() {
-	var groupName = config.GenerateGroupName("CreateVMWithMSI")
+	var groupName = config.GenerateGroupName("VMWithMSI")
 	// TODO: remove and use local `groupName` only
 	config.SetGroupName(groupName)
 
@@ -190,7 +190,7 @@ func ExampleCreateVMWithMSI() {
 func ExampleCreateVMWithEncryptedDisks() {
 	vaultName := randname.GenerateWithPrefix("gosdk-vault", 10)
 
-	var groupName = config.GenerateGroupName("CreateVMWithEncryptedDisks")
+	var groupName = config.GenerateGroupName("VMWithEncryptedDisks")
 	config.SetGroupName(groupName)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 6000*time.Second)
@@ -270,7 +270,7 @@ func ExampleCreateVMWithEncryptedDisks() {
 }
 
 func ExampleCreateVMsWithLoadBalancer() {
-	var groupName = config.GenerateGroupName("CreateVMsWithLoadBalancer")
+	var groupName = config.GenerateGroupName("VMsWithLoadBalancer")
 	config.SetGroupName(groupName)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 6000*time.Second)
@@ -337,7 +337,7 @@ func ExampleCreateVMsWithLoadBalancer() {
 }
 
 func ExampleCreateVMWithDisks() {
-	var groupName = config.GenerateGroupName("CreateVMWithDisks")
+	var groupName = config.GenerateGroupName("VMWithDisks")
 	// TODO: remove and use local `groupName` only
 	config.SetGroupName(groupName)
 

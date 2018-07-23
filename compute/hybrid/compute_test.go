@@ -42,6 +42,9 @@ func TestMain(m *testing.M) {
 }
 
 func ExampleCreateVM() {
+	var groupName = config.GenerateGroupName("HybridVM")
+	config.SetGroupName(groupName)
+
 	ctx := context.Background()
 	defer hybridresources.Cleanup(ctx)
 	_, err := hybridresources.CreateGroup(ctx)

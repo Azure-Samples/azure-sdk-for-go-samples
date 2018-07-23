@@ -36,7 +36,7 @@ func TestMain(m *testing.M) {
 }
 
 func ExampleAssignRole() {
-	var groupName = config.GenerateGroupName("Roles")
+	var groupName = config.GenerateGroupName("Authorization")
 	config.SetGroupName(groupName)
 
 	ctx := context.Background()

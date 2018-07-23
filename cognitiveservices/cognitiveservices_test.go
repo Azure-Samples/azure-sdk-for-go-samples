@@ -46,6 +46,7 @@ func ExampleCognitiveServicesSearch() {
 
 	var groupName = config.GenerateGroupName("CognitiveServicesSearch")
 	config.SetGroupName(groupName)
+
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
 
@@ -88,6 +89,7 @@ func ExampleCognitiveServicesSpellCheck() {
 
 	var groupName = config.GenerateGroupName("CognitiveServicesSpellcheck")
 	config.SetGroupName(groupName)
+
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
 

@@ -43,12 +43,17 @@ if [ "x$TRAVIS_PULL_REQUEST" != "x" -a "x$TRAVIS_PULL_REQUEST" != "xfalse" ]; th
     ISPR=1
 fi
 
+TRAVIS_EXEC=
+if [ "x$TRAVIS" == "xtrue" ]; then
+    TRAVIS_EXEC=travis_wait 30
+fi
+
 # don't run live tests on PRs
 echo ISPR: $ISPR
 if [ "x$ISPR" = "x" -o "x$ISPR" = "x0" ]; then
     for package in $packages; do
-        echo calling: go test -v $(convert_path_to_package $package)
-        go test -v $(convert_path_to_package $package)
+        echo calling: go test -v -timeout 12h $(convert_path_to_package $package)
+        $TRAVIS_EXEC go test -v -timeout 12h $(convert_path_to_package $package)
         if [ $? -ne 0 ]; then __exitcode=1; fi
         echo
     done

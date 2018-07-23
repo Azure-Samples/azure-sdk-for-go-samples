@@ -12,6 +12,7 @@ import (
 func ExampleCreateAKS() {
 	var groupName = config.GenerateGroupName("CreateAKS")
 	config.SetGroupName(groupName)
+
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Hour*1))
 	defer cancel()
 	defer resources.Cleanup(ctx)

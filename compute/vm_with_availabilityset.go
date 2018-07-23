@@ -91,8 +91,8 @@ func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, sub
 				},
 				OsProfile: &compute.OSProfile{
 					ComputerName:  to.StringPtr(vmName),
-					AdminUsername: to.StringPtr(username),
-					AdminPassword: to.StringPtr(password),
+					AdminUsername: to.StringPtr("azureuser"),
+					AdminPassword: to.StringPtr("password!1delete"),
 				},
 				NetworkProfile: &compute.NetworkProfile{
 					NetworkInterfaces: &[]compute.NetworkInterfaceReference{

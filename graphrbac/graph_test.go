@@ -36,8 +36,9 @@ func TestMain(m *testing.M) {
 }
 
 func ExampleCreateServicePrincipal() {
-	var groupName = config.GenerateGroupName("CreateServicePrincipal")
+	var groupName = config.GenerateGroupName("GraphRBAC")
 	config.SetGroupName(groupName)
+
 	ctx := context.Background()
 
 	app, err := CreateADApplication(ctx)

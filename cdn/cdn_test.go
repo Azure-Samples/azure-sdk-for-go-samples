@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 
 	"github.com/marstr/randname"
 )

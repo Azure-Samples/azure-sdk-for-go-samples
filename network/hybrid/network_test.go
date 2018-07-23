@@ -77,8 +77,9 @@ func TestNetwork(t *testing.T) {
 }
 
 func ExampleCreateNetworkSecurityGroup() {
-	groupName := config.GenerateGroupName("CreateNetworkSecurityGroup")
+	groupName := config.GenerateGroupName("HybridNetworkSecurityGroup")
 	config.SetGroupName(groupName) // TODO: don't use globals
+
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
 	defer cancel()
 	defer hybridresources.Cleanup(ctx)
@@ -119,8 +120,9 @@ func ExampleCreatePublicIP() {
 }
 
 func ExampleCreateNetworkInterface() {
-	groupName := config.GenerateGroupName("CreateNIC")
+	groupName := config.GenerateGroupName("NIC")
 	config.SetGroupName(groupName) // TODO: don't use globals
+
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
 	defer cancel()
 	defer hybridresources.Cleanup(ctx)

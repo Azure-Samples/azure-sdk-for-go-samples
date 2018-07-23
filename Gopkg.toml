@@ -15,7 +15,7 @@
 
 [[constraint]]
   name = "github.com/Azure/azure-event-hubs-go"
-  branch = "master"
+  version = ">=0.4.0"
 
 [[constraint]]
   name = "github.com/denisenkom/go-mssqldb"
@@ -28,7 +28,3 @@
 [[constraint]]
   name = "github.com/satori/go.uuid"
   version = "1.2.0"
-
-[[constraint]]
-  name = "github.com/subosito/gotenv"
-  version = "1.1.0"

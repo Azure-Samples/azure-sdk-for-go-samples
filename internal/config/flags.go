@@ -8,7 +8,7 @@ import (
 // Remember to call `flag.Parse()` in your main or TestMain.
 func AddFlags() error {
 	flag.StringVar(&subscriptionID, "subscription", subscriptionID, "Subscription for tests.")
-	flag.StringVar(&location, "location", location, "Default location for tests.")
+	flag.StringVar(&locationDefault, "location", locationDefault, "Default location for tests.")
 	flag.StringVar(&cloudName, "cloud", cloudName, "Name of Azure cloud.")
 	flag.StringVar(&baseGroupName, "baseGroupName", BaseGroupName(), "Specify prefix name of resource group for sample resources.")
 

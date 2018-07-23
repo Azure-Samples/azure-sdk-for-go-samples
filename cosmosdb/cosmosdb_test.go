@@ -14,62 +14,70 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/marstr/randname"
-
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mongodb"
 	"github.com/globalsign/mgo/bson"
+	"github.com/marstr/randname"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 var (
-	accountName = randname.GenerateWithPrefix("cosmos-db-account-samples-", 10)
+	accountName = strings.ToLower(randname.GenerateWithPrefix("gosdksamplescosmos", 10))
 )
 
+// TestMain sets up the environment and initiates tests.
 func TestMain(m *testing.M) {
-	flag.StringVar(&accountName, "cosmosDBAccountName", accountName, "Provide a name for the CosmosDB account to be created")
-
-	err := iam.ParseArgs()
+	var err error
+	err = config.ParseEnvironment()
 	if err != nil {
-		log.Fatalf("failed to parse IAM args: %v\n", err)
+		log.Fatalf("failed to parse env: %v\n", err)
 	}
-	os.Exit(m.Run())
+	err = config.AddFlags()
+	if err != nil {
+		log.Fatalf("failed to parse env: %v\n", err)
+	}
+	flag.Parse()
+
+	code := m.Run()
+	os.Exit(code)
 }
 
 func ExampleCosmosDBOperations() {
-	accountName := strings.ToLower(accountName)
-	helpers.SetResourceGroupName("CosmosDBOperations")
+	var groupName = config.GenerateGroupName("CosmosDB")
+	config.SetGroupName(groupName)
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+
+	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
 	_, err = CreateDatabaseAccount(ctx, accountName)
 	if err != nil {
-		helpers.PrintAndLog(fmt.Sprintf("cannot create database account: %v", err))
+		util.PrintAndLog(fmt.Sprintf("cannot create database account: %v", err))
 	}
-	helpers.PrintAndLog("database account created")
+	util.PrintAndLog("database account created")
 
 	keys, err := ListKeys(ctx, accountName)
 	if err != nil {
-		helpers.PrintAndLog(fmt.Sprintf("cannot list keys: %v", err))
+		util.PrintAndLog(fmt.Sprintf("cannot list keys: %v", err))
 	}
-	helpers.PrintAndLog("keys listed")
+	util.PrintAndLog("keys listed")
 
 	host := fmt.Sprintf("%s.documents.azure.com", accountName)
 	collection := "Packages"
 
 	session, err := mongodb.NewMongoDBClientWithCredentials(accountName, *keys.PrimaryMasterKey, host)
 	if err != nil {
-		helpers.PrintAndLog(fmt.Sprintf("cannot get mongoDB session: %v", err))
+		util.PrintAndLog(fmt.Sprintf("cannot get mongoDB session: %v", err))
 	}
-	helpers.PrintAndLog("got mongoDB session")
+	util.PrintAndLog("got mongoDB session")
 
 	GetCollection(session, accountName, collection)
-	helpers.PrintAndLog("got collection")
+	util.PrintAndLog("got collection")
 
 	err = InsertDocument(
 		session,
@@ -83,9 +91,9 @@ func ExampleCosmosDBOperations() {
 			"LastUpdatedBy": "shergin",
 		})
 	if err != nil {
-		helpers.PrintAndLog(fmt.Sprintf("cannot insert document: %v", err))
+		util.PrintAndLog(fmt.Sprintf("cannot insert document: %v", err))
 	}
-	helpers.PrintAndLog("inserted document")
+	util.PrintAndLog("inserted document")
 
 	doc, err := GetDocument(
 		session,
@@ -93,10 +101,10 @@ func ExampleCosmosDBOperations() {
 		collection,
 		bson.M{"fullname": "react"})
 	if err != nil {
-		helpers.PrintAndLog(fmt.Sprintf("cannot get document: %v", err))
+		util.PrintAndLog(fmt.Sprintf("cannot get document: %v", err))
 	}
-	helpers.PrintAndLog("got document")
-	helpers.PrintAndLog(fmt.Sprintf("document description: %s", doc["description"]))
+	util.PrintAndLog("got document")
+	util.PrintAndLog(fmt.Sprintf("document description: %s", doc["description"]))
 
 	err = UpdateDocument(
 		session,
@@ -109,15 +117,15 @@ func ExampleCosmosDBOperations() {
 			},
 		})
 	if err != nil {
-		helpers.PrintAndLog(fmt.Sprintf("cannot update document: %v", err))
+		util.PrintAndLog(fmt.Sprintf("cannot update document: %v", err))
 	}
-	helpers.PrintAndLog("update document")
+	util.PrintAndLog("update document")
 
 	err = DeleteDcoument(session, accountName, collection, doc["_id"].(bson.ObjectId))
 	if err != nil {
-		helpers.PrintAndLog(fmt.Sprintf("cannot delete document: %v", err))
+		util.PrintAndLog(fmt.Sprintf("cannot delete document: %v", err))
 	}
-	helpers.PrintAndLog("delete document")
+	util.PrintAndLog("delete document")
 
 	// Output:
 	// database account created

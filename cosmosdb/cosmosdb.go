@@ -9,17 +9,18 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 func getDatabaseAccountClient() documentdb.DatabaseAccountsClient {
-	dbAccountClient := documentdb.NewDatabaseAccountsClient(helpers.SubscriptionID())
-	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	dbAccountClient := documentdb.NewDatabaseAccountsClient(config.SubscriptionID())
+	auth, _ := iam.GetResourceManagementAuthorizer()
 	dbAccountClient.Authorizer = auth
-	dbAccountClient.AddToUserAgent(helpers.UserAgent())
+	dbAccountClient.AddToUserAgent(config.UserAgent())
 	return dbAccountClient
 }
 
@@ -28,17 +29,17 @@ func CreateDatabaseAccount(ctx context.Context, accountName string) (dba documen
 	dbAccountClient := getDatabaseAccountClient()
 	future, err := dbAccountClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		accountName,
 		documentdb.DatabaseAccountCreateUpdateParameters{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 			Kind:     documentdb.GlobalDocumentDB,
 			DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
 				DatabaseAccountOfferType: to.StringPtr("Standard"),
 				Locations: &[]documentdb.Location{
 					{
 						FailoverPriority: to.Int32Ptr(0),
-						LocationName:     to.StringPtr(helpers.Location()),
+						LocationName:     to.StringPtr(config.Location()),
 					},
 				},
 			},
@@ -58,5 +59,5 @@ func CreateDatabaseAccount(ctx context.Context, accountName string) (dba documen
 // ListKeys gets the keys for a Azure Cosmos DB database account.
 func ListKeys(ctx context.Context, accountName string) (documentdb.DatabaseAccountListKeysResult, error) {
 	dbAccountClient := getDatabaseAccountClient()
-	return dbAccountClient.ListKeys(ctx, helpers.ResourceGroupName(), accountName)
+	return dbAccountClient.ListKeys(ctx, config.GroupName(), accountName)
 }

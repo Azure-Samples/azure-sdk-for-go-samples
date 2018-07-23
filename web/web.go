@@ -4,27 +4,28 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 // CreateContainerSite provisions all infrastructure needed to run an Azure Web App for Containers.
 func CreateContainerSite(ctx context.Context, name, image string) (createdConfig web.SiteConfigResource, err error) {
-	client := web.NewAppsClient(helpers.SubscriptionID())
-	client.Authorizer, err = iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	client := web.NewAppsClient(config.SubscriptionID())
+	client.Authorizer, err = iam.GetResourceManagementAuthorizer()
 	if err != nil {
 		return
 	}
-	client.AddToUserAgent(helpers.UserAgent())
+	client.AddToUserAgent(config.UserAgent())
 
 	future, err := client.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		name,
 		web.Site{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 			SiteProperties: &web.SiteProperties{
 				SiteConfig: &web.SiteConfig{
 					LinuxFxVersion: to.StringPtr(fmt.Sprintf("DOCKER|%s", image)),
@@ -40,6 +41,6 @@ func CreateContainerSite(ctx context.Context, name, image string) (createdConfig
 		return
 	}
 
-	createdConfig, err = client.GetConfiguration(ctx, helpers.ResourceGroupName(), name)
+	createdConfig, err = client.GetConfiguration(ctx, config.GroupName(), name)
 	return
 }

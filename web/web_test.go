@@ -16,8 +16,7 @@ import (
 
 	"github.com/marstr/randname"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
@@ -26,24 +25,30 @@ var (
 	siteName           = randname.GenerateWithPrefix("web-site-go-samples", 10)
 )
 
+// TestMain sets up the environment and initiates tests.
 func TestMain(m *testing.M) {
-	flag.StringVar(&appServicePlanName, "appServicePlanName", appServicePlanName, "Optionally provide a name for the App Service Plan to be created.")
-	flag.StringVar(&siteName, "siteName", siteName, "Optionally provided a name for the Site to be created.")
-
-	err := iam.ParseArgs()
+	var err error
+	err = config.ParseEnvironment()
 	if err != nil {
-		log.Fatalln("failed to parse IAM args")
+		log.Fatalf("failed to parse env: %v\n", err)
 	}
+	err = config.AddFlags()
+	if err != nil {
+		log.Fatalf("failed to parse env: %v\n", err)
+	}
+	flag.Parse()
 
-	os.Exit(m.Run())
+	code := m.Run()
+	os.Exit(code)
 }
 
 func ExampleWeb_DeployAppForContainer() {
+	var groupName = config.GenerateGroupName("WebAppForContainers")
+	config.SetGroupName(groupName)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
 	defer cancel()
 
-	helpers.SetResourceGroupName("WebAppForContainers")
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
 		fmt.Println("failed to create resource group: ", err)
 		return

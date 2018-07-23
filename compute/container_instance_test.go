@@ -9,15 +9,9 @@ import (
 	"context"
 	"log"
 
-	"github.com/marstr/randname"
-
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
-)
-
-var (
-	containerGroupName string = randname.GenerateWithPrefix("gosdk-aci-", 10)
 )
 
 func ExampleCreateContainerGroup() {

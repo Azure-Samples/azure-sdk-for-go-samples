@@ -35,6 +35,12 @@ var (
 	lbName             = generateName("gosdk-lb1")
 
 	sshPublicKeyPath = os.Getenv("HOME") + "/.ssh/id_rsa.pub"
+
+	containerGroupName  string = randname.GenerateWithPrefix("gosdk-aci-", 10)
+	aksClusterName      string = randname.GenerateWithPrefix("gosdk-aks-", 10)
+	aksUsername         string = "azureuser"
+	aksSSHPublicKeyPath string = os.Getenv("HOME") + "/.ssh/id_rsa.pub"
+	aksAgentPoolCount   int32  = 4
 )
 
 func addLocalEnvAndParse() error {

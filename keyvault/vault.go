@@ -10,36 +10,37 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	uuid "github.com/satori/go.uuid"
 )
 
 func getVaultsClient() keyvault.VaultsClient {
-	vaultsClient := keyvault.NewVaultsClient(helpers.SubscriptionID())
-	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
-	vaultsClient.Authorizer = auth
-	vaultsClient.AddToUserAgent(helpers.UserAgent())
+	vaultsClient := keyvault.NewVaultsClient(config.SubscriptionID())
+	a, _ := iam.GetResourceManagementAuthorizer()
+	vaultsClient.Authorizer = a
+	vaultsClient.AddToUserAgent(config.UserAgent())
 	return vaultsClient
 }
 
 // CreateVault creates a new vault
 func CreateVault(ctx context.Context, vaultName string) (keyvault.Vault, error) {
 	vaultsClient := getVaultsClient()
-	tenantID, err := uuid.FromString(iam.TenantID())
+	tenantID, err := uuid.FromString(config.TenantID())
 	if err != nil {
 		return keyvault.Vault{}, err
 	}
 
 	return vaultsClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		vaultName,
 		keyvault.VaultCreateOrUpdateParameters{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 			Properties: &keyvault.VaultProperties{
 				TenantID: &tenantID,
 				Sku: &keyvault.Sku{
@@ -55,14 +56,14 @@ func CreateVault(ctx context.Context, vaultName string) (keyvault.Vault, error) 
 // GetVault returns an existing vault
 func GetVault(ctx context.Context, vaultName string) (keyvault.Vault, error) {
 	vaultsClient := getVaultsClient()
-	return vaultsClient.Get(ctx, helpers.ResourceGroupName(), vaultName)
+	return vaultsClient.Get(ctx, config.GroupName(), vaultName)
 }
 
-// CreateComplexKeyVault creates a new vault which grants access to the the current user and the service principal in use
-func CreateComplexKeyVault(ctx context.Context, vaultName, userID string) (vault keyvault.Vault, err error) {
+// CreateVaultWithPolicies creates a new Vault with policies granting access to the specified user.
+func CreateVaultWithPolicies(ctx context.Context, vaultName, userID string) (vault keyvault.Vault, err error) {
 	vaultsClient := getVaultsClient()
 
-	tenantID, err := uuid.FromString(iam.TenantID())
+	tenantID, err := uuid.FromString(config.TenantID())
 	if err != nil {
 		return
 	}
@@ -83,21 +84,13 @@ func CreateComplexKeyVault(ctx context.Context, vaultName, userID string) (vault
 		ap.ObjectID = to.StringPtr(userID)
 		apList = append(apList, ap)
 	}
-	if helpers.ServicePrincipalObjectID() != "" {
-		// This is the SP object ID, which is not the same as the AD app object ID
-		// SP appID and AD app ID are the same values, aka, the client ID
-		// You can get the SP objectID on the Azure CLI like this
-		// az ad sp list --spn <AD app appID>
-		ap.ObjectID = to.StringPtr(helpers.ServicePrincipalObjectID())
-		apList = append(apList, ap)
-	}
 
 	return vaultsClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		vaultName,
 		keyvault.VaultCreateOrUpdateParameters{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 			Properties: &keyvault.VaultProperties{
 				AccessPolicies:           &apList,
 				EnabledForDiskEncryption: to.BoolPtr(true),
@@ -114,19 +107,20 @@ func CreateComplexKeyVault(ctx context.Context, vaultName, userID string) (vault
 // SetVaultPermissions adds an access policy permitting this app's Client ID to manage keys and secrets.
 func SetVaultPermissions(ctx context.Context, vaultName string) (keyvault.Vault, error) {
 	vaultsClient := getVaultsClient()
-	tenantID, err := uuid.FromString(iam.TenantID())
+
+	tenantID, err := uuid.FromString(config.TenantID())
 	if err != nil {
 		return keyvault.Vault{}, err
 	}
 
-	clientID := iam.ClientID()
+	clientID := config.ClientID()
 
 	return vaultsClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		vaultName,
 		keyvault.VaultCreateOrUpdateParameters{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 			Properties: &keyvault.VaultProperties{
 				TenantID: &tenantID,
 				Sku: &keyvault.Sku{
@@ -155,21 +149,21 @@ func SetVaultPermissions(ctx context.Context, vaultName string) (keyvault.Vault,
 	)
 }
 
-// SetVaultPermissionsForDeployment updates a key vault to enable deployments and add permissions to the application")
+// SetVaultPermissionsForDeployment updates a key vault to enable deployments and add permissions to the application
 func SetVaultPermissionsForDeployment(ctx context.Context, vaultName string) (keyvault.Vault, error) {
 	vaultsClient := getVaultsClient()
-	tenantID, err := uuid.FromString(iam.TenantID())
+	tenantID, err := uuid.FromString(config.TenantID())
 	if err != nil {
 		return keyvault.Vault{}, err
 	}
-	clientID := iam.ClientID()
+	clientID := config.ClientID()
 
 	return vaultsClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		vaultName,
 		keyvault.VaultCreateOrUpdateParameters{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 			Properties: &keyvault.VaultProperties{
 				TenantID:                     &tenantID,
 				EnabledForDeployment:         to.BoolPtr(true),
@@ -214,7 +208,7 @@ func GetVaults() {
 	}
 
 	fmt.Println("Getting all vaults in resource group")
-	for rgList, err := vaultsClient.ListByResourceGroupComplete(context.Background(), helpers.ResourceGroupName(), nil); rgList.NotDone(); err = rgList.Next() {
+	for rgList, err := vaultsClient.ListByResourceGroupComplete(context.Background(), config.GroupName(), nil); rgList.NotDone(); err = rgList.Next() {
 		if err != nil {
 			log.Printf("failed to get list of vaults: %v", err)
 		}
@@ -225,5 +219,5 @@ func GetVaults() {
 // DeleteVault deletes an existing vault
 func DeleteVault(ctx context.Context, vaultName string) (autorest.Response, error) {
 	vaultsClient := getVaultsClient()
-	return vaultsClient.Delete(ctx, helpers.ResourceGroupName(), vaultName)
+	return vaultsClient.Delete(ctx, config.GroupName(), vaultName)
 }

@@ -59,7 +59,8 @@ function build_packages {
 }
 
 # run_test_on_packages runs `go test -v` on specified packages
+# long timeout so tests can finish
 function run_test_on_packages {
     _packages=$1
-    go test -v ${_packages}
+    go test -timeout 12h -v ${_packages}
 }

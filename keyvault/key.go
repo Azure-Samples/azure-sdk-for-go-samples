@@ -3,30 +3,25 @@ package keyvault
 import (
 	"context"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/marstr/randname"
-)
-
-var (
-	keyName = randname.GenerateWithPrefix("az-samples-go-", 10)
 )
 
 func getKeysClient() keyvault.BaseClient {
 	keyClient := keyvault.New()
-	auth, _ := iam.GetKeyvaultAuthorizer(iam.AuthGrantType())
-	keyClient.Authorizer = auth
-	keyClient.AddToUserAgent(helpers.UserAgent())
+	a, _ := iam.GetKeyvaultAuthorizer()
+	keyClient.Authorizer = a
+	keyClient.AddToUserAgent(config.UserAgent())
 	return keyClient
 }
 
 // CreateKeyBundle creates a key in the specified keyvault
-func CreateKeyBundle(ctx context.Context, vaultName string) (key keyvault.KeyBundle, err error) {
+func CreateKey(ctx context.Context, vaultName, keyName string) (key keyvault.KeyBundle, err error) {
 	vaultsClient := getVaultsClient()
-	vault, err := vaultsClient.Get(ctx, helpers.ResourceGroupName(), vaultName)
+	vault, err := vaultsClient.Get(ctx, config.GroupName(), vaultName)
 	if err != nil {
 		return
 	}

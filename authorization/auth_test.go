@@ -7,60 +7,84 @@ package authorization
 
 import (
 	"context"
+	"flag"
 	"log"
 	"os"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/graphrbac"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
+// TestMain sets up the environment and initiates tests.
 func TestMain(m *testing.M) {
-	err := iam.ParseArgs()
+	var err error
+	err = config.ParseEnvironment()
 	if err != nil {
-		log.Fatalln("failed to parse IAM args")
+		log.Fatalf("failed to parse env: %v\n", err)
 	}
+	err = config.AddFlags()
+	if err != nil {
+		log.Fatalf("failed to parse env: %v\n", err)
+	}
+	flag.Parse()
 
-	os.Exit(m.Run())
+	code := m.Run()
+	os.Exit(code)
 }
 
 func ExampleAssignRole() {
-	helpers.SetResourceGroupName("AssignRole")
+	var groupName = config.GenerateGroupName("Roles")
+	config.SetGroupName(groupName)
+
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+
+	_, err := resources.CreateGroup(ctx, groupName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
-	list, err := ListRoles(ctx, "roleName eq 'Contributor'")
+	list, err := ListRoleDefinitions(ctx, "roleName eq 'Contributor'")
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("got role definitions list")
+	util.PrintAndLog("got role definitions list")
 
-	rgRole, err := AssignRole(ctx, helpers.ServicePrincipalObjectID(), *list.Values()[0].ID)
+	var userID string
+	user, err := graphrbac.GetCurrentUser(ctx)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		log.Printf("could not get object for current user: %v\n", err)
+		log.Printf("using service principal ID instead")
+		userID = config.ClientID()
+	} else {
+		userID = *user.ObjectID
 	}
-	helpers.PrintAndLog("role assigned with resource group scope")
 
-	subRole, err := AssignRoleWithSubscriptionScope(ctx, helpers.ServicePrincipalObjectID(), *list.Values()[0].ID)
+	groupRole, err := AssignRole(ctx, userID, *list.Values()[0].ID)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("role assigned with subscription scope")
+	util.PrintAndLog("role assigned with resource group scope")
 
-	if !helpers.KeepResources() {
-		DeleteRoleAssignment(ctx, *rgRole.ID)
+	subscriptionRole, err := AssignRoleWithSubscriptionScope(
+		ctx, userID, *list.Values()[0].ID)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+	}
+	util.PrintAndLog("role assigned with subscription scope")
+
+	if !config.KeepResources() {
+		DeleteRoleAssignment(ctx, *groupRole.ID)
 		if err != nil {
-			helpers.PrintAndLog(err.Error())
+			util.PrintAndLog(err.Error())
 		}
 
-		DeleteRoleAssignment(ctx, *subRole.ID)
+		DeleteRoleAssignment(ctx, *subscriptionRole.ID)
 		if err != nil {
-			helpers.PrintAndLog(err.Error())
+			util.PrintAndLog(err.Error())
 		}
 	}
 

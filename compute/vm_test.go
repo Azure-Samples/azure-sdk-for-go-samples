@@ -245,7 +245,7 @@ func ExampleCreateVMWithEncryptedDisks() {
 	}
 	util.PrintAndLog("created keyvault")
 
-	key, err := keyvault.CreateKeyBundle(ctx, vaultName)
+	key, err := keyvault.CreateKey(ctx, vaultName, "keyName")
 	if err != nil {
 		util.PrintAndLog(err.Error())
 

@@ -6,9 +6,11 @@ author: joshgav
 
 # Azure Compute Samples
 
-This package demonstrates how to manage Azure VMs and disks with the Go SDK.
+This package demonstrates how to manage Azure VMs, their disks and container
+instances with the Go SDK.
 
-The child package "hybrid" demonstrates how to manage Azure VMs using Azure's Hybrid profile.
+The child package "hybrid" demonstrates how to manage Azure VMs using Azure's
+Hybrid profile.
 
 ## Contents
 
@@ -27,6 +29,10 @@ The child package "hybrid" demonstrates how to manage Azure VMs using Azure's Hy
     * StartVM
     * RestartVM
     * StopVM
+* Container Instances
+    * CreateContainerGroup
+    * UpdateContainerGroup
+    * DeleteContainerGroup
 * Disks
     * CreateDisk
     * CreateVMWithDisk
@@ -60,7 +66,8 @@ The child package "hybrid" demonstrates how to manage Azure VMs using Azure's Hy
   AZURE_LOCATION_DEFAULT=westus2
   ```
 
-1. Run the tests `go test -v -timeout 12h`
+1. TODO(joshgav): grant this principal all-powerful rights to your AAD tenant to faciliate identity-related operations.
+1. Run the tests: `go test -v -timeout 12h`
 
   The timeout is optional, but some tests take longer than then default 10m to complete.
 

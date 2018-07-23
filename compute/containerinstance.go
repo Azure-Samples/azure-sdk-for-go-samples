@@ -3,24 +3,25 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-package containerinstance
+package compute
 
 import (
 	"context"
 	"fmt"
 	"log"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2017-08-01-preview/containerinstance"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 func getContainerGroupsClient() (containerinstance.ContainerGroupsClient, error) {
-	containerGroupsClient := containerinstance.NewContainerGroupsClient(helpers.SubscriptionID())
-	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
+	containerGroupsClient := containerinstance.NewContainerGroupsClient(config.SubscriptionID())
+	auth, _ := iam.GetResourceManagementAuthorizer()
 	containerGroupsClient.Authorizer = auth
-	containerGroupsClient.AddToUserAgent(helpers.UserAgent())
+	containerGroupsClient.AddToUserAgent(config.UserAgent())
 	return containerGroupsClient, nil
 }
 
@@ -51,7 +52,7 @@ func CreateContainerGroup(ctx context.Context, containerGroupName, location, res
 				OsType: containerinstance.Linux,
 				Containers: &[]containerinstance.Container{
 					{
-						Name: to.StringPtr("az-samples-go-container"),
+						Name: to.StringPtr("gosdk-container"),
 						ContainerProperties: &containerinstance.ContainerProperties{
 							Ports: &[]containerinstance.ContainerPort{
 								{

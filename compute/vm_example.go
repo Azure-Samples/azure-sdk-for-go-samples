@@ -5,35 +5,13 @@ import (
 	"fmt"
 	"time"
 	"log"
-	"os"
 	"strings"
 	"github.com/marstr/randname"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 )
 
-var (
-	// names used in tests
-	username           = "gosdkuser"
-	password           = "gosdkuserpass!1"
-	vmName             = generateName("gosdk-vm1")
-	diskName           = generateName("gosdk-disk1")
-	nicName            = generateName("gosdk-nic1")
-	virtualNetworkName = generateName("gosdk-vnet1")
-	subnet1Name        = generateName("gosdk-subnet1")
-	subnet2Name        = generateName("gosdk-subnet2")
-	nsgName            = generateName("gosdk-nsg1")
-	ipName             = generateName("gosdk-ip1")
-	lbName             = generateName("gosdk-lb1")
-
-	sshPublicKeyPath = os.Getenv("HOME") + "/.ssh/id_rsa.pub"
-
-	containerGroupName  string = randname.GenerateWithPrefix("gosdk-aci-", 10)
-	aksClusterName      string = randname.GenerateWithPrefix("gosdk-aks-", 10)
-	aksUsername         string = "azureuser"
-	aksSSHPublicKeyPath string = os.Getenv("HOME") + "/.ssh/id_rsa.pub"
-	aksAgentPoolCount   int32  = 4
-)
 
 func generateName(prefix string) string {
 	return strings.ToLower(randname.GenerateWithPrefix(prefix, 5))
@@ -46,11 +24,6 @@ func addLocalEnvAndParse() error {
 		return fmt.Errorf("failed to add top-level env: %v\n", err.Error())
 	}
 
-	// add local env
-	vnetNameFromEnv := os.Getenv("AZURE_VNET_NAME")
-	if len(vnetNameFromEnv) > 0 {
-		virtualNetworkName = vnetNameFromEnv
-	}
 	return nil
 }
 
@@ -74,7 +47,7 @@ func Teardown() error {
 	return nil
 }
 
-func CreateResourceGroup() {
+func CreateResourceGroup_() {
 	setup()
 	var groupName = config.GenerateGroupName("VM")
 	// TODO: remove and use local `groupName` only
@@ -90,4 +63,63 @@ func CreateResourceGroup() {
 		log.Println(err.Error())
 	}
 	fmt.Printf("created a resource group with name %s", *group.Name)
+}
+
+func CreateVirtualNetworksAndSubnet_(groupName string, virtualNetworkName string, subnet1Name string, subnet2Name string) {
+	setup()
+	config.SetGroupName(groupName)
+	ctx, _ := context.WithTimeout(context.Background(), 6000*time.Second)
+	_, err := network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	log.Printf("created vnet %s", virtualNetworkName)
+	log.Printf("created subnet %s", subnet1Name)
+	log.Printf("created subnet %s", subnet2Name)
+	fmt.Println("Hello")
+}
+
+func CreateNetworkSecurityGroup_(groupName, networkSecurityGroupName string) {
+	setup()
+	config.SetGroupName(groupName)
+	ctx, _ := context.WithTimeout(context.Background(), 6000*time.Second)
+	_, err := network.CreateNetworkSecurityGroup(ctx, networkSecurityGroupName)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	log.Printf("created network security group %s in %s", networkSecurityGroupName, groupName)
+}
+
+func CreatePublicIP_(groupName, ipName string) {
+	setup()
+	config.SetGroupName(groupName)
+	ctx, _ := context.WithTimeout(context.Background(), 6000*time.Second)
+	_, err := network.CreatePublicIP(ctx, ipName)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	log.Printf("created public IP %s in %s", ipName, groupName)
+}
+
+func CreateNIC_(groupName, virtualNetworkName, subnet1Name, nsgName, ipName, nicName string) {
+	setup()
+	config.SetGroupName(groupName)
+	ctx, _ := context.WithTimeout(context.Background(), 6000*time.Second)
+	_, err := network.CreateNIC(ctx, virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
+
+	if err != nil {
+		log.Println(err.Error())
+	}
+	log.Printf("created nic %s in %s", nicName, groupName)
+}
+
+func CreateVM_(groupName, vmName, nicName, username, password string) {
+	setup()
+	config.SetGroupName(groupName)
+	ctx, _ := context.WithTimeout(context.Background(), 6000*time.Second)
+	err := CreateVM(ctx, vmName, nicName, username, password)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	log.Printf("created VM %s in %s", vmName, groupName)
 }

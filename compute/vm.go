@@ -8,9 +8,6 @@ package compute
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"os"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 
@@ -38,23 +35,12 @@ func getVMExtensionsClient() compute.VirtualMachineExtensionsClient {
 
 // CreateVM creates a new virtual machine with the specified name using the specified NIC.
 // Username, password, and sshPublicKeyPath determine logon credentials.
-func CreateVM(ctx context.Context, vmName, nicName, username, password, sshPublicKeyPath string) (vm compute.VirtualMachine, err error) {
+func CreateVM(ctx context.Context, vmName, nicName, username, password string) (err error) {
 	// see the network samples for how to create and get a NIC resource
 	nic, _ := network.GetNic(ctx, nicName)
 
-	var sshKeyData string
-	if _, err = os.Stat(sshPublicKeyPath); err == nil {
-		sshBytes, err := ioutil.ReadFile(sshPublicKeyPath)
-		if err != nil {
-			log.Fatalf("failed to read SSH key data: %v", err)
-		}
-		sshKeyData = string(sshBytes)
-	} else {
-		sshKeyData = fakepubkey
-	}
-
 	vmClient := getVMClient()
-	future, err := vmClient.CreateOrUpdate(
+	_, err = vmClient.CreateOrUpdate(
 		ctx,
 		config.GroupName(),
 		vmName,
@@ -76,18 +62,6 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, sshPubli
 					ComputerName:  to.StringPtr(vmName),
 					AdminUsername: to.StringPtr(username),
 					AdminPassword: to.StringPtr(password),
-					LinuxConfiguration: &compute.LinuxConfiguration{
-						SSH: &compute.SSHConfiguration{
-							PublicKeys: &[]compute.SSHPublicKey{
-								{
-									Path: to.StringPtr(
-										fmt.Sprintf("/home/%s/.ssh/authorized_keys",
-											username)),
-									KeyData: to.StringPtr(sshKeyData),
-								},
-							},
-						},
-					},
 				},
 				NetworkProfile: &compute.NetworkProfile{
 					NetworkInterfaces: &[]compute.NetworkInterfaceReference{
@@ -102,16 +76,7 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, sshPubli
 			},
 		},
 	)
-	if err != nil {
-		return vm, fmt.Errorf("cannot create vm: %v", err)
-	}
-
-	err = future.WaitForCompletion(ctx, vmClient.Client)
-	if err != nil {
-		return vm, fmt.Errorf("cannot get the vm create or update future response: %v", err)
-	}
-
-	return future.Result(vmClient)
+	return err
 }
 
 // GetVM gets the specified VM info

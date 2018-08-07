@@ -3,15 +3,15 @@ package compute
 import (
 	"context"
 	"fmt"
-	"time"
 	"log"
 	"strings"
-	"github.com/marstr/randname"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
-)
+	"time"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+	"github.com/marstr/randname"
+)
 
 func generateName(prefix string) string {
 	return strings.ToLower(randname.GenerateWithPrefix(prefix, 5))
@@ -76,7 +76,6 @@ func CreateVirtualNetworksAndSubnet_(groupName string, virtualNetworkName string
 	log.Printf("created vnet %s", virtualNetworkName)
 	log.Printf("created subnet %s", subnet1Name)
 	log.Printf("created subnet %s", subnet2Name)
-	fmt.Println("Hello")
 }
 
 func CreateNetworkSecurityGroup_(groupName, networkSecurityGroupName string) {
@@ -122,4 +121,17 @@ func CreateVM_(groupName, vmName, nicName, username, password string) {
 		log.Println(err.Error())
 	}
 	log.Printf("created VM %s in %s", vmName, groupName)
+}
+
+func GetVM_(groupName, vmName string) {
+	setup()
+	config.SetGroupName(groupName)
+	ctx, _ := context.WithTimeout(context.Background(), 6000*time.Second)
+	vm, _ := GetVM(ctx, vmName)
+	statuses := *vm.InstanceView.Statuses
+	networkInterfaces := *vm.VirtualMachineProperties.NetworkProfile.NetworkInterfaces
+	fmt.Println(*vm.VirtualMachineProperties.ProvisioningState)
+	fmt.Println(*statuses[len(statuses)-1].DisplayStatus)
+	fmt.Println(*networkInterfaces[0].ID)
+	nic, _ := network.GetNIC(*networkInterfaces[0].ID)
 }

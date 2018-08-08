@@ -9,7 +9,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
+	disks "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
@@ -19,15 +20,15 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-func getDisksClient() compute.DisksClient {
-	disksClient := compute.NewDisksClient(config.SubscriptionID())
+func getDisksClient() disks.DisksClient {
+	disksClient := disks.NewDisksClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	disksClient.Authorizer = a
 	disksClient.AddToUserAgent(config.UserAgent())
 	return disksClient
 }
 
-func getDisk(ctx context.Context, diskName string) (disk compute.Disk, err error) {
+func getDisk(ctx context.Context, diskName string) (disk disks.Disk, err error) {
 	disksClient := getDisksClient()
 	return disksClient.Get(ctx, config.GroupName(), diskName)
 }
@@ -44,7 +45,7 @@ func AttachDataDisk(ctx context.Context, vmName string) (vm compute.VirtualMachi
 	vm.StorageProfile.DataDisks = &[]compute.DataDisk{{
 		Lun:          to.Int32Ptr(0),
 		Name:         to.StringPtr("gosdksamples-datadisk"),
-		CreateOption: compute.DiskCreateOptionTypesEmpty,
+		CreateOption: compute.Empty,
 		DiskSizeGB:   to.Int32Ptr(1),
 	}}
 
@@ -87,7 +88,7 @@ func DetachDataDisks(ctx context.Context, vmName string) (vm compute.VirtualMach
 }
 
 // UpdateOSDiskSize increases the selected VM's OS disk size by 10GB.
-func UpdateOSDiskSize(ctx context.Context, vmName string) (d compute.Disk, err error) {
+func UpdateOSDiskSize(ctx context.Context, vmName string) (d disks.Disk, err error) {
 	vm, err := GetVM(ctx, vmName)
 	if err != nil {
 		return d, fmt.Errorf("cannot get vm: %v", err)
@@ -111,8 +112,8 @@ func UpdateOSDiskSize(ctx context.Context, vmName string) (d compute.Disk, err e
 	future, err := disksClient.Update(ctx,
 		config.GroupName(),
 		*vm.StorageProfile.OsDisk.Name,
-		compute.DiskUpdate{
-			DiskUpdateProperties: &compute.DiskUpdateProperties{
+		disks.DiskUpdate{
+			DiskUpdateProperties: &disks.DiskUpdateProperties{
 				DiskSizeGB: sizeGB,
 			},
 		})
@@ -129,17 +130,17 @@ func UpdateOSDiskSize(ctx context.Context, vmName string) (d compute.Disk, err e
 }
 
 // CreateDisk creates an empty 64GB disk which can be attached to a VM.
-func CreateDisk(ctx context.Context, diskName string) (disk compute.Disk, err error) {
+func CreateDisk(ctx context.Context, diskName string) (disk disks.Disk, err error) {
 	disksClient := getDisksClient()
 	future, err := disksClient.CreateOrUpdate(
 		ctx,
 		config.GroupName(),
 		diskName,
-		compute.Disk{
+		disks.Disk{
 			Location: to.StringPtr(config.Location()),
-			DiskProperties: &compute.DiskProperties{
-				CreationData: &compute.CreationData{
-					CreateOption: compute.Empty,
+			DiskProperties: &disks.DiskProperties{
+				CreationData: &disks.CreationData{
+					CreateOption: disks.Empty,
 				},
 				DiskSizeGB: to.Int32Ptr(64),
 			},
@@ -170,7 +171,7 @@ func CreateVMWithDisk(ctx context.Context, nicName, diskName, vmName, username, 
 			Location: to.StringPtr(config.Location()),
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
 				HardwareProfile: &compute.HardwareProfile{
-					VMSize: compute.VirtualMachineSizeTypesBasicA0,
+					VMSize: compute.BasicA0,
 				},
 				NetworkProfile: &compute.NetworkProfile{
 					NetworkInterfaces: &[]compute.NetworkInterfaceReference{
@@ -198,12 +199,12 @@ func CreateVMWithDisk(ctx context.Context, nicName, diskName, vmName, username, 
 						Version:   to.StringPtr("latest"),
 					},
 					OsDisk: &compute.OSDisk{
-						CreateOption: compute.DiskCreateOptionTypesFromImage,
+						CreateOption: compute.FromImage,
 						DiskSizeGB:   to.Int32Ptr(64),
 					},
 					DataDisks: &[]compute.DataDisk{
 						{
-							CreateOption: compute.DiskCreateOptionTypesAttach,
+							CreateOption: compute.Attach,
 							Lun:          to.Int32Ptr(0),
 							ManagedDisk: &compute.ManagedDiskParameters{
 								ID: disk.ID,

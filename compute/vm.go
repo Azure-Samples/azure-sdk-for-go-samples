@@ -12,11 +12,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
@@ -62,7 +63,7 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, sshPubli
 			Location: to.StringPtr(config.Location()),
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
 				HardwareProfile: &compute.HardwareProfile{
-					VMSize: compute.VirtualMachineSizeTypesBasicA0,
+					VMSize: compute.BasicA0,
 				},
 				StorageProfile: &compute.StorageProfile{
 					ImageReference: &compute.ImageReference{
@@ -149,7 +150,7 @@ func UpdateVM(ctx context.Context, vmName string, tags map[string]*string) (vm c
 }
 
 // DeallocateVM deallocates the selected VM
-func DeallocateVM(ctx context.Context, vmName string) (osr compute.OperationStatusResponse, err error) {
+func DeallocateVM(ctx context.Context, vmName string) (osr autorest.Response, err error) {
 	vmClient := getVMClient()
 	future, err := vmClient.Deallocate(ctx, config.GroupName(), vmName)
 	if err != nil {
@@ -165,7 +166,7 @@ func DeallocateVM(ctx context.Context, vmName string) (osr compute.OperationStat
 }
 
 // StartVM starts the selected VM
-func StartVM(ctx context.Context, vmName string) (osr compute.OperationStatusResponse, err error) {
+func StartVM(ctx context.Context, vmName string) (osr autorest.Response, err error) {
 	vmClient := getVMClient()
 	future, err := vmClient.Start(ctx, config.GroupName(), vmName)
 	if err != nil {
@@ -181,7 +182,7 @@ func StartVM(ctx context.Context, vmName string) (osr compute.OperationStatusRes
 }
 
 // RestartVM restarts the selected VM
-func RestartVM(ctx context.Context, vmName string) (osr compute.OperationStatusResponse, err error) {
+func RestartVM(ctx context.Context, vmName string) (osr autorest.Response, err error) {
 	vmClient := getVMClient()
 	future, err := vmClient.Restart(ctx, config.GroupName(), vmName)
 	if err != nil {
@@ -197,7 +198,7 @@ func RestartVM(ctx context.Context, vmName string) (osr compute.OperationStatusR
 }
 
 // StopVM stops the selected VM
-func StopVM(ctx context.Context, vmName string) (osr compute.OperationStatusResponse, err error) {
+func StopVM(ctx context.Context, vmName string) (osr autorest.Response, err error) {
 	vmClient := getVMClient()
 	future, err := vmClient.PowerOff(ctx, config.GroupName(), vmName)
 	if err != nil {

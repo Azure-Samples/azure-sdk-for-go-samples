@@ -73,6 +73,7 @@
     "services/cognitiveservices/v1.0/videosearch",
     "services/cognitiveservices/v1.0/websearch",
     "services/compute/mgmt/2016-03-30/compute",
+    "services/compute/mgmt/2018-04-01/compute",
     "services/compute/mgmt/2018-06-01/compute",
     "services/containerinstance/mgmt/2017-08-01-preview/containerinstance",
     "services/containerservice/mgmt/2017-09-30/containerservice",
@@ -84,6 +85,7 @@
     "services/keyvault/mgmt/2016-10-01/keyvault",
     "services/network/mgmt/2015-06-15/network",
     "services/network/mgmt/2017-09-01/network",
+    "services/preview/msi/mgmt/2015-08-31-preview/msi",
     "services/resources/mgmt/2016-02-01/resources",
     "services/resources/mgmt/2017-05-10/resources",
     "services/sql/mgmt/2015-05-01-preview/sql",
@@ -234,7 +236,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:53c4b75f22ea7757dea07eae380ea42de547ae6865a5e3b41866754a8a8219c9"
+  digest = "1:4cae11053a5fc8e7b08228fcc14d161d3e60b64ba508a8b216937da472690991"
   name = "golang.org/x/crypto"
   packages = [
     "md4",
@@ -242,7 +244,7 @@
     "pkcs12/internal/rc2",
   ]
   pruneopts = ""
-  revision = "f027049dab0ad238e394a753dba2d14753473a04"
+  revision = "de0752318171da717af4ce24d0a2e8626afaeb11"
 
 [[projects]]
   branch = "master"
@@ -288,6 +290,7 @@
     "github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/spellcheck",
     "github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/videosearch",
     "github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/websearch",
+    "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute",
     "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute",
     "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2017-08-01-preview/containerinstance",
     "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice",
@@ -298,6 +301,7 @@
     "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault",
     "github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault",
     "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network",
+    "github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi",
     "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources",
     "github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql",
     "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage",
@@ -314,6 +318,7 @@
     "github.com/globalsign/mgo/bson",
     "github.com/gobuffalo/envy",
     "github.com/marstr/randname",
+    "github.com/pkg/errors",
     "github.com/satori/go.uuid",
   ]
   solver-name = "gps-cdcl"

@@ -10,6 +10,8 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
+	"github.com/pkg/errors"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
@@ -104,4 +106,114 @@ func AddIdentityToVM(ctx context.Context, vmName string) (ext compute.VirtualMac
 	}
 
 	return future.Result(extensionsClient)
+}
+
+// CreateVMWithUserAssignedID creates a virtual machine with a user-assigned identity.
+func CreateVMWithUserAssignedID(ctx context.Context, vmName, nicName, username, password string, id msi.Identity) (vm compute.VirtualMachine, err error) {
+	nic, _ := network.GetNic(ctx, nicName)
+	vmClient := getVMClient()
+	future, err := vmClient.CreateOrUpdate(
+		ctx,
+		config.GroupName(),
+		vmName,
+		compute.VirtualMachine{
+			Location: to.StringPtr(config.Location()),
+			Identity: &compute.VirtualMachineIdentity{
+				Type: compute.ResourceIdentityTypeUserAssigned,
+				UserAssignedIdentities: map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue{
+					*id.ID: &compute.VirtualMachineIdentityUserAssignedIdentitiesValue{},
+				},
+			},
+			VirtualMachineProperties: &compute.VirtualMachineProperties{
+				HardwareProfile: &compute.HardwareProfile{
+					VMSize: compute.BasicA0,
+				},
+				StorageProfile: &compute.StorageProfile{
+					ImageReference: &compute.ImageReference{
+						Publisher: to.StringPtr(publisher),
+						Offer:     to.StringPtr(offer),
+						Sku:       to.StringPtr(sku),
+						Version:   to.StringPtr("latest"),
+					},
+				},
+				OsProfile: &compute.OSProfile{
+					ComputerName:  to.StringPtr(vmName),
+					AdminUsername: to.StringPtr(username),
+					AdminPassword: to.StringPtr(password),
+				},
+				NetworkProfile: &compute.NetworkProfile{
+					NetworkInterfaces: &[]compute.NetworkInterfaceReference{
+						{
+							ID: nic.ID,
+							NetworkInterfaceReferenceProperties: &compute.NetworkInterfaceReferenceProperties{
+								Primary: to.BoolPtr(true),
+							},
+						},
+					},
+				},
+			},
+		},
+	)
+	if err != nil {
+		return vm, errors.Wrap(err, "failed to create VM")
+	}
+	err = future.WaitForCompletion(ctx, vmClient.Client)
+	if err != nil {
+		return vm, errors.Wrap(err, "failed waiting for async operation to complete")
+	}
+	return future.Result(vmClient)
+}
+
+// AddUserAssignedIDToVM adds the specified user-assigned identity to the specified pre-existing VM.
+func AddUserAssignedIDToVM(ctx context.Context, vmName string, id msi.Identity) (*compute.VirtualMachine, error) {
+	vmClient := getVMClient()
+	future, err := vmClient.Update(
+		ctx,
+		config.GroupName(),
+		vmName,
+		compute.VirtualMachineUpdate{
+			Identity: &compute.VirtualMachineIdentity{
+				Type: compute.ResourceIdentityTypeUserAssigned,
+				UserAssignedIdentities: map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue{
+					*id.ID: &compute.VirtualMachineIdentityUserAssignedIdentitiesValue{},
+				},
+			},
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update VM")
+	}
+	err = future.WaitForCompletionRef(ctx, vmClient.Client)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed waiting for async operation to complete")
+	}
+	vm, err := future.Result(vmClient)
+	return &vm, err
+}
+
+// RemoveUserAssignedIDFromVM removes the specified user-assigned identity from the specified pre-existing VM.
+func RemoveUserAssignedIDFromVM(ctx context.Context, vmName string, id msi.Identity) (*compute.VirtualMachine, error) {
+	vmClient := getVMClient()
+	future, err := vmClient.Update(
+		ctx,
+		config.GroupName(),
+		vmName,
+		compute.VirtualMachineUpdate{
+			Identity: &compute.VirtualMachineIdentity{
+				Type: compute.ResourceIdentityTypeUserAssigned,
+				UserAssignedIdentities: map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue{
+					*id.ID: nil,
+				},
+			},
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update VM")
+	}
+	err = future.WaitForCompletionRef(ctx, vmClient.Client)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed waiting for async operation to complete")
+	}
+	vm, err := future.Result(vmClient)
+	return &vm, err
 }

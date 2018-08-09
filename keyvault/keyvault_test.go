@@ -14,47 +14,66 @@ import (
 
 	"github.com/marstr/randname"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 var (
 	vaultName = randname.GenerateWithPrefix("vault-sample-go-", 5)
+	keyName   = randname.GenerateWithPrefix("key-sample-go-", 5)
 )
 
+// TestMain sets up the environment and initiates tests.
 func TestMain(m *testing.M) {
-	flag.StringVar(&vaultName, "vaultName", vaultName, "Specify name of vault to create.")
-	err := iam.ParseArgs()
+	var err error
+	err = config.ParseEnvironment()
 	if err != nil {
-		log.Fatalln("failed to parse IAM args")
+		log.Fatalf("failed to parse env: %v\n", err.Error())
 	}
 
-	os.Exit(m.Run())
+	err = config.AddFlags()
+	if err != nil {
+		log.Fatalf("failed to parse flags: %v\n", err.Error())
+	}
+	flag.Parse()
+
+	code := m.Run()
+	os.Exit(code)
 }
 
 func ExampleSetVaultPermissions() {
-	helpers.SetResourceGroupName("SetVaultPermissions")
+	var groupName = config.GenerateGroupName("KeyVault")
+	config.SetGroupName(groupName)
+
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+
+	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
 	_, err = CreateVault(ctx, vaultName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("vault created")
+	util.PrintAndLog("vault created")
 
 	_, err = SetVaultPermissions(ctx, vaultName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("set vault permissions")
+	util.PrintAndLog("set vault permissions")
+
+	_, err = CreateKey(ctx, vaultName, keyName)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+	}
+	util.PrintAndLog("created key")
 
 	// Output:
 	// vault created
 	// set vault permissions
+	// created key
 }

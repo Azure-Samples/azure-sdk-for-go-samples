@@ -6,106 +6,89 @@ package batch
 
 import (
 	"context"
+	"flag"
 	"log"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	"github.com/marstr/randname"
 )
 
 var (
-	accountName string
-	jobID       string
-	poolID      string
+	accountName string = strings.ToLower(randname.GenerateWithPrefix("gosdkbatch", 5))
+	jobID       string = randname.GenerateWithPrefix("gosdk-batch-j-", 5)
+	poolID      string = randname.GenerateWithPrefix("gosdk-batch-p-", 5)
 )
 
+// TestMain sets up the environment and initiates tests.
 func TestMain(m *testing.M) {
-	err := parseArgs()
+	var err error
+	err = config.ParseEnvironment()
 	if err != nil {
-		log.Fatalf("failed to parse batch args: %v\n", err)
+		log.Fatalf("failed to parse env: %v\n", err)
 	}
-
-	err = iam.ParseArgs()
+	err = config.AddFlags()
 	if err != nil {
-		log.Fatalln("failed to parse IAM args")
+		log.Fatalf("failed to parse env: %v\n", err)
 	}
+	flag.Parse()
 
-	os.Exit(m.Run())
-}
-
-func parseArgs() error {
-	namer := randname.Prefixed{
-		Prefix:     "b",
-		Len:        10,
-		Acceptable: randname.LowercaseAlphabet,
-	}
-	accountName = os.Getenv("AZURE_BATCH_NAME")
-	if !(len(accountName) > 0) {
-		accountName = namer.Generate()
-	}
-
-	namer.Prefix = "j"
-	jobID = namer.Generate()
-	namer.Prefix = "p"
-	poolID = namer.Generate()
-
-	return nil
+	code := m.Run()
+	os.Exit(code)
 }
 
 func ExampleCreateAzureBatchAccount() {
-	helpers.SetResourceGroupName("CreateBatch")
+	var groupName = config.GenerateGroupName("Batch")
+	config.SetGroupName(groupName)
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Minute*30))
 	defer cancel()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+
+	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
-	_, err = CreateAzureBatchAccount(ctx, accountName, helpers.Location(), helpers.ResourceGroupName())
+	_, err = CreateAzureBatchAccount(ctx, accountName, config.Location(), config.GroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 		return
 	}
+	util.PrintAndLog("created batch account")
 
-	helpers.PrintAndLog("created batch account")
-
-	err = CreateBatchPool(ctx, accountName, helpers.Location(), poolID)
+	err = CreateBatchPool(ctx, accountName, config.Location(), poolID)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 		return
 	}
+	util.PrintAndLog("created batch pool")
 
-	helpers.PrintAndLog("created batch pool")
-
-	err = CreateBatchJob(ctx, accountName, helpers.Location(), poolID, jobID)
+	err = CreateBatchJob(ctx, accountName, config.Location(), poolID, jobID)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 		return
 	}
+	util.PrintAndLog("created batch job")
 
-	helpers.PrintAndLog("created batch job")
-
-	taskID, err := CreateBatchTask(ctx, accountName, helpers.Location(), jobID)
+	taskID, err := CreateBatchTask(ctx, accountName, config.Location(), jobID)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 		return
 	}
+	util.PrintAndLog("created batch task")
 
-	helpers.PrintAndLog("created batch task")
-
-	taskOutput, err := WaitForTaskResult(ctx, accountName, helpers.Location(), jobID, taskID)
+	taskOutput, err := WaitForTaskResult(ctx, accountName, config.Location(), jobID, taskID)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 		return
 	}
-
-	helpers.PrintAndLog("output from task:")
-	helpers.PrintAndLog(taskOutput)
+	util.PrintAndLog("output from task:")
+	util.PrintAndLog(taskOutput)
 
 	// Output:
 	// created batch account

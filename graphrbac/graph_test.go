@@ -7,78 +7,85 @@ package graphrbac
 
 import (
 	"context"
+	"flag"
 	"log"
 	"os"
 	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/authorization"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
+// TestMain sets up the environment and initiates tests.
 func TestMain(m *testing.M) {
-	err := iam.ParseArgs()
+	var err error
+	err = config.ParseEnvironment()
 	if err != nil {
-		log.Fatalln("failed to parse IAM args")
+		log.Fatalf("failed to parse env: %v\n", err)
 	}
+	err = config.AddFlags()
+	if err != nil {
+		log.Fatalf("failed to parse flags: %v\n", err)
+	}
+	flag.Parse()
 
-	if !helpers.DeviceFlow() {
-		helpers.PrintAndLog("It is best to run graph examples with device auth")
-	} else {
-		os.Exit(m.Run())
-	}
+	code := m.Run()
+	os.Exit(code)
 }
 
 func ExampleCreateServicePrincipal() {
+	var groupName = config.GenerateGroupName("GraphRBAC")
+	config.SetGroupName(groupName)
+
 	ctx := context.Background()
 
 	app, err := CreateADApplication(ctx)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("ad app created")
+	util.PrintAndLog("ad app created")
 
 	sp, err := CreateServicePrincipal(ctx, *app.AppID)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("service principal created")
+	util.PrintAndLog("service principal created")
 
 	_, err = AddClientSecret(ctx, *app.ObjectID)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("added client secret")
+	util.PrintAndLog("added client secret")
 
-	helpers.SetResourceGroupName("CreateServicePrincipal")
-	_, err = resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	_, err = resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created resource group")
+	util.PrintAndLog("created resource group")
 
-	list, err := authorization.ListRoles(ctx, "roleName eq 'Contributor'")
+	list, err := authorization.ListRoleDefinitions(ctx, "roleName eq 'Contributor'")
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("list contributor role definition, with resource group scope")
+	util.PrintAndLog("list contributor roledefs at group scope")
 
 	_, err = authorization.AssignRole(ctx, *sp.ObjectID, *list.Values()[0].ID)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("create role definition")
+	util.PrintAndLog("assigned new principal to first contributor role")
 
-	if !helpers.KeepResources() {
-		_, err = resources.DeleteGroup(ctx, helpers.ResourceGroupName())
+	if !config.KeepResources() {
+		_, err = resources.DeleteGroup(ctx, config.GroupName())
 		if err != nil {
-			helpers.PrintAndLog(err.Error())
+			util.PrintAndLog(err.Error())
 		}
 
 		_, err = DeleteADApplication(ctx, *app.ObjectID)
 		if err != nil {
-			helpers.PrintAndLog(err.Error())
+			util.PrintAndLog(err.Error())
 		}
 	}
 
@@ -87,6 +94,6 @@ func ExampleCreateServicePrincipal() {
 	// service principal created
 	// added client secret
 	// created resource group
-	// list contributor role definition, with resource group scope
-	// create role definition
+	// list contributor roledefs at group scope
+	// assigned new principal to first contributor role
 }

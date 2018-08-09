@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -9,8 +10,8 @@ import (
 
 	"github.com/marstr/randname"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	hybridresources "github.com/Azure-Samples/azure-sdk-for-go-samples/resources/hybrid"
 )
 
@@ -19,9 +20,15 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	err := iam.ParseArgs()
+	err := config.ParseEnvironment()
 	if err != nil {
-		log.Fatalln("failed to parse IAM args")
+		log.Fatalln("failed to parse env")
+	}
+
+	config.AddFlags()
+	flag.Parse()
+	if err != nil {
+		log.Fatalln("failed to parse flags")
 	}
 
 	os.Exit(m.Run())
@@ -33,7 +40,7 @@ func ExampleCreateStorageAccount() {
 
 	_, err := hybridresources.CreateGroup(ctx)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 	_, err = CreateStorageAccount(context.Background(), accountName)
 	if err != nil {

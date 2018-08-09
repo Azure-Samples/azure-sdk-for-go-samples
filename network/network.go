@@ -9,19 +9,20 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 )
 
 // Vnets
 
 func getVnetClient() network.VirtualNetworksClient {
-	vnetClient := network.NewVirtualNetworksClient(helpers.SubscriptionID())
-	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
-	vnetClient.Authorizer = auth
-	vnetClient.AddToUserAgent(helpers.UserAgent())
+	vnetClient := network.NewVirtualNetworksClient(config.SubscriptionID())
+	a, _ := iam.GetResourceManagementAuthorizer()
+	vnetClient.Authorizer = a
+	vnetClient.AddToUserAgent(config.UserAgent())
 	return vnetClient
 }
 
@@ -30,10 +31,10 @@ func CreateVirtualNetwork(ctx context.Context, vnetName string) (vnet network.Vi
 	vnetClient := getVnetClient()
 	future, err := vnetClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		vnetName,
 		network.VirtualNetwork{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 			VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
 				AddressSpace: &network.AddressSpace{
 					AddressPrefixes: &[]string{"10.0.0.0/8"},
@@ -58,10 +59,10 @@ func CreateVirtualNetworkAndSubnets(ctx context.Context, vnetName, subnet1Name, 
 	vnetClient := getVnetClient()
 	future, err := vnetClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		vnetName,
 		network.VirtualNetwork{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 			VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
 				AddressSpace: &network.AddressSpace{
 					AddressPrefixes: &[]string{"10.0.0.0/8"},
@@ -98,5 +99,5 @@ func CreateVirtualNetworkAndSubnets(ctx context.Context, vnetName, subnet1Name, 
 // DeleteVirtualNetwork deletes a virtual network given an existing virtual network
 func DeleteVirtualNetwork(ctx context.Context, vnetName string) (result network.VirtualNetworksDeleteFuture, err error) {
 	vnetClient := getVnetClient()
-	return vnetClient.Delete(ctx, helpers.ResourceGroupName(), vnetName)
+	return vnetClient.Delete(ctx, config.GroupName(), vnetName)
 }

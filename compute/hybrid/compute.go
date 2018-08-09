@@ -12,12 +12,11 @@ import (
 	"log"
 	"os"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	hybridnetwork "github.com/Azure-Samples/azure-sdk-for-go-samples/network/hybrid"
 	hybridcompute "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/compute/mgmt/compute"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
@@ -33,18 +32,18 @@ func getVMClient(activeDirectoryEndpoint, tokenAudience string) hybridcompute.Vi
 	if err != nil {
 		log.Fatal(fmt.Sprintf(errorPrefix, fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
-	vmClient := hybridcompute.NewVirtualMachinesClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
+	vmClient := hybridcompute.NewVirtualMachinesClientWithBaseURI(
+		config.Environment().ResourceManagerEndpoint, config.SubscriptionID())
 	vmClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	vmClient.AddToUserAgent(helpers.UserAgent())
+	vmClient.AddToUserAgent(config.UserAgent())
 	return vmClient
 }
 
 // CreateVM creates a new virtual machine with the specified name using the specified network interface and storage account.
 // Username, password, and sshPublicKeyPath determine logon credentials.
 func CreateVM(ctx context.Context, vmName, nicName, username, password, storageAccountName, sshPublicKeyPath string) (vm hybridcompute.VirtualMachine, err error) {
-	cntx := context.Background()
-	nic, _ := hybridnetwork.GetNic(cntx, nicName)
-	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())
+	nic, _ := hybridnetwork.GetNic(ctx, nicName)
+	environment := config.Environment()
 	vhdURItemplate := "https://%s.blob." + environment.StorageEndpointSuffix + "/vhds/%s.vhd"
 
 	vmClient := getVMClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
@@ -103,7 +102,7 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, storageA
 		},
 	}
 	virtualMachine := hybridcompute.VirtualMachine{
-		Location: to.StringPtr(helpers.Location()),
+		Location: to.StringPtr(config.Location()),
 		VirtualMachineProperties: &hybridcompute.VirtualMachineProperties{
 			HardwareProfile: hardwareProfile,
 			StorageProfile:  storageProfile,
@@ -112,15 +111,15 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, storageA
 		},
 	}
 	future, err := vmClient.CreateOrUpdate(
-		cntx,
-		helpers.ResourceGroupName(),
+		ctx,
+		config.GroupName(),
 		vmName,
 		virtualMachine,
 	)
 	if err != nil {
 		return vm, fmt.Errorf(fmt.Sprintf(errorPrefix, err))
 	}
-	err = future.WaitForCompletion(cntx, vmClient.Client)
+	err = future.WaitForCompletion(ctx, vmClient.Client)
 	if err != nil {
 		return vm, fmt.Errorf(fmt.Sprintf(errorPrefix, err))
 	}

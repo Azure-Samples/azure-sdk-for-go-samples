@@ -9,8 +9,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 )
@@ -18,10 +18,10 @@ import (
 // Network Security Groups
 
 func getNsgClient() network.SecurityGroupsClient {
-	nsgClient := network.NewSecurityGroupsClient(helpers.SubscriptionID())
-	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
-	nsgClient.Authorizer = auth
-	nsgClient.AddToUserAgent(helpers.UserAgent())
+	nsgClient := network.NewSecurityGroupsClient(config.SubscriptionID())
+	a, _ := iam.GetResourceManagementAuthorizer()
+	nsgClient.Authorizer = a
+	nsgClient.AddToUserAgent(config.UserAgent())
 	return nsgClient
 }
 
@@ -30,10 +30,10 @@ func CreateNetworkSecurityGroup(ctx context.Context, nsgName string) (nsg networ
 	nsgClient := getNsgClient()
 	future, err := nsgClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		nsgName,
 		network.SecurityGroup{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 			SecurityGroupPropertiesFormat: &network.SecurityGroupPropertiesFormat{
 				SecurityRules: &[]network.SecurityRule{
 					{
@@ -84,10 +84,10 @@ func CreateSimpleNetworkSecurityGroup(ctx context.Context, nsgName string) (nsg 
 	nsgClient := getNsgClient()
 	future, err := nsgClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		nsgName,
 		network.SecurityGroup{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 		},
 	)
 
@@ -106,22 +106,22 @@ func CreateSimpleNetworkSecurityGroup(ctx context.Context, nsgName string) (nsg 
 // DeleteNetworkSecurityGroup deletes an existing network security group
 func DeleteNetworkSecurityGroup(ctx context.Context, nsgName string) (result network.SecurityGroupsDeleteFuture, err error) {
 	nsgClient := getNsgClient()
-	return nsgClient.Delete(ctx, helpers.ResourceGroupName(), nsgName)
+	return nsgClient.Delete(ctx, config.GroupName(), nsgName)
 }
 
 // GetNetworkSecurityGroup returns an existing network security group
 func GetNetworkSecurityGroup(ctx context.Context, nsgName string) (network.SecurityGroup, error) {
 	nsgClient := getNsgClient()
-	return nsgClient.Get(ctx, helpers.ResourceGroupName(), nsgName, "")
+	return nsgClient.Get(ctx, config.GroupName(), nsgName, "")
 }
 
 // Network security rules
 
 func getSecurityRulesClient() network.SecurityRulesClient {
-	rulesClient := network.NewSecurityRulesClient(helpers.SubscriptionID())
-	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
-	rulesClient.Authorizer = auth
-	rulesClient.AddToUserAgent(helpers.UserAgent())
+	rulesClient := network.NewSecurityRulesClient(config.SubscriptionID())
+	a, _ := iam.GetResourceManagementAuthorizer()
+	rulesClient.Authorizer = a
+	rulesClient.AddToUserAgent(config.UserAgent())
 	return rulesClient
 }
 
@@ -129,7 +129,7 @@ func getSecurityRulesClient() network.SecurityRulesClient {
 func CreateSSHRule(ctx context.Context, nsgName string) (rule network.SecurityRule, err error) {
 	rulesClient := getSecurityRulesClient()
 	future, err := rulesClient.CreateOrUpdate(ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		nsgName,
 		"ALLOW-SSH",
 		network.SecurityRule{
@@ -161,7 +161,7 @@ func CreateSSHRule(ctx context.Context, nsgName string) (rule network.SecurityRu
 func CreateHTTPRule(ctx context.Context, nsgName string) (rule network.SecurityRule, err error) {
 	rulesClient := getSecurityRulesClient()
 	future, err := rulesClient.CreateOrUpdate(ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		nsgName,
 		"ALLOW-HTTP",
 		network.SecurityRule{
@@ -193,7 +193,7 @@ func CreateHTTPRule(ctx context.Context, nsgName string) (rule network.SecurityR
 func CreateSQLRule(ctx context.Context, nsgName, frontEndAddressPrefix string) (rule network.SecurityRule, err error) {
 	rulesClient := getSecurityRulesClient()
 	future, err := rulesClient.CreateOrUpdate(ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		nsgName,
 		"ALLOW-SQL",
 		network.SecurityRule{
@@ -225,7 +225,7 @@ func CreateSQLRule(ctx context.Context, nsgName, frontEndAddressPrefix string) (
 func CreateDenyOutRule(ctx context.Context, nsgName string) (rule network.SecurityRule, err error) {
 	rulesClient := getSecurityRulesClient()
 	future, err := rulesClient.CreateOrUpdate(ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		nsgName,
 		"DENY-OUT",
 		network.SecurityRule{

@@ -8,7 +8,7 @@ package cognitiveservices
 import (
 	"context"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/websearch"
 	"github.com/Azure/go-autorest/autorest"
 )
@@ -18,7 +18,7 @@ func getWebSearchClient(accountName string) websearch.WebClient {
 	webSearchClient := websearch.NewWebClient()
 	csAuthorizer := autorest.NewCognitiveServicesAuthorizer(apiKey)
 	webSearchClient.Authorizer = csAuthorizer
-	webSearchClient.AddToUserAgent(helpers.UserAgent())
+	webSearchClient.AddToUserAgent(config.UserAgent())
 	return webSearchClient
 }
 

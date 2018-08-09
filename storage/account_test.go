@@ -7,81 +7,96 @@ package storage
 
 import (
 	"context"
+	"log"
+	"time"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 func ExampleStorageAccountOperations() {
-	accountName = getAccountName()
+	var groupName = testAccountGroupName
+	var accountName = testAccountName
 
-	helpers.SetResourceGroupName("StorageAccountOperations")
-	ctx := context.Background()
-	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
+	defer cancel()
+	// don't cleanup yet so dataplane tests can use account
+	// defer resources.Cleanup(ctx)
+
+	_, err := resources.CreateGroup(ctx, groupName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
 	_, err = resources.RegisterProvider(ctx, "Microsoft.Storage")
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("registered resource provider")
+	util.PrintAndLog("registered resource provider")
 
-	_, err = CheckAccountAvailability(ctx, accountName)
+	result, err := CheckAccountNameAvailability(ctx, accountName)
+	log.Printf("[%T]: %+v\n", result, result)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("checked for account availability")
+	util.PrintAndLog("checked for account availability")
 
-	_, err = CreateStorageAccount(ctx, accountName)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
+	var errOuter, errInner error // see next comment
+	_, errOuter = CreateStorageAccount(ctx, accountName, groupName)
+	if errOuter != nil {
+		// this could be because we've already created it, and a way to check
+		// that is to try to get it, so that's what we do here. if we can get
+		// it we pretend we created it so tests can proceed. if we can't get
+		// it, we don't want to confuse the tester and return the error for the
+		// Get, so we return the orignial error from the Create.
+		_, errInner = GetStorageAccount(ctx, accountName, groupName)
+		if errInner != nil {
+			util.PrintAndLog(errOuter.Error())
+		}
 	}
-	helpers.PrintAndLog("created storage account")
+	util.PrintAndLog("created storage account")
 
-	_, err = GetStorageAccount(ctx, accountName)
+	_, err = GetStorageAccount(ctx, accountName, groupName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("got storage account details")
+	util.PrintAndLog("got storage account details")
 
-	_, err = UpdateAccount(ctx, accountName)
+	_, err = UpdateAccount(ctx, accountName, groupName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("updated storage account")
+	util.PrintAndLog("updated storage account")
 
-	_, err = ListAccountsByResourceGroup(ctx)
+	_, err = ListAccountsByResourceGroup(ctx, groupName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("listed storage accounts in resource group")
+	util.PrintAndLog("listed storage accounts in resource group")
 
 	_, err = ListAccountsBySubscription(ctx)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("listed storage accounts in subscription")
+	util.PrintAndLog("listed storage accounts in subscription")
 
-	_, err = GetAccountKeys(ctx, accountName)
+	_, err = GetAccountKeys(ctx, accountName, groupName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("get storage account keys")
+	util.PrintAndLog("get storage account keys")
 
-	_, err = RegenerateAccountKey(ctx, accountName, 0)
+	_, err = RegenerateAccountKey(ctx, accountName, groupName, 0)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("regenerated first storage account key")
+	util.PrintAndLog("regenerated first storage account key")
 
 	_, err = ListUsage(ctx)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("listed usage")
+	util.PrintAndLog("listed usage")
 
 	// Output:
 	// registered resource provider

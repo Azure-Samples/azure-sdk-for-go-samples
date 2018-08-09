@@ -7,14 +7,14 @@ package resources
 
 import (
 	"context"
-	"fmt"
 	"log"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/to"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 )
 
 const (
@@ -22,29 +22,39 @@ const (
 )
 
 func getGroupsClient(activeDirectoryEndpoint, tokenAudience string) resources.GroupsClient {
-	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience)
+	token, err := iam.GetResourceManagementTokenHybrid(
+		activeDirectoryEndpoint, tokenAudience)
 	if err != nil {
-		log.Fatal(fmt.Sprintf(errorPrefix, fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
+		log.Fatalf("failed to get token: %v\n", err)
 	}
-	groupsClient := resources.NewGroupsClientWithBaseURI(helpers.ArmEndpoint(), helpers.SubscriptionID())
+
+	groupsClient := resources.NewGroupsClientWithBaseURI(
+		config.Environment().ResourceManagerEndpoint,
+		config.SubscriptionID())
 	groupsClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	groupsClient.AddToUserAgent(helpers.UserAgent())
+	groupsClient.AddToUserAgent(config.UserAgent())
 	return groupsClient
 }
 
 // CreateGroup creates a new resource group named by env var
-func CreateGroup(cntx context.Context) (resources.Group, error) {
-	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())
-	groupClient := getGroupsClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
-	location := helpers.Location()
-	helpers.SetResourceGroupName("hybridResourceGroup")
-	return groupClient.CreateOrUpdate(cntx, helpers.ResourceGroupName(), resources.Group{Location: &location})
+func CreateGroup(ctx context.Context) (resources.Group, error) {
+	groupClient := getGroupsClient(
+		config.Environment().ActiveDirectoryEndpoint,
+		config.Environment().TokenAudience)
+
+	return groupClient.CreateOrUpdate(ctx,
+		config.GroupName(),
+		resources.Group{
+			Location: to.StringPtr(config.Location()),
+		},
+	)
 }
 
 // DeleteGroup removes the resource group named by env var
 func DeleteGroup(ctx context.Context) (result resources.GroupsDeleteFuture, err error) {
-	environment, _ := azure.EnvironmentFromURL(helpers.ArmEndpoint())
-	groupsClient := getGroupsClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
-	helpers.SetResourceGroupName("hybridResourceGroup")
-	return groupsClient.Delete(ctx, helpers.ResourceGroupName())
+	groupsClient := getGroupsClient(
+		config.Environment().ActiveDirectoryEndpoint,
+		config.Environment().TokenAudience)
+
+	return groupsClient.Delete(ctx, config.GroupName())
 }

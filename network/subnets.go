@@ -9,19 +9,18 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 // VNet Subnets
-
 func getSubnetsClient() network.SubnetsClient {
-	subnetsClient := network.NewSubnetsClient(helpers.SubscriptionID())
-	auth, _ := iam.GetResourceManagementAuthorizer(iam.AuthGrantType())
-	subnetsClient.Authorizer = auth
-	subnetsClient.AddToUserAgent(helpers.UserAgent())
+	subnetsClient := network.NewSubnetsClient(config.SubscriptionID())
+	a, _ := iam.GetResourceManagementAuthorizer()
+	subnetsClient.Authorizer = a
+	subnetsClient.AddToUserAgent(config.UserAgent())
 	return subnetsClient
 }
 
@@ -31,7 +30,7 @@ func CreateVirtualNetworkSubnet(ctx context.Context, vnetName, subnetName string
 
 	future, err := subnetsClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		vnetName,
 		subnetName,
 		network.Subnet{
@@ -61,7 +60,7 @@ func CreateSubnetWithNetowrkSecurityGroup(ctx context.Context, vnetName, subnetN
 	subnetsClient := getSubnetsClient()
 	future, err := subnetsClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		vnetName,
 		subnetName,
 		network.Subnet{
@@ -88,5 +87,5 @@ func DeleteVirtualNetworkSubnet() {}
 // GetVirtualNetworkSubnet returns an existing subnet from a virtual network
 func GetVirtualNetworkSubnet(ctx context.Context, vnetName string, subnetName string) (network.Subnet, error) {
 	subnetsClient := getSubnetsClient()
-	return subnetsClient.Get(ctx, helpers.ResourceGroupName(), vnetName, subnetName, "")
+	return subnetsClient.Get(ctx, config.GroupName(), vnetName, subnetName, "")
 }

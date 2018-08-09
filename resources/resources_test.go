@@ -7,43 +7,77 @@ package resources
 
 import (
 	"context"
+	"flag"
 	"log"
+	"os"
+	"testing"
+	"time"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 )
 
-func init() {
-	err := iam.ParseArgs()
+const (
+	CI_KEY_NAME = "TRAVIS"
+)
+
+func TestMain(m *testing.M) {
+	err := setupEnvironment()
 	if err != nil {
-		log.Fatalln("failed to parse IAM args")
+		log.Fatalf("could not set up environment: %v\n", err)
 	}
+
+	os.Exit(m.Run())
 }
 
-func ExampleCreateGroup() {
-	helpers.SetResourceGroupName("CreateGroup")
-	defer Cleanup(context.Background())
+func setupEnvironment() error {
+	err1 := config.ParseEnvironment()
+	err2 := config.AddFlags()
+	err3 := addLocalConfig()
 
-	_, err := CreateGroup(context.Background(), helpers.ResourceGroupName())
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
+	for _, err := range []error{err1, err2, err3} {
+		if err != nil {
+			return err
+		}
 	}
-	helpers.PrintAndLog("resource group created")
 
-	// Output:
-	// resource group created
+	flag.Parse()
+	return nil
 }
 
-func ExampleCreateGroupWithAuthFile() {
-	helpers.SetResourceGroupName("CreateGroupWithAuthFile")
-	defer Cleanup(context.Background())
+func addLocalConfig() error {
+	return nil
+}
 
-	_, err := CreateGroupWithAuthFile(context.Background(), helpers.ResourceGroupName())
+func TestGroups(t *testing.T) {
+	groupName := config.GenerateGroupName("Groups")
+	config.SetGroupName(groupName) // TODO: don't rely on globals
+
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	defer cancel()
+	defer Cleanup(ctx)
+
+	var err error
+	_, err = CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		t.Fatalf("failed to create group: %v\n", err.Error())
 	}
-	helpers.PrintAndLog("resource group created, authentication was set up with an Azure CLI auth file")
+	t.Logf("created group: %s\n", config.GroupName())
+}
 
-	// Output:
-	// resource group created, authentication was set up with an Azure CLI auth file
+func TestGroupsWithAuthFile(t *testing.T) {
+	if _, is_ci := os.LookupEnv(CI_KEY_NAME); is_ci == true {
+		t.Skipf("skipping auth file test in CI")
+	}
+	groupName := config.GenerateGroupName("resource-groups-authfile")
+	config.SetGroupName(groupName) // TODO: don't rely on globals
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	defer cancel()
+	defer Cleanup(ctx)
+
+	var err error
+	_, err = CreateGroupWithAuthFile(ctx, config.GroupName())
+	if err != nil {
+		t.Fatalf("failed to create group: %v\n", err.Error())
+	}
+	t.Logf("created group with auth file: %s\n", config.GroupName())
 }

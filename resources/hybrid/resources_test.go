@@ -7,24 +7,51 @@ package resources
 
 import (
 	"context"
-	"log"
+	"flag"
+	"testing"
+	"time"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 )
 
-func ExampleCreateGroup() {
-	err := iam.ParseArgs()
-	if err != nil {
-		log.Fatalln("failed to parse IAM args")
-	}
-	defer Cleanup(context.Background())
+func setupEnvironment() error {
+	err1 := config.ParseEnvironment()
+	err2 := config.AddFlags()
+	err3 := addLocalConfig()
 
-	_, err = CreateGroup(context.Background())
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
+	for _, err := range []error{err1, err2, err3} {
+		if err != nil {
+			return err
+		}
 	}
-	helpers.PrintAndLog("resource group created")
+
+	flag.Parse()
+	return nil
+}
+
+func addLocalConfig() error {
+	return nil
+}
+
+func TestGroupsHybrid(t *testing.T) {
+	err := setupEnvironment()
+	if err != nil {
+		t.Fatalf("could not set up environment: %v\n", err)
+	}
+
+	groupName := config.GenerateGroupName("resource-groups-hybrid")
+	config.SetGroupName(groupName) // TODO: don't rely on globals
+
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	defer cancel()
+	defer Cleanup(ctx)
+
+	_, err = CreateGroup(ctx)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+	}
+	util.PrintAndLog("resource group created")
 
 	// Output:
 	// resource group created

@@ -135,3 +135,8 @@ func GenerateGroupName(affixes ...string) string {
 	}
 	return randname.GenerateWithPrefix(b.String(), 5)
 }
+
+// AppendRandomSuffix will append a suffix of five random characters to the specified prefix.
+func AppendRandomSuffix(prefix string) string {
+	return randname.GenerateWithPrefix(prefix, 5)
+}

@@ -13,11 +13,11 @@ import (
 	"github.com/marstr/randname"
 )
 
-func generateName(prefix string) string {
+func generateName_(prefix string) string {
 	return strings.ToLower(randname.GenerateWithPrefix(prefix, 5))
 }
 
-func addLocalEnvAndParse() error {
+func addLocalEnvAndParse_() error {
 	// parse env at top-level (also controls dotenv load)
 	err := config.ParseEnvironment()
 	if err != nil {
@@ -29,7 +29,7 @@ func addLocalEnvAndParse() error {
 
 func setup() error {
 	var err error
-	err = addLocalEnvAndParse()
+	err = addLocalEnvAndParse_()
 	if err != nil {
 		return err
 	}

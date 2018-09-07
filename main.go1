@@ -1,0 +1,109 @@
+// package main
+
+// import (
+// 	"fmt"
+
+// 	"github.com/Azure-Samples/azure-sdk-for-go-samples/compute"
+// )
+
+// func main1() {
+// 	fmt.Println("running vm test logic")
+// 	compute.CreateResourceGroup_()
+// }
+
+// func main2() {
+// 	fmt.Println("creating virtual network")
+// 	compute.CreateVirtualNetworksAndSubnet_("az-samples-go-VM-ps240", "az-samples-go-VM-ps240-vnet", "az-samples-go-VM-ps240-subnet1", "az-samples-go-VM-ps240-subnet2")
+// }
+
+// func main3() {
+// 	fmt.Println("creating network security group")
+// 	compute.CreateNetworkSecurityGroup_("az-samples-go-VM-ps240", "az-samples-go-VM-ps240-nsg1")
+// }
+
+// func main4() {
+// 	fmt.Println("creating public ip")
+// 	compute.CreatePublicIP_("az-samples-go-VM-ps240", "az-samples-go-VM-ps240-ip1")
+// }
+
+// func main5() {
+// 	fmt.Println("creating nic")
+// 	compute.CreateNIC_("az-samples-go-VM-ps240", "az-samples-go-VM-ps240-vnet", "az-samples-go-VM-ps240-subnet1", "az-samples-go-VM-ps240-nsg1", "az-samples-go-VM-ps240-ip1", "az-samples-go-VM-ps240-nic1")
+// }
+
+// func main6() {
+// 	fmt.Println("creating vm")
+// 	compute.CreateVM_("az-samples-go-VM-ps240", "az-samples-go-VM-ps240-vm1", "az-samples-go-VM-ps240-nic1", "umarmuneer-admin", "admin#@1")
+// }
+
+// func main() {
+// 	fmt.Println("getting vm")
+// 	compute.GetVM_("az-samples-go-VM-x980I", "az-samples-go-VM-x980I-vm1")
+// }
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/compute"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
+)
+
+func getIPClient() network.PublicIPAddressesClient {
+	ipClient := network.NewPublicIPAddressesClient(config.SubscriptionID())
+	a, _ := iam.GetResourceManagementAuthorizer()
+	ipClient.Authorizer = a
+	ipClient.AddToUserAgent(config.UserAgent())
+	return ipClient
+}
+func CreatePublicIPAddress(ctx context.Context, groupName, ipName string) (ip network.PublicIPAddress, err error) {
+	ipClient := getIPClient()
+	future, err := ipClient.CreateOrUpdate(
+		ctx,
+		groupName,
+		ipName,
+		network.PublicIPAddress{
+			Name:     to.StringPtr(ipName),
+			Location: to.StringPtr(config.Location()),
+			PublicIPAddressPropertiesFormat: &network.PublicIPAddressPropertiesFormat{
+				PublicIPAddressVersion:   network.IPv4,
+				PublicIPAllocationMethod: network.Static,
+			},
+		},
+	)
+
+	if err != nil {
+		return ip, fmt.Errorf("cannot create public ip address: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, ipClient.Client)
+	if err != nil {
+		return ip, fmt.Errorf("cannot get public ip address create or update future response: %v", err)
+	}
+
+	return future.Result(ipClient)
+}
+func main() {
+	start := time.Now()
+	log.Printf("started creating ip at", start)
+	compute.SetupEnvironment_()
+	resourceGroup := "az-samples-go-VM-wGM8D"
+	ipName := resourceGroup + "-ip1"
+	ctx, _ := context.WithTimeout(context.Background(), 6000*time.Second)
+
+	_, err := CreatePublicIPAddress(ctx, resourceGroup, ipName)
+	elapsed := time.Since(start)
+	if err != nil {
+		log.Fatalf("failed to initialize authorizer: %v\n", err)
+	} else {
+		fmt.Println("created ip address:" + ipName)
+	}
+	log.Printf("ended ip creation at", time.Now())
+	log.Fatalf("total time taken ", elapsed)
+}

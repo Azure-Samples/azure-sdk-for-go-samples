@@ -14,6 +14,7 @@ RUN go get github.com/golang/dep/cmd/dep && \
     go run /go/src/github.com/Azure-Samples/azure-sdk-for-go-samples/tools/list/list.go > /app/test_index
 WORKDIR /go/src/github.com/Azure-Samples/azure-sdk-for-go-samples
 RUN dep ensure
+RUN go build
 ENV AZURE_AUTH_LOCATION /mnt/secrets/authfile.json
 
 WORKDIR /

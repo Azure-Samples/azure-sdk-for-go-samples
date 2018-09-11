@@ -11,15 +11,22 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
-// CreateContainerSite provisions all infrastructure needed to run an Azure Web App for Containers.
-func CreateContainerSite(ctx context.Context, name, image string) (createdConfig web.SiteConfigResource, err error) {
-	client := web.NewAppsClient(config.SubscriptionID())
+func getWebAppsClient() (client web.AppsClient, err error) {
+	client = web.NewAppsClient(config.SubscriptionID())
 	client.Authorizer, err = iam.GetResourceManagementAuthorizer()
 	if err != nil {
 		return
 	}
 	client.AddToUserAgent(config.UserAgent())
+	return
+}
 
+// CreateContainerSite provisions all infrastructure needed to run an Azure Web App for Containers.
+func CreateContainerSite(ctx context.Context, name, image string) (webSite web.Site, err error) {
+	client, err := getWebAppsClient()
+	if err != nil {
+		return
+	}
 	future, err := client.CreateOrUpdate(
 		ctx,
 		config.GroupName(),
@@ -36,11 +43,20 @@ func CreateContainerSite(ctx context.Context, name, image string) (createdConfig
 		return
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return
 	}
+	webSite, err = future.Result(client)
+	return
+}
 
+// GetAppConfiguration returns web app configuration info.
+func GetAppConfiguration(ctx context.Context, name string) (createdConfig web.SiteConfigResource, err error) {
+	client, err := getWebAppsClient()
+	if err != nil {
+		return
+	}
 	createdConfig, err = client.GetConfiguration(ctx, config.GroupName(), name)
 	return
 }

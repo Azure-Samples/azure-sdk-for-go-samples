@@ -31,6 +31,14 @@ func getApplicationsClient() graphrbac.ApplicationsClient {
 	return appClient
 }
 
+func getADGroupsClient() graphrbac.GroupsClient {
+	appClient := graphrbac.NewGroupsClient(config.TenantID())
+	a, _ := iam.GetGraphAuthorizer()
+	appClient.Authorizer = a
+	appClient.AddToUserAgent(config.UserAgent())
+	return groupsClient
+}
+
 // CreateServicePrincipal creates a service principal associated with the specified application.
 func CreateServicePrincipal(ctx context.Context, appID string) (graphrbac.ServicePrincipal, error) {
 	spClient := getServicePrincipalsClient()
@@ -88,4 +96,15 @@ func getObjectsClient() graphrbac.ObjectsClient {
 func GetCurrentUser(ctx context.Context) (graphrbac.AADObject, error) {
 	objClient := getObjectsClient()
 	return objClient.GetCurrentUser(ctx)
+}
+
+// Create Actice Directory group
+func CreateADGroup(ctx context.Context) (graphrbac.ADGroup, error) {
+	groupsClient := getADGroupsClient()
+	return groupsClient.Create(ctx, graphrbac.GroupCreateParameters{
+		DisplayName:             to.StringPtr("Go SDK Samples"),
+		MailEnabled:						 to.BoolPtr(true),
+		MailNickname:            to.StringPtr("Go SDK Sample MailNickname"),
+		SecurityEnabled:				 to.BoolPtr(true)
+	})
 }

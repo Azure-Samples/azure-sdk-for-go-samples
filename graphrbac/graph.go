@@ -103,8 +103,8 @@ func CreateADGroup(ctx context.Context) (graphrbac.ADGroup, error) {
 	groupsClient := getADGroupsClient()
 	return groupsClient.Create(ctx, graphrbac.GroupCreateParameters{
 		DisplayName:             to.StringPtr("Go SDK Samples"),
-		MailEnabled:						 to.BoolPtr(true),
+		MailEnabled:             to.BoolPtr(true),
 		MailNickname:            to.StringPtr("Go SDK Sample MailNickname"),
-		SecurityEnabled:				 to.BoolPtr(true)
+		SecurityEnabled:         to.BoolPtr(true)
 	})
 }

@@ -32,7 +32,7 @@ func getApplicationsClient() graphrbac.ApplicationsClient {
 }
 
 func getADGroupsClient() graphrbac.GroupsClient {
-	appClient := graphrbac.NewGroupsClient(config.TenantID())
+	groupsClient := graphrbac.NewGroupsClient(config.TenantID())
 	a, _ := iam.GetGraphAuthorizer()
 	appClient.Authorizer = a
 	appClient.AddToUserAgent(config.UserAgent())

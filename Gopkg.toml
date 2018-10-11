@@ -1,23 +1,30 @@
-[[constraint]]
+# change to [[constraint]] once merged to master
+[[override]]
   name = "github.com/Azure/azure-sdk-for-go"
-  version = "14.1.1"
+  version = ">=18.0.0"
 
-[[constraint]]
+# change to [[constraint]] once merged to master
+[[override]]
   name = "github.com/Azure/azure-storage-blob-go"
-  branch = "master"
+  version = "~0.1.4"
 
-[[constraint]]
+# change to [[constraint]] once merged to master
+[[override]]
   name = "github.com/Azure/go-autorest"
-  version = "10.1.2"
+  version = ">=10.12.0"
 
 [[constraint]]
-  branch = "master"
+  name = "github.com/Azure/azure-event-hubs-go"
+  version = ">=0.4.0"
+
+[[constraint]]
   name = "github.com/denisenkom/go-mssqldb"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/globalsign/mgo"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/satori/go.uuid"
   version = "1.2.0"
-
-[[constraint]]
-  name = "github.com/subosito/gotenv"
-  version = "1.1.0"

@@ -1,57 +1,43 @@
-# Azure SDK for Go - Samples
+# Azure SDK for Go Samples
 
-azure-sdk-for-go-samples provides easy-to-understand, continuously-tested samples for using Azure services via [Azure/azure-sdk-for-go][]. These are currently targeting
-Go SDK For Azure **v14.0.0**.
+azure-sdk-for-go-samples is a collection of sample usages of the
+[Azure/azure-sdk-for-go][].
 
 [![Build Status](https://travis-ci.org/Azure-Samples/azure-sdk-for-go-samples.svg?branch=master)](https://travis-ci.org/Azure-Samples/azure-sdk-for-go-samples)
 
-The goal of this project is to provide a library of code snippets for common
-and not-so-common operations in Azure via the Go SDK. Code is organized by
-services as well as snippet type. The repo will continue to be testable to
-ensure our samples reflect current recommendations and best practices!
-
-Read the [main SDK README][] for more help getting started with the Go SDK.
+For general SDK help, start with the [main SDK README][].
 
 ## To run tests
 
-1. Set the following environment variables (those marked * are required). Use
-the following instructions to find or create these values if necessary.
+1. set up authentication (see following)
+1. `dep ensure`
+1. `go test -v ./network/` (or any package)
 
-    * `AZ_SUBSCRIPTION_ID`*
-    * `AZ_TENANT_ID`*
-    * `AZ_CLIENT_ID`*
-    * `AZ_CLIENT_SECRET`*
-    * `AZ_SP_OBJECT_ID`
-    * `AZ_LOCATION`
-    * `AZ_RESOURCE_GROUP_PREFIX`
-    * `AZ_KEEP_SAMPLE_RESOURCES`
+To run all tests: `make test`.
 
-    Using [the Azure CLI][azure-cli], you can get your subscription ID by running `az account
-    list`. You can check your tenant ID and get a client ID and secret by
-    running `az ad sp create-for-rbac -n "<yourAppName>"`.
+To use service principal authentication, create a principal by running `az ad
+sp create-for-rbac -n "<yourAppName>"` and set the following environment
+variables. You can copy `.env.tpl` to a `.env` file in each package for ease of use.
 
-    If `AZ_RESOURCE_GROUP_PREFIX` isn't specified, `azure-samples-go` will be used.
+```bash
+export AZURE_SUBSCRIPTION_ID=
+export AZURE_TENANT_ID=
+export AZURE_CLIENT_ID=
+export AZURE_CLIENT_SECRET=
 
-    If `AZ_LOCATION` isn't specified `westus2` will be used.
+export AZURE_LOCATION_DEFAULT=westus2
+export AZURE_BASE_GROUP_NAME=azure-samples-go
+export AZURE_KEEP_SAMPLE_RESOURCES=0
+```
 
-    If `AZ_KEEP_SAMPLE_RESOURCES` is set to `1` tests won't clean up resources
-    they create when done. This can be helpful if you want to further experiment
-    with those resources.
+For device flow authentication, create a "native" app by running `az ad app
+create --display-name "<yourAppName>" --native-app --requiredResourceAccess
+@manifest.json`; and specify the `-useDeviceFlow` flag when running tests.
 
-    `AZ_SP_OBJECT_ID` represents a service principal ObjectID. It is needed to run the Create VM with encrypted managed disks sample.
+## Other notes
 
-    **NOTE:** the environment variables are listed in [.env.tpl](./.env.tpl)
-    so you can copy that to .env (e.g. `cp .env.tpl .env`) and update for
-    convenience. The samples pick up environment variables from .env files
-    automatically.
-
-1. Run `dep ensure` to get dependencies.
-1. Run tests with `go test` as follows:
-
-    1. To run individual samples, refer to that folder, e.g. `go test ./storage/`, `go test ./network/`.
-        * If you use a .env file, copy it into the folder first, e.g. `cp .env ./network/`.
-    1. If you're feeling lucky and want to test all the samples, try `go test ./...`
-        * This only requires the root .env file.
+`AZURE_SP_OBJECT_ID` represents a service principal ObjectID. It is needed to
+run the Create VM with encrypted managed disks sample.
 
 # Resources
 

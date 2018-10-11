@@ -9,20 +9,19 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 // Public IP Addresses
 
 func getIPClient() network.PublicIPAddressesClient {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	ipClient := network.NewPublicIPAddressesClient(helpers.SubscriptionID())
-	ipClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	ipClient.AddToUserAgent(helpers.UserAgent())
+	ipClient := network.NewPublicIPAddressesClient(config.SubscriptionID())
+	a, _ := iam.GetResourceManagementAuthorizer()
+	ipClient.Authorizer = a
+	ipClient.AddToUserAgent(config.UserAgent())
 	return ipClient
 }
 
@@ -31,11 +30,11 @@ func CreatePublicIP(ctx context.Context, ipName string) (ip network.PublicIPAddr
 	ipClient := getIPClient()
 	future, err := ipClient.CreateOrUpdate(
 		ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		ipName,
 		network.PublicIPAddress{
 			Name:     to.StringPtr(ipName),
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 			PublicIPAddressPropertiesFormat: &network.PublicIPAddressPropertiesFormat{
 				PublicIPAddressVersion:   network.IPv4,
 				PublicIPAllocationMethod: network.Static,
@@ -58,11 +57,11 @@ func CreatePublicIP(ctx context.Context, ipName string) (ip network.PublicIPAddr
 // GetPublicIP returns an existing public IP
 func GetPublicIP(ctx context.Context, ipName string) (network.PublicIPAddress, error) {
 	ipClient := getIPClient()
-	return ipClient.Get(ctx, helpers.ResourceGroupName(), ipName, "")
+	return ipClient.Get(ctx, config.GroupName(), ipName, "")
 }
 
 // DeletePublicIP deletes an existing public IP
 func DeletePublicIP(ctx context.Context, ipName string) (result network.PublicIPAddressesDeleteFuture, err error) {
 	ipClient := getIPClient()
-	return ipClient.Delete(ctx, helpers.ResourceGroupName(), ipName)
+	return ipClient.Delete(ctx, config.GroupName(), ipName)
 }

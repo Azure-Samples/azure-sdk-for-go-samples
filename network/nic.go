@@ -10,20 +10,18 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 // Network Interfaces (NIC's)
-
 func getNicClient() network.InterfacesClient {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	nicClient := network.NewInterfacesClient(helpers.SubscriptionID())
-	nicClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	nicClient.AddToUserAgent(helpers.UserAgent())
+	nicClient := network.NewInterfacesClient(config.SubscriptionID())
+	a, _ := iam.GetResourceManagementAuthorizer()
+	nicClient.Authorizer = a
+	nicClient.AddToUserAgent(config.UserAgent())
 	return nicClient
 }
 
@@ -41,7 +39,7 @@ func CreateNIC(ctx context.Context, vnetName, subnetName, nsgName, ipName, nicNa
 
 	nicParams := network.Interface{
 		Name:     to.StringPtr(nicName),
-		Location: to.StringPtr(helpers.Location()),
+		Location: to.StringPtr(config.Location()),
 		InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
 			IPConfigurations: &[]network.InterfaceIPConfiguration{
 				{
@@ -65,7 +63,7 @@ func CreateNIC(ctx context.Context, vnetName, subnetName, nsgName, ipName, nicNa
 	}
 
 	nicClient := getNicClient()
-	future, err := nicClient.CreateOrUpdate(ctx, helpers.ResourceGroupName(), nicName, nicParams)
+	future, err := nicClient.CreateOrUpdate(ctx, config.GroupName(), nicName, nicParams)
 	if err != nil {
 		return nic, fmt.Errorf("cannot create nic: %v", err)
 	}
@@ -92,10 +90,10 @@ func CreateNICWithLoadBalancer(ctx context.Context, lbName, vnetName, subnetName
 
 	nicClient := getNicClient()
 	future, err := nicClient.CreateOrUpdate(ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		nicName,
 		network.Interface{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 			InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
 				IPConfigurations: &[]network.InterfaceIPConfiguration{
 					{
@@ -134,11 +132,11 @@ func CreateNICWithLoadBalancer(ctx context.Context, lbName, vnetName, subnetName
 // GetNic returns an existing network interface
 func GetNic(ctx context.Context, nicName string) (network.Interface, error) {
 	nicClient := getNicClient()
-	return nicClient.Get(ctx, helpers.ResourceGroupName(), nicName, "")
+	return nicClient.Get(ctx, config.GroupName(), nicName, "")
 }
 
 // DeleteNic deletes an existing network interface
 func DeleteNic(ctx context.Context, nic string) (result network.InterfacesDeleteFuture, err error) {
 	nicClient := getNicClient()
-	return nicClient.Delete(ctx, helpers.ResourceGroupName(), nic)
+	return nicClient.Delete(ctx, config.GroupName(), nic)
 }

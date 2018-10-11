@@ -9,27 +9,26 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 // Load balancers
 
 func getLBClient() network.LoadBalancersClient {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	lbClient := network.NewLoadBalancersClient(helpers.SubscriptionID())
-	lbClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	lbClient.AddToUserAgent(helpers.UserAgent())
+	lbClient := network.NewLoadBalancersClient(config.SubscriptionID())
+	a, _ := iam.GetResourceManagementAuthorizer()
+	lbClient.Authorizer = a
+	lbClient.AddToUserAgent(config.UserAgent())
 	return lbClient
 }
 
 // GetLoadBalancer gets info on a loadbalancer
 func GetLoadBalancer(ctx context.Context, lbName string) (network.LoadBalancer, error) {
 	lbClient := getLBClient()
-	return lbClient.Get(ctx, helpers.ResourceGroupName(), lbName, "")
+	return lbClient.Get(ctx, config.GroupName(), lbName, "")
 }
 
 // CreateLoadBalancer creates a load balancer with 2 inbound NAT rules.
@@ -37,7 +36,7 @@ func CreateLoadBalancer(ctx context.Context, lbName, pipName string) (lb network
 	probeName := "probe"
 	frontEndIPConfigName := "fip"
 	backEndAddressPoolName := "backEndPool"
-	idPrefix := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers", helpers.SubscriptionID(), helpers.ResourceGroupName())
+	idPrefix := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers", config.SubscriptionID(), config.GroupName())
 
 	pip, err := GetPublicIP(ctx, pipName)
 	if err != nil {
@@ -46,10 +45,10 @@ func CreateLoadBalancer(ctx context.Context, lbName, pipName string) (lb network
 
 	lbClient := getLBClient()
 	future, err := lbClient.CreateOrUpdate(ctx,
-		helpers.ResourceGroupName(),
+		config.GroupName(),
 		lbName,
 		network.LoadBalancer{
-			Location: to.StringPtr(helpers.Location()),
+			Location: to.StringPtr(config.Location()),
 			LoadBalancerPropertiesFormat: &network.LoadBalancerPropertiesFormat{
 				FrontendIPConfigurations: &[]network.FrontendIPConfiguration{
 					{

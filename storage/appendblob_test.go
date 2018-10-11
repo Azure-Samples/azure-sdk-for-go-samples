@@ -7,65 +7,56 @@ package storage
 
 import (
 	"context"
-	"strings"
+	"time"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 )
 
 func ExampleAppendBlobOperations() {
-	accountName = getAccountName()
-	containerName = strings.ToLower(containerName)
+	var accountName = testAccountName
+	var accountGroupName = testAccountGroupName
+	var containerName = generateName("test-appendblobc")
+	var blobName = generateName("test-appendblob")
+	var err error
 
-	helpers.SetResourceGroupName("AppendBlob")
-	ctx := context.Background()
-	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
+	defer cancel()
+
+	_, err = CreateContainer(ctx, accountName, accountGroupName, containerName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
+	util.PrintAndLog("created container")
 
-	_, err = CreateStorageAccount(ctx, accountName)
+	_, err = CreateAppendBlob(ctx, accountName, accountGroupName, containerName, blobName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created storage account")
+	util.PrintAndLog("created append blob")
 
-	_, err = CreateContainer(ctx, accountName, containerName)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("created container")
-
-	_, err = CreateAppendBlob(ctx, accountName, containerName, blobName)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("created append blob")
-
-	for _, m := range messages {
-		err = AppendToBlob(ctx, accountName, containerName, blobName, m)
+	blocks := []string{"Hello", "World!", "Hello", "Galaxy!"}
+	for _, block := range blocks {
+		err = AppendToBlob(ctx, accountName, accountGroupName, containerName, blobName, block)
 		if err != nil {
-			helpers.PrintAndLog(err.Error())
+			util.PrintAndLog(err.Error())
 		}
-		helpers.PrintAndLog("appended data to blob")
+		util.PrintAndLog("appended data to blob")
 	}
 
-	message, err := GetBlob(ctx, accountName, containerName, blobName)
+	blob, err := GetBlob(ctx, accountName, accountGroupName, containerName, blobName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("downloaded blob")
-	helpers.PrintAndLog(message)
+	util.PrintAndLog("got blob")
+	util.PrintAndLog(blob)
 
 	// Output:
-	// created storage account
 	// created container
 	// created append blob
 	// appended data to blob
 	// appended data to blob
 	// appended data to blob
 	// appended data to blob
-	// downloaded blob
+	// got blob
 	// HelloWorld!HelloGalaxy!
 }

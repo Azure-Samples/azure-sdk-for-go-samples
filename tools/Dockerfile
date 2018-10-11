@@ -13,6 +13,7 @@ RUN apk add --no-cache git bash && \
 
 WORKDIR /go/src/github.com/Azure-Samples/azure-sdk-for-go-samples
 RUN dep ensure
+ENV AZURE_AUTH_LOCATION /mnt/secrets/authfile.json
 
 WORKDIR /
 CMD /mnt/agents/a01droid

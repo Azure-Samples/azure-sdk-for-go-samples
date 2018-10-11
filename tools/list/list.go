@@ -38,7 +38,7 @@ type test struct {
 }
 
 func formatCommand(t test) string {
-	return fmt.Sprintf("go test -v -timeout=20m %s -run ^%s$", t.pack, t.example)
+	return fmt.Sprintf("go test -v -timeout=1h %s -run ^%s$", t.pack, t.example)
 }
 
 func getTests(testFiles []string) []test {
@@ -80,7 +80,9 @@ func getTestFiles() ([]string, error) {
 	err := filepath.Walk(rootDir, func(path string, f os.FileInfo, err error) error {
 		if !strings.HasPrefix(path, vendorDir) {
 			if strings.HasSuffix(path, "_test.go") {
-				testFiles = append(testFiles, path)
+				if !strings.Contains(path, "hybrid") {
+					testFiles = append(testFiles, path)
+				}
 			}
 		}
 		return nil

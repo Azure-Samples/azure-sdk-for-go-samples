@@ -10,51 +10,51 @@ import (
 	"encoding/base64"
 	"strings"
 
-	blob "github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
+	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
 )
 
-func getBlockBlobURL(ctx context.Context, accountName, containerName, blobName string) blob.BlockBlobURL {
-	container := getContainerURL(ctx, accountName, containerName)
+func getBlockBlobURL(ctx context.Context, accountName, accountGroupName, containerName, blobName string) azblob.BlockBlobURL {
+	container := getContainerURL(ctx, accountName, accountGroupName, containerName)
 	blob := container.NewBlockBlobURL(blobName)
 	return blob
 }
 
 // CreateBlockBlob creates a new block blob
-func CreateBlockBlob(ctx context.Context, accountName, containerName, blobName string) (blob.BlockBlobURL, error) {
-	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
+func CreateBlockBlob(ctx context.Context, accountName, accountGroupName, containerName, blobName string) (azblob.BlockBlobURL, error) {
+	b := getBlockBlobURL(ctx, accountName, accountGroupName, containerName, blobName)
 	data := "blob created by Azure-Samples, okay to delete!"
 
 	_, err := b.PutBlob(
-		context.Background(),
+		ctx,
 		strings.NewReader(data),
-		blob.BlobHTTPHeaders{
+		azblob.BlobHTTPHeaders{
 			ContentType: "text/plain",
 		},
-		blob.Metadata{},
-		blob.BlobAccessConditions{},
+		azblob.Metadata{},
+		azblob.BlobAccessConditions{},
 	)
 
 	return b, err
 }
 
 // PutBlockOnBlob adds a block to a block blob. It does not commit the block.
-func PutBlockOnBlob(ctx context.Context, accountName, containerName, blobName, message string, blockNum int) error {
-	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
+func PutBlockOnBlob(ctx context.Context, accountName, accountGroupName, containerName, blobName, message string, blockNum int) error {
+	b := getBlockBlobURL(ctx, accountName, accountGroupName, containerName, blobName)
 	id := base64.StdEncoding.EncodeToString([]byte(string(blockNum)))
-	_, err := b.PutBlock(ctx, id, strings.NewReader(message), blob.LeaseAccessConditions{})
+	_, err := b.PutBlock(ctx, id, strings.NewReader(message), azblob.LeaseAccessConditions{})
 	return err
 }
 
 // GetUncommitedBlocks gets a list of uncommited blobs
-func GetUncommitedBlocks(ctx context.Context, accountName, containerName, blobName string) (*blob.BlockList, error) {
-	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
-	return b.GetBlockList(ctx, blob.BlockListUncommitted, blob.LeaseAccessConditions{})
+func GetUncommitedBlocks(ctx context.Context, accountName, accountGroupName, containerName, blobName string) (*azblob.BlockList, error) {
+	b := getBlockBlobURL(ctx, accountName, accountGroupName, containerName, blobName)
+	return b.GetBlockList(ctx, azblob.BlockListUncommitted, azblob.LeaseAccessConditions{})
 }
 
 // CommitBlocks commits the uncommitted blocks to the blob
-func CommitBlocks(ctx context.Context, accountName, containerName, blobName string) error {
-	b := getBlockBlobURL(ctx, accountName, containerName, blobName)
-	list, err := GetUncommitedBlocks(ctx, accountName, containerName, blobName)
+func CommitBlocks(ctx context.Context, accountName, accountGroupName, containerName, blobName string) error {
+	b := getBlockBlobURL(ctx, accountName, accountGroupName, containerName, blobName)
+	list, err := GetUncommitedBlocks(ctx, accountName, accountGroupName, containerName, blobName)
 	if err != nil {
 		return err
 	}
@@ -64,6 +64,6 @@ func CommitBlocks(ctx context.Context, accountName, containerName, blobName stri
 		IDs = append(IDs, u.Name)
 	}
 
-	_, err = b.PutBlockList(ctx, IDs, blob.BlobHTTPHeaders{}, blob.Metadata{}, blob.BlobAccessConditions{})
+	_, err = b.PutBlockList(ctx, IDs, azblob.BlobHTTPHeaders{}, azblob.Metadata{}, azblob.BlobAccessConditions{})
 	return err
 }

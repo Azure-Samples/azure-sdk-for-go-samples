@@ -14,6 +14,7 @@ import (
 	"sync"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
@@ -21,7 +22,6 @@ func main() {
 	var quiet bool
 	var resourceGroupNamePrefix string
 	flag.BoolVar(&quiet, "quiet", false, "Run quietly")
-	flag.StringVar(&resourceGroupNamePrefix, "groupPrefix", helpers.GroupPrefix(), "Specify prefix name of resource group for sample resources.")
 
 	err := helpers.ParseSubscriptionID()
 	if err != nil {
@@ -34,6 +34,12 @@ func main() {
 		log.Fatalf("Using device flow: %v", helpers.DeviceFlow())
 	}
 	flag.Parse()
+
+	err = iam.ParseArgs()
+	if err != nil {
+		log.Fatalf("failed to parse IAM args: %v\n", err)
+	}
+
 	helpers.SetPrefix(resourceGroupNamePrefix)
 
 	if !quiet {

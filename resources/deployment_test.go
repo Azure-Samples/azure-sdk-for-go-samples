@@ -10,17 +10,22 @@ import (
 	"go/build"
 	"log"
 	"path/filepath"
+	"time"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 )
 
 func ExampleCreateTemplateDeployment() {
-	helpers.SetResourceGroupName("CreateTemplateDeploy")
-	ctx := context.Background()
+	groupName := config.GenerateGroupName("groups-template")
+	config.SetGroupName(groupName) // TODO: don't rely on globals
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	defer cancel()
 	defer Cleanup(ctx)
-	_, err := CreateGroup(ctx, helpers.ResourceGroupName())
+
+	_, err := CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
 	gopath := build.Default.GOPATH
@@ -29,26 +34,26 @@ func ExampleCreateTemplateDeployment() {
 	parametersFile := filepath.Join(gopath, "src", repo, "resources", "testdata", "parameters.json")
 	deployName := "VMdeploy"
 
-	template, err := helpers.ReadJSON(templateFile)
+	template, err := util.ReadJSON(templateFile)
 	if err != nil {
 		return
 	}
-	params, err := helpers.ReadJSON(parametersFile)
+	params, err := util.ReadJSON(parametersFile)
 	if err != nil {
 		return
 	}
 
 	_, err = ValidateDeployment(ctx, deployName, template, params)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("validated VM template deployment")
+	util.PrintAndLog("validated VM template deployment")
 
 	_, err = CreateDeployment(ctx, deployName, template, params)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("created VM template deployment")
+	util.PrintAndLog("created VM template deployment")
 
 	ipName := (*params)["publicIPAddresses_QuickstartVM_ip_name"].(map[string]interface{})["value"].(string)
 	vmUser := (*params)["vm_user"].(map[string]interface{})["value"].(string)
@@ -60,9 +65,9 @@ func ExampleCreateTemplateDeployment() {
 		ipName,
 		"2018-01-01")
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("got public IP info via get generic resource")
+	util.PrintAndLog("got public IP info via get generic resource")
 
 	log.Printf("Log in with ssh: %s@%s, password: %s",
 		vmUser,

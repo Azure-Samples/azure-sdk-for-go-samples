@@ -8,7 +8,7 @@ package cognitiveservices
 import (
 	"context"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/newssearch"
 	"github.com/Azure/go-autorest/autorest"
 )
@@ -18,7 +18,7 @@ func getNewsSearchClient(accountName string) newssearch.NewsClient {
 	newsSearchClient := newssearch.NewNewsClient()
 	csAuthorizer := autorest.NewCognitiveServicesAuthorizer(apiKey)
 	newsSearchClient.Authorizer = csAuthorizer
-	newsSearchClient.AddToUserAgent(helpers.UserAgent())
+	newsSearchClient.AddToUserAgent(config.UserAgent())
 	return newsSearchClient
 }
 
@@ -29,7 +29,6 @@ func SearchNews(accountName string) (newssearch.News, error) {
 
 	news, err := newsSearchClient.Search(
 		context.Background(), // context
-		"",                   // X-BingApis-SDK header
 		query,                // query keyword
 		"",                   // Accept-Language header
 		"",                   // User-Agent header
@@ -38,15 +37,15 @@ func SearchNews(accountName string) (newssearch.News, error) {
 		"",                   // X-Search-Location header
 		"",                   // country code
 		nil,                  // count
-		"",                   // freshness
+		newssearch.Month,     // freshness
 		"",                   // market
 		nil,                  // offset
 		nil,                  // original image
-		"",                   // safe search
+		newssearch.Strict,    // safe search
 		"",                   // set lang
 		"",                   // sort by
 		nil,                  // text decorations
-		"",                   // text format
+		newssearch.Raw,       // text format
 	)
 
 	return news, err

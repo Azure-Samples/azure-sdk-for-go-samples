@@ -11,155 +11,118 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
+	"github.com/marstr/randname"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
-	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/subosito/gotenv"
 )
 
 var (
-	vmName           = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
-	diskName         = "az-samples-go-" + helpers.GetRandomLetterSequence(10)
-	nicName          = "nic" + helpers.GetRandomLetterSequence(10)
-	username         = "az-samples-go-user"
-	password         = "NoSoupForYou1!"
+	// names used in tests
+	username           = "gosdkuser"
+	password           = "gosdkuserpass!1"
+	vmName             = generateName("gosdk-vm1")
+	diskName           = generateName("gosdk-disk1")
+	nicName            = generateName("gosdk-nic1")
+	virtualNetworkName = generateName("gosdk-vnet1")
+	subnet1Name        = generateName("gosdk-subnet1")
+	subnet2Name        = generateName("gosdk-subnet2")
+	nsgName            = generateName("gosdk-nsg1")
+	ipName             = generateName("gosdk-ip1")
+	lbName             = generateName("gosdk-lb1")
+
 	sshPublicKeyPath = os.Getenv("HOME") + "/.ssh/id_rsa.pub"
 
-	virtualNetworkName = "vnet1"
-	subnet1Name        = "subnet1"
-	subnet2Name        = "subnet2"
-	nsgName            = "nsg1"
-	ipName             = "ip1"
-	lbName             = "lb"
+	containerGroupName  string = randname.GenerateWithPrefix("gosdk-aci-", 10)
+	aksClusterName      string = randname.GenerateWithPrefix("gosdk-aks-", 10)
+	aksUsername         string = "azureuser"
+	aksSSHPublicKeyPath string = os.Getenv("HOME") + "/.ssh/id_rsa.pub"
+	aksAgentPoolCount   int32  = 4
 )
 
-func TestMain(m *testing.M) {
-	err := parseArgs()
+func addLocalEnvAndParse() error {
+	// parse env at top-level (also controls dotenv load)
+	err := config.ParseEnvironment()
 	if err != nil {
-		log.Fatalln("failed to parse args")
+		return fmt.Errorf("failed to add top-level env: %v\n", err.Error())
 	}
 
-	os.Exit(m.Run())
+	// add local env
+	vnetNameFromEnv := os.Getenv("AZURE_VNET_NAME")
+	if len(vnetNameFromEnv) > 0 {
+		virtualNetworkName = vnetNameFromEnv
+	}
+	return nil
 }
 
-func parseArgs() error {
-	gotenv.Load()
-
-	virtualNetworkName = os.Getenv("AZ_VNET_NAME")
-	flag.StringVar(&virtualNetworkName, "vnetName", virtualNetworkName, "Specify a name for the vnet.")
-
-	err := helpers.ParseArgs()
+func addLocalFlagsAndParse() error {
+	// add top-level flags
+	err := config.AddFlags()
 	if err != nil {
-		return fmt.Errorf("cannot parse args: %v", err)
+		return fmt.Errorf("failed to add top-level flags: %v\n", err.Error())
 	}
 
-	if !(len(virtualNetworkName) > 0) {
-		virtualNetworkName = "vnet1"
+	// add local flags
+	// flag.StringVar(
+	//	&testVnetName, "testVnetName", testVnetName,
+	//	"Name for test Vnet.")
+
+	// parse all flags
+	flag.Parse()
+	return nil
+}
+
+func setup() error {
+	var err error
+	err = addLocalEnvAndParse()
+	if err != nil {
+		return err
+	}
+	err = addLocalFlagsAndParse()
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func ExampleCreateVM() {
-	helpers.SetResourceGroupName("CreateVM")
-	ctx := context.Background()
-	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+func teardown() error {
+	if config.KeepResources() == false {
+		// does not wait
+		_, err := resources.DeleteGroup(context.Background(), config.GroupName())
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// test helpers
+func generateName(prefix string) string {
+	return strings.ToLower(randname.GenerateWithPrefix(prefix, 5))
+}
+
+// TestMain sets up the environment and initiates tests.
+func TestMain(m *testing.M) {
+	var err error
+	var code int
+
+	err = setup()
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		log.Fatalf("could not set up environment: %v\n", err)
 	}
 
-	_, err = network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
+	code = m.Run()
+
+	err = teardown()
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		log.Fatalf(
+			"could not tear down environment: %v\n; original exit code: %v\n",
+			err, code)
 	}
-	helpers.PrintAndLog("created vnet and 2 subnets")
 
-	_, err = network.CreateNetworkSecurityGroup(ctx, nsgName)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("created network security group")
-
-	_, err = network.CreatePublicIP(ctx, ipName)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("created public IP")
-
-	_, err = network.CreateNIC(ctx, virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("created nic")
-
-	_, err = CreateVM(ctx, vmName, nicName, username, password, sshPublicKeyPath)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("created VM")
-
-	// Now that the Vm has been created, we can do some simple operations on the VM
-
-	_, err = UpdateVM(ctx, vmName, map[string]*string{
-		"who rocks": to.StringPtr("golang"),
-		"where":     to.StringPtr("on azure"),
-	})
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("updated VM")
-
-	_, err = AttachDataDisks(ctx, vmName)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("attached data disks")
-
-	_, err = DetachDataDisks(ctx, vmName)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("detached data disks")
-
-	_, err = UpdateOSDiskSize(ctx, vmName)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("updated OS disk size")
-
-	_, err = StartVM(ctx, vmName)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("started VM")
-
-	_, err = RestartVM(ctx, vmName)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("restarted VM")
-
-	_, err = PowerOffVM(ctx, vmName)
-	if err != nil {
-		helpers.PrintAndLog(err.Error())
-	}
-	helpers.PrintAndLog("stopped VM")
-
-	// Output:
-	// created vnet and 2 subnets
-	// created network security group
-	// created public IP
-	// created nic
-	// created VM
-	// updated VM
-	// attached data disks
-	// detached data disks
-	// updated OS disk size
-	// started VM
-	// restarted VM
-	// stopped VM
+	os.Exit(code)
 }

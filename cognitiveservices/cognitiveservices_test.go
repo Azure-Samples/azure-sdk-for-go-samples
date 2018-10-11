@@ -7,44 +7,61 @@ package cognitiveservices
 
 import (
 	"context"
+	"flag"
 	"log"
 	"os"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/entitysearch"
+	"github.com/marstr/randname"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
+// TestMain sets up the environment and initiates tests.
 func TestMain(m *testing.M) {
-	err := helpers.ParseArgs()
+	var err error
+	err = config.ParseEnvironment()
 	if err != nil {
-		log.Fatalln("failed to parse args")
+		log.Fatalf("failed to parse env: %v\n", err)
 	}
-	os.Exit(m.Run())
+	err = config.AddFlags()
+	if err != nil {
+		log.Fatalf("failed to parse env: %v\n", err)
+	}
+	flag.Parse()
+
+	code := m.Run()
+	os.Exit(code)
 }
 
-// ExampleCognitiveServicesSearch creates a resource group and a Cognitive Services account of type Search. Then it executes searches
-// for web pages, images, videos, news and entities
+// ExampleCognitiveServicesSearch creates a resource group and a Cognitive
+// Services account of type Search. Then it executes searches for web pages,
+// images, videos, news and entities
 func ExampleCognitiveServicesSearch() {
-	accountName := "azuresamplesgo" + helpers.GetRandomLetterSequence(10)
+	accountName := randname.GenerateWithPrefix("azuresamplesgo", 10)
 
-	helpers.SetResourceGroupName("CognitiveServicesSearch")
+	var groupName = config.GenerateGroupName("CognitiveServicesSearch")
+	config.SetGroupName(groupName)
+
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+
+	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
 	_, err = CreateCSAccount(accountName, cognitiveservices.BingSearchv7)
 
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
-	helpers.PrintAndLog("cognitive services search resource created")
+	util.PrintAndLog("cognitive services search resource created")
 
 	searchWeb(accountName)
 	searchImages(accountName)
@@ -68,30 +85,32 @@ func ExampleCognitiveServicesSearch() {
 // ExampleCognitiveServicesSpellCheck creates a resource group and a Cognitive Services account of type spell check. Then it executes
 // a spell check and inspects the corrections.
 func ExampleCognitiveServicesSpellCheck() {
-	accountName := "azuresamplesgo" + helpers.GetRandomLetterSequence(10)
+	accountName := randname.GenerateWithPrefix("azuresamplesgo", 10)
 
-	helpers.SetResourceGroupName("CognitiveServicesSpellcheck")
+	var groupName = config.GenerateGroupName("CognitiveServicesSpellcheck")
+	config.SetGroupName(groupName)
+
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+
+	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
 	_, err = CreateCSAccount(accountName, cognitiveservices.BingSpellCheckv7)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-
-	helpers.PrintAndLog("cognitive services spellcheck resource created")
+	util.PrintAndLog("cognitive services spellcheck resource created")
 
 	spellCheckResult, err := SpellCheck(accountName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
 	if len(*spellCheckResult.FlaggedTokens) > 0 {
-		helpers.PrintAndLog("completed spell check and found corrections")
+		util.PrintAndLog("completed spell check and found corrections")
 
 		firstFlaggedToken := (*spellCheckResult.FlaggedTokens)[0]
 		log.Printf("Number of flagged tokens in the input: %v \n", len(*spellCheckResult.FlaggedTokens))
@@ -107,11 +126,11 @@ func ExampleCognitiveServicesSpellCheck() {
 func searchWeb(accountName string) {
 	webPages, err := SearchWeb(accountName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
 	if len(*webPages.Value) > 0 {
-		helpers.PrintAndLog("completed web search and got results")
+		util.PrintAndLog("completed web search and got results")
 
 		firstWebPage := (*webPages.Value)[0]
 		log.Printf("Number of web results: %v \n", len(*webPages.Value))
@@ -123,11 +142,11 @@ func searchWeb(accountName string) {
 func searchImages(accountName string) {
 	images, err := SearchImages(accountName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
 	if len(*images.Value) > 0 {
-		helpers.PrintAndLog("completed image search and got results")
+		util.PrintAndLog("completed image search and got results")
 
 		firstImage := (*images.Value)[0]
 		log.Printf("Number of image results: %v \n", len(*images.Value))
@@ -137,13 +156,13 @@ func searchImages(accountName string) {
 	}
 
 	if len(*images.PivotSuggestions) > 0 {
-		helpers.PrintAndLog("completed image search and got pivot suggestions")
+		util.PrintAndLog("completed image search and got pivot suggestions")
 
 		firstPivot := (*images.PivotSuggestions)[0]
 		log.Printf("Number of pivot suggestions results: %v \n", len(*images.PivotSuggestions))
 
 		if len(*firstPivot.Suggestions) > 0 {
-			helpers.PrintAndLog("completed image search and got suggestions")
+			util.PrintAndLog("completed image search and got suggestions")
 
 			firstSuggestion := (*firstPivot.Suggestions)[0]
 			log.Printf("Number of suggestions on first pivot: %v \n", len(*firstPivot.Suggestions))
@@ -153,7 +172,7 @@ func searchImages(accountName string) {
 	}
 
 	if len(*images.QueryExpansions) > 0 {
-		helpers.PrintAndLog("completed image search and got query expansions")
+		util.PrintAndLog("completed image search and got query expansions")
 
 		firstQE := (*images.QueryExpansions)[0]
 		log.Printf("Number of query expansions : %v \n", len(*images.QueryExpansions))
@@ -165,11 +184,11 @@ func searchImages(accountName string) {
 func searchVideos(accountName string) {
 	videos, err := SearchVideos(accountName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
 	if len(*videos.Value) > 0 {
-		helpers.PrintAndLog("completed video search and got results")
+		util.PrintAndLog("completed video search and got results")
 
 		firstVideo := (*videos.Value)[0]
 		log.Printf("Number of video results: %v \n", len(*videos.Value))
@@ -180,11 +199,11 @@ func searchVideos(accountName string) {
 
 	trendingVideos, err := TrendingVideos(accountName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
 	if len(*trendingVideos.BannerTiles) > 0 {
-		helpers.PrintAndLog("completed trending video search and got results")
+		util.PrintAndLog("completed trending video search and got results")
 
 		firstBannerTitle := (*trendingVideos.BannerTiles)[0]
 		log.Printf("Number of trending titles : %v \n", len(*trendingVideos.BannerTiles))
@@ -196,11 +215,11 @@ func searchVideos(accountName string) {
 func searchNews(accountName string) {
 	news, err := SearchNews(accountName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
 	if len(*news.Value) > 0 {
-		helpers.PrintAndLog("completed news search and got results")
+		util.PrintAndLog("completed news search and got results")
 
 		firstNewsResult := (*news.Value)[0]
 
@@ -213,7 +232,7 @@ func searchNews(accountName string) {
 		org, success := (*firstNewsResult.Provider)[0].AsOrganization()
 
 		if success != true {
-			helpers.PrintAndLog(err.Error())
+			util.PrintAndLog(err.Error())
 		}
 
 		log.Printf("First news provider: %v \n", *org.Name)
@@ -223,11 +242,11 @@ func searchNews(accountName string) {
 func searchEntities(accountName string) {
 	entities, err := SearchEntities(accountName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
 	if len(*entities.Value) > 0 {
-		helpers.PrintAndLog("completed entity search and got results")
+		util.PrintAndLog("completed entity search and got results")
 
 		dominantEntity := filter(*entities.Value, filterFunc)
 		firstEntity, _ := dominantEntity[0].AsThing()

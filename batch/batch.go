@@ -13,10 +13,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/iam"
 	"github.com/Azure/azure-sdk-for-go/services/batch/2017-09-01.6.0/batch"
 	batchARM "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	uuid "github.com/satori/go.uuid"
@@ -28,45 +29,45 @@ const (
 )
 
 func getAccountClient() batchARM.AccountClient {
-	token, _ := iam.GetResourceManagementToken(iam.AuthGrantType())
-	accountClient := batchARM.NewAccountClient(helpers.SubscriptionID())
-	accountClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	accountClient.AddToUserAgent(helpers.UserAgent())
+	accountClient := batchARM.NewAccountClient(config.SubscriptionID())
+	auth, _ := iam.GetResourceManagementAuthorizer()
+	accountClient.Authorizer = auth
+	accountClient.AddToUserAgent(config.UserAgent())
 	return accountClient
 }
 
 func getPoolClient(accountName, accountLocation string) batch.PoolClient {
-	token, _ := iam.GetBatchToken(iam.AuthGrantType())
 	poolClient := batch.NewPoolClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
-	poolClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	poolClient.AddToUserAgent(helpers.UserAgent())
+	auth, _ := iam.GetBatchAuthorizer()
+	poolClient.Authorizer = auth
+	poolClient.AddToUserAgent(config.UserAgent())
 	poolClient.RequestInspector = fixContentTypeInspector()
 	return poolClient
 }
 
 func getJobClient(accountName, accountLocation string) batch.JobClient {
-	token, _ := iam.GetBatchToken(iam.AuthGrantType())
 	jobClient := batch.NewJobClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
-	jobClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	jobClient.AddToUserAgent(helpers.UserAgent())
+	auth, _ := iam.GetBatchAuthorizer()
+	jobClient.Authorizer = auth
+	jobClient.AddToUserAgent(config.UserAgent())
 	jobClient.RequestInspector = fixContentTypeInspector()
 	return jobClient
 }
 
 func getTaskClient(accountName, accountLocation string) batch.TaskClient {
-	token, _ := iam.GetBatchToken(iam.AuthGrantType())
 	taskClient := batch.NewTaskClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
-	taskClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	taskClient.AddToUserAgent(helpers.UserAgent())
+	auth, _ := iam.GetBatchAuthorizer()
+	taskClient.Authorizer = auth
+	taskClient.AddToUserAgent(config.UserAgent())
 	taskClient.RequestInspector = fixContentTypeInspector()
 	return taskClient
 }
 
 func getFileClient(accountName, accountLocation string) batch.FileClient {
-	token, _ := iam.GetBatchToken(iam.AuthGrantType())
 	fileClient := batch.NewFileClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
-	fileClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	fileClient.AddToUserAgent(helpers.UserAgent())
+	auth, _ := iam.GetBatchAuthorizer()
+	fileClient.Authorizer = auth
+	fileClient.AddToUserAgent(config.UserAgent())
 	fileClient.RequestInspector = fixContentTypeInspector()
 	return fileClient
 }
@@ -237,7 +238,10 @@ func getBatchBaseURL(accountName, accountLocation string) string {
 func fixContentTypeInspector() autorest.PrepareDecorator {
 	return func(p autorest.Preparer) autorest.Preparer {
 		return autorest.PreparerFunc(func(r *http.Request) (*http.Request, error) {
-			r.Header.Set("Content-Type", "application/json; odata=minimalmetadata")
+			r, err := p.Prepare(r)
+			if err == nil {
+				r.Header.Set("Content-Type", "application/json; odata=minimalmetadata")
+			}
 			return r, nil
 		})
 	}

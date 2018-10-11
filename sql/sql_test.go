@@ -7,76 +7,180 @@ package sql
 
 import (
 	"context"
+	"database/sql"
 	"flag"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/helpers"
+	// sql driver
+	_ "github.com/denisenkom/go-mssqldb"
+
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+
+	"github.com/marstr/randname"
 )
 
 var (
-	serverName = "sql-server-go-samples-" + helpers.GetRandomLetterSequence(10)
-	dbName     = "sql-db1"
-	dbLogin    = "sql-db-user1"
-	dbPassword = "NoSoupForYou1!"
+	serverName = generateName("gosdksql")
+	dbName     = "sqldb1"
+	dbLogin    = "sqldbuser1"
+	dbPassword = "sqldbuserpass!1"
 )
 
-func TestMain(m *testing.M) {
-	flag.StringVar(&serverName, "sqlServerName", serverName, "Provide a name for the SQL server to be created")
-	flag.StringVar(&dbName, "sqlDbName", dbName, "Provide a name for the SQL database to be created")
-	flag.StringVar(&dbLogin, "sqlDbUsername", dbLogin, "Provide a username for the SQL database.")
-	flag.StringVar(&dbPassword, "sqlDbPassword", dbPassword, "Provide a password for the username.")
-
-	err := helpers.ParseArgs()
+func addLocalEnvAndParse() error {
+	// parse env at top-level (also controls dotenv load)
+	err := config.ParseEnvironment()
 	if err != nil {
-		log.Fatalln("failed to parse args")
+		return fmt.Errorf("failed to add top-level env: %v\n", err.Error())
 	}
-	os.Exit(m.Run())
+
+	// add local env
+	vnetNameFromEnv := os.Getenv("AZURE_VNET_NAME")
+	if len(vnetNameFromEnv) > 0 {
+		testVnetName = vnetNameFromEnv
+	}
+	return nil
+}
+
+func addLocalFlagsAndParse() error {
+	// add top-level flags
+	err := config.AddFlags()
+	if err != nil {
+		return fmt.Errorf("failed to add top-level flags: %v\n", err.Error())
+	}
+
+	flag.StringVar(&serverName, "sqlServerName", serverName, "Name for SQL server.")
+	flag.StringVar(&dbName, "sqlDbName", dbName, "Name for SQL database.")
+	flag.StringVar(&dbLogin, "sqlDbUsername", dbLogin, "Username for SQL login.")
+	flag.StringVar(&dbPassword, "sqlDbPassword", dbPassword, "Password for SQL login.")
+
+	// parse all flags
+	flag.Parse()
+	return nil
+}
+
+func setup() error {
+	var err error
+	err = addLocalEnvAndParse()
+	if err != nil {
+		return err
+	}
+	err = addLocalFlagsAndParse()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func teardown() error {
+	if config.KeepResources() == false {
+		// does not wait
+		_, err := resources.DeleteGroup(context.Background(), config.GroupName())
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// test helpers
+func generateName(prefix string) string {
+	return strings.ToLower(randname.GenerateWithPrefix(prefix, 5))
+}
+
+// TestMain sets up the environment and initiates tests.
+func TestMain(m *testing.M) {
+	var err error
+	var code int
+
+	err = setup()
+	if err != nil {
+		log.Fatalf("could not set up environment: %v\n", err)
+	}
+
+	code = m.Run()
+
+	err = teardown()
+	if err != nil {
+		log.Fatalf(
+			"could not tear down environment: %v\n; original exit code: %v\n",
+			err, code)
+	}
+
+	os.Exit(code)
 }
 
 // Example creates a SQL server and database, then creates a table and inserts a record.
-func ExampleDatabaseQueries() {
+func ExampleCreateDatabase() {
+	const groupName = config.GenerateGroupName("DatabaseQueries")
+	config.SetGroupName(groupName)
+
 	serverName = strings.ToLower(serverName)
-	helpers.SetResourceGroupName("DatabaseQueries")
+
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
-	_, err := resources.CreateGroup(ctx, helpers.ResourceGroupName())
+
+	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
 
 	_, err = CreateServer(ctx, serverName, dbLogin, dbPassword)
 	if err != nil {
-		helpers.PrintAndLog(fmt.Sprintf("cannot create sql server: %v", err))
+		util.PrintAndLog(fmt.Sprintf("cannot create sql server: %v", err))
 	}
-
-	helpers.PrintAndLog("sql server created")
+	util.PrintAndLog("sql server created")
 
 	_, err = CreateDB(ctx, serverName, dbName)
 	if err != nil {
-		helpers.PrintAndLog(fmt.Sprintf("cannot create sql database: %v", err))
+		util.PrintAndLog(fmt.Sprintf("cannot create sql database: %v", err))
 	}
-	helpers.PrintAndLog("database created")
+	util.PrintAndLog("database created")
 
 	err = CreateFirewallRules(ctx, serverName)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("database firewall rules set")
+	util.PrintAndLog("database firewall rules set")
 
-	err = DbOperations(serverName, dbName, dbLogin, dbPassword)
+	err = TestSQLDataplane(serverName, dbName, dbLogin, dbPassword)
 	if err != nil {
-		helpers.PrintAndLog(err.Error())
+		util.PrintAndLog(err.Error())
 	}
-	helpers.PrintAndLog("database operations performed")
+	util.PrintAndLog("database operations performed")
 
 	// Output:
 	// sql server created
 	// database created
 	// database firewall rules set
 	// database operations performed
+}
+
+// TestSQLDataplane executes some simple SQL queries
+func TestSQLDataplane(server, database, username, password string) error {
+	log.Printf("available drivers: %v", sql.Drivers())
+
+	db, err := Open(server, database, username, password)
+	if err != nil {
+		return err
+	}
+
+	err = CreateTable(db)
+	if err != nil {
+		return err
+	}
+
+	err = Insert(db)
+	if err != nil {
+		return err
+	}
+
+	return Query(db)
 }

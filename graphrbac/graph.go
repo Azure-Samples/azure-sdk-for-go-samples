@@ -102,9 +102,9 @@ func GetCurrentUser(ctx context.Context) (graphrbac.AADObject, error) {
 func CreateADGroup(ctx context.Context) (graphrbac.ADGroup, error) {
 	groupsClient := getADGroupsClient()
 	return groupsClient.Create(ctx, graphrbac.GroupCreateParameters{
-		DisplayName:             to.StringPtr("GoSDKSamples"),
-		MailEnabled:             to.BoolPtr(true),
-		MailNickname:            to.StringPtr("GoSDKMN"),
-		SecurityEnabled:         to.BoolPtr(true),
+		DisplayName:     to.StringPtr("GoSDKSamples"),
+		MailEnabled:     to.BoolPtr(true),
+		MailNickname:    to.StringPtr("GoSDKMN"),
+		SecurityEnabled: to.BoolPtr(true),
 	})
 }

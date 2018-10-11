@@ -55,13 +55,18 @@ func ExampleWeb_DeployAppForContainer() {
 	}
 	defer resources.Cleanup(ctx)
 
-	configResource, err := CreateContainerSite(ctx, siteName, "appsvc/sample-hello-world:latest")
+	_, err = CreateContainerSite(ctx, siteName, "appsvc/sample-hello-world:latest")
 
 	if err != nil {
 		fmt.Println("failed to create: ", err)
 		return
 	}
 
+	configResource, err := GetAppConfiguration(ctx, siteName)
+	if err != nil {
+		fmt.Println("failed to get app configuration: ", err)
+		return
+	}
 	fmt.Println(*configResource.LinuxFxVersion)
 
 	// Output: DOCKER|appsvc/sample-hello-world:latest

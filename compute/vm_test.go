@@ -14,6 +14,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/keyvault"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/msi"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -397,4 +398,94 @@ func ExampleCreateVMWithDisks() {
 	// attached data disks
 	// detached data disks
 	// updated OS disk size
+}
+
+func ExampleCreateVMWithUserAssignedIdentity() {
+	var groupName = config.GenerateGroupName("VMWithUserAssignedID")
+	// TODO: remove and use local `groupName` only
+	config.SetGroupName(groupName)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 6000*time.Second)
+	defer cancel()
+	defer resources.Cleanup(ctx)
+
+	_, err := resources.CreateGroup(ctx, groupName)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+		return
+	}
+
+	_, err = network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+		return
+	}
+	util.PrintAndLog("created vnet and 2 subnets")
+
+	_, err = network.CreateNetworkSecurityGroup(ctx, nsgName)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+		return
+	}
+	util.PrintAndLog("created network security group")
+
+	_, err = network.CreatePublicIP(ctx, ipName)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+		return
+	}
+	util.PrintAndLog("created public IP")
+
+	_, err = network.CreateNIC(ctx, virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+		return
+	}
+	util.PrintAndLog("created nic")
+
+	id1, err := msi.CreateUserAssignedIdentity(groupName, "useridentity1")
+	if err != nil {
+		util.PrintAndLog(err.Error())
+		return
+	}
+	util.PrintAndLog("created first user-assigned identity")
+
+	_, err = CreateVMWithUserAssignedID(ctx, vmName, nicName, username, password, *id1)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+		return
+	}
+	util.PrintAndLog("created VM")
+
+	id2, err := msi.CreateUserAssignedIdentity(groupName, "useridentity2")
+	if err != nil {
+		util.PrintAndLog(err.Error())
+		return
+	}
+	util.PrintAndLog("created second user-assigned identity")
+
+	_, err = AddUserAssignedIDToVM(ctx, vmName, *id2)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+		return
+	}
+	util.PrintAndLog("added second user-assigned identity to VM")
+
+	_, err = RemoveUserAssignedIDFromVM(ctx, vmName, *id1)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+		return
+	}
+	util.PrintAndLog("removed first user-assigned identity from VM")
+
+	// Output:
+	// created vnet and 2 subnets
+	// created network security group
+	// created public IP
+	// created nic
+	// created first user-assigned identity
+	// created VM
+	// created second user-assigned identity
+	// added second user-assigned identity to VM
+	// removed first user-assigned identity from VM
 }

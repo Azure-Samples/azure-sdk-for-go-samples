@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:a6d35358f349b1cd7b64eb1f2447e30ecd284dea0cf9677600a1898cad4df6ee"
+  digest = "1:8b95956b70e181b19025c7ba3578fdfd8efbec4ce916490700488afb9218972c"
   name = "cloud.google.com/go"
   packages = ["civil"]
   pruneopts = ""
@@ -10,7 +10,7 @@
   version = "v0.26.0"
 
 [[projects]]
-  digest = "1:029c149609508e788530079448902cc7938180385b95e34725c8f785cc0c20cc"
+  digest = "1:33a6b5e53095d9389a1b04c95fce7fa3ca0f70ac8e02d91f12bd2a09831f0767"
   name = "github.com/Azure/azure-amqp-common-go"
   packages = [
     ".",
@@ -31,7 +31,7 @@
   version = "v0.6.0"
 
 [[projects]]
-  digest = "1:9fabfa4345aa541f2e3a6879899f10c9534219edd82a3b2c2e4d531c88595854"
+  digest = "1:d51fa7889d43c3f2cebbc0eeeb5dbd87dfb6731d055be14f71f8e6d04a23b6a1"
   name = "github.com/Azure/azure-event-hubs-go"
   packages = [
     ".",
@@ -53,7 +53,7 @@
   version = "0.1.7"
 
 [[projects]]
-  digest = "1:f1cee2134e06a7ea1e9317bbc5724beb7c6d37192d6e15e4ef2ac21d279481b0"
+  digest = "1:9b3345d9211757405d1cfb9cb5a8c3b04298105e8877cbe7eed48b07cf5cb91d"
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
     "profiles/2017-03-09/compute/mgmt/compute",
@@ -85,6 +85,7 @@
     "services/keyvault/mgmt/2016-10-01/keyvault",
     "services/network/mgmt/2015-06-15/network",
     "services/network/mgmt/2017-09-01/network",
+    "services/preview/msi/mgmt/2015-08-31-preview/msi",
     "services/resources/mgmt/2016-02-01/resources",
     "services/resources/mgmt/2017-05-10/resources",
     "services/sql/mgmt/2015-05-01-preview/sql",
@@ -99,7 +100,7 @@
   version = "v19.1.0"
 
 [[projects]]
-  digest = "1:8a04c29539845af0a5f69793e1fb395d0ab9eac0025311f53537cb515e90df8e"
+  digest = "1:ace3decc99da0ada5b35bebb984fd3f0a881b9a1f6d8c8447332570601845fdc"
   name = "github.com/Azure/azure-storage-blob-go"
   packages = ["2016-05-31/azblob"]
   pruneopts = ""
@@ -107,7 +108,7 @@
   version = "0.1.4"
 
 [[projects]]
-  digest = "1:bfd9d65dc873a47823470da63ce6a9c7d69b98212590e852ab8b9f01b356c439"
+  digest = "1:bc4ebf17378639058f2001f0ac11957e462cea3d7c39b1e7e431f71557a67139"
   name = "github.com/Azure/go-autorest"
   packages = [
     "autorest",
@@ -126,7 +127,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e3d38fd9948d998cc8c5aae252d48ed9d74d5326489cacbfbf7bd5302ca86ec6"
+  digest = "1:59d26e030b4edadff17e264d382f0631eac378de47073c9aa0da2b73e243f682"
   name = "github.com/denisenkom/go-mssqldb"
   packages = [
     ".",
@@ -136,7 +137,7 @@
   revision = "242fa5aa1b45aeb9fcdfeee88822982e3f548e22"
 
 [[projects]]
-  digest = "1:2426da75f49e5b8507a6ed5d4c49b06b2ff795f4aec401c106b7db8fb2625cd7"
+  digest = "1:6098222470fe0172157ce9bbef5d2200df4edde17ee649c5d6e48330e4afa4c6"
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
   pruneopts = ""
@@ -153,7 +154,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0d1bc2d8df6654687f7e2dafb6ecaea40adeb6e93c92a35ebb2cc1e2fa6ac438"
+  digest = "1:c1e35087694b689ce1cf4f4277612b6ac0b55725fa791271ae0e3ddcd1cc0c7b"
   name = "github.com/globalsign/mgo"
   packages = [
     ".",
@@ -174,7 +175,7 @@
   version = "v1.6.3"
 
 [[projects]]
-  digest = "1:9e2d3c77cfb28d97073016bdc42d70e73d84876d8bacd4436f613dfbf93f8eda"
+  digest = "1:442baaf193e432b3432e26465fb36aed31484866ddb0ee11f68caceb130e317e"
   name = "github.com/joho/godotenv"
   packages = ["."]
   pruneopts = ""
@@ -182,7 +183,7 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:a0cb5f41e61664683912f073ec14760a9f60b432d75afa01f64e1db5443a5539"
+  digest = "1:71a28fe7d86ace8e51192c97eb4fd376c27ae0ed3a6ff46b41a6da76a0785d78"
   name = "github.com/marstr/collection"
   packages = ["."]
   pruneopts = ""
@@ -206,7 +207,7 @@
   revision = "f15292f7a699fcc1a38a80977f80a046874ba8ac"
 
 [[projects]]
-  digest = "1:bba12aa4747b212f75db3e7fee73fe1b66d303cb3ff0c1984b7f2ad20e8bd2bc"
+  digest = "1:78fb99d6011c2ae6c72f3293a83951311147b12b06a5ffa43abf750c4fab6ac5"
   name = "github.com/opentracing/opentracing-go"
   packages = [
     ".",
@@ -235,7 +236,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:16b935c128f178647036048862a21e8bfd66d1e83fb19787a8b356bdcf0de899"
+  digest = "1:4cae11053a5fc8e7b08228fcc14d161d3e60b64ba508a8b216937da472690991"
   name = "golang.org/x/crypto"
   packages = [
     "md4",
@@ -243,18 +244,18 @@
     "pkcs12/internal/rc2",
   ]
   pruneopts = ""
-  revision = "f027049dab0ad238e394a753dba2d14753473a04"
+  revision = "de0752318171da717af4ce24d0a2e8626afaeb11"
 
 [[projects]]
   branch = "master"
-  digest = "1:974f69f72b057983eb795d8514f19256f777661a7745df661659037a506ea33f"
+  digest = "1:67c2d940f2d5c017ef88e9847709dca9b38d5fe82f1e33fb42ace515219f22f1"
   name = "golang.org/x/net"
   packages = ["context"]
   pruneopts = ""
   revision = "f9ce57c11b242f0f1599cf25c89d8cb02c45295a"
 
 [[projects]]
-  digest = "1:2008b210df61dc3353467d0c889cee0e07f1ae7a82c598738b5c14da8732b6a6"
+  digest = "1:bc97ca9b74ce5988129fdfce385b9d9914ff23df09929f7bb5dbc6aa406bb5e7"
   name = "pack.ag/amqp"
   packages = [
     ".",
@@ -300,6 +301,7 @@
     "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault",
     "github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault",
     "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network",
+    "github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi",
     "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources",
     "github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql",
     "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage",
@@ -316,6 +318,7 @@
     "github.com/globalsign/mgo/bson",
     "github.com/gobuffalo/envy",
     "github.com/marstr/randname",
+    "github.com/pkg/errors",
     "github.com/satori/go.uuid",
   ]
   solver-name = "gps-cdcl"

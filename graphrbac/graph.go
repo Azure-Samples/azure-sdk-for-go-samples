@@ -103,7 +103,7 @@ func CreateADGroup(ctx context.Context) (graphrbac.ADGroup, error) {
 	groupsClient := getADGroupsClient()
 	return groupsClient.Create(ctx, graphrbac.GroupCreateParameters{
 		DisplayName:     to.StringPtr("GoSDKSamples"),
-		MailEnabled:     to.BoolPtr(true),
+		MailEnabled:     to.BoolPtr(false),
 		MailNickname:    to.StringPtr("GoSDKMN"),
 		SecurityEnabled: to.BoolPtr(true),
 	})

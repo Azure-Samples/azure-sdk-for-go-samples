@@ -50,7 +50,7 @@ func GetMetricsData(ctx context.Context, resourceID string, metrics []string) ([
 	startTime := endTime.Add(time.Duration(-5) * time.Minute)
 	timespan := fmt.Sprintf("%s/%s", startTime.Format(time.RFC3339), endTime.Format(time.RFC3339))
 
-	resp, err := metricsClient.List(context.Background(), resourceID, timespan, nil, strings.Join(metrics, ","), "", nil, "", "", insights.Data, "")
+	resp, err := metricsClient.List(context.Background(), resourceID, timespan, nil, strings.Join(metrics, ","), "minimum,maximum", nil, "", "", insights.Data, "")
 	if err != nil {
 		return nil, err
 	}

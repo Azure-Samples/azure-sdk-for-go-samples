@@ -9,13 +9,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
-	"github.com/pkg/errors"
-
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/pkg/errors"
 )
 
 // CreateVMWithMSI creates a virtual machine with a system-assigned managed identity.
@@ -34,7 +33,7 @@ func CreateVMWithMSI(ctx context.Context, vmName, nicName, username, password st
 			},
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
 				HardwareProfile: &compute.HardwareProfile{
-					VMSize: compute.BasicA0,
+					VMSize: compute.VirtualMachineSizeTypesBasicA0,
 				},
 				StorageProfile: &compute.StorageProfile{
 					ImageReference: &compute.ImageReference{
@@ -126,7 +125,7 @@ func CreateVMWithUserAssignedID(ctx context.Context, vmName, nicName, username, 
 			},
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
 				HardwareProfile: &compute.HardwareProfile{
-					VMSize: compute.BasicA0,
+					VMSize: compute.VirtualMachineSizeTypesBasicA0,
 				},
 				StorageProfile: &compute.StorageProfile{
 					ImageReference: &compute.ImageReference{

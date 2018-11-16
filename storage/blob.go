@@ -9,7 +9,7 @@ import (
 	"context"
 	"io/ioutil"
 
-	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
+	"github.com/Azure/azure-storage-blob-go/azblob"
 )
 
 func getBlobURL(ctx context.Context, accountName, accountGroupName, containerName, blobName string) azblob.BlobURL {
@@ -22,11 +22,12 @@ func getBlobURL(ctx context.Context, accountName, accountGroupName, containerNam
 func GetBlob(ctx context.Context, accountName, accountGroupName, containerName, blobName string) (string, error) {
 	b := getBlobURL(ctx, accountName, accountGroupName, containerName, blobName)
 
-	resp, err := b.GetBlob(ctx, azblob.BlobRange{}, azblob.BlobAccessConditions{}, false)
+	resp, err := b.Download(ctx, 0, azblob.CountToEnd, azblob.BlobAccessConditions{}, false)
+
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body().Close()
-	body, err := ioutil.ReadAll(resp.Body())
+	defer resp.Response().Body.Close()
+	body, err := ioutil.ReadAll(resp.Body(azblob.RetryReaderOptions{}))
 	return string(body), err
 }

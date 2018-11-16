@@ -10,10 +10,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2017-08-01-preview/containerinstance"
-
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
@@ -32,7 +31,7 @@ func CreateContainerGroup(ctx context.Context, containerGroupName, location, res
 		return c, fmt.Errorf("cannot get container group client: %v", err)
 	}
 
-	c, err = containerGroupsClient.CreateOrUpdate(
+	future, err := containerGroupsClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		containerGroupName,
@@ -41,7 +40,7 @@ func CreateContainerGroup(ctx context.Context, containerGroupName, location, res
 			Location: &location,
 			ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
 				IPAddress: &containerinstance.IPAddress{
-					Type: to.StringPtr("Public"),
+					Type: containerinstance.Public,
 					Ports: &[]containerinstance.Port{
 						{
 							Port:     to.Int32Ptr(80),
@@ -75,11 +74,16 @@ func CreateContainerGroup(ctx context.Context, containerGroupName, location, res
 				},
 			},
 		})
+
 	if err != nil {
 		log.Fatalf("cannot create container group: %v", err)
 	}
 
-	return c, nil
+	err = future.WaitForCompletion(ctx, containerGroupsClient.Client)
+	if err != nil {
+		log.Fatalf("cannot create container group: %v", err)
+	}
+	return future.Result(containerGroupsClient)
 }
 
 // GetContainerGroup returns an existing container group given a resource group name and container group name
@@ -113,7 +117,17 @@ func UpdateContainerGroup(ctx context.Context, resourceGroupName, containerGroup
 	// here you can also update other properties of the container group
 	(*c.Containers)[0].Image = to.StringPtr("microsoft/aci-helloworld")
 
-	return containerGroupsClient.CreateOrUpdate(context.Background(), resourceGroupName, containerGroupName, c)
+	future, err := containerGroupsClient.CreateOrUpdate(context.Background(), resourceGroupName, containerGroupName, c)
+
+	if err != nil {
+		log.Fatalf("cannot create container group: %v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, containerGroupsClient.Client)
+	if err != nil {
+		log.Fatalf("cannot create container group: %v", err)
+	}
+	return future.Result(containerGroupsClient)
 }
 
 // DeleteContainerGroup deletes an existing container group given a resource group name and container group name

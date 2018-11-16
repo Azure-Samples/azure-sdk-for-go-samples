@@ -79,7 +79,7 @@ func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, sub
 			Location: to.StringPtr(config.Location()),
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
 				HardwareProfile: &compute.HardwareProfile{
-					VMSize: compute.StandardA0,
+					VMSize: compute.VirtualMachineSizeTypesStandardA0,
 				},
 				StorageProfile: &compute.StorageProfile{
 					ImageReference: &compute.ImageReference{

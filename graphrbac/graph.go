@@ -6,9 +6,7 @@ import (
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
-
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -76,16 +74,16 @@ func AddClientSecret(ctx context.Context, objID string) (autorest.Response, erro
 		})
 }
 
-func getObjectsClient() graphrbac.ObjectsClient {
-	objClient := graphrbac.NewObjectsClient(config.TenantID())
+func getSignedInUserClient() graphrbac.SignedInUserClient {
+	signedInUserClient := graphrbac.NewSignedInUserClient(config.TenantID())
 	a, _ := iam.GetGraphAuthorizer()
-	objClient.Authorizer = a
-	objClient.AddToUserAgent(config.UserAgent())
-	return objClient
+	signedInUserClient.Authorizer = a
+	signedInUserClient.AddToUserAgent(config.UserAgent())
+	return signedInUserClient
 }
 
-// GetCurrentUser gets the Azure Active Directory object of the current user
-func GetCurrentUser(ctx context.Context) (graphrbac.AADObject, error) {
-	objClient := getObjectsClient()
-	return objClient.GetCurrentUser(ctx)
+// GetCurrentUser gets the Azure Active Directory object of the current signed in user
+func GetCurrentUser(ctx context.Context) (graphrbac.User, error) {
+	signedInUserClient := getSignedInUserClient()
+	return signedInUserClient.Get(ctx)
 }

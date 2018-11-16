@@ -27,7 +27,7 @@ func CustomSearch(accountName string) (customsearch.WebWebAnswer, error) {
 
 	customSearchClient := getCustomSearchClient(accountName)
 	query := "Xbox"
-	customConfig := int64(00000) // subsitute with custom config id configured at https://www.customsearch.ai
+	customConfig := "" // subsitute with custom config id configured at https://www.customsearch.ai
 
 	searchResponse, err := customSearchClient.Search(
 		context.Background(), // context

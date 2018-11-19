@@ -9,7 +9,7 @@ import (
 	"bytes"
 	"context"
 
-	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
+	"github.com/Azure/azure-storage-blob-go/azblob"
 )
 
 func getPageBlobURL(ctx context.Context, accountName, accountGroupName, containerName, blobName string) azblob.PageBlobURL {
@@ -45,13 +45,10 @@ func PutPage(ctx context.Context, accountName, accountGroupName, containerName, 
 		newPage[i] = c
 	}
 
-	_, err := b.PutPages(ctx,
-		azblob.PageRange{
-			Start: int32(pages * azblob.PageBlobPageBytes),
-			End:   int32((pages+1)*azblob.PageBlobPageBytes - 1),
-		},
+	_, err := b.UploadPages(ctx, int64(pages*azblob.PageBlobPageBytes),
 		bytes.NewReader(newPage),
-		azblob.BlobAccessConditions{},
+		azblob.PageBlobAccessConditions{},
+		nil,
 	)
 	return err
 }
@@ -61,11 +58,9 @@ func ClearPage(ctx context.Context, accountName, accountGroupName, containerName
 	b := getPageBlobURL(ctx, accountName, accountGroupName, containerName, blobName)
 
 	_, err := b.ClearPages(ctx,
-		azblob.PageRange{
-			Start: int32(pageNumber * azblob.PageBlobPageBytes),
-			End:   int32((pageNumber+1)*azblob.PageBlobPageBytes - 1),
-		},
-		azblob.BlobAccessConditions{},
+		int64(pageNumber*azblob.PageBlobPageBytes),
+		int64((pageNumber+1)*azblob.PageBlobPageBytes-1),
+		azblob.PageBlobAccessConditions{},
 	)
 	return err
 }
@@ -75,10 +70,8 @@ func GetPageRanges(ctx context.Context, accountName, accountGroupName, container
 	b := getPageBlobURL(ctx, accountName, accountGroupName, containerName, blobName)
 	return b.GetPageRanges(
 		ctx,
-		azblob.BlobRange{
-			Offset: 0 * azblob.PageBlobPageBytes,
-			Count:  int64(pages*azblob.PageBlobPageBytes - 1),
-		},
+		0*azblob.PageBlobPageBytes,
+		int64(pages*azblob.PageBlobPageBytes-1),
 		azblob.BlobAccessConditions{},
 	)
 }

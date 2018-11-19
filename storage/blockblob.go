@@ -10,7 +10,7 @@ import (
 	"encoding/base64"
 	"strings"
 
-	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
+	"github.com/Azure/azure-storage-blob-go/azblob"
 )
 
 func getBlockBlobURL(ctx context.Context, accountName, accountGroupName, containerName, blobName string) azblob.BlockBlobURL {
@@ -24,7 +24,7 @@ func CreateBlockBlob(ctx context.Context, accountName, accountGroupName, contain
 	b := getBlockBlobURL(ctx, accountName, accountGroupName, containerName, blobName)
 	data := "blob created by Azure-Samples, okay to delete!"
 
-	_, err := b.PutBlob(
+	_, err := b.Upload(
 		ctx,
 		strings.NewReader(data),
 		azblob.BlobHTTPHeaders{
@@ -41,7 +41,7 @@ func CreateBlockBlob(ctx context.Context, accountName, accountGroupName, contain
 func PutBlockOnBlob(ctx context.Context, accountName, accountGroupName, containerName, blobName, message string, blockNum int) error {
 	b := getBlockBlobURL(ctx, accountName, accountGroupName, containerName, blobName)
 	id := base64.StdEncoding.EncodeToString([]byte(string(blockNum)))
-	_, err := b.PutBlock(ctx, id, strings.NewReader(message), azblob.LeaseAccessConditions{})
+	_, err := b.StageBlock(ctx, id, strings.NewReader(message), azblob.LeaseAccessConditions{}, nil)
 	return err
 }
 
@@ -64,6 +64,6 @@ func CommitBlocks(ctx context.Context, accountName, accountGroupName, containerN
 		IDs = append(IDs, u.Name)
 	}
 
-	_, err = b.PutBlockList(ctx, IDs, azblob.BlobHTTPHeaders{}, azblob.Metadata{}, azblob.BlobAccessConditions{})
+	_, err = b.CommitBlockList(ctx, IDs, azblob.BlobHTTPHeaders{}, azblob.Metadata{}, azblob.BlobAccessConditions{})
 	return err
 }

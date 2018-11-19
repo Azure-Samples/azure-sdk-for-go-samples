@@ -9,14 +9,12 @@ import (
 	"context"
 	"fmt"
 
-	disks "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
-
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
+	disks "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/go-autorest/autorest/to"
-
 	"github.com/satori/go.uuid"
 )
 
@@ -45,7 +43,7 @@ func AttachDataDisk(ctx context.Context, vmName string) (vm compute.VirtualMachi
 	vm.StorageProfile.DataDisks = &[]compute.DataDisk{{
 		Lun:          to.Int32Ptr(0),
 		Name:         to.StringPtr("gosdksamples-datadisk"),
-		CreateOption: compute.Empty,
+		CreateOption: compute.DiskCreateOptionTypesEmpty,
 		DiskSizeGB:   to.Int32Ptr(1),
 	}}
 
@@ -171,7 +169,7 @@ func CreateVMWithDisk(ctx context.Context, nicName, diskName, vmName, username, 
 			Location: to.StringPtr(config.Location()),
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
 				HardwareProfile: &compute.HardwareProfile{
-					VMSize: compute.BasicA0,
+					VMSize: compute.VirtualMachineSizeTypesBasicA0,
 				},
 				NetworkProfile: &compute.NetworkProfile{
 					NetworkInterfaces: &[]compute.NetworkInterfaceReference{
@@ -199,12 +197,12 @@ func CreateVMWithDisk(ctx context.Context, nicName, diskName, vmName, username, 
 						Version:   to.StringPtr("latest"),
 					},
 					OsDisk: &compute.OSDisk{
-						CreateOption: compute.FromImage,
+						CreateOption: compute.DiskCreateOptionTypesFromImage,
 						DiskSizeGB:   to.Int32Ptr(64),
 					},
 					DataDisks: &[]compute.DataDisk{
 						{
-							CreateOption: compute.Attach,
+							CreateOption: compute.DiskCreateOptionTypesAttach,
 							Lun:          to.Int32Ptr(0),
 							ManagedDisk: &compute.ManagedDiskParameters{
 								ID: disk.ID,

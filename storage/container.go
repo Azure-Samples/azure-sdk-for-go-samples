@@ -10,9 +10,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
-
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure/azure-storage-blob-go/azblob"
 )
 
 var (
@@ -21,7 +20,7 @@ var (
 
 func getContainerURL(ctx context.Context, accountName, accountGroupName, containerName string) azblob.ContainerURL {
 	key := getAccountPrimaryKey(ctx, accountName, accountGroupName)
-	c := azblob.NewSharedKeyCredential(accountName, key)
+	c, _ := azblob.NewSharedKeyCredential(accountName, key)
 	p := azblob.NewPipeline(c, azblob.PipelineOptions{
 		Telemetry: azblob.TelemetryOptions{Value: config.UserAgent()},
 	})
@@ -46,7 +45,7 @@ func CreateContainer(ctx context.Context, accountName, accountGroupName, contain
 func GetContainer(ctx context.Context, accountName, accountGroupName, containerName string) (azblob.ContainerURL, error) {
 	c := getContainerURL(ctx, accountName, accountGroupName, containerName)
 
-	_, err := c.GetPropertiesAndMetadata(ctx, azblob.LeaseAccessConditions{})
+	_, err := c.GetProperties(ctx, azblob.LeaseAccessConditions{})
 	return c, err
 }
 
@@ -59,12 +58,12 @@ func DeleteContainer(ctx context.Context, accountName, accountGroupName, contain
 }
 
 // ListBlobs lists blobs on the specified container
-func ListBlobs(ctx context.Context, accountName, accountGroupName, containerName string) (*azblob.ListBlobsResponse, error) {
+func ListBlobs(ctx context.Context, accountName, accountGroupName, containerName string) (*azblob.ListBlobsFlatSegmentResponse, error) {
 	c := getContainerURL(ctx, accountName, accountGroupName, containerName)
-	return c.ListBlobs(
+	return c.ListBlobsFlatSegment(
 		ctx,
 		azblob.Marker{},
-		azblob.ListBlobsOptions{
+		azblob.ListBlobsSegmentOptions{
 			Details: azblob.BlobListingDetails{
 				Snapshots: true,
 			},

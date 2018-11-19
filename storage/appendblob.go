@@ -9,7 +9,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
+	"github.com/Azure/azure-storage-blob-go/azblob"
 )
 
 func getAppendBlobURL(ctx context.Context, accountName, accountGroupName, containerName, blobName string) azblob.AppendBlobURL {
@@ -28,6 +28,6 @@ func CreateAppendBlob(ctx context.Context, accountName, accountGroupName, contai
 // AppendToBlob appends new data to the specified append blob
 func AppendToBlob(ctx context.Context, accountName, accountGroupName, containerName, blobName, message string) error {
 	b := getAppendBlobURL(ctx, accountName, accountGroupName, containerName, blobName)
-	_, err := b.AppendBlock(ctx, strings.NewReader(message), azblob.BlobAccessConditions{})
+	_, err := b.AppendBlock(ctx, strings.NewReader(message), azblob.AppendBlobAccessConditions{}, nil)
 	return err
 }

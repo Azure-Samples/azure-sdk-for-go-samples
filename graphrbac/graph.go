@@ -31,6 +31,7 @@ func getApplicationsClient() graphrbac.ApplicationsClient {
 	return appClient
 }
 
+// getADGroupsClient retrieves a GroupsClient to assist with creating and managing Active Directory groups
 func getADGroupsClient() graphrbac.GroupsClient {
 	groupsClient := graphrbac.NewGroupsClient(config.TenantID())
 	a, _ := iam.GetGraphAuthorizer()

@@ -25,6 +25,7 @@ var (
 	username           = "gosdkuser"
 	password           = "gosdkuserpass!1"
 	vmName             = generateName("gosdk-vm1")
+	vmssName           = generateName("gosdk-vmss1")
 	diskName           = generateName("gosdk-disk1")
 	nicName            = generateName("gosdk-nic1")
 	virtualNetworkName = generateName("gosdk-vnet1")

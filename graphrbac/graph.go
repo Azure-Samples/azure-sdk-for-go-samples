@@ -98,7 +98,7 @@ func GetCurrentUser(ctx context.Context) (graphrbac.AADObject, error) {
 	return objClient.GetCurrentUser(ctx)
 }
 
-// Create Actice Directory group
+// CreateADGroup creates an Active Directory group
 func CreateADGroup(ctx context.Context) (graphrbac.ADGroup, error) {
 	groupsClient := getADGroupsClient()
 	return groupsClient.Create(ctx, graphrbac.GroupCreateParameters{

@@ -106,7 +106,7 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, sshPubli
 		return vm, fmt.Errorf("cannot create vm: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmClient.Client)
 	if err != nil {
 		return vm, fmt.Errorf("cannot get the vm create or update future response: %v", err)
 	}
@@ -140,7 +140,7 @@ func UpdateVM(ctx context.Context, vmName string, tags map[string]*string) (vm c
 		return vm, fmt.Errorf("cannot update vm: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmClient.Client)
 	if err != nil {
 		return vm, fmt.Errorf("cannot get the vm create or update future response: %v", err)
 	}
@@ -156,7 +156,7 @@ func DeallocateVM(ctx context.Context, vmName string) (osr autorest.Response, er
 		return osr, fmt.Errorf("cannot deallocate vm: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmClient.Client)
 	if err != nil {
 		return osr, fmt.Errorf("cannot get the vm deallocate future response: %v", err)
 	}
@@ -172,7 +172,7 @@ func StartVM(ctx context.Context, vmName string) (osr autorest.Response, err err
 		return osr, fmt.Errorf("cannot start vm: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmClient.Client)
 	if err != nil {
 		return osr, fmt.Errorf("cannot get the vm start future response: %v", err)
 	}
@@ -188,7 +188,7 @@ func RestartVM(ctx context.Context, vmName string) (osr autorest.Response, err e
 		return osr, fmt.Errorf("cannot restart vm: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmClient.Client)
 	if err != nil {
 		return osr, fmt.Errorf("cannot get the vm restart future response: %v", err)
 	}
@@ -204,7 +204,7 @@ func StopVM(ctx context.Context, vmName string) (osr autorest.Response, err erro
 		return osr, fmt.Errorf("cannot power off vm: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmClient.Client)
 	if err != nil {
 		return osr, fmt.Errorf("cannot get the vm power off future response: %v", err)
 	}

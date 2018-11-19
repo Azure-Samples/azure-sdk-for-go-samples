@@ -119,7 +119,7 @@ func CreateVM(ctx context.Context, vmName, nicName, username, password, storageA
 	if err != nil {
 		return vm, fmt.Errorf(fmt.Sprintf(errorPrefix, err))
 	}
-	err = future.WaitForCompletion(ctx, vmClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmClient.Client)
 	if err != nil {
 		return vm, fmt.Errorf(fmt.Sprintf(errorPrefix, err))
 	}

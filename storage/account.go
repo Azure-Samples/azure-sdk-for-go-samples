@@ -86,7 +86,7 @@ func CreateStorageAccount(ctx context.Context, accountName, accountGroupName str
 		return s, fmt.Errorf("failed to start creating storage account: %v\n", err)
 	}
 
-	err = future.WaitForCompletion(ctx, storageAccountsClient.Client)
+	err = future.WaitForCompletionRef(ctx, storageAccountsClient.Client)
 	if err != nil {
 		return s, fmt.Errorf("failed to finish creating storage account: %v\n", err)
 	}

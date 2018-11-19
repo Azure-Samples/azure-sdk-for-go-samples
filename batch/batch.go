@@ -83,7 +83,7 @@ func CreateAzureBatchAccount(ctx context.Context, accountName, location, resourc
 		return a, err
 	}
 
-	err = res.WaitForCompletion(ctx, accountClient.Client)
+	err = res.WaitForCompletionRef(ctx, accountClient.Client)
 
 	if err != nil {
 		return batchARM.Account{}, fmt.Errorf("failed waiting for account creation: %v", err)

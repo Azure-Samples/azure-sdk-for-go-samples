@@ -47,7 +47,7 @@ func CreatePublicIP(ctx context.Context, ipName string) (ip network.PublicIPAddr
 		return ip, fmt.Errorf("cannot create public ip address: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, ipClient.Client)
+	err = future.WaitForCompletionRef(ctx, ipClient.Client)
 	if err != nil {
 		return ip, fmt.Errorf("cannot get public ip address create or update future response: %v", err)
 	}

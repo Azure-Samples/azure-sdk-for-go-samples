@@ -43,7 +43,7 @@ func CreateDeployment(ctx context.Context, deploymentName string, template, para
 		return de, fmt.Errorf("cannot create deployment: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, deployClient.Client)
+	err = future.WaitForCompletionRef(ctx, deployClient.Client)
 	if err != nil {
 		return de, fmt.Errorf("cannot get the create deployment future respone: %v", err)
 	}

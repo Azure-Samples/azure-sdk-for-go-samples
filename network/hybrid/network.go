@@ -108,7 +108,7 @@ func CreateVirtualNetworkAndSubnets(ctx context.Context, vnetName, subnetName st
 		return vnet, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, err))
 	}
 
-	err = future.WaitForCompletion(ctx, vnetClient.Client)
+	err = future.WaitForCompletionRef(ctx, vnetClient.Client)
 	if err != nil {
 		return vnet, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, fmt.Sprintf("cannot get the vnet create or update future response: %v", err)))
 	}
@@ -164,7 +164,7 @@ func CreateNetworkSecurityGroup(ctx context.Context, nsgName string) (nsg networ
 		return nsg, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, err))
 	}
 
-	err = future.WaitForCompletion(ctx, nsgClient.Client)
+	err = future.WaitForCompletionRef(ctx, nsgClient.Client)
 	if err != nil {
 		return nsg, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, fmt.Sprintf("cannot get nsg create or update future response: %v", err)))
 	}
@@ -194,7 +194,7 @@ func CreatePublicIP(ctx context.Context, ipName string) (ip network.PublicIPAddr
 		return ip, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, err))
 	}
 
-	err = future.WaitForCompletion(ctx, ipClient.Client)
+	err = future.WaitForCompletionRef(ctx, ipClient.Client)
 	if err != nil {
 		return ip, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, fmt.Sprintf("cannot get public ip address create or update future response: %v", err)))
 	}
@@ -243,7 +243,7 @@ func CreateNetworkInterface(ctx context.Context, netInterfaceName, nsgName, vnet
 	if err != nil {
 		return nic, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, err))
 	}
-	err = future.WaitForCompletion(ctx, nicClient.Client)
+	err = future.WaitForCompletionRef(ctx, nicClient.Client)
 	if err != nil {
 		return nic, fmt.Errorf(fmt.Sprintf(errorPrefix, resourceName, fmt.Sprintf("cannot get nic create or update future response: %v", err)))
 	}

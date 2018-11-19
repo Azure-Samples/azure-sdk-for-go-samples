@@ -54,7 +54,7 @@ func AttachDataDisk(ctx context.Context, vmName string) (vm compute.VirtualMachi
 		return vm, fmt.Errorf("cannot update vm: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmClient.Client)
 	if err != nil {
 		return vm, fmt.Errorf("cannot get the vm create or update future response: %v", err)
 	}
@@ -77,7 +77,7 @@ func DetachDataDisks(ctx context.Context, vmName string) (vm compute.VirtualMach
 		return vm, fmt.Errorf("cannot update vm: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmClient.Client)
 	if err != nil {
 		return vm, fmt.Errorf("cannot get the vm create or update future response: %v", err)
 	}
@@ -119,7 +119,7 @@ func UpdateOSDiskSize(ctx context.Context, vmName string) (d disks.Disk, err err
 		return d, fmt.Errorf("cannot update disk: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, disksClient.Client)
+	err = future.WaitForCompletionRef(ctx, disksClient.Client)
 	if err != nil {
 		return d, fmt.Errorf("cannot get the disk update future response: %v", err)
 	}
@@ -147,7 +147,7 @@ func CreateDisk(ctx context.Context, diskName string) (disk disks.Disk, err erro
 		return disk, fmt.Errorf("cannot create disk: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, disksClient.Client)
+	err = future.WaitForCompletionRef(ctx, disksClient.Client)
 	if err != nil {
 		return disk, fmt.Errorf("cannot get the disk create or update future response: %v", err)
 	}
@@ -216,7 +216,7 @@ func CreateVMWithDisk(ctx context.Context, nicName, diskName, vmName, username, 
 		return vm, fmt.Errorf("cannot create vm: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmClient.Client)
 	if err != nil {
 		return vm, fmt.Errorf("cannot get the vm create or update future response: %v", err)
 	}
@@ -259,7 +259,7 @@ func AddDiskEncryptionToVM(ctx context.Context, vmName, vaultName, keyID string)
 		return ext, fmt.Errorf("cannot create vm extension: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, extensionsClient.Client)
+	err = future.WaitForCompletionRef(ctx, extensionsClient.Client)
 	if err != nil {
 		return ext, fmt.Errorf("cannot get the extension create or update future response: %v", err)
 	}

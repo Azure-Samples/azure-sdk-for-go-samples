@@ -65,7 +65,7 @@ func CreateVMWithMSI(ctx context.Context, vmName, nicName, username, password st
 		return vm, fmt.Errorf("cannot create vm: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmClient.Client)
 	if err != nil {
 		return vm, fmt.Errorf("cannot get the vm create or update future response: %v", err)
 	}
@@ -99,7 +99,7 @@ func AddIdentityToVM(ctx context.Context, vmName string) (ext compute.VirtualMac
 		return ext, fmt.Errorf("failed to add MSI extension: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, extensionsClient.Client)
+	err = future.WaitForCompletionRef(ctx, extensionsClient.Client)
 	if err != nil {
 		return ext, fmt.Errorf("cannot get the extension create or update future response: %v", err)
 	}
@@ -156,7 +156,7 @@ func CreateVMWithUserAssignedID(ctx context.Context, vmName, nicName, username, 
 	if err != nil {
 		return vm, errors.Wrap(err, "failed to create VM")
 	}
-	err = future.WaitForCompletion(ctx, vmClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmClient.Client)
 	if err != nil {
 		return vm, errors.Wrap(err, "failed waiting for async operation to complete")
 	}

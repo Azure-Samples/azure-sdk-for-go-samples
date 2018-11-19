@@ -118,7 +118,7 @@ func WaitForDeleteCompletion(ctx context.Context, wg *sync.WaitGroup, futures []
 	for i, f := range futures {
 		wg.Add(1)
 		go func(ctx context.Context, future resources.GroupsDeleteFuture, rg string) {
-			err := future.WaitForCompletion(ctx, getGroupsClient().Client)
+			err := future.WaitForCompletionRef(ctx, getGroupsClient().Client)
 			if err != nil {
 				log.Fatalf("got error: %s", err)
 			} else {

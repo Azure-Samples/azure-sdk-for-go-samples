@@ -70,7 +70,7 @@ func CreateNIC(ctx context.Context, vnetName, subnetName, nsgName, ipName, nicNa
 		return nic, fmt.Errorf("cannot create nic: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, nicClient.Client)
+	err = future.WaitForCompletionRef(ctx, nicClient.Client)
 	if err != nil {
 		return nic, fmt.Errorf("cannot get nic create or update future response: %v", err)
 	}
@@ -123,7 +123,7 @@ func CreateNICWithLoadBalancer(ctx context.Context, lbName, vnetName, subnetName
 		return nic, fmt.Errorf("cannot create nic: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, nicClient.Client)
+	err = future.WaitForCompletionRef(ctx, nicClient.Client)
 	if err != nil {
 		return nic, fmt.Errorf("cannot get nic create or update future response: %v", err)
 	}

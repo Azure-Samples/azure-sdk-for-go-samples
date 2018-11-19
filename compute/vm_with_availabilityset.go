@@ -113,7 +113,7 @@ func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, sub
 		return vm, fmt.Errorf("cannot create vm: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmClient.Client)
 	if err != nil {
 		return vm, fmt.Errorf("cannot get the vm create or update future response: %v", err)
 	}

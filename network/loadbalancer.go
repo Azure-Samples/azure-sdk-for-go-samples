@@ -134,7 +134,7 @@ func CreateLoadBalancer(ctx context.Context, lbName, pipName string) (lb network
 		return lb, fmt.Errorf("cannot create load balancer: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, lbClient.Client)
+	err = future.WaitForCompletionRef(ctx, lbClient.Client)
 	if err != nil {
 		return lb, fmt.Errorf("cannot get load balancer create or update future response: %v", err)
 	}

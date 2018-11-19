@@ -46,7 +46,7 @@ func CreateServer(ctx context.Context, serverName, dbLogin, dbPassword string) (
 		return server, fmt.Errorf("cannot create sql server: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, serversClient.Client)
+	err = future.WaitForCompletionRef(ctx, serversClient.Client)
 	if err != nil {
 		return server, fmt.Errorf("cannot get the sql server create or update future response: %v", err)
 	}
@@ -79,7 +79,7 @@ func CreateDB(ctx context.Context, serverName, dbName string) (db sql.Database, 
 		return db, fmt.Errorf("cannot create sql database: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, dbClient.Client)
+	err = future.WaitForCompletionRef(ctx, dbClient.Client)
 	if err != nil {
 		return db, fmt.Errorf("cannot get the sql database create or update future response: %v", err)
 	}

@@ -79,7 +79,7 @@ func CreateAKS(ctx context.Context, resourceName, location, resourceGroupName, u
 		return c, fmt.Errorf("cannot create AKS cluster: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, aksClient.Client)
+	err = future.WaitForCompletionRef(ctx, aksClient.Client)
 	if err != nil {
 		return c, fmt.Errorf("cannot get the AKS cluster create or update future response: %v", err)
 	}

@@ -37,7 +37,7 @@ func CreateNamespace(ctx context.Context, nsName string) (*eventhub.EHNamespace,
 		return nil, err
 	}
 
-	err = future.WaitForCompletion(ctx, nsClient.Client)
+	err = future.WaitForCompletionRef(ctx, nsClient.Client)
 	if err != nil {
 		return nil, err
 	}

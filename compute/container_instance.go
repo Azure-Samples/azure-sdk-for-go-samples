@@ -79,7 +79,7 @@ func CreateContainerGroup(ctx context.Context, containerGroupName, location, res
 		log.Fatalf("cannot create container group: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, containerGroupsClient.Client)
+	err = future.WaitForCompletionRef(ctx, containerGroupsClient.Client)
 	if err != nil {
 		log.Fatalf("cannot create container group: %v", err)
 	}
@@ -123,7 +123,7 @@ func UpdateContainerGroup(ctx context.Context, resourceGroupName, containerGroup
 		log.Fatalf("cannot create container group: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, containerGroupsClient.Client)
+	err = future.WaitForCompletionRef(ctx, containerGroupsClient.Client)
 	if err != nil {
 		log.Fatalf("cannot create container group: %v", err)
 	}

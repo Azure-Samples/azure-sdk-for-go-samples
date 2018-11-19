@@ -44,7 +44,7 @@ func CreateVirtualNetworkSubnet(ctx context.Context, vnetName, subnetName string
 		return subnet, fmt.Errorf("cannot create subnet: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, subnetsClient.Client)
+	err = future.WaitForCompletionRef(ctx, subnetsClient.Client)
 	if err != nil {
 		return subnet, fmt.Errorf("cannot get the subnet create or update future response: %v", err)
 	}
@@ -75,7 +75,7 @@ func CreateSubnetWithNetworkSecurityGroup(ctx context.Context, vnetName, subnetN
 		return subnet, fmt.Errorf("cannot create subnet: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, subnetsClient.Client)
+	err = future.WaitForCompletionRef(ctx, subnetsClient.Client)
 	if err != nil {
 		return subnet, fmt.Errorf("cannot get the subnet create or update future response: %v", err)
 	}

@@ -72,7 +72,7 @@ func CreateNetworkSecurityGroup(ctx context.Context, nsgName string) (nsg networ
 		return nsg, fmt.Errorf("cannot create nsg: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, nsgClient.Client)
+	err = future.WaitForCompletionRef(ctx, nsgClient.Client)
 	if err != nil {
 		return nsg, fmt.Errorf("cannot get nsg create or update future response: %v", err)
 	}
@@ -96,7 +96,7 @@ func CreateSimpleNetworkSecurityGroup(ctx context.Context, nsgName string) (nsg 
 		return nsg, fmt.Errorf("cannot create nsg: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, nsgClient.Client)
+	err = future.WaitForCompletionRef(ctx, nsgClient.Client)
 	if err != nil {
 		return nsg, fmt.Errorf("cannot get nsg create or update future response: %v", err)
 	}
@@ -150,7 +150,7 @@ func CreateSSHRule(ctx context.Context, nsgName string) (rule network.SecurityRu
 		return rule, fmt.Errorf("cannot create SSH security rule: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, rulesClient.Client)
+	err = future.WaitForCompletionRef(ctx, rulesClient.Client)
 	if err != nil {
 		return rule, fmt.Errorf("cannot get security rule create or update future response: %v", err)
 	}
@@ -182,7 +182,7 @@ func CreateHTTPRule(ctx context.Context, nsgName string) (rule network.SecurityR
 		return rule, fmt.Errorf("cannot create HTTP security rule: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, rulesClient.Client)
+	err = future.WaitForCompletionRef(ctx, rulesClient.Client)
 	if err != nil {
 		return rule, fmt.Errorf("cannot get security rule create or update future response: %v", err)
 	}
@@ -214,7 +214,7 @@ func CreateSQLRule(ctx context.Context, nsgName, frontEndAddressPrefix string) (
 		return rule, fmt.Errorf("cannot create SQL security rule: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, rulesClient.Client)
+	err = future.WaitForCompletionRef(ctx, rulesClient.Client)
 	if err != nil {
 		return rule, fmt.Errorf("cannot get security rule create or update future response: %v", err)
 	}
@@ -246,7 +246,7 @@ func CreateDenyOutRule(ctx context.Context, nsgName string) (rule network.Securi
 		return rule, fmt.Errorf("cannot create deny out security rule: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, rulesClient.Client)
+	err = future.WaitForCompletionRef(ctx, rulesClient.Client)
 	if err != nil {
 		return rule, fmt.Errorf("cannot get security rule create or update future response: %v", err)
 	}

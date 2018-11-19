@@ -57,7 +57,7 @@ func CreateStorageAccount(ctx context.Context, accountName string) (s storage.Ac
 	if err != nil {
 		return s, fmt.Errorf(fmt.Sprintf(errorPrefix, err))
 	}
-	err = future.WaitForCompletion(ctx, storageAccountsClient.Client)
+	err = future.WaitForCompletionRef(ctx, storageAccountsClient.Client)
 	if err != nil {
 		return s, fmt.Errorf(fmt.Sprintf(errorPrefix, fmt.Sprintf("cannot get the storage account create future response: %v", err)))
 	}

@@ -124,7 +124,7 @@ func CreateVMSS(ctx context.Context, vmssName, vnetName, subnetName, username, p
 		return vmss, fmt.Errorf("cannot create vmss: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmssClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmssClient.Client)
 	if err != nil {
 		return vmss, fmt.Errorf("cannot get the vmss create or update future response: %v", err)
 	}
@@ -158,7 +158,7 @@ func UpdateVMSS(ctx context.Context, vmssName string, tags map[string]*string) (
 		return vmss, fmt.Errorf("cannot update vmss: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmssClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmssClient.Client)
 	if err != nil {
 		return vmss, fmt.Errorf("cannot get the vmss create or update future response: %v", err)
 	}
@@ -175,7 +175,7 @@ func DeallocateVMSS(ctx context.Context, vmssName string) (osr compute.Operation
 		return osr, fmt.Errorf("cannot deallocate vmss: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmssClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmssClient.Client)
 	if err != nil {
 		return osr, fmt.Errorf("cannot get the vmss deallocate future response: %v", err)
 	}
@@ -192,7 +192,7 @@ func StartVMSS(ctx context.Context, vmssName string) (osr compute.OperationStatu
 		return osr, fmt.Errorf("cannot start vmss: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmssClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmssClient.Client)
 	if err != nil {
 		return osr, fmt.Errorf("cannot get the vmss start future response: %v", err)
 	}
@@ -209,7 +209,7 @@ func RestartVMSS(ctx context.Context, vmssName string) (osr compute.OperationSta
 		return osr, fmt.Errorf("cannot restart vm: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmssClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmssClient.Client)
 	if err != nil {
 		return osr, fmt.Errorf("cannot get the vm restart future response: %v", err)
 	}
@@ -226,7 +226,7 @@ func StopVMSS(ctx context.Context, vmssName string) (osr compute.OperationStatus
 		return osr, fmt.Errorf("cannot power off vmss: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, vmssClient.Client)
+	err = future.WaitForCompletionRef(ctx, vmssClient.Client)
 	if err != nil {
 		return osr, fmt.Errorf("cannot get the vmss power off future response: %v", err)
 	}

@@ -48,7 +48,7 @@ func CreateDatabaseAccount(ctx context.Context, accountName string) (dba documen
 		return dba, fmt.Errorf("cannot create database account: %v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, dbAccountClient.Client)
+	err = future.WaitForCompletionRef(ctx, dbAccountClient.Client)
 	if err != nil {
 		return dba, fmt.Errorf("cannot get the database account create or update future response: %v", err)
 	}

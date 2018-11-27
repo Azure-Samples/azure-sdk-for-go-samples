@@ -101,11 +101,17 @@ func GetCurrentUser(ctx context.Context) (graphrbac.AADObject, error) {
 
 // CreateADGroup creates an Active Directory group
 func CreateADGroup(ctx context.Context) (graphrbac.ADGroup, error) {
-	groupsClient := getADGroupsClient()
-	return groupsClient.Create(ctx, graphrbac.GroupCreateParameters{
+	groupClient := getADGroupsClient()
+	return groupClient.Create(ctx, graphrbac.GroupCreateParameters{
 		DisplayName:     to.StringPtr("GoSDKSamples"),
 		MailEnabled:     to.BoolPtr(false),
 		MailNickname:    to.StringPtr("GoSDKMN"),
 		SecurityEnabled: to.BoolPtr(true),
 	})
+}
+
+// DeleteADGroup deletes an Active Directory group
+func DeleteADGroup(ctx context.Context, groupObjID string) (autorest.Response, error) {
+	groupClient := getADGroupsClient()
+	return groupClient.Delete(ctx, groupObjID)
 }

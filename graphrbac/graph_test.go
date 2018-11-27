@@ -97,3 +97,25 @@ func ExampleCreateServicePrincipal() {
 	// list contributor roledefs at group scope
 	// assigned new principal to first contributor role
 }
+
+func ExampleCreateADGroup() {
+	ctx := context.Background()
+
+	group, err := CreateADGroup(ctx)
+	if err != nil {
+		util.PrintAndLog(err.Error())
+	}
+	util.PrintAndLog("ad group created")
+
+	if !config.KeepResources() {
+		_, err = DeleteADGroup(ctx, *group.ObjectID)
+		if err != nil {
+			util.PrintAndLog(err.Error())
+		}
+		util.PrintAndLog("ad group deleted")
+	}
+
+	// Output:
+	// ad group created
+	// ad group deleted if KeepResources=false
+}

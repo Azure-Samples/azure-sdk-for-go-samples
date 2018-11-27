@@ -110,7 +110,7 @@ func CreateADGroup(ctx context.Context) (graphrbac.ADGroup, error) {
 	})
 }
 
-// DeleteADGroup deletes an Active Directory group
+// DeleteADGroup deletes the specified Active Directory group
 func DeleteADGroup(ctx context.Context, groupObjID string) (autorest.Response, error) {
 	groupClient := getADGroupsClient()
 	return groupClient.Delete(ctx, groupObjID)

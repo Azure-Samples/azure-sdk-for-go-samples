@@ -29,6 +29,15 @@ func getApplicationsClient() graphrbac.ApplicationsClient {
 	return appClient
 }
 
+// getADGroupsClient retrieves a GroupsClient to assist with creating and managing Active Directory groups
+func getADGroupsClient() graphrbac.GroupsClient {
+	groupsClient := graphrbac.NewGroupsClient(config.TenantID())
+	a, _ := iam.GetGraphAuthorizer()
+	groupsClient.Authorizer = a
+	groupsClient.AddToUserAgent(config.UserAgent())
+	return groupsClient
+}
+
 // CreateServicePrincipal creates a service principal associated with the specified application.
 func CreateServicePrincipal(ctx context.Context, appID string) (graphrbac.ServicePrincipal, error) {
 	spClient := getServicePrincipalsClient()
@@ -86,4 +95,21 @@ func getSignedInUserClient() graphrbac.SignedInUserClient {
 func GetCurrentUser(ctx context.Context) (graphrbac.User, error) {
 	signedInUserClient := getSignedInUserClient()
 	return signedInUserClient.Get(ctx)
+}
+
+// CreateADGroup creates an Active Directory group
+func CreateADGroup(ctx context.Context) (graphrbac.ADGroup, error) {
+	groupClient := getADGroupsClient()
+	return groupClient.Create(ctx, graphrbac.GroupCreateParameters{
+		DisplayName:     to.StringPtr("GoSDKSamples"),
+		MailEnabled:     to.BoolPtr(false),
+		MailNickname:    to.StringPtr("GoSDKMN"),
+		SecurityEnabled: to.BoolPtr(true),
+	})
+}
+
+// DeleteADGroup deletes the specified Active Directory group
+func DeleteADGroup(ctx context.Context, groupObjID string) (autorest.Response, error) {
+	groupClient := getADGroupsClient()
+	return groupClient.Delete(ctx, groupObjID)
 }

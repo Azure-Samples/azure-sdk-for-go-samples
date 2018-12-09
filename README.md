@@ -5,13 +5,13 @@ azure-sdk-for-go-samples is a collection of sample usages of the
 
 [![Build Status](https://travis-ci.org/Azure-Samples/azure-sdk-for-go-samples.svg?branch=master)](https://travis-ci.org/Azure-Samples/azure-sdk-for-go-samples)
 
-For general SDK help, start with the [main SDK README][].
+For general SDK help, start with the [Main SDK README][].
 
 ## To run tests
 
 1. set up authentication (see following)
 1. `dep ensure`
-* For more information on `dep` for Go package dependency management, please read more here: [main SDK README][#Package Updates]
+* For more information on `dep` for Go package dependency management, please read more here: [Main SDK README](#package-updates)
 1. `go test -v ./network/` (or any package)
 
 To run all tests: `make test`.
@@ -56,7 +56,7 @@ This code is provided under the MIT license. See [LICENSE][] for details.
 
 We welcome your contributions! For instructions and our code of conduct see [CONTRIBUTING.md][]. And thank you!
 
-[main SDK README]: https://github.com/Azure/azure-sdk-for-go/blob/master/README.md
+[Main SDK README]: https://github.com/Azure/azure-sdk-for-go/blob/master/README.md
 [Azure update feed]: https://azure.microsoft.com/updates/
 [Azure/azure-sdk-for-go]: https://github.com/Azure/azure-sdk-for-go
 [azure-cli]: https://github.com/Azure/azure-cli

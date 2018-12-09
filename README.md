@@ -11,7 +11,7 @@ For general SDK help, start with the [Main SDK README][].
 
 1. set up authentication (see following)
 1. `dep ensure`
-* For more information on `dep` for Go package dependency management, please read more here: [Main SDK README](#package-updates)
+* For more information on `dep` for Go package dependency management, please read more [here](https://github.com/Azure/azure-sdk-for-go/blob/master/README.md#package-updates).
 1. `go test -v ./network/` (or any package)
 
 To run all tests: `make test`.

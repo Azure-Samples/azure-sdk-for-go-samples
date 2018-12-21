@@ -44,7 +44,7 @@ func init() {
 		log.Fatalf("Failed to get OAuth config: %v", err)
 	}
 
-	authInfo, err := readJSON(os.Getenv("AZURE__AUTH_LOCATION"))
+	authInfo, err := readJSON(os.Getenv("AZURE_AUTH_LOCATION"))
 	clientData.SubscriptionID = (*authInfo)["subscriptionId"].(string)
 	clientData.VMPassword = (*authInfo)["clientSecret"].(string)
 }

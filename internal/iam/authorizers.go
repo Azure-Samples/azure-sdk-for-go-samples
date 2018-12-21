@@ -7,14 +7,14 @@ package iam
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"strings"
-
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/azure-samples/azure-sdk-for-go-samples/internal/config"
 )
 
 var (
@@ -130,6 +130,7 @@ func GetKeyvaultAuthorizer() (autorest.Authorizer, error) {
 		oauthconfig, err := adal.NewOAuthConfig(
 			config.Environment().ActiveDirectoryEndpoint, config.TenantID())
 		if err != nil {
+			log.Println("Error: before 'oauthconfig.AuthorizeEndpoint' and pointer to alternateEndpoint")
 			return a, err
 		}
 		oauthconfig.AuthorizeEndpoint = *alternateEndpoint
@@ -137,6 +138,7 @@ func GetKeyvaultAuthorizer() (autorest.Authorizer, error) {
 		token, err := adal.NewServicePrincipalToken(
 			*oauthconfig, config.ClientID(), config.ClientSecret(), vaultEndpoint)
 		if err != nil {
+			log.Println("Error: after 'oauthconfig.AuthorizeEndpoint' in NewServicePrincipalToken")
 			return a, err
 		}
 
@@ -171,12 +173,14 @@ func getAuthorizerForResource(grantType OAuthGrantType, resource string) (autore
 		oauthConfig, err := adal.NewOAuthConfig(
 			config.Environment().ActiveDirectoryEndpoint, config.TenantID())
 		if err != nil {
+			log.Println("Error: in 'getAuthorizerForResource' and case statement OAuthGrantTypeServicePrincipal")
 			return nil, err
 		}
 
 		token, err := adal.NewServicePrincipalToken(
 			*oauthConfig, config.ClientID(), config.ClientSecret(), resource)
 		if err != nil {
+			log.Println("Error: in NewServicePrincipalToken of getAuthorizerForResource")
 			return nil, err
 		}
 		a = autorest.NewBearerAuthorizer(token)

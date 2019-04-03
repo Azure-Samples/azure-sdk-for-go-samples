@@ -81,6 +81,12 @@ func TestNetwork(t *testing.T) {
 	}
 	t.Logf("created vnet with 2 subnets")
 
+	_, err = GetVirtualNetwork(ctx, virtualNetworkName)
+	if err != nil {
+		t.Fatalf("failed to get vnet: %v\n", err.Error())
+	}
+	t.Logf("got vnet %s\n", virtualNetworkName)
+
 	_, err = CreateNetworkSecurityGroup(ctx, nsgName)
 	if err != nil {
 		t.Fatalf("failed to create NSG: %v\n", err.Error())

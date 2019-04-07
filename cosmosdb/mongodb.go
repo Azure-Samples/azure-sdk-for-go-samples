@@ -35,8 +35,8 @@ func UpdateDocument(session *mgo.Session, database, collectionName string, id bs
 	return collection.Update(bson.M{"_id": id}, change)
 }
 
-// DeleteDcoument deletes the mongoDB document with the specified ID
-func DeleteDcoument(session *mgo.Session, database, collectionName string, id bson.ObjectId) error {
+// DeleteDocument deletes the mongoDB document with the specified ID
+func DeleteDocument(session *mgo.Session, database, collectionName string, id bson.ObjectId) error {
 	collection := GetCollection(session, database, collectionName)
 	return collection.Remove(bson.M{"_id": id})
 }

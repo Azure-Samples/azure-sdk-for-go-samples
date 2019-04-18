@@ -13,15 +13,11 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 )
 
-func main() {
-	//Replace 'eastus' with the correct region for your Text Analytics subscription
-	textAnalyticsClient := textanalytics.New("https://eastus.api.cognitive.microsoft.com")
-	subscriptionKey := "<<SubscriptionKey>>"
+func GetTextAnalyticsClient(apiEndPoint string, apiKey string) textanalytics.BaseClient {
+	textAnalyticsClient := textanalytics.New(apiEndPoint)
+	subscriptionKey := apiKey
 	textAnalyticsClient.Authorizer = autorest.NewCognitiveServicesAuthorizer(subscriptionKey)
-	SentimentAnalysis(textAnalyticsClient)
-	DetectLanguage(textAnalyticsClient)
-	ExtractEntities(textAnalyticsClient)
-	ExtractKeyPhrases(textAnalyticsClient)
+	return textAnalyticsClient
 }
 
 // returns a pointer to the string value passed in.
@@ -34,8 +30,8 @@ func BoolPointer(v bool) *bool {
 	return &v
 }
 
-func SentimentAnalysis(textAnalyticsclient textanalytics.BaseClient) {
-
+func SentimentAnalysis(apiEndPoint string, apiKey string) {
+	textAnalyticsclient := GetTextAnalyticsClient(apiEndPoint, apiKey)
 	ctx := context.Background()
 	inputDocuments := []textanalytics.MultiLanguageInput {
 		textanalytics.MultiLanguageInput {
@@ -79,8 +75,8 @@ func SentimentAnalysis(textAnalyticsclient textanalytics.BaseClient) {
 	}
 }
 
-func DetectLanguage(textAnalyticsclient textanalytics.BaseClient) {
-
+func DetectLanguage(apiEndPoint string, apiKey string) {
+	textAnalyticsclient := GetTextAnalyticsClient(apiEndPoint, apiKey)
 	ctx := context.Background()
 	inputDocuments := []textanalytics.LanguageInput {
 		textanalytics.LanguageInput {
@@ -117,8 +113,8 @@ func DetectLanguage(textAnalyticsclient textanalytics.BaseClient) {
 	}
 }
 
-func ExtractKeyPhrases(textAnalyticsclient textanalytics.BaseClient) {
-
+func ExtractKeyPhrases(apiEndPoint string, apiKey string) {
+	textAnalyticsclient := GetTextAnalyticsClient(apiEndPoint, apiKey)
 	ctx := context.Background()
 	inputDocuments := []textanalytics.MultiLanguageInput {
 		textanalytics.MultiLanguageInput {
@@ -163,8 +159,8 @@ func ExtractKeyPhrases(textAnalyticsclient textanalytics.BaseClient) {
 	}
 }
 
-func ExtractEntities(textAnalyticsclient textanalytics.BaseClient) {
-
+func ExtractEntities(apiEndPoint string, apiKey string) {
+	textAnalyticsclient := GetTextAnalyticsClient(apiEndPoint, apiKey)
 	ctx := context.Background()
 	inputDocuments := []textanalytics.MultiLanguageInput {
 		textanalytics.MultiLanguageInput {

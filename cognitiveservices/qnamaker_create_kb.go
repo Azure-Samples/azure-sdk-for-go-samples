@@ -10,7 +10,7 @@ import (
 )
 
 // Replace this with a valid subscription key.
-var subscription_key string = "e38a40199acd43b2bc7c930377ff7870"
+var subscription_key string = "ENTER KEY HERE"
 
 // Replace this with the endpoint for your subscription key.
 var endpoint string = "https://westus.api.cognitive.microsoft.com"

@@ -10,7 +10,7 @@ import (
 )
 
 // Replace this with a valid subscription key.
-var subscription_key string = "ENTER KEY HERE"
+var subscription_key string = "INSERT KEY HERE"
 
 // Replace this with the endpoint for your subscription key.
 var endpoint string = "https://westus.api.cognitive.microsoft.com"
@@ -36,6 +36,57 @@ func list_kbs (ctx context.Context, client qnamaker.KnowledgebaseClient) {
 		fmt.Println ("Name: " + *item.Name)
 		fmt.Println ()
     }
+}
+
+/* See:
+Error
+https://github.com/Azure/azure-sdk-for-go/blob/master/services/cognitiveservices/v4.0/qnamaker/models.go#L174
+ErrorResponse
+https://github.com/Azure/azure-sdk-for-go/blob/master/services/cognitiveservices/v4.0/qnamaker/models.go#L189
+ErrorResponseError
+https://github.com/Azure/azure-sdk-for-go/blob/master/services/cognitiveservices/v4.0/qnamaker/models.go#L196
+InnerErrorModel
+https://github.com/Azure/azure-sdk-for-go/blob/master/services/cognitiveservices/v4.0/qnamaker/models.go#L218
+*/
+func print_inner_error (error qnamaker.InnerErrorModel) {
+	if error.Code != nil {
+		fmt.Println (*error.Code)
+	}
+	if error.InnerError != nil {
+		print_inner_error (*error.InnerError)
+	}
+}
+
+func print_error_details (errors []qnamaker.Error) {
+	for _, err := range errors {
+		if err.Message != nil {
+			fmt.Println (*err.Message)
+		}
+		if err.Details != nil {
+			print_error_details (*err.Details)
+		}
+		if err.InnerError != nil {
+			print_inner_error (*err.InnerError)
+		}
+	}
+}
+
+func handle_error (result qnamaker.Operation) {
+	if result.ErrorResponse != nil {
+		response := *result.ErrorResponse
+		if response.Error != nil {
+			err := *response.Error
+			if err.Message != nil {
+				fmt.Println (*err.Message)
+			}
+			if err.Details != nil {
+				print_error_details (*err.Details)
+			}
+			if err.InnerError != nil {
+				print_inner_error (*err.InnerError)
+			}
+		}
+	}
 }
 
 /* See:
@@ -76,8 +127,7 @@ func add_kb (ctx context.Context, kb_client qnamaker.KnowledgebaseClient, ops_cl
 		Metadata: &metadata,
 	} }
 
-	urls := []string{ "https://docs.microsoft.com/en-in/azure/cognitive-services/qnamaker/faqs",
-    "https://docs.microsoft.com/en-us/bot-framework/resources-bot-framework-faq" }
+	urls := []string{}
 	files := []qnamaker.FileDTO{}
 
 	// The fields of CreateKbDTO are all pointers, so we get the addresses of our variables.
@@ -107,8 +157,21 @@ func add_kb (ctx context.Context, kb_client qnamaker.KnowledgebaseClient, ops_cl
 			done = true
 			fmt.Print ("Operation result: " + op_result.OperationState)
 			fmt.Println ()
+			if op_result.OperationState == "Failed" {
+				handle_error (op_result)
+			}
 		}
 	}
+}
+
+// Delete the specified KB. You can use this method to delete excess KBs created with this quickstart.
+func delete_kb (ctx context.Context, kb_client qnamaker.KnowledgebaseClient, kb_id string) {
+	// Delete the KB.
+	_, kb_err := kb_client.Delete (ctx, kb_id)
+	if kb_err != nil {
+		log.Fatal(kb_err)
+	}
+	fmt.Println ("KB " + kb_id + " deleted.")
 }
 
 /* See:

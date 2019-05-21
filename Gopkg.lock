@@ -60,7 +60,7 @@
   version = "v0.1.9"
 
 [[projects]]
-  digest = "1:104a76acf9b416dbdd96477ac50a92ee5091f6b2c735f8516a005572f3be4a36"
+  digest = "1:026de27aacbf2033be97e9ace64cd7cb815e31c2dbba822cee3825192dda8aa4"
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
     "profiles/2017-03-09/compute/mgmt/compute",
@@ -109,8 +109,8 @@
     "version",
   ]
   pruneopts = ""
-  revision = "9699bdefa481d47c5c7638a1cc05d87ce53601fd"
-  version = "v22.2.2"
+  revision = "77258e94d84ea36012a72c0e0a1e2faa409c6396"
+  version = "v29.0.0"
 
 [[projects]]
   digest = "1:f0dc2e8b5f53bd286e49ba57313df9d450ec1f273c59bc7b0011fd4e99eea7db"
@@ -121,7 +121,7 @@
   version = "0.3.0"
 
 [[projects]]
-  digest = "1:8e14b1b5aac18fa2e38b9d38305c207265db22a786f3b26dd61bddf2e4665961"
+  digest = "1:1a217e0b6332045846341ef50125a62c93c0c8c4f892c25788d32ccc15528aa7"
   name = "github.com/Azure/go-autorest"
   packages = [
     "autorest",
@@ -136,8 +136,8 @@
     "tracing",
   ]
   pruneopts = ""
-  revision = "562d3769ef2f0f56bc52749babd3e88367e28588"
-  version = "v11.9.0"
+  revision = "f29a2eccaa178b367df0405778cd85e0af7b4225"
+  version = "v12.1.0"
 
 [[projects]]
   digest = "1:10139b9c841acd336ceff02e8a85e0c558dee738b2277bb24d61d9d3c90ef1f2"

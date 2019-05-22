@@ -78,7 +78,7 @@ func cleanupZones(ctx context.Context, zonesClient dns.ZonesClient) {
 	future, _ := zonesClient.Delete(ctx, rg, zoneName, "")
 	//done, _ := future.Done(zonesClient)
 
-	done := future.WaitForCompletion(ctx, zonesClient.Client)
+	done := future.WaitForCompletionRef(ctx, zonesClient.Client)
 
 	if done == nil {
 		fmt.Println("Delete zone: ", done, future.Status())

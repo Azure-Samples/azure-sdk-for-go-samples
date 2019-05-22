@@ -12,7 +12,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/entitysearch"
 	"github.com/marstr/randname"
 
@@ -55,7 +54,7 @@ func ExampleCognitiveServicesSearch() {
 		util.PrintAndLog(err.Error())
 	}
 
-	_, err = CreateCSAccount(accountName, cognitiveservices.BingSearchv7)
+	_, err = CreateCSAccount(accountName, "Bing.Search.v7")
 
 	if err != nil {
 		util.PrintAndLog(err.Error())
@@ -98,7 +97,7 @@ func ExampleCognitiveServicesSpellCheck() {
 		util.PrintAndLog(err.Error())
 	}
 
-	_, err = CreateCSAccount(accountName, cognitiveservices.BingSpellCheckv7)
+	_, err = CreateCSAccount(accountName, "Bing.SpellCheck.v7")
 	if err != nil {
 		util.PrintAndLog(err.Error())
 	}

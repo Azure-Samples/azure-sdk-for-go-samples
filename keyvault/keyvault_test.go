@@ -20,8 +20,8 @@ import (
 )
 
 var (
-	vaultName = randname.GenerateWithPrefix("vault-sample-go-", 5)
-	keyName   = randname.GenerateWithPrefix("key-sample-go-", 5)
+	kvName  = randname.GenerateWithPrefix("vault-sample-go-", 5)
+	keyName = randname.GenerateWithPrefix("key-sample-go-", 5)
 )
 
 // TestMain sets up the environment and initiates tests.
@@ -54,19 +54,19 @@ func ExampleSetVaultPermissions() {
 		util.PrintAndLog(err.Error())
 	}
 
-	_, err = CreateVault(ctx, vaultName)
+	_, err = CreateVault(ctx, kvName)
 	if err != nil {
 		util.PrintAndLog(err.Error())
 	}
 	util.PrintAndLog("vault created")
 
-	_, err = SetVaultPermissions(ctx, vaultName)
+	_, err = SetVaultPermissions(ctx, kvName)
 	if err != nil {
 		util.PrintAndLog(err.Error())
 	}
 	util.PrintAndLog("set vault permissions")
 
-	_, err = CreateKey(ctx, vaultName, keyName)
+	_, err = CreateKey(ctx, kvName, keyName)
 	if err != nil {
 		util.PrintAndLog(err.Error())
 	}

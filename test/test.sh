@@ -45,7 +45,7 @@ fi
 
 TRAVIS_EXEC=
 if [ "x$TRAVIS" == "xtrue" ]; then
-    TRAVIS_EXEC=travis_wait 30
+    TRAVIS_EXEC="travis_wait 30"
 fi
 
 # don't run live tests on PRs

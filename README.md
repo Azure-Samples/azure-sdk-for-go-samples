@@ -14,7 +14,7 @@ azure-sdk-for-go-samples is a collection of sample usages of the
 
 [![Build Status](https://travis-ci.org/Azure-Samples/azure-sdk-for-go-samples.svg?branch=master)](https://travis-ci.org/Azure-Samples/azure-sdk-for-go-samples)
 
-For general SDK help, start with the [main SDK README][].
+For general SDK help start with the [main SDK README][].
 
 ## To run tests
 

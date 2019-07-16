@@ -4,7 +4,7 @@ languages:
 products:
 - azure
 page_type: sample
-description: "A collection of samples, showing how to use the Azure SDK for Go."
+description: "A collection of samples showing how to use the Azure SDK for Go."
 ---
 
 # Azure SDK for Go Samples

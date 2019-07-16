@@ -9,8 +9,7 @@ description: "A collection of samples showing how to use the Azure SDK for Go."
 
 # Azure SDK for Go Samples
 
-azure-sdk-for-go-samples is a collection of sample usages of the
-[Azure/azure-sdk-for-go][].
+azure-sdk-for-go-samples is a collection of sample usages of the [Azure/azure-sdk-for-go][].
 
 [![Build Status](https://travis-ci.org/Azure-Samples/azure-sdk-for-go-samples.svg?branch=master)](https://travis-ci.org/Azure-Samples/azure-sdk-for-go-samples)
 

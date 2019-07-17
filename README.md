@@ -23,9 +23,7 @@ For general SDK help start with the [main SDK README][].
 
 To run all tests: `make test`.
 
-To use service principal authentication, create a principal by running `az ad
-sp create-for-rbac -n "<yourAppName>"` and set the following environment
-variables. You can copy `.env.tpl` to a `.env` file in each package for ease of use.
+To use service principal authentication, create a principal by running `az ad sp create-for-rbac -n "<yourAppName>"` and set the following environment variables. You can copy `.env.tpl` to a `.env` file in each package for ease of use.
 
 ```bash
 export AZURE_SUBSCRIPTION_ID=

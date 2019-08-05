@@ -12,6 +12,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/graphrbac"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/go-autorest/autorest"
@@ -113,7 +114,10 @@ func SetVaultPermissions(ctx context.Context, vaultName string) (keyvault.Vault,
 		return keyvault.Vault{}, err
 	}
 
-	clientID := config.ClientID()
+	objectID, err := graphrbac.GetServicePrincipalObjectID(ctx, config.ClientID())
+	if err != nil {
+		return keyvault.Vault{}, err
+	}
 
 	return vaultsClient.CreateOrUpdate(
 		ctx,
@@ -129,7 +133,7 @@ func SetVaultPermissions(ctx context.Context, vaultName string) (keyvault.Vault,
 				},
 				AccessPolicies: &[]keyvault.AccessPolicyEntry{
 					{
-						ObjectID: &clientID,
+						ObjectID: &objectID,
 						TenantID: &tenantID,
 						Permissions: &keyvault.Permissions{
 							Keys: &[]keyvault.KeyPermissions{

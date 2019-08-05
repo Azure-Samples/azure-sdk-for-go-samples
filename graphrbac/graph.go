@@ -2,6 +2,7 @@ package graphrbac
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
@@ -112,4 +113,18 @@ func CreateADGroup(ctx context.Context) (graphrbac.ADGroup, error) {
 func DeleteADGroup(ctx context.Context, groupObjID string) (autorest.Response, error) {
 	groupClient := getADGroupsClient()
 	return groupClient.Delete(ctx, groupObjID)
+}
+
+// GetServicePrincipalObjectID returns the service principal object ID for the specified client ID.
+func GetServicePrincipalObjectID(ctx context.Context, clientID string) (string, error) {
+	spClient := getServicePrincipalsClient()
+	page, err := spClient.List(ctx, fmt.Sprintf("servicePrincipalNames/any(c:c eq '%s')", clientID))
+	if err != nil {
+		return "", err
+	}
+	servicePrincipals := page.Values()
+	if len(servicePrincipals) == 0 {
+		return "", fmt.Errorf("didn't find any service principals for client ID %s", clientID)
+	}
+	return *servicePrincipals[0].ObjectID, nil
 }

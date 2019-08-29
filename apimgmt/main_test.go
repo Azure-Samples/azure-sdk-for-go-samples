@@ -52,6 +52,7 @@ func generateName(prefix string) string {
 }
 
 // TestMain is the main entry point for tests
+// NOTE: when running tests, this takes a long time, make sure to run: go test -timeout 60m
 func TestMain(m *testing.M) {
 	var err error
 	var code int

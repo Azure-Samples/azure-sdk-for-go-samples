@@ -22,10 +22,11 @@ const (
 )
 
 // TestEndToEnd tests creating and delete API Mgmt svcs
+// NOTE: when running tests, this takes a long time, make sure to run: go test -timeout 60m
 func TestEndToEnd(t *testing.T) {
 
 	// skip this test for now due to length of time constraints, comment out to execute this test
-	//t.SkipNow()
+	t.SkipNow()
 
 	var groupName = config.GenerateGroupName("APIMSTest")
 	config.SetGroupName(groupName)

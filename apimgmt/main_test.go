@@ -7,12 +7,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+	"github.com/WilliamMortlMicrosoft/azure-sdk-for-go-samples/internal/config"
+	"github.com/WilliamMortlMicrosoft/azure-sdk-for-go-samples/internal/util"
 	"github.com/marstr/randname"
 )
 
+// test helpers
 func addLocalEnvAndParse() error {
 	// parse env at top-level (also controls dotenv load)
 	err := config.ParseEnvironment()
@@ -46,7 +47,6 @@ func teardown() error {
 	return nil
 }
 
-// test helpers
 func generateName(prefix string) string {
 	return strings.ToLower(randname.GenerateWithPrefix(prefix, 5))
 }

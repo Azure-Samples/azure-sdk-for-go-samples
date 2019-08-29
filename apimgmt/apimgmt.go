@@ -6,16 +6,14 @@
 package apimgmt
 
 import (
-	"context"
 	"fmt"
-	"net/http"
 	"strings"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	api "github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-01-01/apimanagement"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/WilliamMortlMicrosoft/azure-sdk-for-go-samples/internal/config"
+	"github.com/WilliamMortlMicrosoft/azure-sdk-for-go-samples/internal/iam"
 )
 
 // returns a new instance of an API Svc client
@@ -41,8 +39,8 @@ func getAPIClient() api.APIClient {
 func CreateAPIMgmtSvc(apimgmtsvc ServiceInfo) (service api.ServiceResource, err error) {
 	serviceClient := getAPISvcClient()
 	svcProp := api.ServiceProperties{
-		PublisherEmail: &sdk.Email,
-		PublisherName:  &sdk.Name,
+		PublisherEmail: &apimgmtsvc.Email,
+		PublisherName:  &apimgmtsvc.Name,
 	}
 	sku := api.ServiceSkuProperties{
 		Name: api.SkuTypeBasic,
@@ -51,7 +49,7 @@ func CreateAPIMgmtSvc(apimgmtsvc ServiceInfo) (service api.ServiceResource, err 
 		apimgmtsvc.Ctx,
 		apimgmtsvc.ResourceGroupName,
 		apimgmtsvc.ServiceName,
-		apimgmtsvc.ServiceResource{
+		api.ServiceResource{
 			Location:          to.StringPtr(config.Location()),
 			ServiceProperties: &svcProp,
 			Sku:               &sku,
@@ -61,9 +59,9 @@ func CreateAPIMgmtSvc(apimgmtsvc ServiceInfo) (service api.ServiceResource, err 
 		return service, fmt.Errorf("cannot create api management service: %v", err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, serversClient.Client)
+	err = future.WaitForCompletionRef(apimgmtsvc.Ctx, serviceClient.Client)
 	if err != nil {
-		return server, fmt.Errorf("cannot get the api management service future response: %v", err)
+		return service, fmt.Errorf("cannot get the api management service future response: %v", err)
 	}
 
 	return future.Result(serviceClient)
@@ -85,7 +83,7 @@ func CreateOrUpdateAPI(apimgmtsvc ServiceInfo, properties api.APICreateOrUpdateP
 		return apiContract, fmt.Errorf("cannot create api endpoint: %v", err)
 	}
 
-	err = future.WaitForCompletionRef(apimgmtsvc, apiClient.Client)
+	err = future.WaitForCompletionRef(apimgmtsvc.Ctx, apiClient.Client)
 	if err != nil {
 		return apiContract, fmt.Errorf("cannot get the api endpoint future response: %v", err)
 	}
@@ -95,9 +93,9 @@ func CreateOrUpdateAPI(apimgmtsvc ServiceInfo, properties api.APICreateOrUpdateP
 
 // DeleteAPI deletes an API endpoint on an API Management service
 // wraps: https://godoc.org/github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-01-01/apimanagement#APIClient.Delete
-func DeleteAPI(apimgmtsvc ServiceInfo, apiid, ifMatch string) (result autorest.Response, err error) {
+func DeleteAPI(apimgmtsvc ServiceInfo, apiid, ifMatch string) (response autorest.Response, err error) {
 	apiClient := getAPIClient()
-	future, err := apiClient.Delete(
+	response, err = apiClient.Delete(
 		apimgmtsvc.Ctx,
 		apimgmtsvc.ResourceGroupName,
 		apimgmtsvc.ServiceName,
@@ -105,17 +103,11 @@ func DeleteAPI(apimgmtsvc ServiceInfo, apiid, ifMatch string) (result autorest.R
 		ifMatch,
 		to.BoolPtr(true),
 	)
-
 	if err != nil {
-		return result, fmt.Errorf("cannot delete api endpoint: %v", err)
+		return response, fmt.Errorf("cannot delete api endpoint: %v", err)
 	}
 
-	err = future.WaitForCompletionRef(apimgmtsvc, apiClient.Client)
-	if err != nil {
-		return result, fmt.Errorf("cannot get the api endpoint future response: %v", err)
-	}
-
-	return future.Result(apiClient)	
+	return response, nil
 }
 
 // DeleteAPIMgmtSvc deletes an instance of an API Management service
@@ -131,9 +123,9 @@ func DeleteAPIMgmtSvc(apimgmtsvc ServiceInfo) (service api.ServiceResource, err 
 		return service, fmt.Errorf("cannot delete api management service: %v", err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, serversClient.Client)
+	err = future.WaitForCompletionRef(apimgmtsvc.Ctx, serviceClient.Client)
 	if err != nil {
-		return server, fmt.Errorf("cannot get the api management service future response: %v", err)
+		return service, fmt.Errorf("cannot get the api management service future response: %v", err)
 	}
 
 	return future.Result(serviceClient)

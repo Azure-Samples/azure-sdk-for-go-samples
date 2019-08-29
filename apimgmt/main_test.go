@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
-	"github.com/WilliamMortlMicrosoft/azure-sdk-for-go-samples/internal/config"
-	"github.com/WilliamMortlMicrosoft/azure-sdk-for-go-samples/internal/util"
 	"github.com/marstr/randname"
 )
 

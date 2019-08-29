@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	api "github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-01-01/apimanagement"
-	"github.com/WilliamMortlMicrosoft/azure-sdk-for-go-samples/internal/config"
-	"github.com/WilliamMortlMicrosoft/azure-sdk-for-go-samples/internal/util"
 )
 
 const (
@@ -25,12 +25,12 @@ const (
 func TestEndToEnd(t *testing.T) {
 
 	// skip this test for now due to length of time constraints, comment out to execute this test
-	t.SkipNow()
+	//t.SkipNow()
 
 	var groupName = config.GenerateGroupName("APIMSTest")
 	config.SetGroupName(groupName)
 
-	ctx := context.Background()
+	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Minute*60)
 	defer resources.Cleanup(ctx)
 
 	_, err := resources.CreateGroup(ctx, config.GroupName())
@@ -117,4 +117,7 @@ func TestEndToEnd(t *testing.T) {
 	} else {
 		util.PrintAndLog("api management service deleted")
 	}
+
+	// finished with context, cancel
+	cancelFunc()
 }

@@ -9,11 +9,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	api "github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-01-01/apimanagement"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/WilliamMortlMicrosoft/azure-sdk-for-go-samples/internal/config"
-	"github.com/WilliamMortlMicrosoft/azure-sdk-for-go-samples/internal/iam"
 )
 
 // returns a new instance of an API Svc client

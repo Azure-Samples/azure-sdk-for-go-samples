@@ -1,5 +1,3 @@
-module github.com/WilliamMortlMicrosoft/azure-sdk-for-go-samples
-
 go 1.12
 
 require (
@@ -13,7 +11,8 @@ require (
 	github.com/Azure/azure-storage-blob-go v0.0.0-20181023070848-cf01652132cc
 	github.com/Azure/go-autorest v12.1.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.9.0
-	github.com/Azure/go-autorest/autorest/azure/auth v0.3.0 // indirect
+	github.com/Azure/go-autorest/autorest/adal v0.6.0
+	github.com/Azure/go-autorest/autorest/azure/auth v0.3.0
 	github.com/Azure/go-autorest/autorest/to v0.3.0
 	github.com/Azure/go-autorest/autorest/validation v0.2.0 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.2.0
@@ -35,7 +34,6 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/rogpeppe/go-internal v1.3.0
 	github.com/satori/go.uuid v1.2.0
-	github.com/sirupsen/logrus v1.2.0 // indirect
 	go.opencensus.io v0.21.0
 	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
 	golang.org/x/net v0.0.0-20190520210107-018c4d40a106

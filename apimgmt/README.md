@@ -37,7 +37,7 @@ This package demonstrates how to create an instance of the API Management Servic
   |AZURE_BASE_GROUP_NAME|base resource group name|
   |AZURE_LOCATION_DEFAULT|location for all resources|
 
-4. Edit *endtoend_test.go* file and preface the `t.SkipNow()` line in the *TestEndToEnd* function with a comment (//).
+4. Edit the **endtoend_test.go** file and preface the `t.SkipNow()` line in the **TestEndToEnd** function with a comment `//`.
 
 5. Run the sample. `go test -timeout 60m`
 

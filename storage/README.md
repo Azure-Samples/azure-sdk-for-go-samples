@@ -210,7 +210,7 @@ for _, usage := range *usageList.Value {
 ### Delete storage account
 
 ```go
-storageClient.Delete(groupName, accountName)
+storageClient.Delete(ctx, groupName, accountName)
 ```
 
 <a id="info"></a>

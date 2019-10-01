@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 package cognitiveservices
-
+// <imports>
 import (
     "context"
     "encoding/json"
@@ -16,7 +16,9 @@ import (
     "github.com/Azure/go-autorest/autorest"
     "github.com/Azure/go-autorest/autorest/to"
 )
+// </imports>
 
+// <client>
 func GetTextAnalyticsClient() textanalytics.BaseClient {
     var subscriptionKeyVar string = "TEXT_ANALYTICS_SUBSCRIPTION_KEY"
     if "" == os.Getenv(subscriptionKeyVar) {
@@ -34,8 +36,10 @@ func GetTextAnalyticsClient() textanalytics.BaseClient {
 
     return textAnalyticsClient
 }
+// </client>
 
 // detects the sentiment of a set of text records
+// <sentimentAnalysis>
 func SentimentAnalysis() {
     textAnalyticsclient := GetTextAnalyticsClient()
     ctx := context.Background()
@@ -80,8 +84,10 @@ func SentimentAnalysis() {
         fmt.Printf("Document ID: %s Message : %s\n", *error.ID, *error.Message)
     }
 }
+// </sentimentAnalysis>
 
 //detects the language of a text document
+// <languageDetection>
 func DetectLanguage() {
     textAnalyticsclient := GetTextAnalyticsClient()
     ctx := context.Background()
@@ -119,8 +125,11 @@ func DetectLanguage() {
         fmt.Printf("Document ID: %s Message : %s\n", *error.ID, *error.Message)
     }
 }
+// </languageDetection>
 
-// extracts key-phrases from a text documen
+
+// extracts key-phrases from a text document
+// <keyPhrases>
 func ExtractKeyPhrases() {
     textAnalyticsclient := GetTextAnalyticsClient()
     ctx := context.Background()
@@ -166,8 +175,10 @@ func ExtractKeyPhrases() {
         fmt.Printf("Document ID: %s Message : %s\n", *error.ID, *error.Message)
     }
 }
+// </keyPhrases>
 
 //  identifies well-known entities in a text document
+// <entityRecognition>
 func ExtractEntities() {
     textAnalyticsclient := GetTextAnalyticsClient()
     ctx := context.Background()
@@ -210,3 +221,4 @@ func ExtractEntities() {
         fmt.Printf("Document ID: %s Message : %s\n", *error.ID, *error.Message)
     }
 }
+// </entityRecognition>

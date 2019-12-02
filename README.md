@@ -45,7 +45,7 @@ create --display-name "<yourAppName>" --native-app --requiredResourceAccess
 `AZURE_SP_OBJECT_ID` represents a service principal ObjectID. It is needed to
 run the Create VM with encrypted managed disks sample.
 
-# Resources
+## Resources
 
 - SDK code is at [Azure/azure-sdk-for-go][].
 - SDK docs are at [godoc.org](https://godoc.org/github.com/Azure/azure-sdk-for-go/).
@@ -53,11 +53,11 @@ run the Create VM with encrypted managed disks sample.
 - Azure API docs are at [docs.microsoft.com/rest/api](https://docs.microsoft.com/rest/api/).
 - General Azure docs are at [docs.microsoft.com/azure](https://docs.microsoft.com/azure).
 
-# License
+## License
 
 This code is provided under the MIT license. See [LICENSE][] for details.
 
-# Contribute
+## Contribute
 
 We welcome your contributions! For instructions and our code of conduct see [CONTRIBUTING.md][]. And thank you!
 

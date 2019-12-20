@@ -26,6 +26,12 @@ func getVnetClient() network.VirtualNetworksClient {
 	return vnetClient
 }
 
+// GetVirtualNetwork gets info on a virtual network
+func GetVirtualNetwork(ctx context.Context, vnetName string) (network.VirtualNetwork, error) {
+	vnetClient := getVnetClient()
+	return vnetClient.Get(ctx, config.GroupName(), vnetName, "")
+}
+
 // CreateVirtualNetwork creates a virtual network
 func CreateVirtualNetwork(ctx context.Context, vnetName string) (vnet network.VirtualNetwork, err error) {
 	vnetClient := getVnetClient()

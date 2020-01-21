@@ -34,7 +34,7 @@ steps:
     go get -u golang.org/x/lint/golint
   workingDirectory: '$(modulePath)'
   displayName: 'Install Dependencies'
-- script: go tool vet $(go list ./... | grep -v vendor)
+- script: go vet $(go list ./... | grep -v vendor)
   workingDirectory: '$(modulePath)'
   displayName: 'Vet'
 - script: go build -v $(go list ./... | grep -v vendor)

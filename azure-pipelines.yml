@@ -40,6 +40,3 @@ steps:
 - script: go build -v $(go list ./... | grep -v vendor)
   workingDirectory: '$(modulePath)'
   displayName: 'Build'
-- script: make test
-  workingDirectory: '$(modulePath)'
-  displayName: 'Run Tests'

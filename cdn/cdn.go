@@ -2,10 +2,10 @@ package cdn
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
@@ -24,6 +24,9 @@ func CheckNameAvailability(ctx context.Context, name, resourceType string) (bool
 		Name: to.StringPtr(name),
 		Type: to.StringPtr(resourceType),
 	})
+	if err != nil {
+		return false, err
+	}
 
-	return *resp.NameAvailable, err
+	return *resp.NameAvailable, nil
 }

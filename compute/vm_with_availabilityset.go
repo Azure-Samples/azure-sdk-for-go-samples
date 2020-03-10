@@ -9,11 +9,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
-
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
@@ -53,7 +52,6 @@ func GetAvailabilitySet(ctx context.Context, asName string) (compute.Availabilit
 // creates and configures a load balancer and associates that with the VM's
 // NIC.
 func CreateVMWithLoadBalancer(ctx context.Context, vmName, lbName, vnetName, subnetName, publicipName, availabilitySetName string, natRule int) (vm compute.VirtualMachine, err error) {
-
 	nicName := fmt.Sprintf("nic-%s", vmName)
 
 	_, err = network.CreateNICWithLoadBalancer(ctx, lbName, vnetName, subnetName, nicName, natRule)

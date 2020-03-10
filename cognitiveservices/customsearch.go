@@ -23,8 +23,7 @@ func getCustomSearchClient(accountName string) customsearch.CustomInstanceClient
 }
 
 //CustomSearch returns answers based on a custom search instance
-func CustomSearch(accountName string) (customsearch.WebWebAnswer, error) {
-
+func CustomSearch(accountName string) (*customsearch.WebWebAnswer, error) {
 	customSearchClient := getCustomSearchClient(accountName)
 	query := "Xbox"
 	customConfig := "" // subsitute with custom config id configured at https://www.customsearch.ai
@@ -47,6 +46,9 @@ func CustomSearch(accountName string) (customsearch.WebWebAnswer, error) {
 		nil,                  // text decorations
 		customsearch.Raw,     // text format
 	)
+	if err != nil {
+		return nil, err
+	}
 
-	return *searchResponse.WebPages, err
+	return searchResponse.WebPages, nil
 }

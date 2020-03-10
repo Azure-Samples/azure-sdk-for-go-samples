@@ -69,7 +69,7 @@ func CreateVaultWithPolicies(ctx context.Context, vaultName, userID string) (vau
 		return
 	}
 
-	apList := []keyvault.AccessPolicyEntry{}
+	var apList []keyvault.AccessPolicyEntry
 	ap := keyvault.AccessPolicyEntry{
 		TenantID: &tenantID,
 		Permissions: &keyvault.Permissions{

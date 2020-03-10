@@ -23,7 +23,7 @@ func getEntitySearchClient(accountName string) entitysearch.EntitiesClient {
 }
 
 //SearchEntities retunrs a list of entities
-func SearchEntities(accountName string) (entitysearch.Entities, error) {
+func SearchEntities(accountName string) (*entitysearch.Entities, error) {
 	entitySearchClient := getEntitySearchClient(accountName)
 	query := "tom cruise"
 	market := "en-us"
@@ -43,6 +43,9 @@ func SearchEntities(accountName string) (entitysearch.Entities, error) {
 		entitysearch.Strict,             // safe search
 		"",                              // set lang
 	)
+	if err != nil {
+		return nil, err
+	}
 
-	return *searchResponse.Entities, err
+	return searchResponse.Entities, nil
 }

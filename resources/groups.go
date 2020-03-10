@@ -12,14 +12,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
-
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-05-01/resources"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
-
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 )
 
 func getGroupsClient() resources.GroupsClient {
@@ -95,7 +93,7 @@ func DeleteAllGroupsWithPrefix(ctx context.Context, prefix string) (futures []re
 		log.Println("keeping resource groups")
 		return
 	}
-	for list, err := ListGroups(ctx); list.NotDone(); err = list.Next() {
+	for list, err := ListGroups(ctx); list.NotDone(); err = list.NextWithContext(ctx) {
 		if err != nil {
 			log.Fatalf("got error: %s", err)
 		}

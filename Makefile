@@ -1,7 +1,7 @@
 test:
 	./test/test.sh
 
-testpr:
-	ISPR=1 ./test/test.sh
+testcommit:
+    ./test/test_on_commit.sh
 
-.PHONY: test testpr
+.PHONY: test testcommit

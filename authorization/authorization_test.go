@@ -20,13 +20,10 @@ import (
 
 // TestMain sets up the environment and initiates tests.
 func TestMain(m *testing.M) {
-	var err error
-	err = config.ParseEnvironment()
-	if err != nil {
+	if err := config.ParseEnvironment(); err != nil {
 		log.Fatalf("failed to parse env: %v\n", err)
 	}
-	err = config.AddFlags()
-	if err != nil {
+	if err := config.AddFlags(); err != nil {
 		log.Fatalf("failed to parse env: %v\n", err)
 	}
 	flag.Parse()
@@ -44,12 +41,12 @@ func ExampleAssignRole() {
 
 	_, err := resources.CreateGroup(ctx, groupName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	list, err := ListRoleDefinitions(ctx, "roleName eq 'Contributor'")
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("got role definitions list")
 
@@ -65,26 +62,24 @@ func ExampleAssignRole() {
 
 	groupRole, err := AssignRole(ctx, userID, *list.Values()[0].ID)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("role assigned with resource group scope")
 
 	subscriptionRole, err := AssignRoleWithSubscriptionScope(
 		ctx, userID, *list.Values()[0].ID)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("role assigned with subscription scope")
 
 	if !config.KeepResources() {
-		DeleteRoleAssignment(ctx, *groupRole.ID)
-		if err != nil {
-			util.PrintAndLog(err.Error())
+		if _, err := DeleteRoleAssignment(ctx, *groupRole.ID); err != nil {
+			util.LogAndPanic(err)
 		}
 
-		DeleteRoleAssignment(ctx, *subscriptionRole.ID)
-		if err != nil {
-			util.PrintAndLog(err.Error())
+		if _, err := DeleteRoleAssignment(ctx, *subscriptionRole.ID); err != nil {
+			util.LogAndPanic(err)
 		}
 	}
 

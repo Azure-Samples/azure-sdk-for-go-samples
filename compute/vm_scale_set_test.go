@@ -16,9 +16,9 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
-// ExampleCreateVMSS creates a group and network artifacts needed for a VMSS, then
+// Example_createVMSS creates a group and network artifacts needed for a VMSS, then
 // creates a VMSS and tests operations on it.
-func ExampleCreateVMSS() {
+func Example_createVMSS() {
 	var groupName = config.GenerateGroupName("VMSS")
 	// TODO: remove and use local `groupName` only
 	config.SetGroupName(groupName)
@@ -29,18 +29,18 @@ func ExampleCreateVMSS() {
 
 	_, err := resources.CreateGroup(ctx, groupName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	_, err = network.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created vnet and 2 subnets")
 
 	_, err = CreateVMSS(ctx, vmssName, virtualNetworkName, subnet1Name, username, password, sshPublicKeyPath)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created VMSS")
 
@@ -50,26 +50,26 @@ func ExampleCreateVMSS() {
 		"cloud":   to.StringPtr("azure"),
 	})
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("updated VMSS")
 
 	// set or change system state
 	_, err = StartVMSS(ctx, vmssName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("started VMSS")
 
 	_, err = RestartVMSS(ctx, vmssName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("restarted VMSS")
 
 	_, err = StopVMSS(ctx, vmssName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("stopped VMSS")
 

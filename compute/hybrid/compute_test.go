@@ -8,6 +8,7 @@ package compute
 import (
 	"context"
 	"flag"
+	"log"
 	"os"
 	"testing"
 
@@ -16,7 +17,6 @@ import (
 	hybridnetwork "github.com/Azure-Samples/azure-sdk-for-go-samples/network/hybrid"
 	hybridresources "github.com/Azure-Samples/azure-sdk-for-go-samples/resources/hybrid"
 	hybridstorage "github.com/Azure-Samples/azure-sdk-for-go-samples/storage/hybrid"
-
 	"github.com/marstr/randname"
 )
 
@@ -35,8 +35,12 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	config.ParseEnvironment()
-	config.AddFlags()
+	if err := config.ParseEnvironment(); err != nil {
+		log.Fatalf("failed to parse env: %+v", err)
+	}
+	if err := config.AddFlags(); err != nil {
+		log.Fatalf("failed to add flags: %+v", err)
+	}
 	flag.Parse()
 	os.Exit(m.Run())
 }
@@ -49,41 +53,41 @@ func ExampleCreateVM() {
 	defer hybridresources.Cleanup(ctx)
 	_, err := hybridresources.CreateGroup(ctx)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	_, err = hybridnetwork.CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnetName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created vnet and a subnet")
 
 	_, err = hybridnetwork.CreateNetworkSecurityGroup(ctx, nsgName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created network security group")
 
 	_, err = hybridnetwork.CreatePublicIP(ctx, ipName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created public IP")
 
 	_, err = hybridnetwork.CreateNetworkInterface(ctx, nicName, nsgName, virtualNetworkName, subnetName, ipName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created nic")
 
 	_, err = hybridstorage.CreateStorageAccount(ctx, storageAccountName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created storage account")
 
 	_, err = CreateVM(ctx, vmName, nicName, username, password, storageAccountName, sshPublicKeyPath)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created VM")
 

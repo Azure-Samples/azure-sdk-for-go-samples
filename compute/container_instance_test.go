@@ -23,7 +23,7 @@ func ExampleCreateContainerGroup() {
 
 	_, err := resources.CreateGroup(ctx, groupName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	_, err = CreateContainerGroup(ctx, containerGroupName, config.Location(), groupName)

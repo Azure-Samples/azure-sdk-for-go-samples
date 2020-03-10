@@ -13,7 +13,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 )
 
-func ExampleBlockBlobOperations() {
+func Example_blockBlobOperations() {
 	var accountName = testAccountName
 	var accountGroupName = testAccountGroupName
 	var containerName = generateName("test-blockblobc")
@@ -25,13 +25,13 @@ func ExampleBlockBlobOperations() {
 
 	_, err = CreateContainer(ctx, accountName, accountGroupName, containerName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created container")
 
 	_, err = CreateBlockBlob(ctx, accountName, accountGroupName, containerName, blobName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created blob")
 
@@ -39,14 +39,14 @@ func ExampleBlockBlobOperations() {
 	for i, block := range blocks {
 		err = PutBlockOnBlob(ctx, accountName, accountGroupName, containerName, blobName, block, i)
 		if err != nil {
-			util.PrintAndLog(err.Error())
+			util.LogAndPanic(err)
 		}
 		util.PrintAndLog(fmt.Sprintf("put block %d", i))
 	}
 
 	list, err := GetUncommitedBlocks(ctx, accountName, accountGroupName, containerName, blobName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog(fmt.Sprintf(
 		"list of uncommitted blocks has %d elements",
@@ -54,13 +54,13 @@ func ExampleBlockBlobOperations() {
 
 	err = CommitBlocks(ctx, accountName, accountGroupName, containerName, blobName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("committed blocks")
 
 	blob, err := GetBlob(ctx, accountName, accountGroupName, containerName, blobName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("downloaded blob")
 	util.PrintAndLog(blob)

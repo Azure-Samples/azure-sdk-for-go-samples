@@ -48,31 +48,27 @@ func ExampleCreateHadoopCluster() {
 
 	_, err := resources.CreateGroup(ctx, rgName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
-		return
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created resource group")
 
 	storageAccountName := strings.ToLower(config.AppendRandomSuffix("exampleforhadoop"))
 	sa, err := storage.CreateStorageAccount(context.Background(), storageAccountName, rgName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
-		return
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created storage account")
 
 	containerName := strings.ToLower(config.AppendRandomSuffix("hadoopfilesystem"))
 	_, err = storage.CreateContainer(context.Background(), storageAccountName, rgName, containerName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
-		return
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created container")
 
 	keys, err := storage.GetAccountKeys(context.Background(), storageAccountName, rgName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
-		return
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("retrieved storage account keys")
 
@@ -83,8 +79,7 @@ func ExampleCreateHadoopCluster() {
 		Key:       *(*keys.Keys)[0].Value,
 	})
 	if err != nil {
-		util.PrintAndLog(err.Error())
-		return
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created cluster")
 

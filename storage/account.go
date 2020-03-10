@@ -10,12 +10,11 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
-
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 )
 
 var (
@@ -61,12 +60,12 @@ func CreateStorageAccount(ctx context.Context, accountName, accountGroupName str
 			Type: to.StringPtr("Microsoft.Storage/storageAccounts"),
 		})
 	if err != nil {
-		return s, fmt.Errorf("storage account check-name-availability failed: %v\n", err)
+		return s, fmt.Errorf("storage account check-name-availability failed: %+v", err)
 	}
 
-	if *result.NameAvailable != true {
+	if !*result.NameAvailable {
 		return s, fmt.Errorf(
-			"storage account name [%s] not available: %v\nserver message: %v\n",
+			"storage account name [%s] not available: %v\nserver message: %v",
 			accountName, err, *result.Message)
 	}
 
@@ -83,12 +82,12 @@ func CreateStorageAccount(ctx context.Context, accountName, accountGroupName str
 		})
 
 	if err != nil {
-		return s, fmt.Errorf("failed to start creating storage account: %v\n", err)
+		return s, fmt.Errorf("failed to start creating storage account: %+v", err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, storageAccountsClient.Client)
 	if err != nil {
-		return s, fmt.Errorf("failed to finish creating storage account: %v\n", err)
+		return s, fmt.Errorf("failed to finish creating storage account: %+v", err)
 	}
 
 	return future.Result(storageAccountsClient)

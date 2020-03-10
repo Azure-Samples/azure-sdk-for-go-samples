@@ -14,13 +14,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mongodb"
-	"github.com/globalsign/mgo/bson"
-	"github.com/marstr/randname"
-
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mongodb"
+	"github.com/globalsign/mgo/bson"
+	"github.com/marstr/randname"
 )
 
 var (
@@ -44,7 +43,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func ExampleCosmosDBOperations() {
+func Example_cosmosDBOperations() {
 	var groupName = config.GenerateGroupName("CosmosDB")
 	config.SetGroupName(groupName)
 
@@ -53,18 +52,18 @@ func ExampleCosmosDBOperations() {
 
 	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	_, err = CreateDatabaseAccount(ctx, accountName)
 	if err != nil {
-		util.PrintAndLog(fmt.Sprintf("cannot create database account: %v", err))
+		util.LogAndPanic(fmt.Errorf("cannot create database account: %+v", err))
 	}
 	util.PrintAndLog("database account created")
 
 	keys, err := ListKeys(ctx, accountName)
 	if err != nil {
-		util.PrintAndLog(fmt.Sprintf("cannot list keys: %v", err))
+		util.LogAndPanic(fmt.Errorf("cannot list keys: %+v", err))
 	}
 	util.PrintAndLog("keys listed")
 
@@ -73,7 +72,7 @@ func ExampleCosmosDBOperations() {
 
 	session, err := mongodb.NewMongoDBClientWithCredentials(accountName, *keys.PrimaryMasterKey, host)
 	if err != nil {
-		util.PrintAndLog(fmt.Sprintf("cannot get mongoDB session: %v", err))
+		util.LogAndPanic(fmt.Errorf("cannot get mongoDB session: %+v", err))
 	}
 	util.PrintAndLog("got mongoDB session")
 
@@ -92,7 +91,7 @@ func ExampleCosmosDBOperations() {
 			"LastUpdatedBy": "shergin",
 		})
 	if err != nil {
-		util.PrintAndLog(fmt.Sprintf("cannot insert document: %v", err))
+		util.LogAndPanic(fmt.Errorf("cannot insert document: %v", err))
 	}
 	util.PrintAndLog("inserted document")
 
@@ -102,7 +101,7 @@ func ExampleCosmosDBOperations() {
 		collection,
 		bson.M{"fullname": "react"})
 	if err != nil {
-		util.PrintAndLog(fmt.Sprintf("cannot get document: %v", err))
+		util.LogAndPanic(fmt.Errorf("cannot get document: %v", err))
 	}
 	util.PrintAndLog("got document")
 	util.PrintAndLog(fmt.Sprintf("document description: %s", doc["description"]))
@@ -118,13 +117,13 @@ func ExampleCosmosDBOperations() {
 			},
 		})
 	if err != nil {
-		util.PrintAndLog(fmt.Sprintf("cannot update document: %v", err))
+		util.LogAndPanic(fmt.Errorf("cannot update document: %v", err))
 	}
 	util.PrintAndLog("update document")
 
-	err = DeleteDcoument(session, accountName, collection, doc["_id"].(bson.ObjectId))
+	err = DeleteDocument(session, accountName, collection, doc["_id"].(bson.ObjectId))
 	if err != nil {
-		util.PrintAndLog(fmt.Sprintf("cannot delete document: %v", err))
+		util.LogAndPanic(fmt.Errorf("cannot delete document: %v", err))
 	}
 	util.PrintAndLog("delete document")
 

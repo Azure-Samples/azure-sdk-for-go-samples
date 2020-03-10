@@ -54,12 +54,12 @@ func GetMetricsData(ctx context.Context, resourceID string, metrics []string) ([
 	if err != nil {
 		return nil, err
 	}
-	metricData := []string{}
+	var metricData []string
 	for _, v := range *resp.Value {
 		for _, t := range *v.Timeseries {
 			for _, mv := range *t.Data {
-				min := float64(0.0)
-				max := float64(0.0)
+				min := 0.0
+				max := 0.0
 				if mv.Minimum != nil {
 					min = *mv.Minimum
 				}

@@ -13,7 +13,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 )
 
-func ExampleContainerAndBlobs() {
+func Example_containerAndBlobs() {
 	var accountName = testAccountName
 	var accountGroupName = testAccountGroupName
 	var containerName = generateName("test-blobc")
@@ -24,7 +24,7 @@ func ExampleContainerAndBlobs() {
 
 	_, err = CreateContainer(ctx, accountName, accountGroupName, containerName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created container")
 
@@ -32,16 +32,16 @@ func ExampleContainerAndBlobs() {
 		blobName := fmt.Sprintf("test-blob%d", i)
 		_, err = CreateBlockBlob(ctx, accountName, accountGroupName, containerName, blobName)
 		if err != nil {
-			util.PrintAndLog(err.Error())
+			util.LogAndPanic(err)
 		}
 		util.PrintAndLog(fmt.Sprintf("created test-blob%d", i))
 	}
 
 	list, err := ListBlobs(ctx, accountName, accountGroupName, containerName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
-	util.PrintAndLog(fmt.Sprintf("listed %d blobs", len(list.Blobs.Blob)))
+	util.PrintAndLog(fmt.Sprintf("listed %d blobs", len(list.Segment.BlobItems)))
 
 	// Output:
 	// created container

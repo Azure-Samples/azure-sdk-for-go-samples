@@ -40,7 +40,7 @@ func CreateStorageAccount(ctx context.Context, accountName string) (s storage.Ac
 	if err != nil {
 		return s, fmt.Errorf(errorPrefix, err)
 	}
-	if *result.NameAvailable != true {
+	if !*result.NameAvailable {
 		return s, fmt.Errorf(errorPrefix, fmt.Sprintf("storage account name [%v] not available", accountName))
 	}
 	future, err := storageAccountsClient.Create(

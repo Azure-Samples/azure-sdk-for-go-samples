@@ -15,11 +15,12 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
-func getVMSSClient() compute.VirtualMachineScaleSetsClient {
+func GetVMSSClient() compute.VirtualMachineScaleSetsClient {
 	vmssClient := compute.NewVirtualMachineScaleSetsClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	vmssClient.Authorizer = a
@@ -27,7 +28,7 @@ func getVMSSClient() compute.VirtualMachineScaleSetsClient {
 	return vmssClient
 }
 
-func getVMSSExtensionsClient() compute.VirtualMachineScaleSetExtensionsClient {
+func GetVMSSExtensionsClient() compute.VirtualMachineScaleSetExtensionsClient {
 	extClient := compute.NewVirtualMachineScaleSetExtensionsClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	extClient.Authorizer = a
@@ -52,13 +53,13 @@ func CreateVMSS(ctx context.Context, vmssName, vnetName, subnetName, username, p
 		sshKeyData = fakepubkey
 	}
 
-	vmssClient := getVMSSClient()
+	vmssClient := GetVMSSClient()
 	future, err := vmssClient.CreateOrUpdate(
 		ctx,
 		config.GroupName(),
 		vmssName,
 		compute.VirtualMachineScaleSet{
-			Location: to.StringPtr(config.Location()),
+			Location: to.StringPtr(config.DefaultLocation()),
 			Sku: &compute.Sku{
 				Name:     to.StringPtr(string(compute.VirtualMachineSizeTypesBasicA0)),
 				Capacity: to.Int64Ptr(1),
@@ -66,8 +67,11 @@ func CreateVMSS(ctx context.Context, vmssName, vnetName, subnetName, username, p
 			VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
 				Overprovision: to.BoolPtr(false),
 				UpgradePolicy: &compute.UpgradePolicy{
-					Mode:               compute.Manual,
-					AutomaticOSUpgrade: to.BoolPtr(false),
+					Mode: compute.Manual,
+					AutomaticOSUpgradePolicy: &compute.AutomaticOSUpgradePolicy{
+						EnableAutomaticOSUpgrade: to.BoolPtr(false),
+						DisableAutomaticRollback: to.BoolPtr(false),
+					},
 				},
 				VirtualMachineProfile: &compute.VirtualMachineScaleSetVMProfile{
 					OsProfile: &compute.VirtualMachineScaleSetOSProfile{
@@ -134,14 +138,13 @@ func CreateVMSS(ctx context.Context, vmssName, vnetName, subnetName, username, p
 
 // GetVMSS gets the specified VMSS info
 func GetVMSS(ctx context.Context, vmssName string) (compute.VirtualMachineScaleSet, error) {
-	vmssClient := getVMSSClient()
+	vmssClient := GetVMSSClient()
 	return vmssClient.Get(ctx, config.GroupName(), vmssName)
 }
 
 // UpdateVMSS modifies the VMSS resource by getting it, updating it locally, and
 // putting it back to the server.
 func UpdateVMSS(ctx context.Context, vmssName string, tags map[string]*string) (vmss compute.VirtualMachineScaleSet, err error) {
-
 	// get the VMSS resource
 	vmss, err = GetVMSS(ctx, vmssName)
 	if err != nil {
@@ -152,7 +155,7 @@ func UpdateVMSS(ctx context.Context, vmssName string, tags map[string]*string) (
 	vmss.Tags = tags
 
 	// PUT it back
-	vmssClient := getVMSSClient()
+	vmssClient := GetVMSSClient()
 	future, err := vmssClient.CreateOrUpdate(ctx, config.GroupName(), vmssName, vmss)
 	if err != nil {
 		return vmss, fmt.Errorf("cannot update vmss: %v", err)
@@ -167,8 +170,8 @@ func UpdateVMSS(ctx context.Context, vmssName string, tags map[string]*string) (
 }
 
 // DeallocateVMSS deallocates the selected VMSS
-func DeallocateVMSS(ctx context.Context, vmssName string) (osr compute.OperationStatusResponse, err error) {
-	vmssClient := getVMSSClient()
+func DeallocateVMSS(ctx context.Context, vmssName string) (osr autorest.Response, err error) {
+	vmssClient := GetVMSSClient()
 	// passing nil instance ids will deallocate all VMs in the VMSS
 	future, err := vmssClient.Deallocate(ctx, config.GroupName(), vmssName, nil)
 	if err != nil {
@@ -184,8 +187,8 @@ func DeallocateVMSS(ctx context.Context, vmssName string) (osr compute.Operation
 }
 
 // StartVMSS starts the selected VMSS
-func StartVMSS(ctx context.Context, vmssName string) (osr compute.OperationStatusResponse, err error) {
-	vmssClient := getVMSSClient()
+func StartVMSS(ctx context.Context, vmssName string) (osr autorest.Response, err error) {
+	vmssClient := GetVMSSClient()
 	// passing nil instance ids will start all VMs in the VMSS
 	future, err := vmssClient.Start(ctx, config.GroupName(), vmssName, nil)
 	if err != nil {
@@ -201,8 +204,8 @@ func StartVMSS(ctx context.Context, vmssName string) (osr compute.OperationStatu
 }
 
 // RestartVMSS restarts the selected VMSS
-func RestartVMSS(ctx context.Context, vmssName string) (osr compute.OperationStatusResponse, err error) {
-	vmssClient := getVMSSClient()
+func RestartVMSS(ctx context.Context, vmssName string) (osr autorest.Response, err error) {
+	vmssClient := GetVMSSClient()
 	// passing nil instance ids will restart all VMs in the VMSS
 	future, err := vmssClient.Restart(ctx, config.GroupName(), vmssName, nil)
 	if err != nil {
@@ -218,10 +221,10 @@ func RestartVMSS(ctx context.Context, vmssName string) (osr compute.OperationSta
 }
 
 // StopVMSS stops the selected VMSS
-func StopVMSS(ctx context.Context, vmssName string) (osr compute.OperationStatusResponse, err error) {
-	vmssClient := getVMSSClient()
+func StopVMSS(ctx context.Context, vmssName string) (osr autorest.Response, err error) {
+	vmssClient := GetVMSSClient()
 	// passing nil instance ids will stop all VMs in the VMSS
-	future, err := vmssClient.PowerOff(ctx, config.GroupName(), vmssName, nil)
+	future, err := vmssClient.PowerOff(ctx, config.GroupName(), vmssName, nil, nil)
 	if err != nil {
 		return osr, fmt.Errorf("cannot power off vmss: %v", err)
 	}

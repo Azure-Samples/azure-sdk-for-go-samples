@@ -102,7 +102,7 @@ func GetContainerGroup(ctx context.Context, resourceGroupName, containerGroupNam
 }
 
 // UpdateContainerGroup updates the image of the first container of an existing container group
-// given a resrouce group name and container group name
+// given a resource group name and container group name
 func UpdateContainerGroup(ctx context.Context, resourceGroupName, containerGroupName string) (c containerinstance.ContainerGroup, err error) {
 	containerGroupsClient, err := getContainerGroupsClient()
 	if err != nil {

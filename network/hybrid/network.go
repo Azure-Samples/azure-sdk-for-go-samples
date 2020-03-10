@@ -10,13 +10,12 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/network/mgmt/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
-
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 )
 
 const (
@@ -67,7 +66,7 @@ func getNicClient(activeDirectoryEndpoint, tokenAudience string) network.Interfa
 	return nicClient
 }
 
-func getSubnetsClient(activeDirectoryEndpoint, tokenAudience string) network.SubnetsClient {
+func getSubnetClient(activeDirectoryEndpoint, tokenAudience string) network.SubnetsClient {
 	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience)
 	if err != nil {
 		log.Fatal(fmt.Sprintf(errorPrefix, "subnet", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
@@ -260,7 +259,7 @@ func GetNetworkSecurityGroup(ctx context.Context, nsgName string) (network.Secur
 // GetVirtualNetworkSubnet retrieves a virtual netwrok subnet by its name
 func GetVirtualNetworkSubnet(ctx context.Context, vnetName string, subnetName string) (network.Subnet, error) {
 	environment := config.Environment()
-	subnetsClient := getSubnetsClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
+	subnetsClient := getSubnetClient(environment.ActiveDirectoryEndpoint, environment.TokenAudience)
 	return subnetsClient.Get(ctx, config.GroupName(), vnetName, subnetName, "")
 }
 

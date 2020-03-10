@@ -37,18 +37,18 @@ var (
 
 	sshPublicKeyPath = os.Getenv("HOME") + "/.ssh/id_rsa.pub"
 
-	containerGroupName  string = randname.GenerateWithPrefix("gosdk-aci-", 10)
-	aksClusterName      string = randname.GenerateWithPrefix("gosdk-aks-", 10)
-	aksUsername         string = "azureuser"
-	aksSSHPublicKeyPath string = os.Getenv("HOME") + "/.ssh/id_rsa.pub"
-	aksAgentPoolCount   int32  = 4
+	containerGroupName        = randname.GenerateWithPrefix("gosdk-aci-", 10)
+	aksClusterName            = randname.GenerateWithPrefix("gosdk-aks-", 10)
+	aksUsername               = "azureuser"
+	aksSSHPublicKeyPath       = os.Getenv("HOME") + "/.ssh/id_rsa.pub"
+	aksAgentPoolCount   int32 = 4
 )
 
 func addLocalEnvAndParse() error {
 	// parse env at top-level (also controls dotenv load)
 	err := config.ParseEnvironment()
 	if err != nil {
-		return fmt.Errorf("failed to add top-level env: %v\n", err.Error())
+		return fmt.Errorf("failed to add top-level env: %+v", err)
 	}
 
 	// add local env
@@ -63,7 +63,7 @@ func addLocalFlagsAndParse() error {
 	// add top-level flags
 	err := config.AddFlags()
 	if err != nil {
-		return fmt.Errorf("failed to add top-level flags: %v\n", err.Error())
+		return fmt.Errorf("failed to add top-level flags: %+v", err)
 	}
 
 	// add local flags

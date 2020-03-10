@@ -12,7 +12,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 )
 
-func ExampleAppendBlobOperations() {
+func Example_appendBlobOperations() {
 	var accountName = testAccountName
 	var accountGroupName = testAccountGroupName
 	var containerName = generateName("test-appendblobc")
@@ -24,13 +24,13 @@ func ExampleAppendBlobOperations() {
 
 	_, err = CreateContainer(ctx, accountName, accountGroupName, containerName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created container")
 
 	_, err = CreateAppendBlob(ctx, accountName, accountGroupName, containerName, blobName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created append blob")
 
@@ -38,14 +38,14 @@ func ExampleAppendBlobOperations() {
 	for _, block := range blocks {
 		err = AppendToBlob(ctx, accountName, accountGroupName, containerName, blobName, block)
 		if err != nil {
-			util.PrintAndLog(err.Error())
+			util.LogAndPanic(err)
 		}
 		util.PrintAndLog("appended data to blob")
 	}
 
 	blob, err := GetBlob(ctx, accountName, accountGroupName, containerName, blobName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("got blob")
 	util.PrintAndLog(blob)

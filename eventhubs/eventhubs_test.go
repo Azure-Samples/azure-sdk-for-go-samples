@@ -19,7 +19,6 @@ import (
 )
 
 const (
-	location = "westus2"
 	nsName   = "ehtest-04-ns"
 	hubName  = "ehtest-04-hub"
 
@@ -45,7 +44,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func ExampleEventHubs() {
+func Example_eventHubs() {
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
 	// defer goes in LIFO order
 	defer cancel()
@@ -58,21 +57,21 @@ func ExampleEventHubs() {
 
 	_, err = resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created group")
 
 	// create Event Hubs namespace
 	_, err = CreateNamespace(ctx, nsName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created namespace")
 
 	// create Event Hubs hub
 	_, err = CreateHub(ctx, nsName, hubName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created hub")
 

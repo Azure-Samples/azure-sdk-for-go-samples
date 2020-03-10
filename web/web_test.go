@@ -21,20 +21,16 @@ import (
 )
 
 var (
-	appServicePlanName = randname.GenerateWithPrefix("web-appserviceplan-go-samples", 10)
-	siteName           = randname.GenerateWithPrefix("web-site-go-samples", 10)
+	siteName = randname.GenerateWithPrefix("web-site-go-samples", 10)
 )
 
 // TestMain sets up the environment and initiates tests.
 func TestMain(m *testing.M) {
-	var err error
-	err = config.ParseEnvironment()
-	if err != nil {
+	if err := config.ParseEnvironment(); err != nil {
 		log.Fatalf("failed to parse env: %v\n", err)
 	}
-	err = config.AddFlags()
-	if err != nil {
-		log.Fatalf("failed to parse env: %v\n", err)
+	if err := config.AddFlags(); err != nil {
+		log.Fatalf("failed to add flags: %+v", err)
 	}
 	flag.Parse()
 
@@ -42,7 +38,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func ExampleWeb_DeployAppForContainer() {
+func Example_deployAppForContainer() {
 	var groupName = config.GenerateGroupName("WebAppForContainers")
 	config.SetGroupName(groupName)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)

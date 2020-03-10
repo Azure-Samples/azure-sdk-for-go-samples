@@ -13,11 +13,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/2017-09-01.6.0/batch"
-	batchARM "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
-
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
+	"github.com/Azure/azure-sdk-for-go/services/batch/2017-05-01.5.0/batch"
+	batchARM "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	uuid "github.com/satori/go.uuid"
@@ -25,7 +24,6 @@ import (
 
 const (
 	stdoutFile string = "stdout.txt"
-	stderrFile string = "stderr.txt"
 )
 
 func getAccountClient() batchARM.AccountClient {

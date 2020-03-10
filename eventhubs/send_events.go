@@ -4,9 +4,6 @@ import (
 	"context"
 	"log"
 
-	// "bufio"
-	// "os"
-
 	"github.com/Azure/azure-amqp-common-go/aad"
 	eventhubs "github.com/Azure/azure-event-hubs-go"
 )
@@ -20,28 +17,27 @@ func Send(ctx context.Context, nsName, hubName string) {
 
 	// get an existing hub
 	hub, err := eventhubs.NewHub(nsName, hubName, provider)
-	defer hub.Close(ctx)
 	if err != nil {
 		log.Fatalf("failed to get hub: %s\n", err)
 	}
+	defer func() {
+		if err := hub.Close(ctx); err != nil {
+			log.Fatalf("failed to close event hub: %+v", err)
+		}
+	}()
 
 	// get info about partitions in hub
 	info, err := hub.GetRuntimeInformation(ctx)
 	if err != nil {
-		log.Fatalf("failed to get runtime info: %s\n", err)
+		log.Fatalf("failed to get runtime info: %+v", err)
 	}
 	log.Printf("partition IDs: %s\n", info.PartitionIDs)
-
-	// send messages to hub
-	// reader := bufio.NewReader(os.Stdin)
-	// for {
-	// 	fmt.Printf("Input message to send: ")
-	// 	text, _ := reader.ReadString('\n')
-	// 	hub.Send(ctx, eventhubs.NewEventFromString(text))
-	// }
 
 	// send message to hub.
 	// by default the destination partition is selected round-robin by the
 	// Event Hubs service
-	hub.Send(ctx, eventhubs.NewEventFromString("test-message"))
+	err = hub.Send(ctx, eventhubs.NewEventFromString("test-message"))
+	if err != nil {
+		log.Fatalf("failed to send messages: %+v", err)
+	}
 }

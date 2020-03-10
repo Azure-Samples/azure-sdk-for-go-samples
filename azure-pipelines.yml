@@ -7,36 +7,35 @@ trigger:
 - master
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'ubuntu-18.04'
 
 variables:
-  GOBIN:  '$(GOPATH)/bin' # Go binaries path
   GOROOT: '/usr/local/go1.13' # Go installation path
-  GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
+  GOPATH: '$(system.defaultWorkingDirectory)/work'
   modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
 
 steps:
 - script: |
-    mkdir -p '$(GOBIN)'
-    mkdir -p '$(GOPATH)/pkg'
+    set -x
+    mkdir -p '$(GOPATH)/bin'
     mkdir -p '$(modulePath)'
-    shopt -s extglob
-    shopt -s dotglob
-    mv !(work) '$(modulePath)'
-    echo '##vso[task.prependpath]$(GOBIN)'
+    shopt -s dotglob extglob
     echo '##vso[task.prependpath]$(GOROOT)/bin'
+    echo '##vso[task.prependpath]$(GOPATH)/bin'
   displayName: 'Set up the Go workspace'
 - script: |
-    set -e
+    set -x
     go version
-    curl -sSL https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-    dep ensure -v
     go get -u golang.org/x/lint/golint
-  workingDirectory: '$(modulePath)'
+    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.23.6
+    golangci-lint --version
   displayName: 'Install Dependencies'
-- script: go vet $(go list ./... | grep -v vendor)
-  workingDirectory: '$(modulePath)'
-  displayName: 'Vet'
-- script: go build -v $(go list ./... | grep -v vendor)
-  workingDirectory: '$(modulePath)'
+- script: |
+    golangci-lint run --timeout=30m --disable-all \
+    --enable=deadcode --enable=gocyclo --enable=golint \
+    --enable=varcheck --enable=structcheck --enable=maligned \
+    --enable=ineffassign --enable=interfacer --enable=unconvert \
+    --enable=goconst --enable=gosec ./...
+  displayName: 'Run linter'
+- script: ./test/test.sh
   displayName: 'Build'

@@ -25,11 +25,30 @@ function convert_path_to_package {
     echo $path | sed "s@$GOPATH/src/@@"
 }
 
+
+# install_dependencies installs dependencies
+function install_dependencies {
+    base_path=$1
+
+    go get -u github.com/golang/dep/cmd/dep
+    cd $base_path && dep ensure -v
+}
+
 # run_lint_on_packages runs chosen linters on specified packages
 function run_lint_on_packages {
     _packages=$1
 
-	  golangci-lint run ${_packages}
+	go get -u github.com/alecthomas/gometalinter
+	gometalinter --install > /dev/null
+	# TODO: fix problems and enable all tests
+	# TODO: address warnings
+	gometalinter --errors \
+		--enable=gofmt \
+		--enable=goimports \
+		--disable=gotype \
+		--disable=megacheck \
+        --disable=vet \
+		${_packages}
 }
 
 # build_packages build packages

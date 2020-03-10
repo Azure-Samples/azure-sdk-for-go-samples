@@ -37,5 +37,5 @@ steps:
     --enable=ineffassign --enable=interfacer --enable=unconvert \
     --enable=goconst --enable=gosec ./...
   displayName: 'Run linter'
-- script: ./test/test.sh
+- script: go build -v $(go list ./... | grep -v vendor)
   displayName: 'Build'

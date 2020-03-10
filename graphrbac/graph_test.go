@@ -43,49 +43,49 @@ func ExampleCreateServicePrincipal() {
 
 	app, err := CreateADApplication(ctx)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("ad app created")
 
 	sp, err := CreateServicePrincipal(ctx, *app.AppID)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("service principal created")
 
 	_, err = AddClientSecret(ctx, *app.ObjectID)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("added client secret")
 
 	_, err = resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created resource group")
 
 	list, err := authorization.ListRoleDefinitions(ctx, "roleName eq 'Contributor'")
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("list contributor roledefs at group scope")
 
 	_, err = authorization.AssignRole(ctx, *sp.ObjectID, *list.Values()[0].ID)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("assigned new principal to first contributor role")
 
 	if !config.KeepResources() {
 		_, err = resources.DeleteGroup(ctx, config.GroupName())
 		if err != nil {
-			util.PrintAndLog(err.Error())
+			util.LogAndPanic(err)
 		}
 
 		_, err = DeleteADApplication(ctx, *app.ObjectID)
 		if err != nil {
-			util.PrintAndLog(err.Error())
+			util.LogAndPanic(err)
 		}
 	}
 
@@ -103,14 +103,14 @@ func ExampleCreateADGroup() {
 
 	group, err := CreateADGroup(ctx)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("ad group created")
 
 	if !config.KeepResources() {
 		_, err = DeleteADGroup(ctx, *group.ObjectID)
 		if err != nil {
-			util.PrintAndLog(err.Error())
+			util.LogAndPanic(err)
 		}
 		util.PrintAndLog("ad group deleted")
 	}

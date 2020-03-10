@@ -13,6 +13,11 @@ func PrintAndLog(message string) {
 	fmt.Println(message)
 }
 
+func LogAndPanic(err error) {
+	PrintAndLog(err.Error())
+	panic(err)
+}
+
 func Contains(array []string, element string) bool {
 	for _, e := range array {
 		if e == element {
@@ -30,6 +35,8 @@ func ReadJSON(path string) (*map[string]interface{}, error) {
 		log.Fatalf("failed to read template file: %v\n", err)
 	}
 	contents := make(map[string]interface{})
-	json.Unmarshal(data, &contents)
+	if err := json.Unmarshal(data, &contents); err != nil {
+		return nil, err
+	}
 	return &contents, nil
 }

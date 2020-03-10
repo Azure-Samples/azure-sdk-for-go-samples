@@ -8,16 +8,12 @@ package sql
 import (
 	"context"
 	"fmt"
-	"log"
-
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
-
-// Servers
 
 func getServersClient() sql.ServersClient {
 	serversClient := sql.NewServersClient(config.SubscriptionID())
@@ -142,10 +138,4 @@ func CreateFirewallRules(ctx context.Context, serverName string) error {
 	)
 
 	return err
-}
-
-// PrintInfo logs information on SQL user agent and ARM client
-func PrintInfo() {
-	log.Printf("user agent string: %s\n", sql.UserAgent())
-	log.Printf("SQL ARM Client version: %s\n", sql.Version())
 }

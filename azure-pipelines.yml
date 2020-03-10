@@ -1,42 +1,23 @@
-# Go
-# Build your Go project.
-# Add steps that test, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/go
-
 trigger:
-- master
-
-pool:
-  vmImage: 'ubuntu-latest'
+  branches:
+    include:
+      - master
 
 variables:
-  GOBIN:  '$(GOPATH)/bin' # Go binaries path
   GOROOT: '/usr/local/go1.13' # Go installation path
-  GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
-  modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
+  GOPATH: '$(Agent.HomeDirectory)/go'
 
-steps:
-- script: |
-    mkdir -p '$(GOBIN)'
-    mkdir -p '$(GOPATH)/pkg'
-    mkdir -p '$(modulePath)'
-    shopt -s extglob
-    shopt -s dotglob
-    mv !(work) '$(modulePath)'
-    echo '##vso[task.prependpath]$(GOBIN)'
-    echo '##vso[task.prependpath]$(GOROOT)/bin'
-  displayName: 'Set up the Go workspace'
-- script: |
-    set -e
-    go version
-    curl -sSL https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-    dep ensure -v
-    go get -u golang.org/x/lint/golint
-  workingDirectory: '$(modulePath)'
-  displayName: 'Install Dependencies'
-- script: go vet $(go list ./... | grep -v vendor)
-  workingDirectory: '$(modulePath)'
-  displayName: 'Vet'
-- script: go build -v $(go list ./... | grep -v vendor)
-  workingDirectory: '$(modulePath)'
-  displayName: 'Build'
+stages:
+  - stage: LintAndBuild
+    jobs:
+      - template: .azure-pipelines/lint_and_build.yml
+
+  - stage: LiveTest
+    condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI'))
+    jobs:
+      - job:
+        steps:
+          # the live test script steps.
+          - script: |
+              echo 'live test'
+            displayName: 'Live Test'

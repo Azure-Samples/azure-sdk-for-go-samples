@@ -20,9 +20,9 @@ import (
 )
 
 var (
-	accountName string = strings.ToLower(randname.GenerateWithPrefix("gosdkbatch", 5))
-	jobID       string = randname.GenerateWithPrefix("gosdk-batch-j-", 5)
-	poolID      string = randname.GenerateWithPrefix("gosdk-batch-p-", 5)
+	accountName = strings.ToLower(randname.GenerateWithPrefix("gosdkbatch", 5))
+	jobID       = randname.GenerateWithPrefix("gosdk-batch-j-", 5)
+	poolID      = randname.GenerateWithPrefix("gosdk-batch-p-", 5)
 )
 
 // TestMain sets up the environment and initiates tests.
@@ -30,11 +30,11 @@ func TestMain(m *testing.M) {
 	var err error
 	err = config.ParseEnvironment()
 	if err != nil {
-		log.Fatalf("failed to parse env: %v\n", err)
+		log.Fatalf("failed to parse env: %+v", err)
 	}
 	err = config.AddFlags()
 	if err != nil {
-		log.Fatalf("failed to parse env: %v\n", err)
+		log.Fatalf("failed to parse env: %+v", err)
 	}
 	flag.Parse()
 
@@ -51,41 +51,36 @@ func ExampleCreateAzureBatchAccount() {
 
 	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	_, err = CreateAzureBatchAccount(ctx, accountName, config.Location(), config.GroupName())
 	if err != nil {
-		util.PrintAndLog(err.Error())
-		return
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created batch account")
 
 	err = CreateBatchPool(ctx, accountName, config.Location(), poolID)
 	if err != nil {
-		util.PrintAndLog(err.Error())
-		return
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created batch pool")
 
 	err = CreateBatchJob(ctx, accountName, config.Location(), poolID, jobID)
 	if err != nil {
-		util.PrintAndLog(err.Error())
-		return
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created batch job")
 
 	taskID, err := CreateBatchTask(ctx, accountName, config.Location(), jobID)
 	if err != nil {
-		util.PrintAndLog(err.Error())
-		return
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created batch task")
 
 	taskOutput, err := WaitForTaskResult(ctx, accountName, config.Location(), jobID, taskID)
 	if err != nil {
-		util.PrintAndLog(err.Error())
-		return
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("output from task:")
 	util.PrintAndLog(taskOutput)

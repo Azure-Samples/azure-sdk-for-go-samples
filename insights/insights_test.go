@@ -38,13 +38,12 @@ func TestMain(m *testing.M) {
 	}
 	flag.Parse()
 
-	code := m.Run()
-	os.Exit(code)
+	os.Exit(m.Run())
 }
 
 // ExampleGetMetricsForWebsite creates a website then uses the insights package
 // to retrieve the queryable metric names and values.
-func ExampleGetMetricsForWebsite() {
+func Example_getMetricsForWebsite() {
 	var groupName = config.GenerateGroupName("GetMetricsForWebsite")
 	config.SetGroupName(groupName)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
@@ -52,16 +51,14 @@ func ExampleGetMetricsForWebsite() {
 
 	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		util.PrintAndLog(err.Error())
-		return
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created resource group")
 	defer resources.Cleanup(ctx)
 
 	webSite, err := web.CreateContainerSite(ctx, siteName, "appsvc/sample-hello-world:latest")
 	if err != nil {
-		util.PrintAndLog(err.Error())
-		return
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created web site")
 
@@ -69,8 +66,7 @@ func ExampleGetMetricsForWebsite() {
 	// will have its own set of queryable metrics.
 	metrics, err := ListMetricDefinitions(*webSite.ID)
 	if err != nil {
-		util.PrintAndLog(err.Error())
-		return
+		util.LogAndPanic(err)
 	}
 
 	util.PrintAndLog("available metrics:")
@@ -79,8 +75,7 @@ func ExampleGetMetricsForWebsite() {
 	// here, CpuTime and Requests are the non-localized metric names
 	metricData, err := GetMetricsData(ctx, *webSite.ID, []string{"CpuTime", "Requests"})
 	if err != nil {
-		util.PrintAndLog(err.Error())
-		return
+		util.LogAndPanic(err)
 	}
 
 	util.PrintAndLog("metric data:")

@@ -19,24 +19,24 @@ func ExampleCreateAKS() {
 
 	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	_, err = CreateAKS(ctx, aksClusterName, config.Location(), config.GroupName(), aksUsername, aksSSHPublicKeyPath, config.ClientID(), config.ClientSecret(), aksAgentPoolCount)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created AKS cluster")
 
 	_, err = GetAKS(ctx, config.GroupName(), aksClusterName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("retrieved AKS cluster")
 
 	_, err = DeleteAKS(ctx, config.GroupName(), aksClusterName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	util.PrintAndLog("deleted AKS cluster")

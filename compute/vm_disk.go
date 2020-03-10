@@ -12,21 +12,20 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
-	disks "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/satori/go.uuid"
 )
 
-func getDisksClient() disks.DisksClient {
-	disksClient := disks.NewDisksClient(config.SubscriptionID())
+func getDisksClient() compute.DisksClient {
+	disksClient := compute.NewDisksClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	disksClient.Authorizer = a
 	disksClient.AddToUserAgent(config.UserAgent())
 	return disksClient
 }
 
-func getDisk(ctx context.Context, diskName string) (disk disks.Disk, err error) {
+func getDisk(ctx context.Context, diskName string) (disk compute.Disk, err error) {
 	disksClient := getDisksClient()
 	return disksClient.Get(ctx, config.GroupName(), diskName)
 }
@@ -86,7 +85,7 @@ func DetachDataDisks(ctx context.Context, vmName string) (vm compute.VirtualMach
 }
 
 // UpdateOSDiskSize increases the selected VM's OS disk size by 10GB.
-func UpdateOSDiskSize(ctx context.Context, vmName string) (d disks.Disk, err error) {
+func UpdateOSDiskSize(ctx context.Context, vmName string) (d compute.Disk, err error) {
 	vm, err := GetVM(ctx, vmName)
 	if err != nil {
 		return d, fmt.Errorf("cannot get vm: %v", err)
@@ -110,8 +109,8 @@ func UpdateOSDiskSize(ctx context.Context, vmName string) (d disks.Disk, err err
 	future, err := disksClient.Update(ctx,
 		config.GroupName(),
 		*vm.StorageProfile.OsDisk.Name,
-		disks.DiskUpdate{
-			DiskUpdateProperties: &disks.DiskUpdateProperties{
+		compute.DiskUpdate{
+			DiskUpdateProperties: &compute.DiskUpdateProperties{
 				DiskSizeGB: sizeGB,
 			},
 		})
@@ -128,17 +127,17 @@ func UpdateOSDiskSize(ctx context.Context, vmName string) (d disks.Disk, err err
 }
 
 // CreateDisk creates an empty 64GB disk which can be attached to a VM.
-func CreateDisk(ctx context.Context, diskName string) (disk disks.Disk, err error) {
+func CreateDisk(ctx context.Context, diskName string) (disk compute.Disk, err error) {
 	disksClient := getDisksClient()
 	future, err := disksClient.CreateOrUpdate(
 		ctx,
 		config.GroupName(),
 		diskName,
-		disks.Disk{
+		compute.Disk{
 			Location: to.StringPtr(config.Location()),
-			DiskProperties: &disks.DiskProperties{
-				CreationData: &disks.CreationData{
-					CreateOption: disks.Empty,
+			DiskProperties: &compute.DiskProperties{
+				CreationData: &compute.CreationData{
+					CreateOption: compute.Empty,
 				},
 				DiskSizeGB: to.Int32Ptr(64),
 			},

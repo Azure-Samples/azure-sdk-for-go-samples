@@ -10,14 +10,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
-	"github.com/Azure/go-autorest/autorest/to"
-
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-11-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 )
-
-// Network Interfaces (NIC's)
 
 func getNicClient() network.InterfacesClient {
 	nicClient := network.NewInterfacesClient(config.SubscriptionID())

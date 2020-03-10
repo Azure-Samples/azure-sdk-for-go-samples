@@ -29,12 +29,12 @@ func TestMain(m *testing.M) {
 	var err error
 	err = config.ParseEnvironment()
 	if err != nil {
-		log.Fatalf("failed to parse env: %v\n", err.Error())
+		log.Fatalf("failed to parse env: %+v", err)
 	}
 
 	err = config.AddFlags()
 	if err != nil {
-		log.Fatalf("failed to parse flags: %v\n", err.Error())
+		log.Fatalf("failed to parse flags: %+v", err)
 	}
 	flag.Parse()
 
@@ -51,24 +51,24 @@ func ExampleSetVaultPermissions() {
 
 	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	_, err = CreateVault(ctx, kvName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("vault created")
 
 	_, err = SetVaultPermissions(ctx, kvName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("set vault permissions")
 
 	_, err = CreateKey(ctx, kvName, keyName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created key")
 

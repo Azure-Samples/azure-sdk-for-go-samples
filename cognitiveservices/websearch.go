@@ -23,7 +23,7 @@ func getWebSearchClient(accountName string) websearch.WebClient {
 }
 
 //SearchWeb returns a web answer contains a list of web pages
-func SearchWeb(accountName string) (websearch.WebWebAnswer, error) {
+func SearchWeb(accountName string) (*websearch.WebWebAnswer, error) {
 	webSearchClient := getWebSearchClient(accountName)
 	query := "tom cruise"
 	searchResponse, err := webSearchClient.Search(
@@ -48,6 +48,9 @@ func SearchWeb(accountName string) (websearch.WebWebAnswer, error) {
 		nil,                      // text decorations
 		websearch.Raw,            // text format
 	)
+	if err != nil {
+		return nil, err
+	}
 
-	return *searchResponse.WebPages, err
+	return searchResponse.WebPages, nil
 }

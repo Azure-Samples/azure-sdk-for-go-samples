@@ -12,12 +12,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/entitysearch"
-	"github.com/marstr/randname"
-
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/entitysearch"
+	"github.com/marstr/randname"
 )
 
 // TestMain sets up the environment and initiates tests.
@@ -37,10 +36,10 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// ExampleCognitiveServicesSearch creates a resource group and a Cognitive
+// Example_cognitiveServicesSearch creates a resource group and a Cognitive
 // Services account of type Search. Then it executes searches for web pages,
 // images, videos, news and entities
-func ExampleCognitiveServicesSearch() {
+func Example_cognitiveServicesSearch() {
 	accountName := randname.GenerateWithPrefix("azuresamplesgo", 10)
 
 	var groupName = config.GenerateGroupName("CognitiveServicesSearch")
@@ -51,13 +50,13 @@ func ExampleCognitiveServicesSearch() {
 
 	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	_, err = CreateCSAccount(accountName, "Bing.Search.v7")
 
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	util.PrintAndLog("cognitive services search resource created")
@@ -81,9 +80,9 @@ func ExampleCognitiveServicesSearch() {
 	// completed entity search and got results
 }
 
-// ExampleCognitiveServicesSpellCheck creates a resource group and a Cognitive Services account of type spell check. Then it executes
+// Example_cognitiveServicesSpellCheck creates a resource group and a Cognitive Services account of type spell check. Then it executes
 // a spell check and inspects the corrections.
-func ExampleCognitiveServicesSpellCheck() {
+func Example_cognitiveServicesSpellCheck() {
 	accountName := randname.GenerateWithPrefix("azuresamplesgo", 10)
 
 	var groupName = config.GenerateGroupName("CognitiveServicesSpellcheck")
@@ -94,18 +93,18 @@ func ExampleCognitiveServicesSpellCheck() {
 
 	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	_, err = CreateCSAccount(accountName, "Bing.SpellCheck.v7")
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("cognitive services spellcheck resource created")
 
 	spellCheckResult, err := SpellCheck(accountName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	if len(*spellCheckResult.FlaggedTokens) > 0 {
@@ -125,7 +124,7 @@ func ExampleCognitiveServicesSpellCheck() {
 func searchWeb(accountName string) {
 	webPages, err := SearchWeb(accountName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	if len(*webPages.Value) > 0 {
@@ -141,7 +140,7 @@ func searchWeb(accountName string) {
 func searchImages(accountName string) {
 	images, err := SearchImages(accountName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	if len(*images.Value) > 0 {
@@ -183,7 +182,7 @@ func searchImages(accountName string) {
 func searchVideos(accountName string) {
 	videos, err := SearchVideos(accountName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	if len(*videos.Value) > 0 {
@@ -198,7 +197,7 @@ func searchVideos(accountName string) {
 
 	trendingVideos, err := TrendingVideos(accountName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	if len(*trendingVideos.BannerTiles) > 0 {
@@ -214,7 +213,7 @@ func searchVideos(accountName string) {
 func searchNews(accountName string) {
 	news, err := SearchNews(accountName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	if len(*news.Value) > 0 {
@@ -229,19 +228,18 @@ func searchNews(accountName string) {
 		log.Printf("First news publish date: %v \n", *firstNewsResult.DatePublished)
 
 		org, success := (*firstNewsResult.Provider)[0].AsOrganization()
-
-		if success != true {
-			util.PrintAndLog(err.Error())
+		if !success {
+			util.PrintAndLog("Failed to get first provider organization")
+		} else {
+			log.Printf("First news provider: %v \n", *org.Name)
 		}
-
-		log.Printf("First news provider: %v \n", *org.Name)
 	}
 }
 
 func searchEntities(accountName string) {
 	entities, err := SearchEntities(accountName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	if len(*entities.Value) > 0 {
@@ -258,10 +256,7 @@ func searchEntities(accountName string) {
 func filterFunc(entity entitysearch.BasicThing) bool {
 	thingEntity, _ := entity.AsThing()
 
-	if thingEntity.EntityPresentationInfo.EntityScenario == entitysearch.EntityScenarioDominantEntity {
-		return true
-	}
-	return false
+	return thingEntity.EntityPresentationInfo.EntityScenario == entitysearch.EntityScenarioDominantEntity
 }
 
 func filter(vs []entitysearch.BasicThing, f func(entitysearch.BasicThing) bool) []entitysearch.BasicThing {

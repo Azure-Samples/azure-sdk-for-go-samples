@@ -12,7 +12,9 @@ import (
 // ParseEnvironment loads a sibling `.env` file then looks through all environment
 // variables to set global configuration.
 func ParseEnvironment() error {
-	envy.Load()
+	if err := envy.Load(); err != nil {
+		return err
+	}
 	azureEnv, _ := azure.EnvironmentFromName("AzurePublicCloud") // shouldn't fail
 	authorizationServerURL = azureEnv.ActiveDirectoryEndpoint
 
@@ -39,25 +41,25 @@ func ParseEnvironment() error {
 	// clientID
 	clientID, err = envy.MustGet("AZURE_CLIENT_ID")
 	if err != nil {
-		return fmt.Errorf("expected env vars not provided: %s\n", err)
+		return fmt.Errorf("expected env vars not provided: %+v", err)
 	}
 
 	// clientSecret
 	clientSecret, err = envy.MustGet("AZURE_CLIENT_SECRET")
-	if err != nil && useDeviceFlow != true { // don't need a secret for device flow
-		return fmt.Errorf("expected env vars not provided: %s\n", err)
+	if err != nil && !useDeviceFlow { // don't need a secret for device flow
+		return fmt.Errorf("expected env vars not provided: %+v", err)
 	}
 
 	// tenantID (AAD)
 	tenantID, err = envy.MustGet("AZURE_TENANT_ID")
 	if err != nil {
-		return fmt.Errorf("expected env vars not provided: %s\n", err)
+		return fmt.Errorf("expected env vars not provided: %+v", err)
 	}
 
 	// subscriptionID (ARM)
 	subscriptionID, err = envy.MustGet("AZURE_SUBSCRIPTION_ID")
 	if err != nil {
-		return fmt.Errorf("expected env vars not provided: %s\n", err)
+		return fmt.Errorf("expected env vars not provided: %+v", err)
 	}
 
 	return nil

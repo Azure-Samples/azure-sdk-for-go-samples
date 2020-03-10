@@ -20,16 +20,13 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	err := config.ParseEnvironment()
-	if err != nil {
-		log.Fatalln("failed to parse env")
+	if err := config.ParseEnvironment(); err != nil {
+		log.Fatalf("failed to parse env: %+v", err)
 	}
-
-	config.AddFlags()
+	if err := config.AddFlags(); err != nil {
+		log.Fatalf("failed to add flags: %+v", err)
+	}
 	flag.Parse()
-	if err != nil {
-		log.Fatalln("failed to parse flags")
-	}
 
 	os.Exit(m.Run())
 }
@@ -40,11 +37,11 @@ func ExampleCreateStorageAccount() {
 
 	_, err := hybridresources.CreateGroup(ctx)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	_, err = CreateStorageAccount(context.Background(), accountName)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Cannot create storage account. Error details: %s", err.Error()))
+		util.LogAndPanic(fmt.Errorf("cannot create storage account. Error details: %+v", err))
 	}
 	fmt.Println("Storage account created")
 

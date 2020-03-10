@@ -10,11 +10,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
-	"github.com/Azure/go-autorest/autorest"
-
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-05-01/resources"
+	"github.com/Azure/go-autorest/autorest"
 )
 
 func getResourcesClient() resources.Client {
@@ -60,5 +59,6 @@ func GetResource(ctx context.Context, resourceProvider, resourceType, resourceNa
 		"",
 		resourceType,
 		resourceName,
+		apiVersion,
 	)
 }

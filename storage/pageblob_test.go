@@ -13,7 +13,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 )
 
-func ExamplePageBlobOperations() {
+func Example_pageBlobOperations() {
 	var accountName = testAccountName
 	var accountGroupName = testAccountGroupName
 	var containerName = generateName("test-pageblobc")
@@ -25,28 +25,28 @@ func ExamplePageBlobOperations() {
 
 	_, err = CreateContainer(ctx, accountName, accountGroupName, containerName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created container")
 
 	pages := []string{"Hello", "World!", "Hello", "Galaxy!"}
 	_, err = CreatePageBlob(ctx, accountName, accountGroupName, containerName, blobName, len(pages))
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created page blob")
 
 	for i, page := range pages {
 		err = PutPage(ctx, accountName, accountGroupName, containerName, blobName, page, i)
 		if err != nil {
-			util.PrintAndLog(err.Error())
+			util.LogAndPanic(err)
 		}
 		util.PrintAndLog(fmt.Sprintf("put page %d", i))
 	}
 
 	_, err = GetBlob(ctx, accountName, accountGroupName, containerName, blobName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("downloaded blob")
 	// empty bytes are in fact mixed in between the strings
@@ -58,13 +58,13 @@ func ExamplePageBlobOperations() {
 	var pageToClear int = 2
 	err = ClearPage(ctx, accountName, accountGroupName, containerName, blobName, pageToClear)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog(fmt.Sprintf("cleared page %d", pageToClear))
 
 	_, err = GetPageRanges(ctx, accountName, accountGroupName, containerName, blobName, len(pages))
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("got page ranges")
 

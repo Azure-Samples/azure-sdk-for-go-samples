@@ -71,31 +71,31 @@ func TestNetwork(t *testing.T) {
 
 	_, err := resources.CreateGroup(ctx, groupName)
 	if err != nil {
-		t.Fatalf("failed to create group: %v\n", err.Error())
+		t.Fatalf("failed to create group: %+v", err)
 	}
 	t.Logf("created group %s\n", groupName)
 
 	_, err = CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
 	if err != nil {
-		t.Fatalf("failed to create vnet: %v\n", err.Error())
+		t.Fatalf("failed to create vnet: %+v", err)
 	}
 	t.Logf("created vnet with 2 subnets")
 
 	_, err = CreateNetworkSecurityGroup(ctx, nsgName)
 	if err != nil {
-		t.Fatalf("failed to create NSG: %v\n", err.Error())
+		t.Fatalf("failed to create NSG: %+v", err)
 	}
 	t.Logf("created network security group")
 
 	_, err = CreatePublicIP(ctx, ipName)
 	if err != nil {
-		t.Fatalf("failed to create public IP: %v\n", err.Error())
+		t.Fatalf("failed to create public IP: %+v", err)
 	}
 	t.Logf("created public IP")
 
 	_, err = CreateNIC(ctx, virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
 	if err != nil {
-		t.Fatalf("failed to create NIC: %v\n", err.Error())
+		t.Fatalf("failed to create NIC: %+v", err)
 	}
 	t.Logf("created nic")
 }
@@ -109,30 +109,30 @@ func ExampleCreateNIC() {
 
 	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	_, err = CreateVirtualNetworkAndSubnets(ctx, virtualNetworkName, subnet1Name, subnet2Name)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created vnet and 2 subnets")
 
 	_, err = CreateNetworkSecurityGroup(ctx, nsgName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created network security group")
 
 	_, err = CreatePublicIP(ctx, ipName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created public IP")
 
 	_, err = CreateNIC(ctx, virtualNetworkName, subnet1Name, nsgName, ipName, nicName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created nic")
 
@@ -152,12 +152,12 @@ func ExampleCreateNetworkSecurityGroup() {
 
 	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	_, err = CreateVirtualNetwork(ctx, virtualNetworkName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created vnet")
 
@@ -166,50 +166,50 @@ func ExampleCreateNetworkSecurityGroup() {
 
 	_, err = CreateNetworkSecurityGroup(ctx, frontNSGName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created frontend network security group")
 
 	_, err = CreateNetworkSecurityGroup(ctx, backNSGName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created backend network security group")
 
 	frontEndAddressPrefix := "10.0.0.0/16"
 	_, err = CreateSubnetWithNetworkSecurityGroup(ctx, virtualNetworkName, "frontend", frontEndAddressPrefix, frontNSGName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created subnet with frontend network security group")
 
 	_, err = CreateSubnetWithNetworkSecurityGroup(ctx, virtualNetworkName, "backend", "10.1.0.0/16", backNSGName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created subnet with backend network security group")
 
 	_, err = CreateSSHRule(ctx, frontNSGName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created frontend SSH security rule")
 
 	_, err = CreateHTTPRule(ctx, frontNSGName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created frontend HTTP security rule")
 
 	_, err = CreateSQLRule(ctx, frontNSGName, frontEndAddressPrefix)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created frontend SQL security rule")
 
 	_, err = CreateDenyOutRule(ctx, backNSGName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("created backend deny out security rule")
 

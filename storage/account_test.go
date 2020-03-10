@@ -14,7 +14,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
-func ExampleStorageAccountOperations() {
+func Example_storageAccountOperations() {
 	var groupName = testAccountGroupName
 	var accountName = testAccountName
 
@@ -25,19 +25,19 @@ func ExampleStorageAccountOperations() {
 
 	_, err := resources.CreateGroup(ctx, groupName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	_, err = resources.RegisterProvider(ctx, "Microsoft.Storage")
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("registered resource provider")
 
 	result, err := CheckAccountNameAvailability(ctx, accountName)
 	log.Printf("[%T]: %+v\n", result, result)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("checked for account availability")
 
@@ -58,43 +58,43 @@ func ExampleStorageAccountOperations() {
 
 	_, err = GetStorageAccount(ctx, accountName, groupName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("got storage account details")
 
 	_, err = UpdateAccount(ctx, accountName, groupName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("updated storage account")
 
 	_, err = ListAccountsByResourceGroup(ctx, groupName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("listed storage accounts in resource group")
 
 	_, err = ListAccountsBySubscription(ctx)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("listed storage accounts in subscription")
 
 	_, err = GetAccountKeys(ctx, accountName, groupName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("get storage account keys")
 
 	_, err = RegenerateAccountKey(ctx, accountName, groupName, 0)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("regenerated first storage account key")
 
 	_, err = ListUsage(ctx)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("listed usage")
 

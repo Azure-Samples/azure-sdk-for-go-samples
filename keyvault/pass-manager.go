@@ -43,7 +43,7 @@ var (
 	vaultName string
 )
 
-func main() {
+func PassManager() {
 	flag.Parse()
 
 	if os.Getenv("AZURE_TENANT_ID") == "" || os.Getenv("AZURE_CLIENT_ID") == "" || os.Getenv("AZURE_CLIENT_SECRET") == "" || os.Getenv("KVAULT") == "" {

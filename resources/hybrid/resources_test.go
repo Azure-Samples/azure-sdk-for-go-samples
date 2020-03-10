@@ -37,7 +37,7 @@ func addLocalConfig() error {
 func TestGroupsHybrid(t *testing.T) {
 	err := setupEnvironment()
 	if err != nil {
-		t.Fatalf("could not set up environment: %v\n", err)
+		t.Fatalf("could not set up environment: %+v", err)
 	}
 
 	groupName := config.GenerateGroupName("resource-groups-hybrid")
@@ -49,7 +49,7 @@ func TestGroupsHybrid(t *testing.T) {
 
 	_, err = CreateGroup(ctx)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("resource group created")
 

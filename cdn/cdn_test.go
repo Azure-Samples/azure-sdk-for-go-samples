@@ -2,13 +2,13 @@ package cdn
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
-
 	"github.com/marstr/randname"
 )
 

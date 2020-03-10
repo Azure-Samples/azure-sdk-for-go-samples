@@ -24,7 +24,7 @@ func addLocalEnvAndParse() error {
 	// parse env at top-level (also controls dotenv load)
 	err := config.ParseEnvironment()
 	if err != nil {
-		return fmt.Errorf("failed to add top-level env: %v\n", err.Error())
+		return fmt.Errorf("failed to add top-level env: %+v", err)
 	}
 
 	// add local env
@@ -43,7 +43,7 @@ func addLocalFlagsAndParse() error {
 	// add top-level flags
 	err := config.AddFlags()
 	if err != nil {
-		return fmt.Errorf("failed to add top-level flags: %v\n", err.Error())
+		return fmt.Errorf("failed to add top-level flags: %+v", err)
 	}
 
 	// add local flags
@@ -103,7 +103,7 @@ func TestMain(m *testing.M) {
 
 	err = setup()
 	if err != nil {
-		log.Fatalf("could not set up environment: %v\n", err)
+		log.Fatalf("could not set up environment: %+v", err)
 	}
 
 	code = m.Run()

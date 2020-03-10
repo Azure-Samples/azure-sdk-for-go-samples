@@ -85,7 +85,7 @@ func Query(db *sql.DB) error {
 
 	rows, err := db.Query(queryString)
 	if err != nil {
-		log.Fatal("query failed:", err.Error())
+		log.Fatalf("query failed: %+v", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -93,7 +93,7 @@ func Query(db *sql.DB) error {
 		var name string
 		err := rows.Scan(&id, &name)
 		if err != nil {
-			return fmt.Errorf("query failed: %v", err)
+			return fmt.Errorf("query failed: %+v", err)
 		}
 
 		log.Printf("  id: %d\n  name: %s\n", id, name)

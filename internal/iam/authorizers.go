@@ -161,7 +161,6 @@ func GetKeyvaultAuthorizer() (autorest.Authorizer, error) {
 }
 
 func getAuthorizerForResource(grantType OAuthGrantType, resource string) (autorest.Authorizer, error) {
-
 	var a autorest.Authorizer
 	var err error
 
@@ -198,9 +197,12 @@ func getAuthorizerForResource(grantType OAuthGrantType, resource string) (autore
 
 // GetResourceManagementTokenHybrid retrieves auth token for hybrid environment
 func GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience string) (adal.OAuthTokenProvider, error) {
-	var tokenProvider adal.OAuthTokenProvider
 	oauthConfig, err := adal.NewOAuthConfig(activeDirectoryEndpoint, config.TenantID())
-	tokenProvider, err = adal.NewServicePrincipalToken(
+	if err != nil {
+		return nil, err
+	}
+
+	tokenProvider, err := adal.NewServicePrincipalToken(
 		*oauthConfig,
 		config.ClientID(),
 		config.ClientSecret(),

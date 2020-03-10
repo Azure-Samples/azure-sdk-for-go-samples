@@ -15,7 +15,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
@@ -199,7 +199,8 @@ func RestartVM(ctx context.Context, vmName string) (osr autorest.Response, err e
 // StopVM stops the selected VM
 func StopVM(ctx context.Context, vmName string) (osr autorest.Response, err error) {
 	vmClient := getVMClient()
-	future, err := vmClient.PowerOff(ctx, config.GroupName(), vmName)
+	// skipShutdown parameter is optional, we are taking its default value here
+	future, err := vmClient.PowerOff(ctx, config.GroupName(), vmName, nil)
 	if err != nil {
 		return osr, fmt.Errorf("cannot power off vm: %v", err)
 	}

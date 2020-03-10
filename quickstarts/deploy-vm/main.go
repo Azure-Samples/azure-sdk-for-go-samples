@@ -45,6 +45,9 @@ func init() {
 	}
 
 	authInfo, err := readJSON(os.Getenv("AZURE_AUTH_LOCATION"))
+	if err != nil {
+		log.Fatalf("Failed to read JSON: %+v", err)
+	}
 	clientData.SubscriptionID = (*authInfo)["subscriptionId"].(string)
 	clientData.VMPassword = (*authInfo)["clientSecret"].(string)
 }
@@ -149,6 +152,6 @@ func readJSON(path string) (*map[string]interface{}, error) {
 		log.Fatalf("failed to read file: %v", err)
 	}
 	contents := make(map[string]interface{})
-	json.Unmarshal(data, &contents)
+	_ = json.Unmarshal(data, &contents)
 	return &contents, nil
 }

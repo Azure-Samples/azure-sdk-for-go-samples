@@ -36,7 +36,7 @@ func addLocalEnvAndParse() error {
 	// parse env at top-level (also controls dotenv load)
 	err := config.ParseEnvironment()
 	if err != nil {
-		return fmt.Errorf("failed to add top-level env: %v", err.Error())
+		return fmt.Errorf("failed to add top-level env: %+v", err)
 	}
 	return nil
 }
@@ -45,7 +45,7 @@ func addLocalFlagsAndParse() error {
 	// add top-level flags
 	err := config.AddFlags()
 	if err != nil {
-		return fmt.Errorf("failed to add top-level flags: %v", err.Error())
+		return fmt.Errorf("failed to add top-level flags: %+v", err)
 	}
 
 	flag.StringVar(&serverName, "sqlServerName", serverName, "Name for SQL server.")
@@ -95,7 +95,7 @@ func TestMain(m *testing.M) {
 
 	err = setup()
 	if err != nil {
-		log.Fatalf("could not set up environment: %v\n", err)
+		log.Fatalf("could not set up environment: %+v", err)
 	}
 
 	code = m.Run()
@@ -110,8 +110,8 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// Example creates a SQL server and database, then creates a table and inserts a record.
-func ExampleCreateDatabase() {
+// Example_createDatabase creates a SQL server and database, then creates a table and inserts a record.
+func Example_createDatabase() {
 	var groupName = config.GenerateGroupName("DatabaseQueries")
 	config.SetGroupName(groupName)
 
@@ -122,30 +122,30 @@ func ExampleCreateDatabase() {
 
 	_, err := resources.CreateGroup(ctx, config.GroupName())
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	_, err = CreateServer(ctx, serverName, dbLogin, dbPassword)
 	if err != nil {
-		util.PrintAndLog(fmt.Sprintf("cannot create sql server: %v", err))
+		util.LogAndPanic(fmt.Errorf("cannot create sql server: %+v", err))
 	}
 	util.PrintAndLog("sql server created")
 
 	_, err = CreateDB(ctx, serverName, dbName)
 	if err != nil {
-		util.PrintAndLog(fmt.Sprintf("cannot create sql database: %v", err))
+		util.LogAndPanic(fmt.Errorf("cannot create sql database: %+v", err))
 	}
 	util.PrintAndLog("database created")
 
 	err = CreateFirewallRules(ctx, serverName)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("database firewall rules set")
 
 	err = testSQLDataplane(serverName, dbName, dbLogin, dbPassword)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("database operations performed")
 

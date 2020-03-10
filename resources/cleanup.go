@@ -12,13 +12,12 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 )
 
-// Cleanup deletes the rescource group created for the sample
-func Cleanup(ctx context.Context) error {
+// Cleanup deletes the resource group created for the sample
+func Cleanup(ctx context.Context) {
 	if config.KeepResources() {
 		log.Println("keeping resources")
-		return nil
+		return
 	}
 	log.Println("deleting resources")
-	_, err := DeleteGroup(ctx, config.GroupName())
-	return err
+	_, _ = DeleteGroup(ctx, config.GroupName())
 }

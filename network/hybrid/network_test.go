@@ -9,22 +9,19 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"testing"
 	"time"
 
-	hybridresources "github.com/Azure-Samples/azure-sdk-for-go-samples/resources/hybrid"
-
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
+	hybridresources "github.com/Azure-Samples/azure-sdk-for-go-samples/resources/hybrid"
 )
 
 var (
 	virtualNetworkName   = "vnet1"
 	subnetName           = "subnet1"
 	nsgName              = "nsg1"
-	nicName              = "nic1"
 	ipName               = "ip1"
 	networkInterfaceName = "netinterface1"
 )
@@ -67,11 +64,11 @@ func TestNetwork(t *testing.T) {
 
 	_, err = hybridresources.CreateGroup(ctx)
 	if err != nil {
-		t.Fatalf("could not create group %v\n", err.Error())
+		t.Fatalf("could not create group %+v", err)
 	}
 	_, err = CreateVirtualNetworkAndSubnets(context.Background(), virtualNetworkName, subnetName)
 	if err != nil {
-		t.Fatalf("could not create vnet: %v\n", err.Error())
+		t.Fatalf("could not create vnet: %+v", err)
 	}
 	t.Logf("created vnet")
 }
@@ -86,11 +83,11 @@ func ExampleCreateNetworkSecurityGroup() {
 
 	_, err := hybridresources.CreateGroup(ctx)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	_, err = CreateNetworkSecurityGroup(ctx, nsgName)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Cannot create network security group. Error details: %s", err.Error()))
+		util.LogAndPanic(fmt.Errorf("cannot create network security group. Error details: %+v", err))
 	}
 	fmt.Println("VNET security group created")
 
@@ -107,11 +104,11 @@ func ExampleCreatePublicIP() {
 
 	_, err := hybridresources.CreateGroup(ctx)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 	_, err = CreatePublicIP(ctx, ipName)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Cannot create public IP. Error details: %s", err.Error()))
+		util.LogAndPanic(fmt.Errorf("cannot create public IP. Error details: %+v", err))
 	}
 	fmt.Println("Public IP created")
 
@@ -129,12 +126,12 @@ func ExampleCreateNetworkInterface() {
 
 	_, err := hybridresources.CreateGroup(ctx)
 	if err != nil {
-		util.PrintAndLog(err.Error())
+		util.LogAndPanic(err)
 	}
 
 	_, err = CreateNetworkInterface(ctx, networkInterfaceName, nsgName, virtualNetworkName, subnetName, ipName)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Cannot create network interface. Error details: %s", err.Error()))
+		util.LogAndPanic(fmt.Errorf("cannot create network interface. Error details: %+v", err))
 	}
 	fmt.Println("Network interface created")
 

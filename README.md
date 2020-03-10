@@ -18,10 +18,7 @@ For general SDK help start with the [main SDK README][].
 ## To run tests
 
 1. set up authentication (see following)
-1. `dep ensure`
 1. `go test -v ./network/` (or any package)
-
-To run all tests: `make test`.
 
 To use service principal authentication, create a principal by running `az ad sp create-for-rbac -n "<yourAppName>"` and set the following environment variables. You can copy `.env.tpl` to a `.env` file in each package for ease of use.
 

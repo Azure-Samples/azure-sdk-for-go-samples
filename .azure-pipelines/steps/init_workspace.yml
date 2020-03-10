@@ -1,0 +1,13 @@
+steps:
+  - script: |
+      mkdir -p $GOPATH
+      mkdir -p '$(GOPATH)/bin'
+      shopt -s dotglob extglob
+      echo '##vso[task.prependpath]$(GOROOT)/bin'
+      echo '##vso[task.prependpath]$(GOPATH)/bin'
+    displayName: 'Create Go Workspace'
+  - script: |
+      go version
+      curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.23.6
+      golangci-lint --version
+    displayName: 'Install Dependencies'

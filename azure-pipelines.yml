@@ -1,41 +1,23 @@
-# Go
-# Build your Go project.
-# Add steps that test, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/go
-
 trigger:
-- master
-
-pool:
-  vmImage: 'ubuntu-18.04'
+  branches:
+    include:
+      - master
 
 variables:
   GOROOT: '/usr/local/go1.13' # Go installation path
-  GOPATH: '$(system.defaultWorkingDirectory)/work'
-  modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
+  GOPATH: '$(Agent.HomeDirectory)/go'
 
-steps:
-- script: |
-    set -x
-    mkdir -p '$(GOPATH)/bin'
-    mkdir -p '$(modulePath)'
-    shopt -s dotglob extglob
-    echo '##vso[task.prependpath]$(GOROOT)/bin'
-    echo '##vso[task.prependpath]$(GOPATH)/bin'
-  displayName: 'Set up the Go workspace'
-- script: |
-    set -x
-    go version
-    go get -u golang.org/x/lint/golint
-    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.23.6
-    golangci-lint --version
-  displayName: 'Install Dependencies'
-- script: |
-    golangci-lint run --timeout=30m --disable-all \
-    --enable=deadcode --enable=gocyclo --enable=golint \
-    --enable=varcheck --enable=structcheck --enable=maligned \
-    --enable=ineffassign --enable=interfacer --enable=unconvert \
-    --enable=goconst --enable=gosec ./...
-  displayName: 'Run linter'
-- script: go build -v $(go list ./... | grep -v vendor)
-  displayName: 'Build'
+stages:
+  - stage: LintAndBuild
+    jobs:
+      - template: .azure-pipelines/lint_and_build.yml
+
+  - stage: LiveTest
+    condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI'))
+    jobs:
+      - job:
+        steps:
+          # the live test script steps.
+          - script: |
+              echo 'live test'
+            displayName: 'Live Test'

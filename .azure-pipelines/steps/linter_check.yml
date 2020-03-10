@@ -1,0 +1,10 @@
+steps:
+  - script: |
+      golangci-lint run --timeout=30m --disable-all \
+      --enable=deadcode --enable=gocyclo --enable=golint \
+      --enable=varcheck --enable=structcheck --enable=maligned \
+      --enable=ineffassign --enable=interfacer --enable=unconvert \
+      --enable=goconst --enable=gosec ./... >&2
+    displayName: 'Linter Check'
+    failOnStderr: true
+    condition: succeededOrFailed()

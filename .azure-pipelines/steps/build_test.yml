@@ -1,0 +1,3 @@
+steps:
+  - script: go build -v $(go list ./...)
+    displayName: 'Build'

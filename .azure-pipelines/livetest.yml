@@ -1,1 +1,7 @@
+jobs:
+  - job:
+    pool:
+      vmImage: 'Ubuntu 18.04'
 
+    steps:
+      - template: steps/live_test.yml

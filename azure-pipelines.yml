@@ -15,10 +15,4 @@ stages:
   - stage: LiveTest
     condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI'))
     jobs:
-      - job:
-        steps:
-          # the live test script steps.
-          - script: |
-              echo 'live test'
-              go test -v ./keyvault/
-            displayName: 'Live Test'
+      - template: .azure-pipelines/livetest.yml

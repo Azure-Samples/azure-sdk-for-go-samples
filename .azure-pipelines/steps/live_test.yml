@@ -1,5 +1,5 @@
 steps:
   - script: |
-    set -e
-    go test -v ./keyvault/
+      set -x
+      go test -v ./keyvault/
     displayName: 'Live Test'

@@ -1,6 +1,4 @@
 steps:
-  - bash: echo This script could use $AZURE_CLIENT_ID
-      env:
-        AZURE_CLIENT_ID: $(AZURE_CLIENT_ID)
+  
     displayName: 'Set Env Variables'
     

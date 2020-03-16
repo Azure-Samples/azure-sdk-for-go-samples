@@ -1,6 +1,3 @@
 steps:
-  - script: |
-      echo 'clientid:$(AZURE_CLIENT_ID)'
-      echo 'secret:$(AZURE_CLIENT_SECRET)'
-      go test -count=1 -v ./keyvault/
+  - script: go test -count=1 -v ./keyvault/
     displayName: 'Live Test'

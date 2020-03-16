@@ -6,9 +6,7 @@ trigger:
 variables:
   GOROOT: '/usr/local/go1.13' # Go installation path
   GOPATH: '$(Agent.HomeDirectory)/go'
-  AZURE_CLIENT_ID: $(AZURE_CLIENT_ID)
-  AZURE_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
-  AZURE_TENANT_ID: $(AZURE_TENANT_ID)
+  AZURE_CLIENT_ID: 9f4340af-57fe-4af3-8a25-91d24bc11f0d
 
 stages:
   - stage: Lint_Build_LiveTest

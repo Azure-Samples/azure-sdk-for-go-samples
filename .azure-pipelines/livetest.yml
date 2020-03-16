@@ -7,5 +7,4 @@ jobs:
       - template: steps/init_workspace.yml
       - template: steps/linter_check.yml
       - template: steps/build_test.yml
-      - template: steps/set_env_variables.yml
       - template: steps/live_test.yml

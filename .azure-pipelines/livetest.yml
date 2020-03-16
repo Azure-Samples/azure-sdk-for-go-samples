@@ -3,7 +3,7 @@ jobs:
     pool:
       vmImage: 'Ubuntu 18.04'
     variables:
-      AZURE_CLIENT_ID: $(AZURE_CLIENT_ID)
+      AZURE_CLIENT_ID: 9f4340af-57fe-4af3-8a25-91d24bc11f0d
     steps:
       - template: steps/init_workspace.yml
       - template: steps/linter_check.yml

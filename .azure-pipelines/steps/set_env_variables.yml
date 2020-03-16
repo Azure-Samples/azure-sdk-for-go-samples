@@ -1,0 +1,6 @@
+steps:
+  - script: |
+      [ -z $(github-pat) ] && echo "github-pat is empty!" &&exit -1
+      git config AZURE_CLIENT_ID $AZURE_CLIENT_ID
+    displayName: 'Set Env Variables'
+    

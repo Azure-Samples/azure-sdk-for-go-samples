@@ -1,5 +1,6 @@
 steps:
   - script: |
       set AZURE_CLIENT_ID='9f4340af-57fe-4XXX-8a25-9XXXXXX'
+      echo 'AZURE_CLIENT_ID'
       go test -count=1 -v ./keyvault/
     displayName: 'Live Test'

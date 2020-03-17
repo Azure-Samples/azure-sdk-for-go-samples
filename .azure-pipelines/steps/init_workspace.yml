@@ -3,8 +3,6 @@ steps:
       mkdir -p $GOPATH
       mkdir -p '$(GOPATH)/bin'
       shopt -s dotglob extglob
-      echo $(AZURE_CLIENT_ID)
-      echo $(AZURE_CLIENT_SECRET)
       echo '##vso[task.prependpath]$(GOROOT)/bin'
       echo '##vso[task.prependpath]$(GOPATH)/bin'
     displayName: 'Create Go Workspace'

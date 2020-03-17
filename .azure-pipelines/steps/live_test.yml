@@ -3,5 +3,5 @@ steps:
       echo $(AZURE_CLIENT_ID)
       go test -count=1 -v ./keyvault/
     displayName: 'Live Test'
-env:
-  AZURE_CLIENT_ID: $(mySecret)
+    env:
+      AZURE_CLIENT_ID: $(mySecret)

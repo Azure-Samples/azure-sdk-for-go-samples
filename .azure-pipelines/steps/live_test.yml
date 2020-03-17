@@ -4,4 +4,4 @@ steps:
       go test -count=1 -v ./keyvault/
     displayName: 'Live Test'
     env:
-      AZURE_CLIENT_ID: $(mySecret)
+      AZURE_CLIENT_ID: $(AZURE_CLIENT_ID)

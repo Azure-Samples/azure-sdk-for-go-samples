@@ -53,6 +53,7 @@ func ExampleSetVaultPermissions() {
 	if err != nil {
 		util.LogAndPanic(err)
 	}
+	util.PrintAndLog("resource group created")
 
 	_, err = CreateVault(ctx, kvName)
 	if err != nil {
@@ -73,6 +74,7 @@ func ExampleSetVaultPermissions() {
 	util.PrintAndLog("created key")
 
 	// Output:
+	// resource group created
 	// vault created
 	// set vault permissions
 	// created key

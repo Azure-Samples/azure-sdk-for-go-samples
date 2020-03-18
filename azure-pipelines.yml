@@ -8,7 +8,11 @@ variables:
   GOPATH: '$(Agent.HomeDirectory)/go'
 
 stages:
-  - stage: Lint_Build_LiveTest
+  - stage: LintAndBuild
+    jobs:
+      - template: .azure-pipelines/lint_and_build.yml
+      
+  - stage: LiveTest
     condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI'))
     jobs:
       - template: .azure-pipelines/livetest.yml

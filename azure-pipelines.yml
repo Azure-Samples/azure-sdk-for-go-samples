@@ -11,13 +11,8 @@ stages:
   - stage: LintAndBuild
     jobs:
       - template: .azure-pipelines/lint_and_build.yml
-
+      
   - stage: LiveTest
     condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI'))
     jobs:
-      - job:
-        steps:
-          # the live test script steps.
-          - script: |
-              echo 'live test'
-            displayName: 'Live Test'
+      - template: .azure-pipelines/livetest.yml

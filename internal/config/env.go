@@ -1,37 +1,29 @@
 package config
 
 import (
-	"fmt"
 	"log"
+	"os"
 	"strconv"
-
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/gobuffalo/envy"
 )
 
 // ParseEnvironment loads a sibling `.env` file then looks through all environment
 // variables to set global configuration.
 func ParseEnvironment() error {
-	if err := envy.Load(); err != nil {
-		return err
-	}
-	azureEnv, _ := azure.EnvironmentFromName("AzurePublicCloud") // shouldn't fail
-	authorizationServerURL = azureEnv.ActiveDirectoryEndpoint
 
 	// AZURE_GROUP_NAME and `config.GroupName()` are deprecated.
 	// Use AZURE_BASE_GROUP_NAME and `config.GenerateGroupName()` instead.
-	groupName = envy.Get("AZURE_GROUP_NAME", "azure-go-samples")
-	baseGroupName = envy.Get("AZURE_BASE_GROUP_NAME", groupName)
+	groupName = os.Getenv("AZURE_GROUP_NAME")
+	baseGroupName = os.Getenv("AZURE_BASE_GROUP_NAME")
 
-	locationDefault = envy.Get("AZURE_LOCATION_DEFAULT", "westus2")
+	locationDefault = os.Getenv("AZURE_LOCATION_DEFAULT")
 
 	var err error
-	useDeviceFlow, err = strconv.ParseBool(envy.Get("AZURE_USE_DEVICEFLOW", "0"))
+	useDeviceFlow, err = strconv.ParseBool(os.Getenv("AZURE_USE_DEVICEFLOW"))
 	if err != nil {
 		log.Printf("invalid value specified for AZURE_USE_DEVICEFLOW, disabling\n")
 		useDeviceFlow = false
 	}
-	keepResources, err = strconv.ParseBool(envy.Get("AZURE_SAMPLES_KEEP_RESOURCES", "0"))
+	keepResources, err = strconv.ParseBool(os.Getenv("AZURE_SAMPLES_KEEP_RESOURCES"))
 	if err != nil {
 		log.Printf("invalid value specified for AZURE_SAMPLES_KEEP_RESOURCES, discarding\n")
 		keepResources = false
@@ -39,28 +31,16 @@ func ParseEnvironment() error {
 
 	// these must be provided by environment
 	// clientID
-	clientID, err = envy.MustGet("AZURE_CLIENT_ID")
-	if err != nil {
-		return fmt.Errorf("expected env vars not provided: %+v", err)
-	}
+	clientID = os.Getenv("AZURE_CLIENT_ID")
 
 	// clientSecret
-	clientSecret, err = envy.MustGet("AZURE_CLIENT_SECRET")
-	if err != nil && !useDeviceFlow { // don't need a secret for device flow
-		return fmt.Errorf("expected env vars not provided: %+v", err)
-	}
+	clientSecret = os.Getenv("AZURE_CLIENT_SECRET")
 
 	// tenantID (AAD)
-	tenantID, err = envy.MustGet("AZURE_TENANT_ID")
-	if err != nil {
-		return fmt.Errorf("expected env vars not provided: %+v", err)
-	}
+	tenantID = os.Getenv("AZURE_TENANT_ID")
 
 	// subscriptionID (ARM)
-	subscriptionID, err = envy.MustGet("AZURE_SUBSCRIPTION_ID")
-	if err != nil {
-		return fmt.Errorf("expected env vars not provided: %+v", err)
-	}
+	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 
 	return nil
 }

@@ -19,8 +19,8 @@ import (
 )
 
 const (
-	nsName   = "ehtest-04-ns"
-	hubName  = "ehtest-04-hub"
+	nsName   = "ehtest04ns"
+	hubName  = "ehtest04hub"
 
 	// for storage.LeaserCheckpointer
 	storageAccountName   = "ehtest0001storage"

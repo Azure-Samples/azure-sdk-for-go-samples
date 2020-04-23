@@ -86,11 +86,11 @@ func Example_storageAccountOperations() {
 	}
 	util.PrintAndLog("get storage account keys")
 
-	_, err = RegenerateAccountKey(ctx, accountName, groupName, 0)
+	_, err = RegenerateAccountKey(ctx, accountName, groupName, 1)
 	if err != nil {
 		util.LogAndPanic(err)
 	}
-	util.PrintAndLog("regenerated first storage account key")
+	util.PrintAndLog("regenerated second storage account key")
 
 	_, err = ListUsage(ctx)
 	if err != nil {
@@ -107,6 +107,6 @@ func Example_storageAccountOperations() {
 	// listed storage accounts in resource group
 	// listed storage accounts in subscription
 	// get storage account keys
-	// regenerated first storage account key
+	// regenerated second storage account key
 	// listed usage
 }

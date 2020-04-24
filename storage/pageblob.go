@@ -57,7 +57,7 @@ func ClearPage(ctx context.Context, accountName, accountGroupName, containerName
 
 	_, err := b.ClearPages(ctx,
 		int64(pageNumber*azblob.PageBlobPageBytes),
-		int64((pageNumber+1)*azblob.PageBlobPageBytes-1),
+		int64(azblob.PageBlobPageBytes),
 		azblob.PageBlobAccessConditions{},
 	)
 	return err

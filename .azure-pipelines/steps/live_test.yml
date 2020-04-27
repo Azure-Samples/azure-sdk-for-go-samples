@@ -1,6 +1,17 @@
 steps:
   - script: |
-      go test -count=1 -v ./keyvault/
+      go test -count=1 -v -timeout 120h ./keyvault/
+      go test -count=1 -v -timeout 120h ./eventhubs/
+      go test -count=1 -v -timeout 120h ./storage/
+      go test -count=1 -v -timeout 120h ./batch/
+      go test -count=1 -v -timeout 120h ./cdn/
+      go test -count=1 -v -timeout 120h ./cognitiveservices/
+      go test -count=1 -v -timeout 120h ./cosmosdb/
+      go test -count=1 -v -timeout 120h ./hdinsight/
+      go test -count=1 -v -timeout 120h ./network/
+      go test -count=1 -v -timeout 120h ./sql/
+      go test -count=1 -v -timeout 120h ./resources/
+      
     displayName: 'Live Test'
     env:
       AZURE_AUTH_LOCATION: $(AZURE_AUTH_LOCATION)
@@ -12,5 +23,6 @@ steps:
       AZURE_LOCATION_DEFAULT: $(AZURE_LOCATION_DEFAULT)
       AZURE_SAMPLES_KEEP_RESOURCES: $(AZURE_SAMPLES_KEEP_RESOURCES)
       AZURE_USE_DEVICEFLOW: $(AZURE_USE_DEVICEFLOW)
-      
+      AZURE_STORAGE_ACCOUNT_NAME: $(AZURE_STORAGE_ACCOUNT_NAME)
+      AZURE_STORAGE_ACCOUNT_GROUP_NAME: $(AZURE_STORAGE_ACCOUNT_GROUP_NAME)
       

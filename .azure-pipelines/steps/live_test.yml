@@ -1,8 +1,6 @@
 steps:
   - script: |
-      go test -count=1 -v -timeout 12h ./storage/
       go test -count=1 -v -timeout 12h ./resources/
-      
       
     displayName: 'Live Test'
     env:

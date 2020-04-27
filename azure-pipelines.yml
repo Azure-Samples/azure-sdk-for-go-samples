@@ -1,0 +1,18 @@
+trigger:
+  branches:
+    include:
+      - master
+
+variables:
+  GOROOT: '/usr/local/go1.13' # Go installation path
+  GOPATH: '$(Agent.HomeDirectory)/go'
+
+stages:
+  - stage: LintAndBuild
+    jobs:
+      - template: .azure-pipelines/lint_and_build.yml
+      
+  - stage: LiveTest
+    condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI'))
+    jobs:
+      - template: .azure-pipelines/livetest.yml

@@ -1,6 +1,15 @@
 steps:
   - script: |
+      go test -count=1 -v -timeout 12h ./keyvault/
+      go test -count=1 -v -timeout 12h ./eventhubs/
       go test -count=1 -v -timeout 12h ./storage/
+      go test -count=1 -v -timeout 12h ./batch/
+      go test -count=1 -v -timeout 12h ./cdn/
+      go test -count=1 -v -timeout 12h ./cognitiveservices/
+      go test -count=1 -v -timeout 12h ./cosmosdb/
+      go test -count=1 -v -timeout 12h ./hdinsight/
+      go test -count=1 -v -timeout 12h ./network/
+      go test -count=1 -v -timeout 12h ./sql/
       go test -count=1 -v -timeout 12h ./resources/
       
     displayName: 'Live Test'
@@ -16,4 +25,6 @@ steps:
       AZURE_USE_DEVICEFLOW: $(AZURE_USE_DEVICEFLOW)
       AZURE_STORAGE_ACCOUNT_NAME: $(AZURE_STORAGE_ACCOUNT_NAME)
       AZURE_STORAGE_ACCOUNT_GROUP_NAME: $(AZURE_STORAGE_ACCOUNT_GROUP_NAME)
+      
+      
       

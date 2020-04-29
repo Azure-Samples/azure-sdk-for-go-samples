@@ -63,22 +63,3 @@ func TestGroups(t *testing.T) {
 	}
 	t.Logf("created group: %s\n", config.GroupName())
 }
-
-// TODO -- remove or change this test since we are not using the travis CI now
-func TestGroupsWithAuthFile(t *testing.T) {
-	if _, isCi := os.LookupEnv(CiKeyName); isCi == true {
-		t.Skipf("skipping auth file test in CI")
-	}
-	groupName := config.GenerateGroupName("resource-groups-authfile")
-	config.SetGroupName(groupName) // TODO: don't rely on globals
-	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
-	defer cancel()
-	defer Cleanup(ctx)
-
-	var err error
-	_, err = CreateGroupWithAuthFile(ctx, config.GroupName())
-	if err != nil {
-		t.Fatalf("failed to create group: %+v", err)
-	}
-	t.Logf("created group with auth file: %s\n", config.GroupName())
-}

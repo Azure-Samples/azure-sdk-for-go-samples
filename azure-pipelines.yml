@@ -1,7 +1,7 @@
 trigger:
   branches:
     include:
-      - master
+      - test_pipeline
 
 variables:
   GOROOT: '/usr/local/go1.13' # Go installation path

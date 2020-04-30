@@ -7,8 +7,8 @@ package resources
 
 import (
 	"context"
-	"go/build"
 	"log"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -28,10 +28,9 @@ func Example_createTemplateDeployment() {
 		util.LogAndPanic(err)
 	}
 
-	gopath := build.Default.GOPATH
-	repo := filepath.Join("github.com", "Azure-Samples", "azure-sdk-for-go-samples")
-	templateFile := filepath.Join(gopath, "src", repo, "resources", "testdata", "template.json")
-	parametersFile := filepath.Join(gopath, "src", repo, "resources", "testdata", "parameters.json")
+	wd, _ := os.Getwd()
+	templateFile := filepath.Join(wd, "testdata", "template.json")
+	parametersFile := filepath.Join(wd, "testdata", "parameters.json")
 	deployName := "VMdeploy"
 
 	template, err := util.ReadJSON(templateFile)

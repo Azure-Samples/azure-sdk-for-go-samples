@@ -1,6 +1,7 @@
 steps:
   - script: |
-      go test -count=1 -v -timeout 12h ./resources/
+      go test -count=1 -v -timeout 12h ./resources/ -run "TestGroups"
+      go test -count=1 -v -timeout 12h ./resources/ -run "Example_createTemplateDeployment"
       
     displayName: 'Live Test'
     env:

@@ -1,6 +1,6 @@
 steps:
   - script: |
-      go test -count=1 -v -timeout 12h ./web/
+      go test -count=1 -v -timeout 12h ./authorization/
       
     displayName: 'Live Test'
     env:

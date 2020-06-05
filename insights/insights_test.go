@@ -43,7 +43,7 @@ func TestMain(m *testing.M) {
 
 // ExampleGetMetricsForWebsite creates a website then uses the insights package
 // to retrieve the queryable metric names and values.
-func Example_getMetricsForWebsite() {
+func TestGetMetricsForWebsite(t *testing.T) {
 	var groupName = config.GenerateGroupName("GetMetricsForWebsite")
 	config.SetGroupName(groupName)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
@@ -56,7 +56,7 @@ func Example_getMetricsForWebsite() {
 	util.PrintAndLog("created resource group")
 	defer resources.Cleanup(ctx)
 
-	webSite, err := web.CreateContainerSite(ctx, siteName, "appsvc/sample-hello-world:latest")
+	webSite, err := web.CreateWebApp(ctx, siteName)
 	if err != nil {
 		util.LogAndPanic(err)
 	}

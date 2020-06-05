@@ -2,7 +2,6 @@ package web
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
@@ -20,8 +19,8 @@ func getWebAppsClient() (client web.AppsClient, err error) {
 	return
 }
 
-// CreateContainerSite provisions all infrastructure needed to run an Azure Web App for Containers.
-func CreateContainerSite(ctx context.Context, name, image string) (webSite web.Site, err error) {
+// CreateWebApp creates a blank web app with specified name
+func CreateWebApp(ctx context.Context, name string) (webSite web.Site, err error) {
 	client, err := getWebAppsClient()
 	if err != nil {
 		return
@@ -31,12 +30,8 @@ func CreateContainerSite(ctx context.Context, name, image string) (webSite web.S
 		config.GroupName(),
 		name,
 		web.Site{
-			Location: to.StringPtr(config.Location()),
-			SiteProperties: &web.SiteProperties{
-				SiteConfig: &web.SiteConfig{
-					LinuxFxVersion: to.StringPtr(fmt.Sprintf("DOCKER|%s", image)),
-				},
-			},
+			Location:       to.StringPtr(config.Location()),
+			SiteProperties: &web.SiteProperties{},
 		})
 	if err != nil {
 		return

@@ -19,12 +19,12 @@ import (
 )
 
 const (
-	nsName   = "ehtest04ns"
-	hubName  = "ehtest04hub"
+	nsName  = "goehtestns"
+	hubName = "goehtesthub"
 
 	// for storage.LeaserCheckpointer
-	storageAccountName   = "ehtest0001storage"
-	storageContainerName = "eventhubs0001leasercheckpointer"
+	storageAccountName   = "goehteststorage"
+	storageContainerName = "goeventhubsleasercheckpointer"
 )
 
 // TestMain sets up the environment and initiates tests.

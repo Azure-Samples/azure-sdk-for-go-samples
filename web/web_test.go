@@ -38,7 +38,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func Example_deployAppForContainer() {
+func TestCreateApp(t *testing.T) {
 	var groupName = config.GenerateGroupName("WebAppForContainers")
 	config.SetGroupName(groupName)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
@@ -51,7 +51,7 @@ func Example_deployAppForContainer() {
 	}
 	defer resources.Cleanup(ctx)
 
-	_, err = CreateContainerSite(ctx, siteName, "appsvc/sample-hello-world:latest")
+	_, err = CreateWebApp(ctx, siteName)
 
 	if err != nil {
 		fmt.Println("failed to create: ", err)
@@ -63,7 +63,5 @@ func Example_deployAppForContainer() {
 		fmt.Println("failed to get app configuration: ", err)
 		return
 	}
-	fmt.Println(*configResource.LinuxFxVersion)
-
-	// Output: DOCKER|appsvc/sample-hello-world:latest
+	fmt.Println(*configResource.Name)
 }

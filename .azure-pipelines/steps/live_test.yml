@@ -11,6 +11,8 @@ steps:
       go test -count=1 -v -timeout 12h ./network/
       go test -count=1 -v -timeout 12h ./sql/
       go test -count=1 -v -timeout 12h ./resources/
+      go test -count=1 -v -timeout 12h ./web/
+      go test -count=1 -v -timeout 12h ./insights/
       
     displayName: 'Live Test'
     env:
@@ -24,4 +26,3 @@ steps:
       AZURE_USE_DEVICEFLOW: $(AZURE_USE_DEVICEFLOW)
       AZURE_STORAGE_ACCOUNT_NAME: $(AZURE_STORAGE_ACCOUNT_NAME)
       AZURE_STORAGE_ACCOUNT_GROUP_NAME: $(AZURE_STORAGE_ACCOUNT_GROUP_NAME)
-      

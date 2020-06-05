@@ -1,6 +1,7 @@
 trigger:
   branches:
     include:
+      - test_pipeline
       - master
 
 variables:

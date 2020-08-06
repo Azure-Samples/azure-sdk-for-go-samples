@@ -23,11 +23,13 @@ In order to run examples/go-keyvault-msi-example.go, follow these steps:
 ![msid-client-id](images/gosdk-msid-03.png)
 
 ## Set the environment variables
+```code
 AZURE_TENANT_ID: Your Azure tenant ID
 AZURE_CLIENT_ID: Your Azure client ID. This will be an app ID from your AAD.
 KVAULT_NAME: The name of your vault (just the name, not the full URL/path)
 KVAULT_SECRET_NAME to the secret's name.
 **Important note:** Do NOT set AZURE_CLIENT_SECRET. This example uses Managed identities.
+```
 
 ## Run examples/go-keyvault-msi-example.go
 On your terminal where you have the environment variables set:

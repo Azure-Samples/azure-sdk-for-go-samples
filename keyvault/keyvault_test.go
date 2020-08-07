@@ -10,10 +10,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"testing"
-
-	"github.com/marstr/randname"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 )
@@ -57,11 +54,6 @@ func setup() error {
 
 func teardown() error {
 	return nil
-}
-
-// test helpers
-func generateName(prefix string) string {
-	return strings.ToLower(randname.GenerateWithPrefix(prefix, 5))
 }
 
 // TestMain sets up the environment and initiates tests.

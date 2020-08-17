@@ -11,7 +11,7 @@ import (
 	"github.com/gechris/azure-sdk-for-go/services/preview/mysql/mgmt/flexible-servers/2020-07-01-privatepreview/mysql"
 )
 
-// GetServersClient returns a ServerClient
+// GetServersClient returns
 func GetServersClient() mysql.ServersClient {
 	serversClient := mysql.NewServersClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
@@ -20,19 +20,26 @@ func GetServersClient() mysql.ServersClient {
 	return serversClient
 }
 
-// CreateServer creates a new SQL Server
-func CreateServer(ctx context.Context, serverName, dbLogin, dbPassword string) (server mysql.Server, err error) {
-	serversClient := GetServersClient()
+// CreateServer creates a new PostgreSQL Server
+func CreateServer(ctx context.Context, serversClient mysql.ServersClient, serverName string, dbLogin string, dbPassword string) (server mysql.Server, err error) {
 
+	// Create the server
 	future, err := serversClient.Create(
 		ctx,
 		config.GroupName(),
 		serverName,
 		mysql.Server{
 			Location: to.StringPtr(config.Location()),
+			Sku: &mysql.Sku{
+				Name: to.StringPtr("Standard_D4s_v3"),
+			},
 			ServerProperties: &mysql.ServerProperties{
 				AdministratorLogin:         to.StringPtr(dbLogin),
 				AdministratorLoginPassword: to.StringPtr(dbPassword),
+				Version:                    mysql.FiveFullStopSeven, // 5.7
+				StorageProfile: &mysql.StorageProfile{
+					StorageMB: to.Int32Ptr(524288),
+				},
 			},
 		})
 
@@ -48,55 +55,47 @@ func CreateServer(ctx context.Context, serverName, dbLogin, dbPassword string) (
 	return future.Result(serversClient)
 }
 
-func getDbClient() mysql.DatabasesClient {
-	dbClient := mysql.NewDatabasesClient(config.SubscriptionID())
-	a, _ := iam.GetResourceManagementAuthorizer()
-	dbClient.Authorizer = a
-	dbClient.AddToUserAgent(config.UserAgent())
-	return dbClient
-}
+// UpdateServerStorageCapacity given the server name and the new storage capacity it updates the server's storage capacity.
+func UpdateServerStorageCapacity(ctx context.Context, serversClient mysql.ServersClient, serverName string, storageCapacity int32) (server mysql.Server, err error) {
 
-// CreateDB creates a new SQL Database on a given server
-func CreateDB(ctx context.Context, serverName, dbName string) (db mysql.Database, err error) {
-	dbClient := getDbClient()
-	future, err := dbClient.CreateOrUpdate(
+	future, err := serversClient.Update(
 		ctx,
 		config.GroupName(),
 		serverName,
-		dbName,
-		mysql.Database{})
-	if err != nil {
-		return db, fmt.Errorf("cannot create sql database: %v", err)
-	}
-
-	err = future.WaitForCompletionRef(ctx, dbClient.Client)
-	if err != nil {
-		return db, fmt.Errorf("cannot get the mysql database create or update future response: %v", err)
-	}
-
-	return future.Result(dbClient)
-}
-
-// DeleteDB deletes an existing database from a server
-func DeleteDB(ctx context.Context, serverName, dbName string) (autorest.Response, error) {
-	dbClient := getDbClient()
-	future, err := dbClient.Delete(
-		ctx,
-		config.GroupName(),
-		serverName,
-		dbName,
+		mysql.ServerForUpdate{
+			ServerPropertiesForUpdate: &mysql.ServerPropertiesForUpdate{
+				StorageProfile: &mysql.StorageProfile{
+					StorageMB: &storageCapacity,
+				},
+			},
+		},
 	)
-
 	if err != nil {
-		return autorest.Response{}, fmt.Errorf("cannot delete the database.")
+		return server, fmt.Errorf("cannot update mysql server: %v", err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, dbClient.Client)
+	err = future.WaitForCompletionRef(ctx, serversClient.Client)
 	if err != nil {
-		return autorest.Response{}, fmt.Errorf("cannot get the mysql server create or update future response: %v", err)
+		return server, fmt.Errorf("cannot get the mysql server update future response: %v", err)
 	}
 
-	return future.Result(dbClient)
+	return future.Result(serversClient)
+}
+
+// DeleteServer deletes the PostgreSQL server.
+func DeleteServer(ctx context.Context, serversClient mysql.ServersClient, serverName string) (resp autorest.Response, err error) {
+
+	future, err := serversClient.Delete(ctx, config.GroupName(), serverName)
+	if err != nil {
+		return resp, fmt.Errorf("cannot delete the mysql server: %v", err)
+	}
+
+	err = future.WaitForCompletionRef(ctx, serversClient.Client)
+	if err != nil {
+		return resp, fmt.Errorf("cannot get the mysql server update future response: %v", err)
+	}
+
+	return future.Result(serversClient)
 }
 
 // Firewall rules
@@ -142,4 +141,43 @@ func CreateFirewallRules(ctx context.Context, serverName string) error {
 	)
 
 	return err
+}
+
+// GetConfigurationsClient creates and returns the configuration client for the server.
+func GetConfigurationsClient() mysql.ConfigurationsClient {
+	configClient := mysql.NewConfigurationsClient(config.SubscriptionID())
+	a, _ := iam.GetResourceManagementAuthorizer()
+	configClient.Authorizer = a
+	configClient.AddToUserAgent(config.UserAgent())
+	return configClient
+}
+
+// GetConfiguration given the server name and configuration name it returns the configuration.
+func GetConfiguration(ctx context.Context, configClient mysql.ConfigurationsClient, serverName string, configurationName string) (mysql.Configuration, error) {
+
+	// Get the configuration.
+	configuration, err := configClient.Get(ctx, config.GroupName(), serverName, configurationName)
+
+	if err != nil {
+		return configuration, fmt.Errorf("cannot get the configuration with name %s", configurationName)
+	}
+
+	return configuration, err
+}
+
+// UpdateConfiguration given the name of the configuation and the configuration object it updates the configuration for the given server.
+func UpdateConfiguration(ctx context.Context, configClient mysql.ConfigurationsClient, serverName string, configurationName string, configuration mysql.Configuration) (updatedConfig mysql.Configuration, err error) {
+
+	future, err := configClient.Update(ctx, config.GroupName(), serverName, configurationName, configuration)
+
+	if err != nil {
+		return updatedConfig, fmt.Errorf("cannot update the configuration with name %s", configurationName)
+	}
+
+	err = future.WaitForCompletionRef(ctx, configClient.Client)
+	if err != nil {
+		return updatedConfig, fmt.Errorf("cannot get the mysql configuration update future response: %v", err)
+	}
+
+	return future.Result(configClient)
 }

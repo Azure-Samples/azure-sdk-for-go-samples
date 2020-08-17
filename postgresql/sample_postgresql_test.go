@@ -1,8 +1,7 @@
-package postgresqlsamples
+package postgresql
 
 import (
 	"context"
-	"database/sql"
 	"flag"
 	"fmt"
 	"log"
@@ -13,6 +12,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/resources"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
+	"github.com/Azure/azure-sdk-for-go/profiles/latest/mysql/mgmt/mysql"
 	"github.com/marstr/randname"
 )
 
@@ -102,7 +102,7 @@ func TestMain(m *testing.M) {
 }
 
 // Example_createDatabase creates a postgresql server and database, then creates a table and inserts a record.
-func Example_createDatabase() {
+func Example_PerformServerOperations() {
 	var groupName = config.GenerateGroupName("DatabaseQueries")
 	config.SetGroupName(groupName)
 
@@ -116,17 +116,22 @@ func Example_createDatabase() {
 		util.LogAndPanic(err)
 	}
 
-	_, err = CreateServer(ctx, serverName, dbLogin, dbPassword)
+	// Get the ServersClient.
+	serversClient := GetServersClient()
+
+	// Create the server.
+	_, err = CreateServer(ctx, serversClient, serverName, dbLogin, dbPassword)
 	if err != nil {
 		util.LogAndPanic(fmt.Errorf("cannot create postgresql server: %+v", err))
 	}
 	util.PrintAndLog("postgresql server created")
 
-	/*_, err = CreateDB(ctx, serverName, dbName)
+	// Update the server's storage capacity field.
+	_, err = UpdateServerStorageCapacity(ctx, serversClient, serverName, 1048576)
 	if err != nil {
-		util.LogAndPanic(fmt.Errorf("cannot create postgresql database: %+v", err))
-	}*/
-	// util.PrintAndLog("database created")
+		util.LogAndPanic(fmt.Errorf("cannot update postgresql server: %+v", err))
+	}
+	util.PrintAndLog("postgresql server's storage capacity updated.")
 
 	err = CreateFirewallRules(ctx, serverName)
 	if err != nil {
@@ -134,37 +139,20 @@ func Example_createDatabase() {
 	}
 	util.PrintAndLog("database firewall rules set")
 
-	/*err = testSQLDataplane(serverName, dbName, dbLogin, dbPassword)
+	configClient := GetConfigurationsClient()
+
+	var configuration mysql.Configuration
+
+	configuration, err = GetConfiguration(ctx, configClient, serverName, "array_nulls")
 	if err != nil {
 		util.LogAndPanic(err)
 	}
-	util.PrintAndLog("database operations performed")*/
+	util.PrintAndLog("Got the array_nulls configuration")
 
-	// Output:
-	// sql server created
-	// database created
-	// database firewall rules set
-	// database operations performed
-}
-
-// testSQLDataplane executes some simple SQL queries
-func testSQLDataplane(server, database, username, password string) error {
-	log.Printf("available drivers: %v", sql.Drivers())
-
-	db, err := Open(server, database, username, password)
+	// Finally delete the server.
+	_, err = DeleteServer(ctx, serversClient, serverName)
 	if err != nil {
-		return err
+		util.LogAndPanic(err)
 	}
-
-	err = CreateTable(db)
-	if err != nil {
-		return err
-	}
-
-	err = Insert(db)
-	if err != nil {
-		return err
-	}
-
-	return Query(db)
+	util.PrintAndLog("Successfully deleted the server")
 }

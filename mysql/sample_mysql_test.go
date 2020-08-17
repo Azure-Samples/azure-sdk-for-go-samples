@@ -2,7 +2,6 @@ package mysqlsamples
 
 import (
 	"context"
-	"database/sql"
 	"flag"
 	"fmt"
 	"log"
@@ -13,6 +12,8 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/gechris/azure-sdk-for-go/services/preview/mysql/mgmt/flexible-servers/2020-07-01-privatepreview/mysql"
 	"github.com/marstr/randname"
 )
 
@@ -102,7 +103,7 @@ func TestMain(m *testing.M) {
 }
 
 // Example_createDatabase creates a MySQL server and database, then creates a table and inserts a record.
-func Example_createDatabase() {
+func Example_PerformServerOperations() {
 	var groupName = config.GenerateGroupName("DatabaseQueries")
 	config.SetGroupName(groupName)
 
@@ -116,19 +117,19 @@ func Example_createDatabase() {
 		util.LogAndPanic(err)
 	}
 
-	_, err = CreateServer(ctx, serverName, dbLogin, dbPassword)
+	serversClient := GetServersClient()
+
+	_, err = CreateServer(ctx, serversClient, serverName, dbLogin, dbPassword)
 	if err != nil {
 		util.LogAndPanic(fmt.Errorf("cannot create mysql server: %+v", err))
 	}
 	util.PrintAndLog("mysql server created")
 
-	/*
-		_, err = CreateDB(ctx, serverName, dbName)
-		if err != nil {
-			util.LogAndPanic(fmt.Errorf("cannot create mysql database: %+v", err))
-		}
-		util.PrintAndLog("database created")
-	*/
+	_, err = UpdateServerStorageCapacity(ctx, serversClient, serverName, 1048576)
+	if err != nil {
+		util.LogAndPanic(fmt.Errorf("cannot update mysql server: %+v", err))
+	}
+	util.PrintAndLog("updated mysql server's storage capacity")
 
 	err = CreateFirewallRules(ctx, serverName)
 	if err != nil {
@@ -136,37 +137,29 @@ func Example_createDatabase() {
 	}
 	util.PrintAndLog("database firewall rules set")
 
-	/*err = testSQLDataplane(serverName, dbName, dbLogin, dbPassword)
+	configClient := GetConfigurationsClient()
+
+	var configuration mysql.Configuration
+
+	configuration, err = GetConfiguration(ctx, configClient, serverName, "event_scheduler")
 	if err != nil {
 		util.LogAndPanic(err)
 	}
-	util.PrintAndLog("database operations performed")*/
+	util.PrintAndLog("Got the event_scheduler configuration")
 
-	// Output:
-	// sql server created
-	// database created
-	// database firewall rules set
-	// database operations performed
-}
+	// Update the configuration Value.
+	configuration.ConfigurationProperties.Value = to.StringPtr("on")
 
-// testSQLDataplane executes some simple SQL queries
-func testSQLDataplane(server, database, username, password string) error {
-	log.Printf("available drivers: %v", sql.Drivers())
-
-	db, err := Open(server, database, username, password)
+	_, err = UpdateConfiguration(ctx, configClient, serverName, "event_scheduler", configuration)
 	if err != nil {
-		return err
+		util.LogAndPanic(err)
 	}
+	util.PrintAndLog("Updated the event_scheduler configuration")
 
-	err = CreateTable(db)
+	// Finally delete the server.
+	_, err = DeleteServer(ctx, serversClient, serverName)
 	if err != nil {
-		return err
+		util.LogAndPanic(err)
 	}
-
-	err = Insert(db)
-	if err != nil {
-		return err
-	}
-
-	return Query(db)
+	util.PrintAndLog("Successfully deleted the server")
 }

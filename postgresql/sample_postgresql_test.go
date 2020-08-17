@@ -101,7 +101,7 @@ func TestMain(m *testing.M) {
 }
 
 // Example_createDatabase creates a postgresql server and database, then creates a table and inserts a record.
-func Example_PerformServerOperations() {
+func Example_performServerOperations() {
 	var groupName = config.GenerateGroupName("DatabaseQueries")
 	config.SetGroupName(groupName)
 

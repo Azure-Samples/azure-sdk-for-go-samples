@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/gechris/azure-sdk-for-go-samples/internal/config"
 )
 
 const (

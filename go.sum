@@ -6,6 +6,8 @@ cloud.google.com/go v0.39.0/go.mod h1:rVLT6fkc8chs9sfPtFc1SBH6em7n+ZoXaG+87tDISt
 contrib.go.opencensus.io/exporter/ocagent v0.4.12/go.mod h1:450APlNTSR6FrvC3CTRqYosuDstRB9un7SOx2k/9ckA=
 git.apache.org/thrift.git v0.0.0-20180902110319-2566ecd5d999/go.mod h1:fPE2ZNJGynbRyZ4dJvy6G277gSllfV2HJqblrnkyeyg=
 git.apache.org/thrift.git v0.12.0/go.mod h1:fPE2ZNJGynbRyZ4dJvy6G277gSllfV2HJqblrnkyeyg=
+github.com/Azure-Samples/azure-sdk-for-go-samples v0.0.0-20200810023041-ff3a4091703a h1:EaasHhdkzI4HjLFMz9zBpy2aacS8vQV48MMDv1eaP08=
+github.com/Azure-Samples/azure-sdk-for-go-samples v0.0.0-20200810023041-ff3a4091703a/go.mod h1:6Uq7FGonGuGV3+eRuo9dvt2Fnc5kjMa+c58xqXTlEPE=
 github.com/Azure/azure-amqp-common-go v1.1.4 h1:DmPXxmLZwi/71CgRTZIKR6yiKEW3eC42S4gSBhfG7y0=
 github.com/Azure/azure-amqp-common-go v1.1.4/go.mod h1:FhZtXirFANw40UXI2ntweO+VOkfaw8s6vZxUiRhLYW8=
 github.com/Azure/azure-event-hubs-go v1.3.0 h1:aBmZibgiOAoscMC23NEZAUivfRjFdAzouYFAHuHWjxs=

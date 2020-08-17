@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples
+module github.com/gechris/azure-sdk-for-go-samples
 
 go 1.13
 
@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go v0.39.0 // indirect
 	contrib.go.opencensus.io/exporter/ocagent v0.4.12 // indirect
 	git.apache.org/thrift.git v0.12.0 // indirect
+	github.com/Azure-Samples/azure-sdk-for-go-samples v0.0.0-20200810023041-ff3a4091703a
 	github.com/Azure/azure-amqp-common-go v1.1.4
 	github.com/Azure/azure-event-hubs-go v1.3.0
 	github.com/Azure/azure-pipeline-go v0.1.9 // indirect

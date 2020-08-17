@@ -8,9 +8,9 @@ package resources
 import (
 	"context"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-05-01/resources"
+	"github.com/gechris/azure-sdk-for-go-samples/internal/config"
+	"github.com/gechris/azure-sdk-for-go-samples/internal/iam"
 )
 
 func getProviderClient() resources.ProvidersClient {

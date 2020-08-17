@@ -9,10 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/resources"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
-	"github.com/Azure/azure-sdk-for-go/profiles/latest/mysql/mgmt/mysql"
+	"github.com/gechris/azure-sdk-for-go-samples/internal/config"
+	"github.com/gechris/azure-sdk-for-go-samples/internal/util"
+	"github.com/gechris/azure-sdk-for-go-samples/resources"
 	"github.com/marstr/randname"
 )
 
@@ -141,9 +140,7 @@ func Example_PerformServerOperations() {
 
 	configClient := GetConfigurationsClient()
 
-	var configuration mysql.Configuration
-
-	configuration, err = GetConfiguration(ctx, configClient, serverName, "array_nulls")
+	_, err = GetConfiguration(ctx, configClient, serverName, "array_nulls")
 	if err != nil {
 		util.LogAndPanic(err)
 	}

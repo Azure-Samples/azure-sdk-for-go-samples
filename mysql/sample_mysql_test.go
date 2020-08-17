@@ -9,11 +9,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/gechris/azure-sdk-for-go-samples/internal/config"
+	"github.com/gechris/azure-sdk-for-go-samples/resources"
 	"github.com/gechris/azure-sdk-for-go/services/preview/mysql/mgmt/flexible-servers/2020-07-01-privatepreview/mysql"
+	"github.com/gehcris/azure-sdk-for-go-samples/internal/util"
 	"github.com/marstr/randname"
 )
 

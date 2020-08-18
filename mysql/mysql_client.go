@@ -32,6 +32,7 @@ func CreateServer(ctx context.Context, serversClient mysql.ServersClient, server
 			Location: to.StringPtr(config.Location()),
 			Sku: &mysql.Sku{
 				Name: to.StringPtr("Standard_D4s_v3"),
+				Tier: "GeneralPurpose",
 			},
 			ServerProperties: &mysql.ServerProperties{
 				AdministratorLogin:         to.StringPtr(dbLogin),

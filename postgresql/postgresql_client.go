@@ -31,7 +31,9 @@ func CreateServer(ctx context.Context, serversClient pg.ServersClient, serverNam
 		pg.Server{
 			Location: to.StringPtr(config.Location()),
 			Sku: &pg.Sku{
-				Name: to.StringPtr("Standard_D4s_v3"),
+				Name:     to.StringPtr("Standard_D4s_v3"),
+				Tier:     "GeneralPurpose",
+				Capacity: to.Int32Ptr(4),
 			},
 			ServerProperties: &pg.ServerProperties{
 				AdministratorLogin:         to.StringPtr(dbLogin),

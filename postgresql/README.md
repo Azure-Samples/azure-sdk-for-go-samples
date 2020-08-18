@@ -15,31 +15,13 @@ Hybrid profile.
 ## Contents
 
 * [How to run all samples](#run)
-* Virtual Machines
-    * CreateVM - All the steps necessary to create a VM and turn it on and off.
-    * CreateVMWithIdentity - Create a VM with a managed identity.
-    * CreateVMWithLoadBalancer - Create VMs taking advantage of availability
-      sets and load balancing.
-    * CreateVMWithEncryptedDisks - Store a secret in Key Vault and use it to
-      encrypt and decrypt disks.
-    * CreateAvailabilitySet
-    * AddIdentityToVM
-    * DeallocateVM
-    * UpdateVM
-    * StartVM
-    * RestartVM
-    * StopVM
-* Container Instances
-    * CreateContainerGroup
-    * UpdateContainerGroup
-    * DeleteContainerGroup
-* Disks
-    * CreateDisk
-    * CreateVMWithDisk
-    * AddDiskEncryptionToVM
-    * AttachDataDisk
-    * DetachDataDisks
-    * UpdateOSDiskSize
+* Management
+    * CreateServer - Create a PostgreSQL.
+    * UpdateServer - Updates a PostgreSQL server.
+    * DeleteServer - Deletes an existing PostgreSQL server.
+    * CreateFirewallRules - Creates or updates firewall rules on the server.
+    * GetConfiguration - Get the configuration value that is set on the server.
+
 
 <a id="run"></a>
 ## How to run all samples

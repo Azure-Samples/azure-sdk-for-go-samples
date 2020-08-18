@@ -132,11 +132,19 @@ func TestPerformServerOperations(t *testing.T) {
 	}
 	util.PrintAndLog("postgresql server's storage capacity updated.")
 
-	err = CreateFirewallRules(ctx, serverName)
+	fwrClient := GetFwRulesClient()
+
+	err = CreateOrUpdateFirewallRule(ctx, fwrClient, serverName, "FirewallRuleName", "0.0.0.0", "0.0.0.0")
 	if err != nil {
 		util.LogAndPanic(err)
 	}
-	util.PrintAndLog("database firewall rules set")
+	util.PrintAndLog("Firewall rule set")
+
+	err = CreateOrUpdateFirewallRule(ctx, fwrClient, serverName, "FirewallRuleName", "0.0.0.0", "1.1.1.1")
+	if err != nil {
+		util.LogAndPanic(err)
+	}
+	util.PrintAndLog("Firewall rule updated")
 
 	configClient := GetConfigurationsClient()
 

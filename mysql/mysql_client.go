@@ -99,8 +99,8 @@ func DeleteServer(ctx context.Context, serversClient mysql.ServersClient, server
 	return future.Result(serversClient)
 }
 
-// Firewall rules
-func getFwRulesClient() mysql.FirewallRulesClient {
+// GetFwRulesClient returns the FirewallClient
+func GetFwRulesClient() mysql.FirewallRulesClient {
 	fwrClient := mysql.NewFirewallRulesClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	fwrClient.Authorizer = a
@@ -108,35 +108,18 @@ func getFwRulesClient() mysql.FirewallRulesClient {
 	return fwrClient
 }
 
-// CreateFirewallRules creates new firewall rules for a given server
-func CreateFirewallRules(ctx context.Context, serverName string) error {
-	fwrClient := getFwRulesClient()
+// CreateOrUpdateFirewallRule given the firewallname and new properties it updates the firewall rule.
+func CreateOrUpdateFirewallRule(ctx context.Context, fwrClient mysql.FirewallRulesClient, serverName, firewallRuleName, startIPAddr, endIPAddr string) error {
 
 	_, err := fwrClient.CreateOrUpdate(
 		ctx,
 		config.GroupName(),
 		serverName,
-		"unsafe open to world",
+		firewallRuleName,
 		mysql.FirewallRule{
 			FirewallRuleProperties: &mysql.FirewallRuleProperties{
-				StartIPAddress: to.StringPtr("0.0.0.0"),
-				EndIPAddress:   to.StringPtr("255.255.255.255"),
-			},
-		},
-	)
-	if err != nil {
-		return err
-	}
-
-	_, err = fwrClient.CreateOrUpdate(
-		ctx,
-		config.GroupName(),
-		serverName,
-		"open to Azure internal",
-		mysql.FirewallRule{
-			FirewallRuleProperties: &mysql.FirewallRuleProperties{
-				StartIPAddress: to.StringPtr("0.0.0.0"),
-				EndIPAddress:   to.StringPtr("0.0.0.0"),
+				StartIPAddress: &startIPAddr,
+				EndIPAddress:   &endIPAddr,
 			},
 		},
 	)

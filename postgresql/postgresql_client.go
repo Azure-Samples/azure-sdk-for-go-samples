@@ -100,8 +100,8 @@ func DeleteServer(ctx context.Context, serversClient pg.ServersClient, serverNam
 	return future.Result(serversClient)
 }
 
-// Firewall rules
-func getFwRulesClient() pg.FirewallRulesClient {
+// GetFwRulesClient returns the FirewallClient
+func GetFwRulesClient() pg.FirewallRulesClient {
 	fwrClient := pg.NewFirewallRulesClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	fwrClient.Authorizer = a
@@ -109,35 +109,18 @@ func getFwRulesClient() pg.FirewallRulesClient {
 	return fwrClient
 }
 
-// CreateFirewallRules creates new firewall rules for a given server
-func CreateFirewallRules(ctx context.Context, serverName string) error {
-	fwrClient := getFwRulesClient()
+// CreateOrUpdateFirewallRule given the firewallname and new properties it updates the firewall rule.
+func CreateOrUpdateFirewallRule(ctx context.Context, fwrClient pg.FirewallRulesClient, serverName, firewallRuleName, startIPAddr, endIPAddr string) error {
 
 	_, err := fwrClient.CreateOrUpdate(
 		ctx,
 		config.GroupName(),
 		serverName,
-		"unsafe open to world",
+		firewallRuleName,
 		pg.FirewallRule{
 			FirewallRuleProperties: &pg.FirewallRuleProperties{
-				StartIPAddress: to.StringPtr("0.0.0.0"),
-				EndIPAddress:   to.StringPtr("255.255.255.255"),
-			},
-		},
-	)
-	if err != nil {
-		return err
-	}
-
-	_, err = fwrClient.CreateOrUpdate(
-		ctx,
-		config.GroupName(),
-		serverName,
-		"open to Azure internal",
-		pg.FirewallRule{
-			FirewallRuleProperties: &pg.FirewallRuleProperties{
-				StartIPAddress: to.StringPtr("0.0.0.0"),
-				EndIPAddress:   to.StringPtr("0.0.0.0"),
+				StartIPAddress: &startIPAddr,
+				EndIPAddress:   &endIPAddr,
 			},
 		},
 	)

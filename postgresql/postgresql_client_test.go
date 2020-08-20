@@ -9,9 +9,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/gechris/azure-sdk-for-go-samples/internal/config"
 	"github.com/gechris/azure-sdk-for-go-samples/internal/util"
 	"github.com/gechris/azure-sdk-for-go-samples/resources"
+	pg "github.com/gechris/azure-sdk-for-go/services/preview/postgresql/mgmt/flexible-servers/2020-02-14-privatepreview/postgresql"
 	"github.com/marstr/randname"
 )
 
@@ -148,11 +150,22 @@ func TestPerformServerOperations(t *testing.T) {
 
 	configClient := GetConfigurationsClient()
 
-	_, err = GetConfiguration(ctx, configClient, serverName, "array_nulls")
+	var configuration pg.Configuration
+
+	configuration, err = GetConfiguration(ctx, configClient, serverName, "array_nulls")
 	if err != nil {
 		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("Got the array_nulls configuration")
+
+	// Update the configuration Value.
+	configuration.ConfigurationProperties.Value = to.StringPtr("on")
+
+	_, err = UpdateConfiguration(ctx, configClient, serverName, "array_nulls", configuration)
+	if err != nil {
+		util.LogAndPanic(err)
+	}
+	util.PrintAndLog("Updated the event_scheduler configuration")
 
 	// Finally delete the server.
 	_, err = DeleteServer(ctx, serversClient, serverName)

@@ -31,9 +31,8 @@ func CreateServer(ctx context.Context, serversClient pg.ServersClient, serverNam
 		pg.Server{
 			Location: to.StringPtr(config.Location()),
 			Sku: &pg.Sku{
-				Name:     to.StringPtr("Standard_D4s_v3"),
-				Tier:     "GeneralPurpose",
-				Capacity: to.Int32Ptr(4),
+				Name: to.StringPtr("Standard_D4s_v3"),
+				Tier: "GeneralPurpose",
 			},
 			ServerProperties: &pg.ServerProperties{
 				AdministratorLogin:         to.StringPtr(dbLogin),
@@ -148,4 +147,21 @@ func GetConfiguration(ctx context.Context, configClient pg.ConfigurationsClient,
 	}
 
 	return configuration, err
+}
+
+// UpdateConfiguration given the name of the configuation and the configuration object it updates the configuration for the given server.
+func UpdateConfiguration(ctx context.Context, configClient pg.ConfigurationsClient, serverName string, configurationName string, configuration pg.Configuration) (updatedConfig pg.Configuration, err error) {
+
+	future, err := configClient.Update(ctx, config.GroupName(), serverName, configurationName, configuration)
+
+	if err != nil {
+		return updatedConfig, fmt.Errorf("cannot update the configuration with name %s", configurationName)
+	}
+
+	err = future.WaitForCompletionRef(ctx, configClient.Client)
+	if err != nil {
+		return updatedConfig, fmt.Errorf("cannot get the pg configuration update future response: %v", err)
+	}
+
+	return future.Result(configClient)
 }

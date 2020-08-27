@@ -104,6 +104,8 @@ github.com/gechris/azure-sdk-for-go v45.1.1+incompatible h1:YV2NAjGF7ki4pOsGczyV
 github.com/gechris/azure-sdk-for-go v45.1.1+incompatible/go.mod h1:L3gw+tobpKXFoLSK9BopLLAenG05Q5XA9YFpdpPiFGU=
 github.com/gechris/azure-sdk-for-go v45.1.2+incompatible h1:GHVhK+FobQlMM5JcolZOEnFt5dGo/EJsFgkwUF4pppk=
 github.com/gechris/azure-sdk-for-go v45.1.2+incompatible/go.mod h1:L3gw+tobpKXFoLSK9BopLLAenG05Q5XA9YFpdpPiFGU=
+github.com/gechris/azure-sdk-for-go v45.1.3+incompatible h1:Cz0StOjD/zgo4W+MNZ9xVzzEzq+5NiBF33T1iuq5ZI0=
+github.com/gechris/azure-sdk-for-go v45.1.3+incompatible/go.mod h1:L3gw+tobpKXFoLSK9BopLLAenG05Q5XA9YFpdpPiFGU=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8 h1:DujepqpGd1hyOd7aW59XpK7Qymp8iy83xq74fLr21is=
 github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8/go.mod h1:xkRDCp4j0OGD1HRkm4kmhM+pmpv3AKq5SU7GMg4oO/Q=

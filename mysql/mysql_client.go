@@ -8,7 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/gechris/azure-sdk-for-go-samples/internal/config"
 	"github.com/gechris/azure-sdk-for-go-samples/internal/iam"
-	"github.com/gechris/azure-sdk-for-go/services/preview/mysql/mgmt/flexible-servers/2020-07-01-privatepreview/mysql"
+	mysql "github.com/gechris/azure-sdk-for-go/services/preview/mysql/mgmt/2020-07-01-preview/mysqlflexibleservers"
 )
 
 // GetServersClient returns

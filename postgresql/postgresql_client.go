@@ -8,7 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/gechris/azure-sdk-for-go-samples/internal/config"
 	"github.com/gechris/azure-sdk-for-go-samples/internal/iam"
-	pg "github.com/gechris/azure-sdk-for-go/services/preview/postgresql/mgmt/flexible-servers/2020-02-14-privatepreview/postgresql"
+	pg "github.com/gechris/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
 )
 
 // GetServersClient returns

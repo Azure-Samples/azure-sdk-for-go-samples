@@ -21,7 +21,7 @@ var (
 	serverName = generateName("gosdkpostgresql")
 	dbName     = "postgresqldb1"
 	dbLogin    = "postgresqldbuser1"
-	dbPassword = generateName("postgresqldbuserpass!1")
+	dbPassword = generatePassword("postgresqldbuserpass!1")
 )
 
 func addLocalEnvAndParse() error {
@@ -78,6 +78,11 @@ func teardown() error {
 // test helpers
 func generateName(prefix string) string {
 	return strings.ToLower(randname.GenerateWithPrefix(prefix, 5))
+}
+
+// Just add 5 random digits at the end of the prefix password.
+func generateName(pass string) string {
+	return randname.GenerateWithPrefix(prefix, 5)
 }
 
 // TestMain sets up the environment and initiates tests.

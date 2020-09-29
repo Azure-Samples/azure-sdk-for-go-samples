@@ -21,7 +21,7 @@ var (
 	serverName = generateName("gosdkpostgresql")
 	dbName     = "postgresqldb1"
 	dbLogin    = "postgresqldbuser1"
-	dbPassword = "postgresqldbuserpass!1"
+	dbPassword = generateName("postgresqldbuserpass!1")
 )
 
 func addLocalEnvAndParse() error {
@@ -40,10 +40,10 @@ func addLocalFlagsAndParse() error {
 		return fmt.Errorf("failed to add top-level flags: %+v", err)
 	}
 
-	flag.StringVar(&serverName, "sqlServerName", serverName, "Name for SQL server.")
-	flag.StringVar(&dbName, "sqlDbName", dbName, "Name for SQL database.")
-	flag.StringVar(&dbLogin, "sqlDbUsername", dbLogin, "Username for SQL login.")
-	flag.StringVar(&dbPassword, "sqlDbPassword", dbPassword, "Password for SQL login.")
+	flag.StringVar(&serverName, "pgsqlServerName", serverName, "Name for PostgreSQL server.")
+	flag.StringVar(&dbName, "pgsqlDbName", dbName, "Name for PostgreSQL database.")
+	flag.StringVar(&dbLogin, "pgsqlDbUsername", dbLogin, "Username for PostgreSQL login.")
+	flag.StringVar(&dbPassword, "pgsqlDbPassword", dbPassword, "Password for PostgreSQL login.")
 
 	// parse all flags
 	flag.Parse()
@@ -104,7 +104,7 @@ func TestMain(m *testing.M) {
 
 // TestPerformServerOperations creates a postgresql server, updates it, add firewall rules and configurations and at the end it deletes it.
 func TestPerformServerOperations(t *testing.T) {
-	var groupName = config.GenerateGroupName("DatabaseQueries")
+	var groupName = config.GenerateGroupName("PgServerOperations")
 	config.SetGroupName(groupName)
 
 	serverName = strings.ToLower(serverName)

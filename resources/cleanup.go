@@ -9,7 +9,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/gechris/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 )
 
 // Cleanup deletes the resource group created for the sample

@@ -1,4 +1,4 @@
-module github.com/gechris/azure-sdk-for-go-samples
+module github.com/Azure/azure-sdk-for-go-samples
 
 go 1.13
 
@@ -10,7 +10,7 @@ require (
 	github.com/Azure/azure-amqp-common-go v1.1.4
 	github.com/Azure/azure-event-hubs-go v1.3.0
 	github.com/Azure/azure-pipeline-go v0.1.9 // indirect
-	github.com/Azure/azure-sdk-for-go v45.1.0+incompatible
+	github.com/Azure/azure-sdk-for-go v46.4.0+incompatible
 	github.com/Azure/azure-storage-blob-go v0.0.0-20181023070848-cf01652132cc
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest v0.11.3
@@ -20,7 +20,6 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.3.0
 	github.com/Azure/go-autorest/autorest/validation v0.2.0 // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20190515213511-eb9f6a1743f3
-	github.com/gechris/azure-sdk-for-go v45.1.3+incompatible
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gobuffalo/envy v1.7.0 // indirect

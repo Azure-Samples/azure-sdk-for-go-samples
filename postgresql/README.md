@@ -21,6 +21,7 @@ Hybrid profile.
     * DeleteServer - Deletes an existing PostgreSQL server.
     * CreateOrUpdateFirewallRules - Creates or updates a firewall rule on the server.
     * GetConfiguration - Get the configuration value that is set on the server.
+    * UpdateConfiguration - Updates the configuration.
 
 
 <a id="run"></a>

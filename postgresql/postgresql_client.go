@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure/azure-sdk-for-go-samples/internal/iam"
+	pg "github.com/Azure/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/gechris/azure-sdk-for-go-samples/internal/config"
-	"github.com/gechris/azure-sdk-for-go-samples/internal/iam"
-	pg "github.com/gechris/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
 )
 
 // GetServersClient returns
@@ -64,7 +64,7 @@ func UpdateServerStorageCapacity(ctx context.Context, serversClient pg.ServersCl
 		config.GroupName(),
 		serverName,
 		pg.ServerForUpdate{
-			Properties: &pg.ServerPropertiesForUpdate{
+			ServerPropertiesForUpdate: &pg.ServerPropertiesForUpdate{
 				StorageProfile: &pg.StorageProfile{
 					StorageMB: &storageCapacity,
 				},

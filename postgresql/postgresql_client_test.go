@@ -9,11 +9,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure/azure-sdk-for-go-samples/internal/util"
+	"github.com/Azure/azure-sdk-for-go-samples/resources"
+	pg "github.com/Azure/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/gechris/azure-sdk-for-go-samples/internal/config"
-	"github.com/gechris/azure-sdk-for-go-samples/internal/util"
-	"github.com/gechris/azure-sdk-for-go-samples/resources"
-	pg "github.com/gechris/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
 	"github.com/marstr/randname"
 )
 

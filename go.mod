@@ -1,4 +1,4 @@
-module github.com/Azure/azure-sdk-for-go-samples
+module github.com/Azure-Samples/azure-sdk-for-go-samples
 
 go 1.13
 

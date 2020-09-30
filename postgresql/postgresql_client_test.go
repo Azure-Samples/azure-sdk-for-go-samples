@@ -81,8 +81,8 @@ func generateName(prefix string) string {
 }
 
 // Just add 5 random digits at the end of the prefix password.
-func generateName(pass string) string {
-	return randname.GenerateWithPrefix(prefix, 5)
+func generatePassword(pass string) string {
+	return randname.GenerateWithPrefix(pass, 5)
 }
 
 // TestMain sets up the environment and initiates tests.

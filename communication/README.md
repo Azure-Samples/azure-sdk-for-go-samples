@@ -56,15 +56,9 @@ var ClientId = "xxx"
 
 ## Demo
 
-A demo app is included to show how to use the project.
+A test app is included to show how to use the creation API.
 
-To view all available commands for the demo, execute `python manage_communication.py -h`
+To run the complete test follow the instructions in the [base of this repo.](https://github.com/Azure-Samples/azure-sdk-for-go-samples)
 
-To run the complete demo, execute `python manage_communication.py all`
+The sample files do not have dependency each other and each file represents an individual end-to-end scenario. Please look at the sample that contains the scenario you are interested in.
 
-
-The sample files do not have dependency each other and each file represents an individual end-to-end scenario. Please look at the sample that contains the scenario you are interested in
-
-## Resources
-
-- https://github.com/Azure/azure-sdk-for-python

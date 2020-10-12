@@ -3,7 +3,6 @@ package communication
 import (
 	"context"
 	"fmt"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"log"
 	"os"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	"github.com/marstr/randname"
 )
@@ -103,17 +103,4 @@ func TestMain(m *testing.M) {
 	}
 
 	os.Exit(code)
-}
-
-// TestPerformServerOperations creates a postgresql server, updates it, add firewall rules and configurations and at the end it deletes it.
-func TestPerformServerOperations(t *testing.T) {
-	serviceClient := GetManagementServiceClient()
-	var response, error = serviceClient.ListBySubscription(context.TODO())
-	if(error!=nil){
-		for _,resource := range response.Values(){
-			fmt.Println("Name: ",  *resource.Name);
-			fmt.Println("Provisioning state:", resource.ServiceProperties.ProvisioningState)
-			fmt.Println("ImmutableResourceId", *resource.ServiceProperties.ImmutableResourceID)
-		}
-	}
 }

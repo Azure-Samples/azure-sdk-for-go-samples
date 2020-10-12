@@ -64,9 +64,9 @@ func ListCommunicationServices(ctx context.Context) (communication.ServiceResour
 }
 
 //Get status of all operation
-func GetOperationStatus(ctx context.Context, location string, operationId string) (communication.OperationStatus, error) {
+func GetOperationStatus(ctx context.Context, location string, operationID string) (communication.OperationStatus, error) {
 	operationsClient := GetOperationsStatusesClient()
-	return operationsClient.Get(ctx, location, operationId)
+	return operationsClient.Get(ctx, location, operationID)
 }
 
 //Regenerate key of ACS instance

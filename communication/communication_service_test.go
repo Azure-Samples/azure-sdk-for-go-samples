@@ -44,6 +44,11 @@ func Example_createCommunicationService() {
 	// created communication service
 }
 
+// test helpers
+func generateName(prefix string) string {
+	return strings.ToLower(randname.GenerateWithPrefix(prefix, 5))
+}
+
 func addLocalEnvAndParse() error {
 	// parse env at top-level (also controls dotenv load)
 	err := config.ParseEnvironment()
@@ -71,16 +76,6 @@ func teardown() error {
 		}
 	}
 	return nil
-}
-
-// test helpers
-func generateName(prefix string) string {
-	return strings.ToLower(randname.GenerateWithPrefix(prefix, 5))
-}
-
-// Just add 5 random digits at the end of the prefix password.
-func generateResourceName(pass string) string {
-	return randname.GenerateWithPrefix(pass, 5)
 }
 
 // TestMain sets up the environment and initiates tests.

@@ -154,9 +154,8 @@ func UpdateConfiguration(ctx context.Context, resourceGroup, serverName string, 
 	configClient := getConfigurationsClient()
 
 	future, err := configClient.Update(ctx, resourceGroup, serverName, configurationName, configuration)
-
 	if err != nil {
-		return updatedConfig, fmt.Errorf("cannot update the configuration with name %s", configurationName)
+		return updatedConfig, fmt.Errorf("cannot update the configuration with name %s: %+v", configurationName, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, configClient.Client); err != nil {

@@ -18,6 +18,7 @@ import (
 )
 
 var (
+	groupName  = config.GenerateGroupName("PgServerOperations")
 	serverName = generateName("gosdkpostgresql")
 	dbName     = "postgresqldb1"
 	dbLogin    = "postgresqldbuser1"
@@ -67,7 +68,7 @@ func setup() error {
 func teardown() error {
 	if !config.KeepResources() {
 		// does not wait
-		_, err := resources.DeleteGroup(context.Background(), config.GroupName())
+		_, err := resources.DeleteGroup(context.Background(), groupName)
 		if err != nil {
 			return err
 		}
@@ -109,7 +110,6 @@ func TestMain(m *testing.M) {
 
 // Example_performServerOperations creates a postgresql server, updates it, add firewall rules and configurations and at the end it deletes it.
 func Example_performServerOperations() {
-	groupName := config.GenerateGroupName("PgServerOperations")
 	serverName = strings.ToLower(serverName)
 
 	ctx := context.Background()
@@ -144,19 +144,20 @@ func Example_performServerOperations() {
 
 	var configuration flexibleservers.Configuration
 
-	configuration, err := GetConfiguration(ctx, groupName, serverName, "array_nulls")
+	configuration, err := GetConfiguration(ctx, groupName, serverName, "max_replication_slots")
 	if err != nil {
 		util.LogAndPanic(err)
 	}
-	util.PrintAndLog("got the array_nulls configuration")
+	util.PrintAndLog("got the max_replication_slots configuration")
 
 	// Update the configuration Value.
-	configuration.ConfigurationProperties.Value = to.StringPtr("on")
+	configuration.ConfigurationProperties.Value = to.StringPtr("20")
+	configuration.ConfigurationProperties.Source = to.StringPtr("user-override")
 
-	if _, err := UpdateConfiguration(ctx, groupName, serverName, "array_nulls", configuration); err != nil {
+	if _, err := UpdateConfiguration(ctx, groupName, serverName, "max_replication_slots", configuration); err != nil {
 		util.LogAndPanic(err)
 	}
-	util.PrintAndLog("event_scheduler configuration updated")
+	util.PrintAndLog("max_replication_slots configuration updated")
 
 	// Finally delete the server.
 	if _, err := DeleteServer(ctx, groupName, serverName); err != nil {

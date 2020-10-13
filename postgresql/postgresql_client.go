@@ -21,7 +21,7 @@ func getServersClient() pg.ServersClient {
 }
 
 // CreateServer creates a new PostgreSQL Server
-func CreateServer(ctx context.Context, serverName string, dbLogin string, dbPassword string) (server pg.Server, err error) {
+func CreateServer(ctx context.Context, serverName, dbLogin, dbPassword string) (server pg.Server, err error) {
 	serversClient := getServersClient()
 
 	// Create the server
@@ -141,7 +141,7 @@ func getConfigurationsClient() pg.ConfigurationsClient {
 }
 
 // GetConfiguration given the server name and configuration name it returns the configuration.
-func GetConfiguration(ctx context.Context, serverName string, configurationName string) (pg.Configuration, error) {
+func GetConfiguration(ctx context.Context, serverName, configurationName string) (pg.Configuration, error) {
 	configClient := getConfigurationsClient()
 
 	// Get the configuration.

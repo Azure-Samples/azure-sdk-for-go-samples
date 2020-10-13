@@ -171,7 +171,7 @@ func Example_performServerOperations() {
 	// postgresql server's storage capacity updated
 	// firewall rule set created
 	// firewall rule updated
-	// got the array_nulls configuration
-	// event_scheduler configuration updated
+	// got the max_replication_slots configuration
+	// max_replication_slots configuration updated
 	// postgresql server deleted
 }

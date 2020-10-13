@@ -65,7 +65,7 @@ func setup() error {
 }
 
 func teardown() error {
-	if config.KeepResources() == false {
+	if !config.KeepResources() {
 		// does not wait
 		_, err := resources.DeleteGroup(context.Background(), config.GroupName())
 		if err != nil {
@@ -108,7 +108,7 @@ func TestMain(m *testing.M) {
 }
 
 // TestPerformServerOperations creates a postgresql server, updates it, add firewall rules and configurations and at the end it deletes it.
-func TestPerformServerOperations(t *testing.T) {
+func Example_performServerOperations(t *testing.T) {
 	var groupName = config.GenerateGroupName("PgServerOperations")
 	config.SetGroupName(groupName)
 
@@ -122,42 +122,35 @@ func TestPerformServerOperations(t *testing.T) {
 		util.LogAndPanic(err)
 	}
 
-	// Get the ServersClient.
-	serversClient := GetServersClient()
-
 	// Create the server.
-	_, err = CreateServer(ctx, serversClient, serverName, dbLogin, dbPassword)
+	_, err = CreateServer(ctx, serverName, dbLogin, dbPassword)
 	if err != nil {
 		util.LogAndPanic(fmt.Errorf("cannot create postgresql server: %+v", err))
 	}
 	util.PrintAndLog("postgresql server created")
 
 	// Update the server's storage capacity field.
-	_, err = UpdateServerStorageCapacity(ctx, serversClient, serverName, 1048576)
+	_, err = UpdateServerStorageCapacity(ctx, serverName, 1048576)
 	if err != nil {
 		util.LogAndPanic(fmt.Errorf("cannot update postgresql server: %+v", err))
 	}
 	util.PrintAndLog("postgresql server's storage capacity updated.")
 
-	fwrClient := GetFwRulesClient()
-
-	err = CreateOrUpdateFirewallRule(ctx, fwrClient, serverName, "FirewallRuleName", "0.0.0.0", "0.0.0.0")
+	err = CreateOrUpdateFirewallRule(ctx, serverName, "FirewallRuleName", "0.0.0.0", "0.0.0.0")
 	if err != nil {
 		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("Firewall rule set")
 
-	err = CreateOrUpdateFirewallRule(ctx, fwrClient, serverName, "FirewallRuleName", "0.0.0.0", "1.1.1.1")
+	err = CreateOrUpdateFirewallRule(ctx, serverName, "FirewallRuleName", "0.0.0.0", "1.1.1.1")
 	if err != nil {
 		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("Firewall rule updated")
 
-	configClient := GetConfigurationsClient()
-
 	var configuration pg.Configuration
 
-	configuration, err = GetConfiguration(ctx, configClient, serverName, "array_nulls")
+	configuration, err = GetConfiguration(ctx, serverName, "array_nulls")
 	if err != nil {
 		util.LogAndPanic(err)
 	}
@@ -166,14 +159,14 @@ func TestPerformServerOperations(t *testing.T) {
 	// Update the configuration Value.
 	configuration.ConfigurationProperties.Value = to.StringPtr("on")
 
-	_, err = UpdateConfiguration(ctx, configClient, serverName, "array_nulls", configuration)
+	_, err = UpdateConfiguration(ctx, serverName, "array_nulls", configuration)
 	if err != nil {
 		util.LogAndPanic(err)
 	}
 	util.PrintAndLog("Updated the event_scheduler configuration")
 
 	// Finally delete the server.
-	_, err = DeleteServer(ctx, serversClient, serverName)
+	_, err = DeleteServer(ctx, serverName)
 	if err != nil {
 		util.LogAndPanic(err)
 	}

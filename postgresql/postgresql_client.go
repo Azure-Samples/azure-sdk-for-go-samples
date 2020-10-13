@@ -12,7 +12,7 @@ import (
 )
 
 // GetServersClient returns
-func GetServersClient() pg.ServersClient {
+func getServersClient() pg.ServersClient {
 	serversClient := pg.NewServersClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	serversClient.Authorizer = a
@@ -21,7 +21,8 @@ func GetServersClient() pg.ServersClient {
 }
 
 // CreateServer creates a new PostgreSQL Server
-func CreateServer(ctx context.Context, serversClient pg.ServersClient, serverName string, dbLogin string, dbPassword string) (server pg.Server, err error) {
+func CreateServer(ctx context.Context, serverName string, dbLogin string, dbPassword string) (server pg.Server, err error) {
+	serversClient := getServersClient()
 
 	// Create the server
 	future, err := serversClient.Create(
@@ -57,7 +58,8 @@ func CreateServer(ctx context.Context, serversClient pg.ServersClient, serverNam
 }
 
 // UpdateServerStorageCapacity given the server name and the new storage capacity it updates the server's storage capacity.
-func UpdateServerStorageCapacity(ctx context.Context, serversClient pg.ServersClient, serverName string, storageCapacity int32) (server pg.Server, err error) {
+func UpdateServerStorageCapacity(ctx context.Context, serverName string, storageCapacity int32) (server pg.Server, err error) {
+	serversClient := getServersClient()
 
 	future, err := serversClient.Update(
 		ctx,
@@ -84,7 +86,8 @@ func UpdateServerStorageCapacity(ctx context.Context, serversClient pg.ServersCl
 }
 
 // DeleteServer deletes the PostgreSQL server.
-func DeleteServer(ctx context.Context, serversClient pg.ServersClient, serverName string) (resp autorest.Response, err error) {
+func DeleteServer(ctx context.Context, serverName string) (resp autorest.Response, err error) {
+	serversClient := getServersClient()
 
 	future, err := serversClient.Delete(ctx, config.GroupName(), serverName)
 	if err != nil {
@@ -100,7 +103,7 @@ func DeleteServer(ctx context.Context, serversClient pg.ServersClient, serverNam
 }
 
 // GetFwRulesClient returns the FirewallClient
-func GetFwRulesClient() pg.FirewallRulesClient {
+func getFwRulesClient() pg.FirewallRulesClient {
 	fwrClient := pg.NewFirewallRulesClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	fwrClient.Authorizer = a
@@ -109,7 +112,8 @@ func GetFwRulesClient() pg.FirewallRulesClient {
 }
 
 // CreateOrUpdateFirewallRule given the firewallname and new properties it updates the firewall rule.
-func CreateOrUpdateFirewallRule(ctx context.Context, fwrClient pg.FirewallRulesClient, serverName, firewallRuleName, startIPAddr, endIPAddr string) error {
+func CreateOrUpdateFirewallRule(ctx context.Context, serverName, firewallRuleName, startIPAddr, endIPAddr string) error {
+	fwrClient := getFwRulesClient()
 
 	_, err := fwrClient.CreateOrUpdate(
 		ctx,
@@ -128,7 +132,7 @@ func CreateOrUpdateFirewallRule(ctx context.Context, fwrClient pg.FirewallRulesC
 }
 
 // GetConfigurationsClient creates and returns the configuration client for the server.
-func GetConfigurationsClient() pg.ConfigurationsClient {
+func getConfigurationsClient() pg.ConfigurationsClient {
 	configClient := pg.NewConfigurationsClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	configClient.Authorizer = a
@@ -137,7 +141,8 @@ func GetConfigurationsClient() pg.ConfigurationsClient {
 }
 
 // GetConfiguration given the server name and configuration name it returns the configuration.
-func GetConfiguration(ctx context.Context, configClient pg.ConfigurationsClient, serverName string, configurationName string) (pg.Configuration, error) {
+func GetConfiguration(ctx context.Context, serverName string, configurationName string) (pg.Configuration, error) {
+	configClient := getConfigurationsClient()
 
 	// Get the configuration.
 	configuration, err := configClient.Get(ctx, config.GroupName(), serverName, configurationName)
@@ -150,7 +155,8 @@ func GetConfiguration(ctx context.Context, configClient pg.ConfigurationsClient,
 }
 
 // UpdateConfiguration given the name of the configuation and the configuration object it updates the configuration for the given server.
-func UpdateConfiguration(ctx context.Context, configClient pg.ConfigurationsClient, serverName string, configurationName string, configuration pg.Configuration) (updatedConfig pg.Configuration, err error) {
+func UpdateConfiguration(ctx context.Context, serverName string, configurationName string, configuration pg.Configuration) (updatedConfig pg.Configuration, err error) {
+	configClient := getConfigurationsClient()
 
 	future, err := configClient.Update(ctx, config.GroupName(), serverName, configurationName, configuration)
 

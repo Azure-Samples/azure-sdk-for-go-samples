@@ -12,7 +12,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
-	pg "github.com/Azure/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
+	flexibleservers "github.com/Azure/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/marstr/randname"
 )
@@ -107,68 +107,70 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// TestPerformServerOperations creates a postgresql server, updates it, add firewall rules and configurations and at the end it deletes it.
-func Example_performServerOperations(t *testing.T) {
-	var groupName = config.GenerateGroupName("PgServerOperations")
-	config.SetGroupName(groupName)
-
+// Example_performServerOperations creates a postgresql server, updates it, add firewall rules and configurations and at the end it deletes it.
+func Example_performServerOperations() {
+	groupName := config.GenerateGroupName("PgServerOperations")
 	serverName = strings.ToLower(serverName)
 
 	ctx := context.Background()
 	defer resources.Cleanup(ctx)
 
-	_, err := resources.CreateGroup(ctx, config.GroupName())
-	if err != nil {
+	if _, err := resources.CreateGroup(ctx, groupName); err != nil {
 		util.LogAndPanic(err)
 	}
+	util.PrintAndLog("resource group created")
 
 	// Create the server.
-	_, err = CreateServer(ctx, serverName, dbLogin, dbPassword)
-	if err != nil {
+	if _, err := CreateServer(ctx, groupName, serverName, dbLogin, dbPassword); err != nil {
 		util.LogAndPanic(fmt.Errorf("cannot create postgresql server: %+v", err))
 	}
 	util.PrintAndLog("postgresql server created")
 
 	// Update the server's storage capacity field.
-	_, err = UpdateServerStorageCapacity(ctx, serverName, 1048576)
-	if err != nil {
+	if _, err := UpdateServerStorageCapacity(ctx, groupName, serverName, 1048576); err != nil {
 		util.LogAndPanic(fmt.Errorf("cannot update postgresql server: %+v", err))
 	}
-	util.PrintAndLog("postgresql server's storage capacity updated.")
+	util.PrintAndLog("postgresql server's storage capacity updated")
 
-	err = CreateOrUpdateFirewallRule(ctx, serverName, "FirewallRuleName", "0.0.0.0", "0.0.0.0")
+	if _, err := CreateOrUpdateFirewallRule(ctx, groupName, serverName, "FirewallRuleName", "0.0.0.0", "0.0.0.0"); err != nil {
+		util.LogAndPanic(err)
+	}
+	util.PrintAndLog("firewall rule set created")
+
+	if _, err := CreateOrUpdateFirewallRule(ctx, groupName, serverName, "FirewallRuleName", "0.0.0.0", "1.1.1.1"); err != nil {
+		util.LogAndPanic(err)
+	}
+	util.PrintAndLog("firewall rule updated")
+
+	var configuration flexibleservers.Configuration
+
+	configuration, err := GetConfiguration(ctx, groupName, serverName, "array_nulls")
 	if err != nil {
 		util.LogAndPanic(err)
 	}
-	util.PrintAndLog("Firewall rule set")
-
-	err = CreateOrUpdateFirewallRule(ctx, serverName, "FirewallRuleName", "0.0.0.0", "1.1.1.1")
-	if err != nil {
-		util.LogAndPanic(err)
-	}
-	util.PrintAndLog("Firewall rule updated")
-
-	var configuration pg.Configuration
-
-	configuration, err = GetConfiguration(ctx, serverName, "array_nulls")
-	if err != nil {
-		util.LogAndPanic(err)
-	}
-	util.PrintAndLog("Got the array_nulls configuration")
+	util.PrintAndLog("got the array_nulls configuration")
 
 	// Update the configuration Value.
 	configuration.ConfigurationProperties.Value = to.StringPtr("on")
 
-	_, err = UpdateConfiguration(ctx, serverName, "array_nulls", configuration)
-	if err != nil {
+	if _, err := UpdateConfiguration(ctx, groupName, serverName, "array_nulls", configuration); err != nil {
 		util.LogAndPanic(err)
 	}
-	util.PrintAndLog("Updated the event_scheduler configuration")
+	util.PrintAndLog("event_scheduler configuration updated")
 
 	// Finally delete the server.
-	_, err = DeleteServer(ctx, serverName)
-	if err != nil {
+	if _, err := DeleteServer(ctx, groupName, serverName); err != nil {
 		util.LogAndPanic(err)
 	}
-	util.PrintAndLog("Successfully deleted the server")
+	util.PrintAndLog("postgresql server deleted")
+
+	// Output:
+	// resource group created
+	// postgresql server created
+	// postgresql server's storage capacity updated
+	// firewall rule set created
+	// firewall rule updated
+	// got the array_nulls configuration
+	// event_scheduler configuration updated
+	// postgresql server deleted
 }

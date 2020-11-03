@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
+	mysql "github.com/Azure/azure-sdk-for-go/services/preview/mysql/mgmt/2020-07-01-preview/mysqlflexibleservers"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/gechris/azure-sdk-for-go-samples/internal/config"
-	"github.com/gechris/azure-sdk-for-go-samples/internal/iam"
-	mysql "github.com/gechris/azure-sdk-for-go/services/preview/mysql/mgmt/2020-07-01-preview/mysqlflexibleservers"
 )
 
 // GetServersClient returns

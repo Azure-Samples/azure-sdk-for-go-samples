@@ -12,8 +12,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/gechris/azure-sdk-for-go-samples/internal/config"
-	"github.com/gechris/azure-sdk-for-go-samples/internal/util"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 )
 
 func Example_createTemplateDeployment() {

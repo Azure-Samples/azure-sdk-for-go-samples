@@ -6,11 +6,7 @@ author: gechris
 
 # Azure PostgreSQL Samples
 
-This package demonstrates how to manage Azure VMs, their disks and container
-instances with the Go SDK.
-
-The child package "hybrid" demonstrates how to manage Azure VMs using Azure's
-Hybrid profile.
+This package demonstrates how to manage PostgreSQL flexible servers with the Go SDK.
 
 ## Contents
 
@@ -21,6 +17,7 @@ Hybrid profile.
     * DeleteServer - Deletes an existing PostgreSQL server.
     * CreateOrUpdateFirewallRules - Creates or updates a firewall rule on the server.
     * GetConfiguration - Get the configuration value that is set on the server.
+    * UpdateConfiguration - Updates the configuration.
 
 
 <a id="run"></a>
@@ -32,12 +29,8 @@ Hybrid profile.
   export PROJECT=github.com/Azure-Samples/azure-sdk-for-go-samples/postgresql
   go get -u $PROJECT
   cd ${GOPATH}/src/${PROJECT}
-  dep ensure
   ```
-1. Create an Azure service principal with the [Azure CLI][] command `az ad sp
-   create-for-rbac --output json` and set the following environment variables
-   per that command's output. You can also copy `.env.tpl` to `.env` and fill
-   it in; the configuration system will utilize this.
+2. Create an Azure service principal with the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/get-started-with-azure-cli) command `az ad sp create-for-rbac --output json` and set the following environment variables per that command's output. You can also copy `.env.tpl` to `.env` and fill it in; the configuration system will utilize this.
 
   ```bash
   AZURE_CLIENT_ID=
@@ -48,8 +41,7 @@ Hybrid profile.
   AZURE_LOCATION_DEFAULT=westus2
   ```
 
-1. TODO(joshgav): grant this principal all-powerful rights to your AAD tenant to faciliate identity-related operations.
-1. Run the tests: `go test -v -timeout 12h`
+3. Run the tests: `go test -v -timeout 12h`
 
   The timeout is optional, but some tests take longer than then default 10m to complete.
 

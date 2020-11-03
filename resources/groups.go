@@ -12,12 +12,12 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-05-01/resources"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/gechris/azure-sdk-for-go-samples/internal/config"
-	"github.com/gechris/azure-sdk-for-go-samples/internal/iam"
 )
 
 func getGroupsClient() resources.GroupsClient {

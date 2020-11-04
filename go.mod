@@ -16,8 +16,6 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/Azure/go-autorest/autorest/validation v0.3.0 // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20190515213511-eb9f6a1743f3
-	github.com/gechris/azure-sdk-for-go v45.1.3+incompatible
-	github.com/gechris/azure-sdk-for-go-samples v0.0.0-20200827230649-042701a01eb2
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/kr/pretty v0.1.0 // indirect

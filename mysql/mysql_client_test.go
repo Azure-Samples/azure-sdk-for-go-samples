@@ -110,7 +110,6 @@ func TestMain(m *testing.M) {
 
 // Example_createDatabase creates a MySQL server and database, then creates a table and inserts a record.
 func Example_performServerOperations() {
-	var groupName = config.GenerateGroupName("DatabaseQueries")
 	config.SetGroupName(groupName)
 
 	serverName = strings.ToLower(serverName)

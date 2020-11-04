@@ -12,7 +12,7 @@ import (
 )
 
 // GetServersClient returns
-func GetServersClient() mysql.ServersClient {
+func getServersClient() mysql.ServersClient {
 	serversClient := mysql.NewServersClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	serversClient.Authorizer = a
@@ -20,8 +20,9 @@ func GetServersClient() mysql.ServersClient {
 	return serversClient
 }
 
-// CreateServer creates a new PostgreSQL Server
-func CreateServer(ctx context.Context, serversClient mysql.ServersClient, serverName string, dbLogin string, dbPassword string) (server mysql.Server, err error) {
+// CreateServer creates a new MySQL Server
+func CreateServer(ctx context.Context, serverName, dbLogin, dbPassword string) (server mysql.Server, err error) {
+	serversClient := getServersClient()
 
 	// Create the server
 	future, err := serversClient.Create(
@@ -31,7 +32,7 @@ func CreateServer(ctx context.Context, serversClient mysql.ServersClient, server
 		mysql.Server{
 			Location: to.StringPtr(config.Location()),
 			Sku: &mysql.Sku{
-				Name: to.StringPtr("Standard_D4s_v3"),
+				Name: to.StringPtr("Standard_D16ds_v4"),
 				Tier: "GeneralPurpose",
 			},
 			ServerProperties: &mysql.ServerProperties{
@@ -57,7 +58,8 @@ func CreateServer(ctx context.Context, serversClient mysql.ServersClient, server
 }
 
 // UpdateServerStorageCapacity given the server name and the new storage capacity it updates the server's storage capacity.
-func UpdateServerStorageCapacity(ctx context.Context, serversClient mysql.ServersClient, serverName string, storageCapacity int32) (server mysql.Server, err error) {
+func UpdateServerStorageCapacity(ctx context.Context, serverName string, storageCapacity int32) (server mysql.Server, err error) {
+	serversClient := getServersClient()
 
 	future, err := serversClient.Update(
 		ctx,
@@ -83,8 +85,9 @@ func UpdateServerStorageCapacity(ctx context.Context, serversClient mysql.Server
 	return future.Result(serversClient)
 }
 
-// DeleteServer deletes the PostgreSQL server.
-func DeleteServer(ctx context.Context, serversClient mysql.ServersClient, serverName string) (resp autorest.Response, err error) {
+// DeleteServer deletes the MySQL server.
+func DeleteServer(ctx context.Context, serverName string) (resp autorest.Response, err error) {
+	serversClient := getServersClient()
 
 	future, err := serversClient.Delete(ctx, config.GroupName(), serverName)
 	if err != nil {
@@ -100,7 +103,7 @@ func DeleteServer(ctx context.Context, serversClient mysql.ServersClient, server
 }
 
 // GetFwRulesClient returns the FirewallClient
-func GetFwRulesClient() mysql.FirewallRulesClient {
+func getFwRulesClient() mysql.FirewallRulesClient {
 	fwrClient := mysql.NewFirewallRulesClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	fwrClient.Authorizer = a
@@ -109,7 +112,8 @@ func GetFwRulesClient() mysql.FirewallRulesClient {
 }
 
 // CreateOrUpdateFirewallRule given the firewallname and new properties it updates the firewall rule.
-func CreateOrUpdateFirewallRule(ctx context.Context, fwrClient mysql.FirewallRulesClient, serverName, firewallRuleName, startIPAddr, endIPAddr string) error {
+func CreateOrUpdateFirewallRule(ctx context.Context, serverName, firewallRuleName, startIPAddr, endIPAddr string) error {
+	fwrClient := getFwRulesClient()
 
 	_, err := fwrClient.CreateOrUpdate(
 		ctx,
@@ -128,7 +132,7 @@ func CreateOrUpdateFirewallRule(ctx context.Context, fwrClient mysql.FirewallRul
 }
 
 // GetConfigurationsClient creates and returns the configuration client for the server.
-func GetConfigurationsClient() mysql.ConfigurationsClient {
+func getConfigurationsClient() mysql.ConfigurationsClient {
 	configClient := mysql.NewConfigurationsClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	configClient.Authorizer = a
@@ -137,7 +141,8 @@ func GetConfigurationsClient() mysql.ConfigurationsClient {
 }
 
 // GetConfiguration given the server name and configuration name it returns the configuration.
-func GetConfiguration(ctx context.Context, configClient mysql.ConfigurationsClient, serverName string, configurationName string) (mysql.Configuration, error) {
+func GetConfiguration(ctx context.Context, serverName, configurationName string) (mysql.Configuration, error) {
+	configClient := getConfigurationsClient()
 
 	// Get the configuration.
 	configuration, err := configClient.Get(ctx, config.GroupName(), serverName, configurationName)
@@ -150,7 +155,8 @@ func GetConfiguration(ctx context.Context, configClient mysql.ConfigurationsClie
 }
 
 // UpdateConfiguration given the name of the configuation and the configuration object it updates the configuration for the given server.
-func UpdateConfiguration(ctx context.Context, configClient mysql.ConfigurationsClient, serverName string, configurationName string, configuration mysql.Configuration) (updatedConfig mysql.Configuration, err error) {
+func UpdateConfiguration(ctx context.Context, serverName string, configurationName string, configuration mysql.Configuration) (updatedConfig mysql.Configuration, err error) {
+	configClient := getConfigurationsClient()
 
 	future, err := configClient.Update(ctx, config.GroupName(), serverName, configurationName, configuration)
 

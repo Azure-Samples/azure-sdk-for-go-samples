@@ -15,7 +15,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 )
 
-// func ExampleDeploymentsClient_BeginCreateOrUpdate() {
 func CreateOrUpdateDeployment(template string, parameters string) (*armresources.DeploymentExtended, error) {
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
@@ -61,7 +60,6 @@ func CreateOrUpdateDeployment(template string, parameters string) (*armresources
 	return resp.DeploymentExtended, nil
 }
 
-// func ExampleDeploymentsClient_BeginValidate() {
 func ValidateDeployment(template string, parameters string) (*armresources.DeploymentValidateResult, error) {
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
@@ -107,7 +105,6 @@ func ValidateDeployment(template string, parameters string) (*armresources.Deplo
 	return resp.DeploymentValidateResult, nil
 }
 
-// func ExampleDeploymentsClient_Get() {
 func GetDeployment(id string) (*armresources.DeploymentExtended, error) {
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {

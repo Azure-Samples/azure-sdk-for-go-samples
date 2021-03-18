@@ -8,6 +8,7 @@ package storage
 import (
 	"context"
 	"encoding/base64"
+	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-storage-blob-go/azblob"
@@ -40,7 +41,7 @@ func CreateBlockBlob(ctx context.Context, accountName, accountGroupName, contain
 // PutBlockOnBlob adds a block to a block blob. It does not commit the block.
 func PutBlockOnBlob(ctx context.Context, accountName, accountGroupName, containerName, blobName, message string, blockNum int) error {
 	b := getBlockBlobURL(ctx, accountName, accountGroupName, containerName, blobName)
-	id := base64.StdEncoding.EncodeToString([]byte(string(blockNum)))
+	id := base64.StdEncoding.EncodeToString([]byte(strconv.Itoa(blockNum)))
 	_, err := b.StageBlock(ctx, id, strings.NewReader(message), azblob.LeaseAccessConditions{}, nil)
 	return err
 }

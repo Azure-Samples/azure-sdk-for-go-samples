@@ -12,7 +12,7 @@ import (
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 )
@@ -31,8 +31,8 @@ func getStorageAccountsClient() storage.AccountsClient {
 	return storageAccountsClient
 }
 
-func getUsageClient() storage.UsageClient {
-	usageClient := storage.NewUsageClient(config.SubscriptionID())
+func getUsageClient() storage.UsagesClient {
+	usageClient := storage.NewUsagesClient(config.SubscriptionID())
 	auth, _ := iam.GetResourceManagementAuthorizer()
 	usageClient.Authorizer = auth
 	usageClient.AddToUserAgent(config.UserAgent())
@@ -76,8 +76,8 @@ func CreateStorageAccount(ctx context.Context, accountName, accountGroupName str
 		storage.AccountCreateParameters{
 			Sku: &storage.Sku{
 				Name: storage.StandardLRS},
-			Kind:     storage.Storage,
-			Location: to.StringPtr(config.DefaultLocation()),
+			Kind:                              storage.Storage,
+			Location:                          to.StringPtr(config.DefaultLocation()),
 			AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{},
 		})
 
@@ -96,7 +96,7 @@ func CreateStorageAccount(ctx context.Context, accountName, accountGroupName str
 // GetStorageAccount gets details on the specified storage account
 func GetStorageAccount(ctx context.Context, accountName, accountGroupName string) (storage.Account, error) {
 	storageAccountsClient := getStorageAccountsClient()
-	return storageAccountsClient.GetProperties(ctx, accountGroupName, accountName)
+	return storageAccountsClient.GetProperties(ctx, accountGroupName, accountName, storage.AccountExpandBlobRestoreStatus)
 }
 
 // DeleteStorageAccount deletes an existing storate account
@@ -125,15 +125,15 @@ func ListAccountsByResourceGroup(ctx context.Context, groupName string) (storage
 }
 
 // ListAccountsBySubscription lists storage accounts by subscription.
-func ListAccountsBySubscription(ctx context.Context) (storage.AccountListResult, error) {
+func ListAccountsBySubscription(ctx context.Context) (storage.AccountListResultIterator, error) {
 	storageAccountsClient := getStorageAccountsClient()
-	return storageAccountsClient.List(ctx)
+	return storageAccountsClient.ListComplete(ctx)
 }
 
 // GetAccountKeys gets the storage account keys
 func GetAccountKeys(ctx context.Context, accountName, accountGroupName string) (storage.AccountListKeysResult, error) {
 	accountsClient := getStorageAccountsClient()
-	return accountsClient.ListKeys(ctx, accountGroupName, accountName)
+	return accountsClient.ListKeys(ctx, accountGroupName, accountName, storage.Kerb)
 }
 
 // RegenerateAccountKey regenerates the selected storage account key. `key` can be 0 or 1.
@@ -167,8 +167,8 @@ func UpdateAccount(ctx context.Context, accountName, accountGroupName string) (s
 		})
 }
 
-// ListUsage gets the usage count and limits for the resources in the subscription
-func ListUsage(ctx context.Context) (storage.UsageListResult, error) {
+// ListUsage gets the usage count and limits for the resources in the subscription based on location
+func ListUsage(ctx context.Context, location string) (storage.UsageListResult, error) {
 	usageClient := getUsageClient()
-	return usageClient.List(ctx)
+	return usageClient.ListByLocation(ctx, location)
 }

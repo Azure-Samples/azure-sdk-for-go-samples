@@ -7,6 +7,7 @@ package compute
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/authorization"
@@ -17,6 +18,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/msi"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/network"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/marstr/randname"
 )
@@ -488,4 +490,42 @@ func Example_createVMWithUserAssignedIdentity() {
 	// created second user-assigned identity
 	// added second user-assigned identity to VM
 	// removed first user-assigned identity from VM
+}
+
+func Example_list() {
+	// list the VMs we've created in our resource group by page.
+	// uses the default page size returned by the service.
+	vmClient := getVMClient()
+	for page, err := vmClient.List(context.Background(), config.GroupName()); page.NotDone(); err = page.Next() {
+		if err != nil {
+			util.LogAndPanic(err)
+		}
+		// print out the list of VMs per page
+		for _, vm := range page.Values() {
+			util.PrintAndLog(fmt.Sprintf("found VM with name %s", *vm.Name))
+		}
+	}
+}
+
+func Example_listComplete() {
+	// list the VMs we've created in our resource group using an iterator.
+	vmClient := getVMClient()
+	for iter, err := vmClient.ListComplete(context.Background(), config.GroupName()); iter.NotDone(); err = iter.Next() {
+		if err != nil {
+			util.LogAndPanic(err)
+		}
+		util.PrintAndLog(fmt.Sprintf("found VM with name %s", *iter.Value().Name))
+	}
+}
+
+func Example_get() {
+	// retrieve information about a specific VM
+	vmClient := getVMClient()
+	vm, err := vmClient.Get(context.Background(), config.GroupName(), vmName, compute.InstanceView)
+	if err != nil {
+		util.LogAndPanic(err)
+	}
+	fmt.Printf("Name: %s\n", *vm.Name)
+	fmt.Printf("ID: %s\n", *vm.ID)
+	fmt.Printf("VM size: %s\n", vm.HardwareProfile.VMSize)
 }

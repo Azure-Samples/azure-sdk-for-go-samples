@@ -10,6 +10,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
@@ -92,7 +93,7 @@ func Example_storageAccountOperations() {
 	}
 	util.PrintAndLog("regenerated second storage account key")
 
-	_, err = ListUsage(ctx)
+	_, err = ListUsage(ctx, config.Location())
 	if err != nil {
 		util.LogAndPanic(err)
 	}

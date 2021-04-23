@@ -20,7 +20,7 @@ For general SDK help start with the [main SDK README][].
 1. set up authentication (see following)
 1. `go test -v ./network/` (or any package)
 
-To use service principal authentication, create a principal by running `az ad sp create-for-rbac -n "<yourAppName>"` and set the following environment variables. You can copy `.env.tpl` to a `.env` file in each package for ease of use.
+To use service principal authentication, create a principal by running `az ad sp create-for-rbac -n "<yourAppName>"` and set the following environment variables.
 
 ```bash
 export AZURE_SUBSCRIPTION_ID=

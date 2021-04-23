@@ -35,8 +35,7 @@ This package demonstrates how to manage SQL databases and their data.
 1. Create an Azure service principal with the [Azure CLI][] command `az ad sp
    create-for-rbac`.
 1. Set the following environment variables based on output properties of this
-   command. You can fill in these variables in `.env.tpl` in this directory and
-   rename that to `.env`.
+   command. 
 
   |EnvVar | Value|
   |-------|------|

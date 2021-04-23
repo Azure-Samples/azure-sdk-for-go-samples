@@ -54,8 +54,7 @@ Hybrid profile.
   ```
 1. Create an Azure service principal with the [Azure CLI][] command `az ad sp
    create-for-rbac --output json` and set the following environment variables
-   per that command's output. You can also copy `.env.tpl` to `.env` and fill
-   it in; the configuration system will utilize this.
+   per that command's output. 
 
   ```bash
   AZURE_CLIENT_ID=

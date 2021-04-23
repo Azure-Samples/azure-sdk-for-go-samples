@@ -44,7 +44,7 @@ If you need it, get an Azure trial [here](https://azure.microsoft.com/pricing/fr
     [PowerShell](https://azure.microsoft.com/documentation/articles/resource-group-authenticate-service-principal/)
     or [the portal](https://azure.microsoft.com/documentation/articles/resource-group-create-service-principal-portal/).
 
-1. Set the following environment variables based on the properties of this new service principal. Alternatively, fill in the variables in `.env.tpl` in this directory and rename that to `.env`.
+1. Set the following environment variables based on the properties of this new service principal.
 
   |EnvVar | Value|
   |-------|------|
@@ -54,6 +54,8 @@ If you need it, get an Azure trial [here](https://azure.microsoft.com/pricing/fr
   |AZURE_CLIENT_SECRET|service principal/application secret|
   |AZURE_RG_NAME|name of new resource group|
   |AZURE_LOCATION|location for all resources|
+  |AZURE_STORAGE_ACCOUNT_NAME|name for test storage account|
+  |AZURE_STORAGE_ACCOUNT_GROUP_NAME|name for storage account group|
 
 1. Run the sample.
 

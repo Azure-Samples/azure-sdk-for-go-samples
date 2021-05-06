@@ -5,7 +5,7 @@ package main
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 //
-// 
+//
 // You need to set four environment variables before using the app:
 // AZURE_TENANT_ID: Your Azure tenant ID
 // AZURE_CLIENT_ID: Your Azure client ID. This will be an app ID from your AAD.
@@ -17,7 +17,7 @@ package main
 // NOTE: Do NOT set AZURE_CLIENT_SECRET. This example uses Managed identities.
 // The README.md provides more information.
 //
-// 
+//
 
 import (
 	"context"
@@ -34,10 +34,9 @@ import (
 )
 
 var (
-	vaultName string
-    secretName string
+	vaultName  string
+	secretName string
 )
-
 
 func listSecrets(basicClient keyvault.BaseClient) {
 	secretList, err := basicClient.GetSecrets(context.Background(), "https://"+vaultName+".vault.azure.net", nil)
@@ -46,32 +45,34 @@ func listSecrets(basicClient keyvault.BaseClient) {
 		os.Exit(1)
 	}
 
-	// group by ContentType
-	secWithType := make(map[string][]string)
-	secWithoutType := make([]string, 1)
-	for _, secret := range secretList.Values() {
-		if secret.ContentType != nil {
-			_, exists := secWithType[*secret.ContentType]
-			if exists {
-				secWithType[*secret.ContentType] = append(secWithType[*secret.ContentType], path.Base(*secret.ID))
+	for ; secretList.NotDone(); secretList.NextWithContext(context.Background()) {
+		// group by ContentType
+		secWithType := make(map[string][]string)
+		secWithoutType := make([]string, 1)
+		for _, secret := range secretList.Values() {
+			if secret.ContentType != nil {
+				_, exists := secWithType[*secret.ContentType]
+				if exists {
+					secWithType[*secret.ContentType] = append(secWithType[*secret.ContentType], path.Base(*secret.ID))
+				} else {
+					tempSlice := make([]string, 1)
+					tempSlice[0] = path.Base(*secret.ID)
+					secWithType[*secret.ContentType] = tempSlice
+				}
 			} else {
-				tempSlice := make([]string, 1)
-				tempSlice[0] = path.Base(*secret.ID)
-				secWithType[*secret.ContentType] = tempSlice
+				secWithoutType = append(secWithoutType, path.Base(*secret.ID))
 			}
-		} else {
-			secWithoutType = append(secWithoutType, path.Base(*secret.ID))
 		}
-	}
 
-	for k, v := range secWithType {
-		fmt.Println(k)
-		for _, sec := range v {
-			fmt.Println(sec)
+		for k, v := range secWithType {
+			fmt.Println(k)
+			for _, sec := range v {
+				fmt.Println(sec)
+			}
 		}
-	}
-	for _, wov := range secWithoutType {
-		fmt.Println(wov)
+		for _, wov := range secWithoutType {
+			fmt.Println(wov)
+		}
 	}
 }
 
@@ -134,7 +135,7 @@ func logResponse() autorest.RespondDecorator {
 
 func main() {
 	vaultName = os.Getenv("KVAULT_NAME")
-    fmt.Printf("KVAULT_NAME: %s\n", vaultName)
+	fmt.Printf("KVAULT_NAME: %s\n", vaultName)
 
 	authorizer, err := kvauth.NewAuthorizerFromEnvironment()
 	if err != nil {
@@ -145,19 +146,19 @@ func main() {
 	basicClient := keyvault.New()
 	basicClient.Authorizer = authorizer
 
-    fmt.Println("\nListing secret names in keyvault:")
-    listSecrets(basicClient)
+	fmt.Println("\nListing secret names in keyvault:")
+	listSecrets(basicClient)
 
-	if secretName = os.Getenv("KVAULT_SECRET_NAME"); secretName != ""  {
-	    fmt.Printf("KVAULT_SECRET_NAME: %s\n", secretName)
-	    fmt.Print("KVAULT_SECRET Value: ")
-	    getSecret(basicClient, secretName)
-    } else {
-        fmt.Println("KVAULT_SECRET_NAME not set.\n")
-    }
+	if secretName = os.Getenv("KVAULT_SECRET_NAME"); secretName != "" {
+		fmt.Printf("KVAULT_SECRET_NAME: %s\n", secretName)
+		fmt.Print("KVAULT_SECRET Value: ")
+		getSecret(basicClient, secretName)
+	} else {
+		fmt.Println("KVAULT_SECRET_NAME not set.\n")
+	}
 
-    fmt.Println("Setting 'newsecret' to 'newvalue'")
+	fmt.Println("Setting 'newsecret' to 'newvalue'")
 	createUpdateSecret(basicClient, "newsecret", "newvalue")
-    fmt.Println("\nListing secret names in keyvault:")
-    listSecrets(basicClient)
+	fmt.Println("\nListing secret names in keyvault:")
+	listSecrets(basicClient)
 }

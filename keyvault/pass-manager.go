@@ -92,32 +92,34 @@ func listSecrets(basicClient keyvault.BaseClient) {
 		os.Exit(1)
 	}
 
-	// group by ContentType
-	secWithType := make(map[string][]string)
-	secWithoutType := make([]string, 1)
-	for _, secret := range secretList.Values() {
-		if secret.ContentType != nil {
-			_, exists := secWithType[*secret.ContentType]
-			if exists {
-				secWithType[*secret.ContentType] = append(secWithType[*secret.ContentType], path.Base(*secret.ID))
+	for ; secretList.NotDone(); secretList.NextWithContext(context.Background()) {
+		// group by ContentType
+		secWithType := make(map[string][]string)
+		secWithoutType := make([]string, 1)
+		for _, secret := range secretList.Values() {
+			if secret.ContentType != nil {
+				_, exists := secWithType[*secret.ContentType]
+				if exists {
+					secWithType[*secret.ContentType] = append(secWithType[*secret.ContentType], path.Base(*secret.ID))
+				} else {
+					tempSlice := make([]string, 1)
+					tempSlice[0] = path.Base(*secret.ID)
+					secWithType[*secret.ContentType] = tempSlice
+				}
 			} else {
-				tempSlice := make([]string, 1)
-				tempSlice[0] = path.Base(*secret.ID)
-				secWithType[*secret.ContentType] = tempSlice
+				secWithoutType = append(secWithoutType, path.Base(*secret.ID))
 			}
-		} else {
-			secWithoutType = append(secWithoutType, path.Base(*secret.ID))
 		}
-	}
 
-	for k, v := range secWithType {
-		fmt.Println(k)
-		for _, sec := range v {
-			fmt.Println(" |--- " + sec)
+		for k, v := range secWithType {
+			fmt.Println(k)
+			for _, sec := range v {
+				fmt.Println(" |--- " + sec)
+			}
 		}
-	}
-	for _, wov := range secWithoutType {
-		fmt.Println(wov)
+		for _, wov := range secWithoutType {
+			fmt.Println(wov)
+		}
 	}
 }
 

@@ -39,7 +39,6 @@ This repo provides samples to help developers understand how to interact with Az
 
 * Samples for one service should utilize methods from other samples for non-essential operations. For example, compute should utilize operations from network to deploy a network for a VM; and all samples should utilize operations from `iam/` for authentication.
 * All samples should use the same conventions for naming and using environment variables. This convention currently is:
-  * All env vars used across the samples repo should be listed in the root `.env.tpl`. This allows a user to set all env vars in one place and run `go test ./...`.
   * Env vars should be named `AZURE_<SERVICE>_<VARNAME>`, e.g. `AZURE_STORAGE_ACCOUNTNAME` and `AZURE_VNET_NAME`.
 
 [1]: https://github.com/Azure/azure-sdk-for-go/tree/master/services

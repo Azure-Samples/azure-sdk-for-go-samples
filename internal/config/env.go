@@ -6,7 +6,6 @@ import (
 	"strconv"
 )
 
-// ParseEnvironment loads a sibling `.env` file then looks through all environment
 // variables to set global configuration.
 func ParseEnvironment() error {
 

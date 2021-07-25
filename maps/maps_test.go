@@ -6,6 +6,7 @@
 package maps
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -13,6 +14,13 @@ import (
 	"testing"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
+	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
+	"github.com/Azure/azure-sdk-for-go/services/preview/maps/mgmt/2020-02-02-preview/maps"
+)
+
+var (
+	mapsAccount    *maps.Account
+	creatorAccount *maps.Creator
 )
 
 func addLocalEnvAndParse() error {
@@ -37,6 +45,8 @@ func addLocalFlagsAndParse() error {
 	return nil
 }
 
+var usesADAuth = flag.Bool("ad-auth", false, "uses Azure Maps AD authentication instead of Shared Key if set")
+
 func setup() error {
 	var err error
 	err = addLocalEnvAndParse()
@@ -49,13 +59,17 @@ func setup() error {
 		return err
 	}
 
-	// Test Map Account Resource Group Setup
-	// CreateResourceGroupWithMapAccount()
-
+	newMapsAccount, newCreatorAccount := CreateResourceGroupWithMapAndCreatorAccount()
+	mapsAccount = &newMapsAccount
+	creatorAccount = &newCreatorAccount
 	return nil
 }
 
 func teardown() error {
+	ctx := context.Background()
+	mapsAccount = nil
+	creatorAccount = nil
+	resources.Cleanup(ctx)
 	return nil
 }
 
@@ -69,14 +83,15 @@ func TestMain(m *testing.M) {
 		log.Fatalf("could not set up environment: %+v", err)
 	}
 
+	defer func() {
+		err = teardown()
+		if err != nil {
+			log.Fatalf(
+				"could not tear down environment: %v\n; original exit code: %v\n",
+				err, code)
+		}
+		os.Exit(code)
+	}()
+
 	code = m.Run()
-
-	err = teardown()
-	if err != nil {
-		log.Fatalf(
-			"could not tear down environment: %v\n; original exit code: %v\n",
-			err, code)
-	}
-
-	os.Exit(code)
 }

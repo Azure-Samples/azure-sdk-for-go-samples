@@ -6,7 +6,10 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
-	"github.com/Azure/azure-sdk-for-go/services/preview/maps/mgmt/2020-02-01-preview/maps"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/services/preview/maps/2.0/creator"
+	"github.com/Azure/azure-sdk-for-go/services/preview/maps/mgmt/2020-02-02-preview/maps"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 
@@ -24,7 +27,6 @@ func getAccountsClient() maps.AccountsClient {
 
 func CreateMapsAccount(ctx context.Context, accountName string) (maps.Account, error) {
 	accountClient := getAccountsClient()
-
 	return accountClient.CreateOrUpdate(
 		ctx,
 		config.GroupName(),
@@ -39,16 +41,16 @@ func CreateMapsAccount(ctx context.Context, accountName string) (maps.Account, e
 	)
 }
 
-func DeleteMapsAccount(ctx context.Context, vaultName string) (autorest.Response, error) {
+func DeleteMapsAccount(ctx context.Context, accountName string) (autorest.Response, error) {
 	accountsClient := getAccountsClient()
-	return accountsClient.Delete(ctx, config.GroupName(), vaultName)
+	return accountsClient.Delete(ctx, config.GroupName(), accountName)
 }
 
 var (
 	accountName = randname.GenerateWithPrefix("maps-sample-go-", 5)
 )
 
-func CreateResourceGroupWithMapAccount() maps.Account {
+func CreateResourceGroupWithMapAndCreatorAccount() (maps.Account, maps.Creator) {
 	var groupName = config.GenerateGroupName("Maps")
 	config.SetGroupName(groupName)
 
@@ -66,5 +68,31 @@ func CreateResourceGroupWithMapAccount() maps.Account {
 	}
 	util.PrintAndLog("account created")
 
-	return account
+	creator, err := CreateCreatorsAccount(ctx, accountName, accountName+"-creator")
+	if err != nil {
+		util.LogAndPanic(err)
+	}
+	util.PrintAndLog("creator account created")
+
+	return account, creator
+}
+
+func Authenticate(account *maps.AccountsClient, ctx context.Context, accountName string, usesADAuth bool) (azcore.Credential, error) {
+	var (
+		cred    azcore.Credential
+		credErr error
+	)
+
+	if usesADAuth {
+		cred, credErr = azidentity.NewDefaultAzureCredential(nil)
+	} else {
+		keysResp, keysErr := account.ListKeys(ctx, config.GroupName(), accountName)
+		if keysErr != nil {
+			credErr = keysErr
+		} else {
+			cred = creator.SharedKeyCredential{SubscriptionKey: *keysResp.PrimaryKey}
+		}
+	}
+
+	return cred, credErr
 }

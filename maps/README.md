@@ -45,7 +45,7 @@ This package demonstrates how to use Azure Maps functionality described at [Azur
     ```
 
 1. Assign `Azure Maps Data Contributor` role to newly created service principle to allow the access to Azure Maps data plane APIs with command `az role assignment create --assignee 'PRINCIPLE_OBJECT_ID' --role 'Azure Maps Data Contributor' --subscription 'AZURE_SUBSCRIPTION_ID'`
-1. Run the tests via `go test` with Azure Active Directory authentication used in data plane APIs or `go test -sharedkey-auth` for shared key authentication. (You can also run tests from the root of azure-sdk-for-go-samples with `$(cat .env | xargs) | go test -v ./maps/ -sharedkey-auth`)
+1. Run the tests via `go test` with Azure Active Directory authentication used in data plane APIs or `go test -sharedkey-auth` for shared key authentication. (You can also run tests from the root of azure-sdk-for-go-samples with `export $(xargs < .env) && go test -v ./maps/`)
   
 ## Debugging tests in VSCode
 

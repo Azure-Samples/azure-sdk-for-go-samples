@@ -1,0 +1,25 @@
+{
+    "styles": [
+        {
+            "keyName": "s1",
+            "type": "boolean",
+            "rules": [
+                {
+                    "true": "#FFAA00",
+                    "false": "#AAFF00"
+                }
+            ]
+        },
+        {
+            "keyName": "s3",
+            "type": "string",
+            "rules": [
+                {
+                    "stateValue1": "#FFAA00",
+                    "stateValue2": "#FF00AA",
+                    "stateValueN": "#AAFF00"
+                }
+            ]
+        }
+    ]
+}

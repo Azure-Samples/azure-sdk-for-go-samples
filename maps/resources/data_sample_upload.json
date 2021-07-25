@@ -14,6 +14,20 @@
                 "geometryId": "001",
                 "radius": 500
             }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -122.136986,
+                    47.639754
+                ]
+            },
+            "properties": {
+                "geometryId": "002",
+                "radius": 500
+            }
         }
     ]
 }

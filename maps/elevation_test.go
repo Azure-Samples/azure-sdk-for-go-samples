@@ -22,7 +22,7 @@ func Example_elevationOperations() {
 	// xmsClientId doesn't need to be supplied for SharedKey auth
 	var xmsClientId *string
 	if *usesADAuth {
-		xmsClientId = mapsAccount.Properties.XMsClientID
+		xmsClientId = mapsAccount.Properties.UniqueID
 	}
 
 	elevationClient := elevation.NewElevationClient(conn, xmsClientId)
@@ -102,12 +102,6 @@ func Example_elevationOperations() {
 		util.LogAndPanic(jsonErr)
 	}
 	log.Println(string(json))
-
-	// console.log(" --- Post Data For Points:");
-	// console.log(await elevation.postDataForPoints("json", [{ lat: 46.84646479863713, lon: -121.66853362143818 }, { lat: 46.85646479863713, lon: -121.65853362143818 }], operationOptions));
-
-	// console.log(" --- Post Data For Polyline:");
-	// console.log(await elevation.postDataForPolyline("json", [{ lat: 46.84646479863713, lon: -121.66853362143818 }, { lat: 46.85646479863713, lon: -121.65853362143818 }], operationOptions));
 
 	// Output:
 	// fetched data for bounding box

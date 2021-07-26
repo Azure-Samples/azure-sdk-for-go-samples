@@ -3,6 +3,7 @@ package maps
 import (
 	"context"
 	"errors"
+	"fmt"
 	"regexp"
 	"time"
 
@@ -62,12 +63,12 @@ func Example_datasetOperations() {
 	// xmsClientId doesn't need to be supplied for SharedKey auth
 	var xmsClientId *string
 	if *usesADAuth {
-		xmsClientId = mapsAccount.Properties.XMsClientID
+		xmsClientId = mapsAccount.Properties.UniqueID
 	}
 
 	dataClient := creator.NewDataClient(conn, xmsClientId)
 	conversionClient := creator.NewConversionClient(conn, xmsClientId)
-	datasetClient := creator.NewDatasetClient(conn)
+	datasetClient := creator.NewDatasetClient(conn, xmsClientId)
 
 	resourceUdid := uploadResource(dataClient, ctx, "resources/data_sample_upload.zip", creator.UploadDataFormatDwgzippackage, false)
 	conversionUdid := createConversion(conversionClient, ctx, resourceUdid, false)
@@ -93,9 +94,8 @@ func Example_datasetOperations() {
 		}
 
 		// do something with datasets
-		// datasets := respPager.PageResponse().DatasetListResponse.Datasets
+		util.PrintAndLog(fmt.Sprintf("datasets listed: %d dataset", len(respPager.PageResponse().DatasetListResponse.Datasets)))
 	}
-	util.PrintAndLog("datasets listed")
 
 	// Output:
 	// resource upload started: resources/data_sample_upload.zip
@@ -105,6 +105,6 @@ func Example_datasetOperations() {
 	// dataset creation started
 	// dataset creation completed
 	// dataset details retrieved
-	// dataset listed
+	// datasets listed: 1 dataset
 	// dataset deleted
 }

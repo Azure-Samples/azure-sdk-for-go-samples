@@ -20,7 +20,7 @@ func Example_geolocationOperations() {
 	// xmsClientId doesn't need to be supplied for SharedKey auth
 	var xmsClientId *string
 	if *usesADAuth {
-		xmsClientId = mapsAccount.Properties.XMsClientID
+		xmsClientId = mapsAccount.Properties.UniqueID
 	}
 
 	geolocationClient := geolocation.NewGeolocationClient(conn, xmsClientId)

@@ -3,6 +3,8 @@ package maps
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log"
 	"os"
 	"regexp"
 	"time"
@@ -10,7 +12,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/maps/2.0/creator"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
-	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 )
 
 func uploadResource(client *creator.DataClient, ctx context.Context, resource string, dataFormat creator.UploadDataFormat, shouldDelete bool) string {
@@ -45,6 +46,7 @@ func uploadResource(client *creator.DataClient, ctx context.Context, resource st
 
 	if shouldDelete {
 		defer func() {
+			log.Println(fmt.Sprintf("deleting %s", match[0]))
 			_, deleteErr := client.DeletePreview(ctx, match[0], nil)
 			if deleteErr != nil {
 				util.LogAndPanic(deleteErr)
@@ -58,7 +60,6 @@ func uploadResource(client *creator.DataClient, ctx context.Context, resource st
 
 func Example_uploadOperations() {
 	ctx := context.Background()
-	defer resources.Cleanup(ctx)
 	accountsClient := getAccountsClient()
 	cred, credErr := Authenticate(&accountsClient, ctx, *mapsAccount.Name, *usesADAuth)
 	if credErr != nil {
@@ -68,7 +69,7 @@ func Example_uploadOperations() {
 	// xmsClientId doesn't need to be supplied for SharedKey auth
 	var xmsClientId *string
 	if *usesADAuth {
-		xmsClientId = mapsAccount.Properties.XMsClientID
+		xmsClientId = mapsAccount.Properties.UniqueID
 	}
 
 	client := creator.NewDataClient(creator.NewConnection(creator.GeographyUs.ToPtr(), cred, nil), xmsClientId)

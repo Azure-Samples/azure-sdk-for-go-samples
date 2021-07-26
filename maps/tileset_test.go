@@ -3,6 +3,7 @@ package maps
 import (
 	"context"
 	"errors"
+	"fmt"
 	"regexp"
 	"time"
 
@@ -23,12 +24,12 @@ func Example_tilesetOperations() {
 	// xmsClientId doesn't need to be supplied for SharedKey auth
 	var xmsClientId *string
 	if *usesADAuth {
-		xmsClientId = mapsAccount.Properties.XMsClientID
+		xmsClientId = mapsAccount.Properties.UniqueID
 	}
 
 	dataClient := creator.NewDataClient(conn, xmsClientId)
 	conversionClient := creator.NewConversionClient(conn, xmsClientId)
-	datasetClient := creator.NewDatasetClient(conn)
+	datasetClient := creator.NewDatasetClient(conn, xmsClientId)
 	tilesetClient := creator.NewTilesetClient(conn, xmsClientId)
 
 	resourceUdid := uploadResource(dataClient, ctx, "resources/data_sample_upload.zip", creator.UploadDataFormatDwgzippackage, false)
@@ -82,9 +83,8 @@ func Example_tilesetOperations() {
 		}
 
 		// do something with tileset
-		// tilesets := respPager.PageResponse().TilesetListResponse.Tilesets
+		util.PrintAndLog(fmt.Sprintf("tileset listed: %d tileset", len(respPager.PageResponse().TilesetListResponse.Tilesets)))
 	}
-	util.PrintAndLog("tileset listed")
 
 	// Output:
 	// resource upload started: resources/data_sample_upload.zip
@@ -96,6 +96,6 @@ func Example_tilesetOperations() {
 	// tileset creation started
 	// tileset creation completed
 	// tileset details retrieved
-	// tileset listed
+	// tileset listed: 1 tileset
 	// tileset deleted
 }

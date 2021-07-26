@@ -41,7 +41,7 @@ func Example_renderV2Operations() {
 	// xmsClientId doesn't need to be supplied for SharedKey auth
 	var xmsClientId *string
 	if *usesADAuth {
-		xmsClientId = mapsAccount.Properties.XMsClientID
+		xmsClientId = mapsAccount.Properties.UniqueID
 	}
 
 	renderClient := render.NewRenderV2Client(conn, xmsClientId)
@@ -76,7 +76,7 @@ func Example_renderOperations() {
 	// xmsClientId doesn't need to be supplied for SharedKey auth
 	var xmsClientId *string
 	if *usesADAuth {
-		xmsClientId = mapsAccount.Properties.XMsClientID
+		xmsClientId = mapsAccount.Properties.UniqueID
 	}
 
 	renderClient := render.NewRenderClient(conn, xmsClientId)
@@ -164,8 +164,8 @@ func Example_renderOperations() {
 	creatorConn := creator.NewConnection(creator.GeographyUs.ToPtr(), cred, nil)
 	dataClient := creator.NewDataClient(creatorConn, xmsClientId)
 	conversionClient := creator.NewConversionClient(creatorConn, xmsClientId)
-	datasetClient := creator.NewDatasetClient(creatorConn)
-	featureStateClient := creator.NewFeatureStateClient(creatorConn)
+	datasetClient := creator.NewDatasetClient(creatorConn, xmsClientId)
+	featureStateClient := creator.NewFeatureStateClient(creatorConn, xmsClientId)
 	resourceUdid := uploadResource(dataClient, ctx, "resources/data_sample_upload.zip", creator.UploadDataFormatDwgzippackage, false)
 	conversionUdid := createConversion(conversionClient, ctx, resourceUdid, false)
 	datasetUdid := createDataset(datasetClient, ctx, conversionUdid, false)

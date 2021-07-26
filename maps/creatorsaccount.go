@@ -5,7 +5,7 @@ import (
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/iam"
-	"github.com/Azure/azure-sdk-for-go/services/preview/maps/mgmt/2020-02-02-preview/maps"
+	"github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2021-02-01/maps"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -26,8 +26,11 @@ func CreateCreatorsAccount(ctx context.Context, accountName string, creatorName 
 		config.GroupName(),
 		accountName,
 		creatorName,
-		maps.CreatorCreateParameters{
+		maps.Creator{
 			Location: to.StringPtr(config.Location()),
+			Properties: &maps.CreatorProperties{
+				StorageUnits: to.Int32Ptr(1),
+			},
 		},
 	)
 }

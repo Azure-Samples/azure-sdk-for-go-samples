@@ -15,7 +15,7 @@ import (
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/config"
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
-	"github.com/Azure/azure-sdk-for-go/services/preview/maps/mgmt/2020-02-02-preview/maps"
+	"github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2021-02-01/maps"
 )
 
 var (

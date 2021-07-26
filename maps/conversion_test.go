@@ -3,6 +3,7 @@ package maps
 import (
 	"context"
 	"errors"
+	"fmt"
 	"regexp"
 	"time"
 
@@ -62,7 +63,7 @@ func Example_conversionOperations() {
 	// xmsClientId doesn't need to be supplied for SharedKey auth
 	var xmsClientId *string
 	if *usesADAuth {
-		xmsClientId = mapsAccount.Properties.XMsClientID
+		xmsClientId = mapsAccount.Properties.UniqueID
 	}
 
 	dataClient := creator.NewDataClient(conn, xmsClientId)
@@ -93,9 +94,8 @@ func Example_conversionOperations() {
 		}
 
 		// do something with conversions
-		// conversions := respPager.PageResponse().ConversionListResponse.Conversions
+		util.PrintAndLog(fmt.Sprintf("conversions listed: %d conversion", len(respPager.PageResponse().ConversionListResponse.Conversions)))
 	}
-	util.PrintAndLog("conversions listed")
 
 	// Output:
 	// resource upload started: resources/data_sample_upload.zip
@@ -103,6 +103,6 @@ func Example_conversionOperations() {
 	// conversion started
 	// conversion completed
 	// conversion details retrieved
-	// conversions listed
+	// conversions listed: 1 conversion
 	// conversion deleted
 }

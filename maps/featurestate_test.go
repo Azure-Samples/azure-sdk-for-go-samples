@@ -56,13 +56,13 @@ func Example_featurestateOperations() {
 	// xmsClientId doesn't need to be supplied for SharedKey auth
 	var xmsClientId *string
 	if *usesADAuth {
-		xmsClientId = mapsAccount.Properties.XMsClientID
+		xmsClientId = mapsAccount.Properties.UniqueID
 	}
 
 	dataClient := creator.NewDataClient(conn, xmsClientId)
 	conversionClient := creator.NewConversionClient(conn, xmsClientId)
-	datasetClient := creator.NewDatasetClient(conn)
-	featureStateClient := creator.NewFeatureStateClient(conn)
+	datasetClient := creator.NewDatasetClient(conn, xmsClientId)
+	featureStateClient := creator.NewFeatureStateClient(conn, xmsClientId)
 
 	resourceUdid := uploadResource(dataClient, ctx, "resources/data_sample_upload.zip", creator.UploadDataFormatDwgzippackage, false)
 	conversionUdid := createConversion(conversionClient, ctx, resourceUdid, false)

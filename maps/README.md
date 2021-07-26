@@ -15,8 +15,26 @@ This package demonstrates how to use Azure Maps functionality described at [Azur
 * Management
     * CreateMapsAccount - Creates an Azure Maps Account resource
     * DeleteMapsAccount - Deletes an existing Azure Maps Account resource
+    * CreateCreatorsAccount - Creates an Azure Maps Creator account resource
+    * DeleteCreatorsAccount - Deletes an existing Azure Maps Creator account resource
 * Data plane
+    * aliasOperations - Demonstrates the process of assigning aliases to uploaded resources
+    * conversionOperations - Demonstrates DWG package conversion process
+    * datasetOperations - Demonstrates how to create an Azure Maps Creator dataset
+    * elevationOperations - Demonstrates Azure Maps Elevation Service functionality
+    * featurestateOperations - Demonstrates Azure Maps Creator Feature State service functionality
+    * geolocationOperations - Demonstates how to retrieve CoutryRegion ISO code based on provided IP Address
+    * renderOperations - Demonstrates how to retrieve map tiles and its associated metadata via Azure Maps Render service
+    * renderV2Operations - Demonstates V2 of Azure Maps Render service used to retrieve vector tiles
+    * routeOperations - Demonstates Azure Maps Route service functionality
+    * searchOperations - Demonstates Azure Maps Search service that includes geocoding, reverse-geocoding and associated search functionality
+    * spatialOperations - Demonstrates Azure Maps Creator Spatial operations that also include geofencing
+    * tilesetOperations - Demonstrates Azure Maps Creator Tileset service used to create custom private maps tilesets
+    * timezoneOperations - Demonstates Azure Maps Timezone service functionality
+    * trafficOperations - Demonstates Azure Maps Traffic service functionality
     * uploadOperations - Demonstates the process of uploading data content to Azure Maps service for subsequent use with Azure Maps Geofencing and Azure Maps Creator functionalities
+    * weatherOperations - Demonstates Azure Maps Weather service functionality
+    * wfsOperations - Demonstates Azure Maps Creator dataset query functionality via WFS service that implements OGC WFS(Web Feature Service) API standard for Features
 
 <a id="run"></a>
 ## How to run all samples
@@ -30,10 +48,7 @@ This package demonstrates how to use Azure Maps functionality described at [Azur
     dep ensure
     ```
 
-1. Create an Azure service principal with the [Azure CLI][] command `az ad sp
-   create-for-rbac --output json` and set the following environment variables
-   per that command's output. You can also copy `.env.tpl` to `.env` and fill
-   it in; the configuration system will utilize this.
+1. Create an Azure service principal with the [Azure CLI][] command `az ad sp create-for-rbac -n 'azure-sdk-for-go-samples'` and set the following environment variables per that command's output. You can also copy `.env.tpl` to `.env` and fill it in; the configuration system will utilize this.
 
     ```bash
     AZURE_CLIENT_ID=
@@ -44,9 +59,13 @@ This package demonstrates how to use Azure Maps functionality described at [Azur
     AZURE_LOCATION_DEFAULT=westus2
     ```
 
-1. Assign `Azure Maps Data Contributor` role to newly created service principle to allow the access to Azure Maps data plane APIs with command `az role assignment create --assignee 'PRINCIPLE_OBJECT_ID' --role 'Azure Maps Data Contributor' --subscription 'AZURE_SUBSCRIPTION_ID'`
-1. Run the tests via `go test` with Azure Active Directory authentication used in data plane APIs or `go test -sharedkey-auth` for shared key authentication. (You can also run tests from the root of azure-sdk-for-go-samples with `export $(xargs < .env) && go test -v ./maps/`)
-  
+1. Make sure environment variables are applied in current session. For example via: `export $(xargs < .env)` 
+1. Run the tests via `go test -timeout 1h` with shared key authentification. (You can also run tests from the root of azure-sdk-for-go-samples with `export $(xargs < .env) && go test -v ./maps/ -timeout 1h`)
+
+1. **Azure Active Directory Auth**: If you want to use RBAC and Azure Active directory auth, pass `-ad-auth` to test runner: `go test -timeout 1h -ad-auth`. A newly created service principle will also require `Azure Maps Data Contributor` role assignment to allow the access to Azure Maps data plane APIs: extract the principal objectId via running: `az ad sp list --display-name 'azure-sdk-for-go-samples"'`, then use `az role assignment create --assignee 'PRINCIPLE_OBJECT_ID' --role 'Azure Maps Data Contributor' --subscription 'AZURE_SUBSCRIPTION_ID'` to assign the role.
+
+**Note:** expect around 30 minutes for all samples to complete. You might find practical to run an individual example like: `go test -v ./maps/ -run searchOperations`
+ 
 ## Debugging tests in VSCode
 
 Sample debugging configuration at `./azure-sdk-for-go-samples/.vscode/launch.json`:
@@ -62,7 +81,7 @@ Sample debugging configuration at `./azure-sdk-for-go-samples/.vscode/launch.jso
       "mode": "test",
       "program": "${fileDirname}",
       "envFile": "${workspaceFolder}/.env",
-      "args": ["-sharedkey-auth"]
+      "args": ["-ad-auth"]
     }
   ]
 }

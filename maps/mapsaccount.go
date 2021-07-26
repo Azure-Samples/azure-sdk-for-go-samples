@@ -8,8 +8,8 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/resources"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2021-02-01/maps"
 	"github.com/Azure/azure-sdk-for-go/services/preview/maps/2.0/creator"
-	"github.com/Azure/azure-sdk-for-go/services/preview/maps/mgmt/2020-02-02-preview/maps"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 
@@ -31,10 +31,10 @@ func CreateMapsAccount(ctx context.Context, accountName string) (maps.Account, e
 		ctx,
 		config.GroupName(),
 		accountName,
-		maps.AccountCreateParameters{
+		maps.Account{
 			Location: to.StringPtr(config.Location()),
 			Sku: &maps.Sku{
-				Name: to.StringPtr("S1"),
+				Name: maps.NameG2,
 				Tier: to.StringPtr("Standard"),
 			},
 		},

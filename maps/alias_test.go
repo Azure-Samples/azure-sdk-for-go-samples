@@ -2,6 +2,7 @@ package maps
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/internal/util"
 	"github.com/Azure/azure-sdk-for-go/services/preview/maps/2.0/creator"
@@ -19,11 +20,11 @@ func Example_aliasOperations() {
 	// xmsClientId doesn't need to be supplied for SharedKey auth
 	var xmsClientId *string
 	if *usesADAuth {
-		xmsClientId = mapsAccount.Properties.XMsClientID
+		xmsClientId = mapsAccount.Properties.UniqueID
 	}
 
 	dataClient := creator.NewDataClient(conn, xmsClientId)
-	aliasClient := creator.NewAliasClient(conn)
+	aliasClient := creator.NewAliasClient(conn, xmsClientId)
 
 	// we need to upload resource first
 	resourceUdid := uploadResource(dataClient, ctx, "resources/data_sample_upload.json", creator.UploadDataFormatGeojson, false)
@@ -34,6 +35,14 @@ func Example_aliasOperations() {
 	util.PrintAndLog("alias created")
 
 	aliasId := *aliasCreateResp.AliasesCreateResponse.AliasID
+	defer func() {
+		_, deleteErr := aliasClient.Delete(ctx, aliasId, nil)
+		if deleteErr != nil {
+			util.LogAndPanic(deleteErr)
+		}
+		util.PrintAndLog("alias deleted")
+	}()
+
 	_, assignErr := aliasClient.Assign(ctx, aliasId, resourceUdid, nil)
 	if assignErr != nil {
 		util.LogAndPanic(assignErr)
@@ -46,14 +55,6 @@ func Example_aliasOperations() {
 	}
 	util.PrintAndLog("alias details retrieved")
 
-	defer func() {
-		_, deleteErr := aliasClient.Delete(ctx, aliasId, nil)
-		if deleteErr != nil {
-			util.LogAndPanic(deleteErr)
-		}
-		util.PrintAndLog("alias deleted")
-	}()
-
 	respPager := aliasClient.List(nil)
 	for respPager.NextPage(ctx) {
 		if respPager.Err() != nil {
@@ -61,9 +62,8 @@ func Example_aliasOperations() {
 		}
 
 		// do something with aliases
-		// aliases := respPager.PageResponse().AliasListResponse.Aliases
+		util.PrintAndLog(fmt.Sprintf("aliases listed: %d alias", len(respPager.PageResponse().AliasListResponse.Aliases)))
 	}
-	util.PrintAndLog("aliases listed")
 
 	// Output:
 	// resource upload started: resources/data_sample_upload.json
@@ -71,6 +71,6 @@ func Example_aliasOperations() {
 	// alias created
 	// alias assigned
 	// alias details retrieved
-	// aliases listed
+	// aliases listed: 1 alias
 	// alias deleted
 }

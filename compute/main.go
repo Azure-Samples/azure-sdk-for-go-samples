@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -38,146 +37,132 @@ var (
 func main() {
 	subscriptionId = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionId) == 0 {
-		log.Println("AZURE_SUBSCRIPTION_ID is not set.")
-		return
+		log.Fatal("AZURE_SUBSCRIPTION_ID is not set.")
 	}
-	log.Println("AZURE_SUBSCRIPTION_ID:", subscriptionId)
 	//create virtual machine
 	createVM()
 
-	//delete virtual machine
-	// deleteVM()
+	keepResource := os.Getenv("KEEP_RESOURCE")
+	if len(keepResource) == 0 {
+		//delete virtual machine
+		deleteVM()
+	}
 }
 
 func createVM() {
-
 	conn, err := connectionAzure()
-	handlerErr(err)
+	if err != nil {
+		log.Fatalf("cannot connection Azure:%+v", err)
+	}
 	ctx := context.Background()
 
 	log.Println("start creating virtual machine...")
-	resourceGroup, err := createResourceGroup(ctx, conn, resourceGroupName)
-	handlerErr(err)
-	toString(resourceGroup)
+	resourceGroup, err := createResourceGroup(ctx, conn)
+	if err != nil {
+		log.Fatalf("cannot create resource group:%+v", err)
+	}
+	log.Printf("Created resource group: %s", *resourceGroup.ID)
 
 	virtualNetwork, err := createVirtualNetwork(ctx, conn)
-	handlerErr(err)
-	toString(virtualNetwork)
+	if err != nil {
+		log.Fatalf("cannot create virtual network:%+v", err)
+	}
+	log.Printf("Created virtual network: %s", *virtualNetwork.ID)
 
 	subnet, err := createSubnets(ctx, conn, vnetName, subnetName)
-	handlerErr(err)
-	toString(subnet)
+	if err != nil {
+		log.Fatalf("cannot create subnet:%+v", err)
+	}
+	log.Printf("Created subnet: %s", *subnet.ID)
 
 	publicIP, err := createPublicIP(ctx, conn, publicIPName)
-	handlerErr(err)
-	toString(publicIP)
+	if err != nil {
+		log.Fatalf("cannot create public IP address:%+v", err)
+	}
+	log.Printf("Created public IP address: %s", *publicIP.ID)
 
 	// network security group
 	nsg, err := createNetworkSecurityGroup(ctx, conn, nsgName)
-	handlerErr(err)
-	toString(nsg)
+	if err != nil {
+		log.Fatalf("cannot create network security group:%+v", err)
+	}
+	log.Printf("Created network security group: %s", *nsg.ID)
 
 	subnetID := subnet.ID
 	publicID := publicIP.ID
 	networkSecurityGroupID := nsg.ID
 	netWorkInterface, err := createNetWorkInterface(ctx, conn, subnetID, publicID, networkSecurityGroupID)
-	handlerErr(err)
-	toString(netWorkInterface)
+	if err != nil {
+		log.Fatalf("cannot create network interface:%+v", err)
+	}
+	log.Printf("Created network network interface: %s", *netWorkInterface.ID)
 
 	networkInterfaceID := netWorkInterface.ID
 	virtualMachine, err := createVirtualMachine(ctx, conn, *networkInterfaceID)
-	handlerErr(err)
-	toString(virtualMachine)
+	if err != nil {
+		log.Fatalf("cannot create virual machine:%+v", err)
+	}
+	log.Printf("Created network virual machine: %s", *virtualMachine.ID)
 
-	log.Println("success created virtual machine")
+	log.Println("success created  virtual machine")
 }
 
 func deleteVM() {
 	conn, err := connectionAzure()
-	handlerErr(err)
+	if err != nil {
+		log.Fatalf("cannot connection Azure:%+v", err)
+	}
 	ctx := context.Background()
 
 	log.Println("start deleting virtual machine...")
 	_, err = deleteVirtualMachine(ctx, conn)
-	handlerErr(err)
+	if err != nil {
+		log.Fatalf("cannot delete virtual machine:%+v", err)
+	}
 	log.Println("deleted virtual machine")
 
 	_, err = deleteDisk(ctx, conn, diskName)
-	handlerErr(err)
+	if err != nil {
+		log.Fatalf("cannot delete disk:%+v", err)
+	}
 	log.Println("deleted disk")
 
 	_, err = deleteNetWorkInterface(ctx, conn)
-	handlerErr(err)
+	if err != nil {
+		log.Fatalf("cannot delete network interface:%+v", err)
+	}
 	log.Println("deleted network interface")
 
 	_, err = deleteNetworkSecurityGroup(ctx, conn, nsgName)
-	handlerErr(err)
+	if err != nil {
+		log.Fatalf("cannot delete network security group:%+v", err)
+	}
 	log.Println("deleted network security group")
 
 	_, err = deletePublicIP(ctx, conn, publicIPName)
-	handlerErr(err)
-	log.Println("deleted public IP")
+	if err != nil {
+		log.Fatalf("cannot delete public IP address:%+v", err)
+	}
+	log.Println("deleted public IP address")
 
 	_, err = deleteSubnets(ctx, conn, vnetName, subnetName)
-	handlerErr(err)
+	if err != nil {
+		log.Fatalf("cannot delete subnet:%+v", err)
+	}
 	log.Println("deleted subnet")
 
 	_, err = deleteVirtualNetWork(ctx, conn)
-	handlerErr(err)
+	if err != nil {
+		log.Fatalf("cannot delete virtual network:%+v", err)
+	}
 	log.Println("deleted virtual network")
 
 	_, err = deleteResourceGroup(ctx, conn)
-	handlerErr(err)
+	if err != nil {
+		log.Fatalf("cannot delete resource group:%+v", err)
+	}
 	log.Println("deleted resource group")
 	log.Println("success deleted virtual machine.")
-}
-
-func handlerErr(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
-func toString(marshaler json.Marshaler) {
-	data, err := marshaler.MarshalJSON()
-	handlerErr(err)
-
-	var str string
-	var id string
-	switch marshaler.(type) {
-	case *armresources.ResourceGroup:
-		var x = marshaler.(*armresources.ResourceGroup)
-		id = *x.ID
-		str = "ResourceGroup"
-	case *armnetwork.VirtualNetwork:
-		var x = marshaler.(*armnetwork.VirtualNetwork)
-		id = *x.ID
-		str = "VirtualNetwork"
-	case *armnetwork.Subnet:
-		var x = marshaler.(*armnetwork.Subnet)
-		id = *x.ID
-		str = "Subnet"
-	case *armnetwork.PublicIPAddress:
-		var x = marshaler.(*armnetwork.PublicIPAddress)
-		id = *x.ID
-		str = "PublicIPAddress"
-	case *armnetwork.NetworkSecurityGroup:
-		var x = marshaler.(*armnetwork.NetworkSecurityGroup)
-		id = *x.ID
-		str = "NetworkSecurityGroup"
-	case *armnetwork.NetworkInterface:
-		var x = marshaler.(*armnetwork.NetworkInterface)
-		id = *x.ID
-		str = "NetworkInterface"
-	case *armcompute.VirtualMachine:
-		var x = marshaler.(*armcompute.VirtualMachine)
-		id = *x.ID
-		str = "VirtualMachine"
-	default:
-		id = ""
-		str = "Azure"
-	}
-	log.Printf("%s:\n\t%s\n\t%s", str, string(data), id)
 }
 
 func connectionAzure() (*armcore.Connection, error) {
@@ -194,7 +179,7 @@ func connectionAzure() (*armcore.Connection, error) {
 	return conn, nil
 }
 
-func createResourceGroup(ctx context.Context, connection *armcore.Connection, rgName string) (*armresources.ResourceGroup, error) {
+func createResourceGroup(ctx context.Context, connection *armcore.Connection) (*armresources.ResourceGroup, error) {
 	resourceGroup := armresources.NewResourceGroupsClient(connection, subscriptionId)
 
 	parameters := armresources.ResourceGroup{
@@ -202,7 +187,7 @@ func createResourceGroup(ctx context.Context, connection *armcore.Connection, rg
 		Tags:     map[string]*string{"sample-rs-tag": to.StringPtr("sample-tag")}, // resource group update tags
 	}
 
-	resp, err := resourceGroup.CreateOrUpdate(ctx, rgName, parameters, nil)
+	resp, err := resourceGroup.CreateOrUpdate(ctx, resourceGroupName, parameters, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -317,20 +302,6 @@ func deleteSubnets(ctx context.Context, connection *armcore.Connection, virtualN
 	return resp, nil
 }
 
-func listSubnets(ctx context.Context, connection *armcore.Connection, virtualNetworkName string) ([]*armnetwork.Subnet, error) {
-	subnetClient := armnetwork.NewSubnetsClient(connection, subscriptionId)
-
-	resultPager := subnetClient.List(resourceGroupName, virtualNetworkName, nil)
-
-	subnetLists := make([]*armnetwork.Subnet, 0)
-	for resultPager.NextPage(ctx) {
-		pageResponse := resultPager.PageResponse()
-		subnetLists = append(subnetLists, pageResponse.SubnetListResult.Value...)
-	}
-
-	return subnetLists, nil
-}
-
 func createNetworkSecurityGroup(ctx context.Context, connection *armcore.Connection, nsgName string) (*armnetwork.NetworkSecurityGroup, error) {
 	nsgClient := armnetwork.NewNetworkSecurityGroupsClient(connection, subscriptionId)
 
@@ -442,7 +413,6 @@ func deletePublicIP(ctx context.Context, connection *armcore.Connection, publicI
 }
 
 func createNetWorkInterface(ctx context.Context, connection *armcore.Connection, subnetID *string, publicIPID *string, networkSecurityGroupID *string) (*armnetwork.NetworkInterface, error) {
-
 	nicClient := armnetwork.NewNetworkInterfacesClient(connection, subscriptionId)
 
 	parameters := armnetwork.NetworkInterface{
@@ -611,33 +581,6 @@ func deleteVirtualMachine(ctx context.Context, connection *armcore.Connection) (
 	}
 
 	return resp, nil
-}
-
-func createDisk(ctx context.Context, connection *armcore.Connection, diskName string, diskSize int32) (*armcompute.Disk, error) {
-	diskClient := armcompute.NewDisksClient(connection, subscriptionId)
-
-	disk := armcompute.Disk{
-		Resource: armcompute.Resource{
-			Location: to.StringPtr(location),
-		},
-		Properties: &armcompute.DiskProperties{
-			CreationData: &armcompute.CreationData{
-				CreateOption: armcompute.DiskCreateOptionEmpty.ToPtr(), // create
-			},
-			DiskSizeGB: to.Int32Ptr(diskSize),
-		},
-	}
-
-	pollerResponse, err := diskClient.BeginCreateOrUpdate(ctx, resourceGroupName, diskName, disk, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := pollerResponse.PollUntilDone(ctx, 10*time.Second)
-	if err != nil {
-		return nil, err
-	}
-	return resp.Disk, nil
 }
 
 func deleteDisk(ctx context.Context, connection *armcore.Connection, diskName string) (*http.Response, error) {

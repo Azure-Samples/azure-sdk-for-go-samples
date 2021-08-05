@@ -28,19 +28,20 @@ This project framework provides examples for the following services:
 1. Clone the repository.
 
     ```
-    git clone https://github.com/Azure-Samples/azure-sdk-for-go-samples.git
+    git clone https://github.com/Azure-Samples/azure-sdk-for-go-samples.git --branch new-version
     ```
 2. Set the environment variable.
 
    ```
-   #Linux
+   # bash
    export AZURE_SUBSCRIPTION_ID=<your Azure subscription id> 
    # If no value is set, the created resource will be deleted by default.
-   export KEEP_RESOURCE=
+   # anything other than empty to keep the resources
+   export KEEP_RESOURCE=1 
    
-   #PowerShell
+   # powershell
    $env:AZURE_SUBSCRIPTION_ID=<your Azure subscription id> 
-   export KEEP_RESOURCE=
+   $env:KEEP_RESOURCE=1
    ```
 
 3. Run compute sample.
@@ -53,3 +54,10 @@ This project framework provides examples for the following services:
 ## Resources
 
 - https://github.com/Azure/azure-sdk-for-go
+- https://docs.microsoft.com/en-us/azure/developer/go/
+- https://docs.microsoft.com/en-us/rest/api/
+- https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk
+
+## Need help?
+
+Post issue on Github (https://github.com/Azure/azure-sdk-for-go/issues)

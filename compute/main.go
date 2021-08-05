@@ -42,14 +42,14 @@ func main() {
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
 		//delete virtual machine
-		deleteVM()
+		cleanup()
 	}
 }
 
 func createVM() {
 	conn, err := connectionAzure()
 	if err != nil {
-		log.Fatalf("cannot connection Azure:%+v", err)
+		log.Fatalf("cannot connect to Azure:%+v", err)
 	}
 	ctx := context.Background()
 
@@ -66,7 +66,7 @@ func createVM() {
 	}
 	log.Printf("Created virtual network: %s", *virtualNetwork.ID)
 
-	subnet, err := createSubnets(ctx, conn, vnetName, subnetName)
+	subnet, err := createSubnets(ctx, conn)
 	if err != nil {
 		log.Fatalf("cannot create subnet:%+v", err)
 	}
@@ -85,10 +85,7 @@ func createVM() {
 	}
 	log.Printf("Created network security group: %s", *nsg.ID)
 
-	subnetID := subnet.ID
-	publicID := publicIP.ID
-	networkSecurityGroupID := nsg.ID
-	netWorkInterface, err := createNetWorkInterface(ctx, conn, subnetID, publicID, networkSecurityGroupID)
+	netWorkInterface, err := createNetWorkInterface(ctx, conn, *subnet.ID, *publicIP.ID, *nsg.ID)
 	if err != nil {
 		log.Fatalf("cannot create network interface:%+v", err)
 	}
@@ -101,10 +98,10 @@ func createVM() {
 	}
 	log.Printf("Created network virual machine: %s", *virtualMachine.ID)
 
-	log.Println("success created  virtual machine")
+	log.Println("Virtual machine created successfully")
 }
 
-func deleteVM() {
+func cleanup() {
 	conn, err := connectionAzure()
 	if err != nil {
 		log.Fatalf("cannot connection Azure:%+v", err)
@@ -261,7 +258,7 @@ func deleteVirtualNetWork(ctx context.Context, connection *armcore.Connection) (
 	return resp, nil
 }
 
-func createSubnets(ctx context.Context, connection *armcore.Connection, virtualNetworkName string, subnetName string) (*armnetwork.Subnet, error) {
+func createSubnets(ctx context.Context, connection *armcore.Connection) (*armnetwork.Subnet, error) {
 	subnetClient := armnetwork.NewSubnetsClient(connection, subscriptionId)
 
 	parameters := armnetwork.Subnet{
@@ -270,7 +267,7 @@ func createSubnets(ctx context.Context, connection *armcore.Connection, virtualN
 		},
 	}
 
-	pollerResponse, err := subnetClient.BeginCreateOrUpdate(ctx, resourceGroupName, virtualNetworkName, subnetName, parameters, nil)
+	pollerResponse, err := subnetClient.BeginCreateOrUpdate(ctx, resourceGroupName, vnetName, subnetName, parameters, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -308,7 +305,7 @@ func createNetworkSecurityGroup(ctx context.Context, connection *armcore.Connect
 		},
 		Properties: &armnetwork.NetworkSecurityGroupPropertiesFormat{
 			SecurityRules: []*armnetwork.SecurityRule{
-				// window connection to virtual machine needs to open port 3389,RDP
+				// Windows connection to virtual machine needs to open port 3389,RDP
 				// inbound
 				{
 					Name: to.StringPtr("sample_inbound_22"), //
@@ -409,7 +406,7 @@ func deletePublicIP(ctx context.Context, connection *armcore.Connection, publicI
 	return resp, err
 }
 
-func createNetWorkInterface(ctx context.Context, connection *armcore.Connection, subnetID *string, publicIPID *string, networkSecurityGroupID *string) (*armnetwork.NetworkInterface, error) {
+func createNetWorkInterface(ctx context.Context, connection *armcore.Connection, subnetID string, publicIPID string, networkSecurityGroupID string) (*armnetwork.NetworkInterface, error) {
 	nicClient := armnetwork.NewNetworkInterfacesClient(connection, subscriptionId)
 
 	parameters := armnetwork.NetworkInterface{
@@ -425,12 +422,12 @@ func createNetWorkInterface(ctx context.Context, connection *armcore.Connection,
 						PrivateIPAllocationMethod: armnetwork.IPAllocationMethodDynamic.ToPtr(),
 						Subnet: &armnetwork.Subnet{
 							SubResource: armnetwork.SubResource{
-								ID: subnetID,
+								ID: to.StringPtr(subnetID),
 							},
 						},
 						PublicIPAddress: &armnetwork.PublicIPAddress{
 							Resource: armnetwork.Resource{
-								ID: publicIPID,
+								ID: to.StringPtr(publicIPID),
 							},
 						},
 					},
@@ -438,7 +435,7 @@ func createNetWorkInterface(ctx context.Context, connection *armcore.Connection,
 			},
 			NetworkSecurityGroup: &armnetwork.NetworkSecurityGroup{
 				Resource: armnetwork.Resource{
-					ID: networkSecurityGroupID,
+					ID: to.StringPtr(networkSecurityGroupID),
 				},
 			},
 		},

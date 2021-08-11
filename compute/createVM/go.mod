@@ -1,4 +1,4 @@
-module azure-sdk-for-go-samples/compute
+module azure-sdk-for-go-samples/createVM/compute
 
 go 1.16
 

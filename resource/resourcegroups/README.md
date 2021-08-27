@@ -8,7 +8,7 @@ description: "These code samples will show you how to manage Resource Manager us
 urlFragment: compute
 ---
 
-# Getting started - Managing Compute using Azure Golang SDK
+# Getting started - Managing Resource Manager using Azure Golang SDK
 
 These code samples will show you how to manage Resource using Azure SDK for Golang.
 
@@ -16,8 +16,8 @@ These code samples will show you how to manage Resource using Azure SDK for Gola
 
 This project framework provides examples for the following services:
 
-### Compute
-* Using the Azure SDK for Golang - Resource Management Library [resources/armresources](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resources/armresources) for the [Azure Resource API](https://docs.microsoft.com/en-us/rest/api/resources/)
+### Resource
+* Using the Azure SDK for Golang - Resource Management Library [resources/armresources](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resources/armresources) for the [Azure Resource Manager API](https://docs.microsoft.com/en-us/rest/api/resources/)
 
 ### Prerequisites
 * an [Azure subscription](https://azure.microsoft.com)
@@ -45,7 +45,7 @@ This project framework provides examples for the following services:
 3. Run compute sample.
 
     ```
-    cd azure-sdk-for-go-samples/resource/resrourcegroups
+    cd azure-sdk-for-go-samples/resource/resourcegroups
     go mod tidy
     go run main.go
     ```

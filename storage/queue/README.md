@@ -4,20 +4,20 @@ languages:
 - golang
 products:
 - azure
-description: "These code samples will show you how to manage Resource Manager using Azure SDK for Golang."
+description: "These code samples will show you how to manage Storage using Azure SDK for Golang."
 urlFragment: compute
 ---
 
-# Getting started - Managing Resource Manager using Azure Golang SDK
+# Getting started - Managing Storage using Azure Golang SDK
 
-These code samples will show you how to manage Resource using Azure SDK for Golang.
+These code samples will show you how to manage Storage using Azure SDK for Golang.
 
 ## Features
 
 This project framework provides examples for the following services:
 
-### Resource
-* Using the Azure SDK for Golang - Resource Management Library [resources/armresources](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resources/armresources) for the [Azure Resource Manager API](https://docs.microsoft.com/en-us/rest/api/resources/)
+### Storage
+* Using the Azure SDK for Golang - Storage Library [storage/armstorage](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/storage/armstorage) for the [Azure Storage API](https://docs.microsoft.com/en-us/rest/api/storage/)
 
 ### Prerequisites
 * an [Azure subscription](https://azure.microsoft.com)
@@ -45,7 +45,7 @@ This project framework provides examples for the following services:
 3. Run compute sample.
 
     ```
-    cd azure-sdk-for-go-samples/resource/resources
+    cd azure-sdk-for-go-samples/storage/queue
     go mod tidy
     go run main.go
     ```

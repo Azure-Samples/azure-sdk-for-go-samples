@@ -3,22 +3,25 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/armcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/network/armnetwork"
 	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
 	"github.com/Azure/azure-sdk-for-go/sdk/to"
-	"log"
-	"net/http"
-	"os"
-	"time"
 )
 
-var subscriptionID string
-var location = "westus"
-var resourceGroupName = "sample-resource-group"
-var securityGroupName = "sample-network-security-group"
+var (
+	subscriptionID    string
+	location          = "westus"
+	resourceGroupName = "sample-resources-group"
+	securityGroupName = "sample-network-security-group"
+)
 
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
@@ -38,45 +41,45 @@ func main() {
 	})
 	ctx := context.Background()
 
-	resourceGroup,err := createResourceGroup(ctx,conn)
+	resourceGroup, err := createResourceGroup(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("resource group:",*resourceGroup.ID)
+	log.Println("resources group:", *resourceGroup.ID)
 
-	networkSecurityGroup,err := createNetworkSecurityGroup(ctx,conn)
+	networkSecurityGroup, err := createNetworkSecurityGroup(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("network security group:",*networkSecurityGroup.ID)
+	log.Println("network security group:", *networkSecurityGroup.ID)
 
-	sshRule,err := createSSHRule(ctx,conn)
+	sshRule, err := createSSHRule(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("SSH:",*sshRule.ID)
+	log.Println("SSH:", *sshRule.ID)
 
-	httpRule,err := createHTTPRule(ctx,conn)
+	httpRule, err := createHTTPRule(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("HTTP:",*httpRule.ID)
+	log.Println("HTTP:", *httpRule.ID)
 
-	sqlRule,err := createSQLRule(ctx,conn)
+	sqlRule, err := createSQLRule(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("SQL:",*sqlRule.ID)
+	log.Println("SQL:", *sqlRule.ID)
 
-	denyOutRule,err := createDenyOutRule(ctx,conn)
+	denyOutRule, err := createDenyOutRule(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Deny Out:",*denyOutRule.ID)
+	log.Println("Deny Out:", *denyOutRule.ID)
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_,err := cleanup(ctx,conn)
+		_, err := cleanup(ctx, conn)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -84,10 +87,10 @@ func main() {
 	}
 }
 
-func createNetworkSecurityGroup(ctx context.Context,conn *armcore.Connection) (*armnetwork.NetworkSecurityGroup,error) {
-	networkSecurityGroupClient := armnetwork.NewNetworkSecurityGroupsClient(conn,subscriptionID)
+func createNetworkSecurityGroup(ctx context.Context, conn *armcore.Connection) (*armnetwork.NetworkSecurityGroup, error) {
+	networkSecurityGroupClient := armnetwork.NewNetworkSecurityGroupsClient(conn, subscriptionID)
 
-	pollerResp,err := networkSecurityGroupClient.BeginCreateOrUpdate(
+	pollerResp, err := networkSecurityGroupClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		securityGroupName,
@@ -129,18 +132,18 @@ func createNetworkSecurityGroup(ctx context.Context,conn *armcore.Connection) (*
 		nil)
 
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
-	resp,err := pollerResp.PollUntilDone(ctx, 10 * time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	return resp.NetworkSecurityGroup,nil
+	return resp.NetworkSecurityGroup, nil
 }
 
 func createSSHRule(ctx context.Context, conn *armcore.Connection) (*armnetwork.SecurityRule, error) {
-	securityRules := armnetwork.NewSecurityRulesClient(conn,subscriptionID)
+	securityRules := armnetwork.NewSecurityRulesClient(conn, subscriptionID)
 
 	pollerResp, err := securityRules.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
@@ -148,7 +151,7 @@ func createSSHRule(ctx context.Context, conn *armcore.Connection) (*armnetwork.S
 		"ALLOW-SSH",
 		armnetwork.SecurityRule{
 			Properties: &armnetwork.SecurityRulePropertiesFormat{
-				Access: armnetwork.SecurityRuleAccessAllow.ToPtr(),
+				Access:                   armnetwork.SecurityRuleAccessAllow.ToPtr(),
 				DestinationAddressPrefix: to.StringPtr("*"),
 				DestinationPortRange:     to.StringPtr("22"),
 				Direction:                armnetwork.SecurityRuleDirectionInbound.ToPtr(),
@@ -165,16 +168,16 @@ func createSSHRule(ctx context.Context, conn *armcore.Connection) (*armnetwork.S
 		return nil, fmt.Errorf("cannot create SSH security rule: %v", err)
 	}
 
-	resp,err := pollerResp.PollUntilDone(ctx, 10 * time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get security rule create or update future response: %v", err)
 	}
 
-	return resp.SecurityRule,nil
+	return resp.SecurityRule, nil
 }
 
 func createHTTPRule(ctx context.Context, conn *armcore.Connection) (*armnetwork.SecurityRule, error) {
-	securityRules := armnetwork.NewSecurityRulesClient(conn,subscriptionID)
+	securityRules := armnetwork.NewSecurityRulesClient(conn, subscriptionID)
 
 	pollerResp, err := securityRules.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
@@ -182,7 +185,7 @@ func createHTTPRule(ctx context.Context, conn *armcore.Connection) (*armnetwork.
 		"ALLOW-HTTP",
 		armnetwork.SecurityRule{
 			Properties: &armnetwork.SecurityRulePropertiesFormat{
-				Access: armnetwork.SecurityRuleAccessAllow.ToPtr(),
+				Access:                   armnetwork.SecurityRuleAccessAllow.ToPtr(),
 				DestinationAddressPrefix: to.StringPtr("*"),
 				DestinationPortRange:     to.StringPtr("80"),
 				Direction:                armnetwork.SecurityRuleDirectionInbound.ToPtr(),
@@ -199,16 +202,16 @@ func createHTTPRule(ctx context.Context, conn *armcore.Connection) (*armnetwork.
 		return nil, fmt.Errorf("cannot create HTTP security rule: %v", err)
 	}
 
-	resp,err := pollerResp.PollUntilDone(ctx, 10 * time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get security rule create or update future response: %v", err)
 	}
 
-	return resp.SecurityRule,nil
+	return resp.SecurityRule, nil
 }
 
 func createSQLRule(ctx context.Context, conn *armcore.Connection) (*armnetwork.SecurityRule, error) {
-	securityRules := armnetwork.NewSecurityRulesClient(conn,subscriptionID)
+	securityRules := armnetwork.NewSecurityRulesClient(conn, subscriptionID)
 
 	pollerResp, err := securityRules.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
@@ -233,16 +236,16 @@ func createSQLRule(ctx context.Context, conn *armcore.Connection) (*armnetwork.S
 		return nil, fmt.Errorf("cannot create SQL security rule: %v", err)
 	}
 
-	resp,err := pollerResp.PollUntilDone(ctx, 10 * time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get security rule create or update future response: %v", err)
 	}
 
-	return resp.SecurityRule,nil
+	return resp.SecurityRule, nil
 }
 
 func createDenyOutRule(ctx context.Context, conn *armcore.Connection) (*armnetwork.SecurityRule, error) {
-	securityRules := armnetwork.NewSecurityRulesClient(conn,subscriptionID)
+	securityRules := armnetwork.NewSecurityRulesClient(conn, subscriptionID)
 
 	pollerResp, err := securityRules.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
@@ -250,7 +253,7 @@ func createDenyOutRule(ctx context.Context, conn *armcore.Connection) (*armnetwo
 		"DENY-OUT",
 		armnetwork.SecurityRule{
 			Properties: &armnetwork.SecurityRulePropertiesFormat{
-				Access: armnetwork.SecurityRuleAccessDeny.ToPtr(),
+				Access:                   armnetwork.SecurityRuleAccessDeny.ToPtr(),
 				DestinationAddressPrefix: to.StringPtr("*"),
 				DestinationPortRange:     to.StringPtr("*"),
 				Direction:                armnetwork.SecurityRuleDirectionOutbound.ToPtr(),
@@ -267,18 +270,18 @@ func createDenyOutRule(ctx context.Context, conn *armcore.Connection) (*armnetwo
 		return nil, fmt.Errorf("cannot create deny out security rule: %v", err)
 	}
 
-	resp,err := pollerResp.PollUntilDone(ctx, 10 * time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get security rule create or update future response: %v", err)
 	}
 
-	return resp.SecurityRule,nil
+	return resp.SecurityRule, nil
 }
 
-func createResourceGroup(ctx context.Context,conn *armcore.Connection) (*armresources.ResourceGroup,error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn,subscriptionID)
+func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
-	resourceGroupResp,err := resourceGroupClient.CreateOrUpdate(
+	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
@@ -286,23 +289,23 @@ func createResourceGroup(ctx context.Context,conn *armcore.Connection) (*armreso
 		},
 		nil)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	return resourceGroupResp.ResourceGroup,nil
+	return resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response,error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn,subscriptionID)
+func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 	log.Println("cleanup...")
 
-	pollerResp,err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
-	if err != nil {
-		return nil,err
-	}
-
-	resp,err := pollerResp.PollUntilDone(ctx, 10 * time.Second)
+	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
 		return nil, err
 	}
-	return resp,nil
+
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }

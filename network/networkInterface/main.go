@@ -2,26 +2,29 @@ package main
 
 import (
 	"context"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/armcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/network/armnetwork"
 	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
 	"github.com/Azure/azure-sdk-for-go/sdk/to"
-	"log"
-	"net/http"
-	"os"
-	"time"
 )
 
-var subscriptionID string
-var location = "westus"
-var resourceGroupName = "sample-resource-group"
-var networkInterfaceName = "sample-network-interface"
-var virtualNetworkName = "sample-virtual-network"
-var subnetName = "sample-subnet"
-var publicIPAddressName = "sample-public-ip"
-var securityGroupName = "sample-network-security-group"
+var (
+	subscriptionID       string
+	location             = "westus"
+	resourceGroupName    = "sample-resources-group"
+	networkInterfaceName = "sample-network-interface"
+	virtualNetworkName   = "sample-virtual-network"
+	subnetName           = "sample-subnet"
+	publicIPAddressName  = "sample-public-ip"
+	securityGroupName    = "sample-network-security-group"
+)
 
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
@@ -41,46 +44,45 @@ func main() {
 	})
 	ctx := context.Background()
 
-	resourceGroup,err := createResourceGroup(ctx,conn)
+	resourceGroup, err := createResourceGroup(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("resource group:",*resourceGroup.ID)
+	log.Println("resources group:", *resourceGroup.ID)
 
-	virtualNetwork,err := createVirtualNetwork(ctx,conn)
+	virtualNetwork, err := createVirtualNetwork(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("virtual network:",*virtualNetwork.ID)
+	log.Println("virtual network:", *virtualNetwork.ID)
 
-	subnet,err := createSubnet(ctx,conn)
+	subnet, err := createSubnet(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("subnet:",*subnet.ID)
+	log.Println("subnet:", *subnet.ID)
 
-	publicIP,err := createPublicIP(ctx,conn)
+	publicIP, err := createPublicIP(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("public ip:",*publicIP.ID)
+	log.Println("public ip:", *publicIP.ID)
 
-	networkSecurityGroup,err := createNetworkSecurityGroup(ctx,conn)
+	networkSecurityGroup, err := createNetworkSecurityGroup(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("network security group:",*networkSecurityGroup.ID)
+	log.Println("network security group:", *networkSecurityGroup.ID)
 
-
-	nic,err := createNIC(ctx,conn,*subnet.ID,*publicIP.ID,*networkSecurityGroup.ID)
+	nic, err := createNIC(ctx, conn, *subnet.ID, *publicIP.ID, *networkSecurityGroup.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("network interface:",*nic.ID)
+	log.Println("network interface:", *nic.ID)
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_,err := cleanup(ctx,conn)
+		_, err := cleanup(ctx, conn)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -88,10 +90,10 @@ func main() {
 	}
 }
 
-func createResourceGroup(ctx context.Context,conn *armcore.Connection) (*armresources.ResourceGroup,error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn,subscriptionID)
+func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
-	resourceGroupResp,err := resourceGroupClient.CreateOrUpdate(
+	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
@@ -99,15 +101,15 @@ func createResourceGroup(ctx context.Context,conn *armcore.Connection) (*armreso
 		},
 		nil)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	return resourceGroupResp.ResourceGroup,nil
+	return resourceGroupResp.ResourceGroup, nil
 }
 
-func createVirtualNetwork(ctx context.Context,conn *armcore.Connection) (*armnetwork.VirtualNetwork,error) {
-	virtualNetworkClient := armnetwork.NewVirtualNetworksClient(conn,subscriptionID)
+func createVirtualNetwork(ctx context.Context, conn *armcore.Connection) (*armnetwork.VirtualNetwork, error) {
+	virtualNetworkClient := armnetwork.NewVirtualNetworksClient(conn, subscriptionID)
 
-	pollerResp,err := virtualNetworkClient.BeginCreateOrUpdate(
+	pollerResp, err := virtualNetworkClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		virtualNetworkName,
@@ -126,20 +128,20 @@ func createVirtualNetwork(ctx context.Context,conn *armcore.Connection) (*armnet
 		nil)
 
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
-	resp,err := pollerResp.PollUntilDone(ctx, 10 * time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	return resp.VirtualNetwork,nil
+	return resp.VirtualNetwork, nil
 }
 
-func createSubnet(ctx context.Context,conn *armcore.Connection) (*armnetwork.Subnet,error) {
-	subnetsClient := armnetwork.NewSubnetsClient(conn,subscriptionID)
+func createSubnet(ctx context.Context, conn *armcore.Connection) (*armnetwork.Subnet, error) {
+	subnetsClient := armnetwork.NewSubnetsClient(conn, subscriptionID)
 
-	pollerResp,err := subnetsClient.BeginCreateOrUpdate(
+	pollerResp, err := subnetsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		virtualNetworkName,
@@ -152,20 +154,20 @@ func createSubnet(ctx context.Context,conn *armcore.Connection) (*armnetwork.Sub
 		nil)
 
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
-	resp,err := pollerResp.PollUntilDone(ctx, 10 * time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	return resp.Subnet,nil
+	return resp.Subnet, nil
 }
 
 func createPublicIP(ctx context.Context, conn *armcore.Connection) (*armnetwork.PublicIPAddress, error) {
 	publicIPClient := armnetwork.NewPublicIPAddressesClient(conn, subscriptionID)
 
-	pollerResp,err := publicIPClient.BeginCreateOrUpdate(
+	pollerResp, err := publicIPClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		publicIPAddressName,
@@ -185,17 +187,17 @@ func createPublicIP(ctx context.Context, conn *armcore.Connection) (*armnetwork.
 		return nil, err
 	}
 
-	resp,err := pollerResp.PollUntilDone(ctx, 10 * time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
 		return nil, err
 	}
-	return resp.PublicIPAddress,nil
+	return resp.PublicIPAddress, nil
 }
 
-func createNetworkSecurityGroup(ctx context.Context,conn *armcore.Connection) (*armnetwork.NetworkSecurityGroup,error) {
-	networkSecurityGroupClient := armnetwork.NewNetworkSecurityGroupsClient(conn,subscriptionID)
+func createNetworkSecurityGroup(ctx context.Context, conn *armcore.Connection) (*armnetwork.NetworkSecurityGroup, error) {
+	networkSecurityGroupClient := armnetwork.NewNetworkSecurityGroupsClient(conn, subscriptionID)
 
-	pollerResp,err := networkSecurityGroupClient.BeginCreateOrUpdate(
+	pollerResp, err := networkSecurityGroupClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		securityGroupName,
@@ -237,20 +239,20 @@ func createNetworkSecurityGroup(ctx context.Context,conn *armcore.Connection) (*
 		nil)
 
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
-	resp,err := pollerResp.PollUntilDone(ctx, 10 * time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	return resp.NetworkSecurityGroup,nil
+	return resp.NetworkSecurityGroup, nil
 }
 
-func createNIC(ctx context.Context, conn *armcore.Connection, subnetID, publicIPID,networkSecurityGroupID string) (*armnetwork.NetworkInterface, error) {
+func createNIC(ctx context.Context, conn *armcore.Connection, subnetID, publicIPID, networkSecurityGroupID string) (*armnetwork.NetworkInterface, error) {
 	nicClient := armnetwork.NewNetworkInterfacesClient(conn, subscriptionID)
 
-	pollerResp,err := nicClient.BeginCreateOrUpdate(
+	pollerResp, err := nicClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		networkInterfaceName,
@@ -270,7 +272,7 @@ func createNIC(ctx context.Context, conn *armcore.Connection, subnetID, publicIP
 								},
 							},
 							PublicIPAddress: &armnetwork.PublicIPAddress{
-								Resource:armnetwork.Resource{
+								Resource: armnetwork.Resource{
 									ID: to.StringPtr(publicIPID),
 								},
 							},
@@ -278,7 +280,7 @@ func createNIC(ctx context.Context, conn *armcore.Connection, subnetID, publicIP
 					},
 				},
 				NetworkSecurityGroup: &armnetwork.NetworkSecurityGroup{
-					Resource:armnetwork.Resource{
+					Resource: armnetwork.Resource{
 						ID: to.StringPtr(networkSecurityGroupID),
 					},
 				},
@@ -290,25 +292,24 @@ func createNIC(ctx context.Context, conn *armcore.Connection, subnetID, publicIP
 		return nil, err
 	}
 
-	resp,err := pollerResp.PollUntilDone(ctx, 10 * time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
 		return nil, err
 	}
-	return resp.NetworkInterface,nil
+	return resp.NetworkInterface, nil
 }
 
+func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
-func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response,error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn,subscriptionID)
-
-	pollerResp,err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
-	if err != nil {
-		return nil,err
-	}
-
-	resp,err := pollerResp.PollUntilDone(ctx, 10 * time.Second)
+	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
 		return nil, err
 	}
-	return resp,nil
+
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }

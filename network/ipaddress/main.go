@@ -2,22 +2,25 @@ package main
 
 import (
 	"context"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/armcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/network/armnetwork"
 	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
 	"github.com/Azure/azure-sdk-for-go/sdk/to"
-	"log"
-	"net/http"
-	"os"
-	"time"
 )
 
-var subscriptionID string
-var location = "westus"
-var resourceGroupName = "sample-resource-group"
-var publicIPAddressName = "sample-public-ip"
+var (
+	subscriptionID      string
+	location            = "westus"
+	resourceGroupName   = "sample-resources-group"
+	publicIPAddressName = "sample-public-ip"
+)
 
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
@@ -37,21 +40,21 @@ func main() {
 	})
 	ctx := context.Background()
 
-	resourceGroup,err := createResourceGroup(ctx,conn)
+	resourceGroup, err := createResourceGroup(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("resource group:",*resourceGroup.ID)
+	log.Println("resources group:", *resourceGroup.ID)
 
-	publicIP,err := createPublicIP(ctx,conn)
+	publicIP, err := createPublicIP(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("public IP:",*publicIP.ID)
+	log.Println("public IP:", *publicIP.ID)
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_,err := cleanup(ctx,conn)
+		_, err := cleanup(ctx, conn)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -62,7 +65,7 @@ func main() {
 func createPublicIP(ctx context.Context, conn *armcore.Connection) (*armnetwork.PublicIPAddress, error) {
 	publicIPClient := armnetwork.NewPublicIPAddressesClient(conn, subscriptionID)
 
-	pollerResp,err := publicIPClient.BeginCreateOrUpdate(
+	pollerResp, err := publicIPClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		publicIPAddressName,
@@ -82,17 +85,17 @@ func createPublicIP(ctx context.Context, conn *armcore.Connection) (*armnetwork.
 		return nil, err
 	}
 
-	resp,err := pollerResp.PollUntilDone(ctx, 10 * time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
 		return nil, err
 	}
-	return resp.PublicIPAddress,nil
+	return resp.PublicIPAddress, nil
 }
 
-func createResourceGroup(ctx context.Context,conn *armcore.Connection) (*armresources.ResourceGroup,error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn,subscriptionID)
+func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
-	resourceGroupResp,err := resourceGroupClient.CreateOrUpdate(
+	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
@@ -100,22 +103,22 @@ func createResourceGroup(ctx context.Context,conn *armcore.Connection) (*armreso
 		},
 		nil)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	return resourceGroupResp.ResourceGroup,nil
+	return resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response,error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn,subscriptionID)
+func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
-	pollerResp,err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
-	if err != nil {
-		return nil,err
-	}
-
-	resp,err := pollerResp.PollUntilDone(ctx, 10 * time.Second)
+	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
 		return nil, err
 	}
-	return resp,nil
+
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }

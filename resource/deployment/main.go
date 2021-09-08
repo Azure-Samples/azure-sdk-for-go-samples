@@ -10,11 +10,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/armcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
-	"github.com/Azure/azure-sdk-for-go/sdk/to"
 )
 
 var (
@@ -35,8 +35,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn := armcore.NewDefaultConnection(cred, &armcore.ConnectionOptions{
-		Logging: azcore.LogOptions{
+	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
+		Logging: policy.LogOptions{
 			IncludeBody: true,
 		},
 	})
@@ -99,7 +99,7 @@ func readJson(path string) (map[string]interface{}, error) {
 	return template, nil
 }
 
-func checkExistDeployment(ctx context.Context, conn *armcore.Connection) (bool, error) {
+func checkExistDeployment(ctx context.Context, conn *arm.Connection) (bool, error) {
 	deploymentsClient := armresources.NewDeploymentsClient(conn, subscriptionID)
 
 	boolResp, err := deploymentsClient.CheckExistence(ctx, resourceGroupName, deploymentName, nil)
@@ -110,7 +110,7 @@ func checkExistDeployment(ctx context.Context, conn *armcore.Connection) (bool, 
 	return boolResp.Success, nil
 }
 
-func createDeployment(ctx context.Context, conn *armcore.Connection, template, params map[string]interface{}) (*armresources.DeploymentExtended, error) {
+func createDeployment(ctx context.Context, conn *arm.Connection, template, params map[string]interface{}) (*armresources.DeploymentExtended, error) {
 	deploymentsClient := armresources.NewDeploymentsClient(conn, subscriptionID)
 
 	deploymentPollerResp, err := deploymentsClient.BeginCreateOrUpdate(
@@ -135,10 +135,10 @@ func createDeployment(ctx context.Context, conn *armcore.Connection, template, p
 		return nil, fmt.Errorf("cannot get the create deployment future respone: %v", err)
 	}
 
-	return resp.DeploymentExtended, nil
+	return &resp.DeploymentExtended, nil
 }
 
-func validateDeployment(ctx context.Context, conn *armcore.Connection, template, params map[string]interface{}) (*armresources.DeploymentValidateResult, error) {
+func validateDeployment(ctx context.Context, conn *arm.Connection, template, params map[string]interface{}) (*armresources.DeploymentValidateResult, error) {
 	deploymentsClient := armresources.NewDeploymentsClient(conn, subscriptionID)
 
 	pollerResp, err := deploymentsClient.BeginValidate(
@@ -163,10 +163,10 @@ func validateDeployment(ctx context.Context, conn *armcore.Connection, template,
 		return nil, err
 	}
 
-	return resp.DeploymentValidateResult, nil
+	return &resp.DeploymentValidateResult, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroup, error) {
+func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
@@ -179,10 +179,10 @@ func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armres
 	if err != nil {
 		return nil, err
 	}
-	return resourceGroupResp.ResourceGroup, nil
+	return &resourceGroupResp.ResourceGroupsCreateOrUpdateResult.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, error) {
+func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
@@ -194,5 +194,5 @@ func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, err
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+	return resp.RawResponse, nil
 }

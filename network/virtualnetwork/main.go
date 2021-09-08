@@ -8,12 +8,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/armcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/network/armnetwork"
 	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
-	"github.com/Azure/azure-sdk-for-go/sdk/to"
 )
 
 var (
@@ -34,18 +34,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn := armcore.NewDefaultConnection(cred, &armcore.ConnectionOptions{
-		Logging: azcore.LogOptions{
+	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
+		Logging: policy.LogOptions{
 			IncludeBody: true,
 		},
 	})
 	ctx := context.Background()
 
-	//resourceGroup,err := resourcegroups(ctx,conn)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//log.Println("resources group:",*resourceGroup.ID)
+	resourceGroup, err := createResourceGroup(ctx, conn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("resources group:", *resourceGroup.ID)
 
 	virtualNetwork, err := createVirtualNetwork(ctx, conn)
 	if err != nil {
@@ -73,7 +73,7 @@ func main() {
 	}
 }
 
-func createVirtualNetwork(ctx context.Context, conn *armcore.Connection) (*armnetwork.VirtualNetwork, error) {
+func createVirtualNetwork(ctx context.Context, conn *arm.Connection) (*armnetwork.VirtualNetwork, error) {
 	virtualNetworkClient := armnetwork.NewVirtualNetworksClient(conn, subscriptionID)
 
 	pollerResp, err := virtualNetworkClient.BeginCreateOrUpdate(
@@ -102,10 +102,10 @@ func createVirtualNetwork(ctx context.Context, conn *armcore.Connection) (*armne
 	if err != nil {
 		return nil, err
 	}
-	return resp.VirtualNetwork, nil
+	return &resp.VirtualNetwork, nil
 }
 
-func createVirtualNetworkAndSubnets(ctx context.Context, conn *armcore.Connection) (*armnetwork.VirtualNetwork, error) {
+func createVirtualNetworkAndSubnets(ctx context.Context, conn *arm.Connection) (*armnetwork.VirtualNetwork, error) {
 	virtualNetworkClient := armnetwork.NewVirtualNetworksClient(conn, subscriptionID)
 
 	pollerResp, err := virtualNetworkClient.BeginCreateOrUpdate(
@@ -149,10 +149,10 @@ func createVirtualNetworkAndSubnets(ctx context.Context, conn *armcore.Connectio
 		return nil, err
 	}
 
-	return resp.VirtualNetwork, nil
+	return &resp.VirtualNetwork, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroup, error) {
+func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
@@ -165,10 +165,10 @@ func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armres
 	if err != nil {
 		return nil, err
 	}
-	return resourceGroupResp.ResourceGroup, nil
+	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, error) {
+func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
@@ -180,5 +180,5 @@ func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, err
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+	return resp.RawResponse, nil
 }

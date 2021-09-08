@@ -8,12 +8,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/armcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/armstorage"
-	"github.com/Azure/azure-sdk-for-go/sdk/to"
 )
 
 var (
@@ -35,8 +35,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn := armcore.NewDefaultConnection(cred, &armcore.ConnectionOptions{
-		Logging: azcore.LogOptions{
+	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
+		Logging: policy.LogOptions{
 			IncludeBody: true,
 		},
 	})
@@ -146,7 +146,7 @@ func main() {
 	}
 }
 
-func createStorageAccount(ctx context.Context, conn *armcore.Connection) (*armstorage.StorageAccount, error) {
+func createStorageAccount(ctx context.Context, conn *arm.Connection) (*armstorage.StorageAccount, error) {
 	storageAccountClient := armstorage.NewStorageAccountsClient(conn, subscriptionID)
 
 	pollerResp, err := storageAccountClient.BeginCreate(
@@ -183,10 +183,10 @@ func createStorageAccount(ctx context.Context, conn *armcore.Connection) (*armst
 	if err != nil {
 		return nil, err
 	}
-	return resp.StorageAccount, nil
+	return &resp.StorageAccount, nil
 }
 
-func createBlobContainers(ctx context.Context, conn *armcore.Connection) (*armstorage.BlobContainer, error) {
+func createBlobContainers(ctx context.Context, conn *arm.Connection) (*armstorage.BlobContainer, error) {
 	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
 
 	blobContainerResp, err := blobContainerClient.Create(
@@ -205,10 +205,10 @@ func createBlobContainers(ctx context.Context, conn *armcore.Connection) (*armst
 		return nil, err
 	}
 
-	return blobContainerResp.BlobContainer, nil
+	return &blobContainerResp.BlobContainer, nil
 }
 
-func getBlobContainer(ctx context.Context, conn *armcore.Connection) (blobContainer *armstorage.BlobContainer, err error) {
+func getBlobContainer(ctx context.Context, conn *arm.Connection) (blobContainer *armstorage.BlobContainer, err error) {
 	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
 
 	blobContainerResp, err := blobContainerClient.Get(ctx, resourceGroupName, storageAccountName, containerName, nil)
@@ -216,11 +216,11 @@ func getBlobContainer(ctx context.Context, conn *armcore.Connection) (blobContai
 		return
 	}
 
-	blobContainer = blobContainerResp.BlobContainer
+	blobContainer = &blobContainerResp.BlobContainer
 	return
 }
 
-func listBlobContainer(ctx context.Context, conn *armcore.Connection) (listItems []*armstorage.ListContainerItem) {
+func listBlobContainer(ctx context.Context, conn *arm.Connection) (listItems []*armstorage.ListContainerItem) {
 	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
 
 	containerItemsPager := blobContainerClient.List(resourceGroupName, storageAccountName, nil)
@@ -233,7 +233,7 @@ func listBlobContainer(ctx context.Context, conn *armcore.Connection) (listItems
 	return
 }
 
-func createContainerImmutabilityPolicy(ctx context.Context, conn *armcore.Connection) (*armstorage.ImmutabilityPolicy, error) {
+func createContainerImmutabilityPolicy(ctx context.Context, conn *arm.Connection) (*armstorage.ImmutabilityPolicy, error) {
 	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
 
 	immutabilityPolicyResp, err := blobContainerClient.CreateOrUpdateImmutabilityPolicy(
@@ -254,10 +254,10 @@ func createContainerImmutabilityPolicy(ctx context.Context, conn *armcore.Connec
 		return nil, err
 	}
 
-	return immutabilityPolicyResp.ImmutabilityPolicy, nil
+	return &immutabilityPolicyResp.ImmutabilityPolicy, nil
 }
 
-func updateContainerImmutabilityPolicy(ctx context.Context, conn *armcore.Connection, ifMatch string) (*armstorage.ImmutabilityPolicy, error) {
+func updateContainerImmutabilityPolicy(ctx context.Context, conn *arm.Connection, ifMatch string) (*armstorage.ImmutabilityPolicy, error) {
 	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
 
 	immutabilityPolicyResp, err := blobContainerClient.CreateOrUpdateImmutabilityPolicy(
@@ -279,10 +279,10 @@ func updateContainerImmutabilityPolicy(ctx context.Context, conn *armcore.Connec
 		return nil, err
 	}
 
-	return immutabilityPolicyResp.ImmutabilityPolicy, nil
+	return &immutabilityPolicyResp.ImmutabilityPolicy, nil
 }
 
-func getContainerImmutabilityPolicy(ctx context.Context, conn *armcore.Connection) (*armstorage.ImmutabilityPolicy, error) {
+func getContainerImmutabilityPolicy(ctx context.Context, conn *arm.Connection) (*armstorage.ImmutabilityPolicy, error) {
 	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
 
 	immutabilityPolicyResp, err := blobContainerClient.GetImmutabilityPolicy(
@@ -295,10 +295,10 @@ func getContainerImmutabilityPolicy(ctx context.Context, conn *armcore.Connectio
 		return nil, err
 	}
 
-	return immutabilityPolicyResp.ImmutabilityPolicy, nil
+	return &immutabilityPolicyResp.ImmutabilityPolicy, nil
 }
 
-func extendContainerImmutabilityPolicy(ctx context.Context, conn *armcore.Connection, ifMatch string) (*armstorage.ImmutabilityPolicy, error) {
+func extendContainerImmutabilityPolicy(ctx context.Context, conn *arm.Connection, ifMatch string) (*armstorage.ImmutabilityPolicy, error) {
 	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
 
 	immutabilityPolicyResp, err := blobContainerClient.ExtendImmutabilityPolicy(
@@ -312,10 +312,10 @@ func extendContainerImmutabilityPolicy(ctx context.Context, conn *armcore.Connec
 		return nil, err
 	}
 
-	return immutabilityPolicyResp.ImmutabilityPolicy, nil
+	return &immutabilityPolicyResp.ImmutabilityPolicy, nil
 }
 
-func deleteContainerImmutabilityPolicy(ctx context.Context, conn *armcore.Connection, ifMatch string) (*armstorage.ImmutabilityPolicy, error) {
+func deleteContainerImmutabilityPolicy(ctx context.Context, conn *arm.Connection, ifMatch string) (*armstorage.ImmutabilityPolicy, error) {
 	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
 
 	immutabilityPolicyResp, err := blobContainerClient.DeleteImmutabilityPolicy(
@@ -329,10 +329,10 @@ func deleteContainerImmutabilityPolicy(ctx context.Context, conn *armcore.Connec
 		return nil, err
 	}
 
-	return immutabilityPolicyResp.ImmutabilityPolicy, nil
+	return &immutabilityPolicyResp.ImmutabilityPolicy, nil
 }
 
-func setLegalHoldBlobContainer(ctx context.Context, conn *armcore.Connection) (*armstorage.LegalHold, error) {
+func setLegalHoldBlobContainer(ctx context.Context, conn *arm.Connection) (*armstorage.LegalHold, error) {
 	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
 
 	legalHoldResp, err := blobContainerClient.SetLegalHold(
@@ -351,10 +351,10 @@ func setLegalHoldBlobContainer(ctx context.Context, conn *armcore.Connection) (*
 		return nil, err
 	}
 
-	return legalHoldResp.LegalHold, nil
+	return &legalHoldResp.LegalHold, nil
 }
 
-func clearLegalHoldBlobContainer(ctx context.Context, conn *armcore.Connection) (*armstorage.LegalHold, error) {
+func clearLegalHoldBlobContainer(ctx context.Context, conn *arm.Connection) (*armstorage.LegalHold, error) {
 	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
 
 	legalHoldResp, err := blobContainerClient.ClearLegalHold(
@@ -372,10 +372,10 @@ func clearLegalHoldBlobContainer(ctx context.Context, conn *armcore.Connection) 
 		return nil, err
 	}
 
-	return legalHoldResp.LegalHold, nil
+	return &legalHoldResp.LegalHold, nil
 }
 
-func objectLevelWormBlobContainer(ctx context.Context, conn *armcore.Connection) (*http.Response, error) {
+func objectLevelWormBlobContainer(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
 	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
 
 	pollerResp, err := blobContainerClient.BeginObjectLevelWorm(
@@ -393,10 +393,10 @@ func objectLevelWormBlobContainer(ctx context.Context, conn *armcore.Connection)
 		return nil, err
 	}
 
-	return resp, nil
+	return resp.RawResponse, nil
 }
 
-func leaseBlobContainer(ctx context.Context, conn *armcore.Connection) (*armstorage.LeaseContainerResponse, error) {
+func leaseBlobContainer(ctx context.Context, conn *arm.Connection) (*armstorage.LeaseContainerResponse, error) {
 	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
 
 	leaseContainerResp, err := blobContainerClient.Lease(
@@ -414,10 +414,10 @@ func leaseBlobContainer(ctx context.Context, conn *armcore.Connection) (*armstor
 		return nil, err
 	}
 
-	return leaseContainerResp.LeaseContainerResponse, nil
+	return &leaseContainerResp.LeaseContainerResponse, nil
 }
 
-func blobServices(ctx context.Context, conn *armcore.Connection) {
+func blobServices(ctx context.Context, conn *arm.Connection) {
 	blobServicesProperties, err := setBlobServices(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
@@ -442,7 +442,7 @@ func blobServices(ctx context.Context, conn *armcore.Connection) {
 	}
 }
 
-func setBlobServices(ctx context.Context, conn *armcore.Connection) (*armstorage.BlobServiceProperties, error) {
+func setBlobServices(ctx context.Context, conn *arm.Connection) (*armstorage.BlobServiceProperties, error) {
 	blobServicesClient := armstorage.NewBlobServicesClient(conn, subscriptionID)
 
 	blobServicesPropertiesResp, err := blobServicesClient.SetServiceProperties(
@@ -458,10 +458,10 @@ func setBlobServices(ctx context.Context, conn *armcore.Connection) (*armstorage
 		return nil, err
 	}
 
-	return blobServicesPropertiesResp.BlobServiceProperties, nil
+	return &blobServicesPropertiesResp.BlobServiceProperties, nil
 }
 
-func getBlobServices(ctx context.Context, conn *armcore.Connection) (*armstorage.BlobServiceProperties, error) {
+func getBlobServices(ctx context.Context, conn *arm.Connection) (*armstorage.BlobServiceProperties, error) {
 	blobServicesClient := armstorage.NewBlobServicesClient(conn, subscriptionID)
 
 	blobServicesResp, err := blobServicesClient.GetServiceProperties(ctx, resourceGroupName, storageAccountName, nil)
@@ -469,10 +469,10 @@ func getBlobServices(ctx context.Context, conn *armcore.Connection) (*armstorage
 		return nil, err
 	}
 
-	return blobServicesResp.BlobServiceProperties, nil
+	return &blobServicesResp.BlobServiceProperties, nil
 }
 
-func listBlobServices(ctx context.Context, conn *armcore.Connection) ([]*armstorage.BlobServiceProperties, error) {
+func listBlobServices(ctx context.Context, conn *arm.Connection) ([]*armstorage.BlobServiceProperties, error) {
 	blobServicesClient := armstorage.NewBlobServicesClient(conn, subscriptionID)
 
 	blobServicesResp, err := blobServicesClient.List(ctx, resourceGroupName, storageAccountName, nil)
@@ -483,7 +483,7 @@ func listBlobServices(ctx context.Context, conn *armcore.Connection) ([]*armstor
 	return blobServicesResp.BlobServiceItems.Value, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroup, error) {
+func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
@@ -496,10 +496,10 @@ func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armres
 	if err != nil {
 		return nil, err
 	}
-	return resourceGroupResp.ResourceGroup, nil
+	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, error) {
+func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
@@ -511,5 +511,5 @@ func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, err
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+	return resp.RawResponse, nil
 }

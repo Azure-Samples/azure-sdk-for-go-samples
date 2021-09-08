@@ -8,12 +8,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/armcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/network/armnetwork"
 	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
-	"github.com/Azure/azure-sdk-for-go/sdk/to"
 )
 
 var (
@@ -36,8 +36,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn := armcore.NewDefaultConnection(cred, &armcore.ConnectionOptions{
-		Logging: azcore.LogOptions{
+	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
+		Logging: policy.LogOptions{
 			IncludeBody: true,
 		},
 	})
@@ -83,7 +83,7 @@ func main() {
 	}
 }
 
-func createVirtualNetwork(ctx context.Context, conn *armcore.Connection) (*armnetwork.VirtualNetwork, error) {
+func createVirtualNetwork(ctx context.Context, conn *arm.Connection) (*armnetwork.VirtualNetwork, error) {
 	virtualNetworkClient := armnetwork.NewVirtualNetworksClient(conn, subscriptionID)
 
 	pollerResp, err := virtualNetworkClient.BeginCreateOrUpdate(
@@ -112,10 +112,10 @@ func createVirtualNetwork(ctx context.Context, conn *armcore.Connection) (*armne
 	if err != nil {
 		return nil, err
 	}
-	return resp.VirtualNetwork, nil
+	return &resp.VirtualNetwork, nil
 }
 
-func createSubnet(ctx context.Context, conn *armcore.Connection) (*armnetwork.Subnet, error) {
+func createSubnet(ctx context.Context, conn *arm.Connection) (*armnetwork.Subnet, error) {
 	subnetsClient := armnetwork.NewSubnetsClient(conn, subscriptionID)
 
 	pollerResp, err := subnetsClient.BeginCreateOrUpdate(
@@ -139,10 +139,10 @@ func createSubnet(ctx context.Context, conn *armcore.Connection) (*armnetwork.Su
 	if err != nil {
 		return nil, err
 	}
-	return resp.Subnet, nil
+	return &resp.Subnet, nil
 }
 
-func createSubnetWithNetworkSecurityGroup(ctx context.Context, conn *armcore.Connection, nsgID string) (*armnetwork.Subnet, error) {
+func createSubnetWithNetworkSecurityGroup(ctx context.Context, conn *arm.Connection, nsgID string) (*armnetwork.Subnet, error) {
 	subnetsClient := armnetwork.NewSubnetsClient(conn, subscriptionID)
 
 	pollerResp, err := subnetsClient.BeginCreateOrUpdate(
@@ -170,10 +170,10 @@ func createSubnetWithNetworkSecurityGroup(ctx context.Context, conn *armcore.Con
 		return nil, err
 	}
 
-	return resp.Subnet, nil
+	return &resp.Subnet, nil
 }
 
-func createNetworkSecurityGroup(ctx context.Context, conn *armcore.Connection) (*armnetwork.NetworkSecurityGroup, error) {
+func createNetworkSecurityGroup(ctx context.Context, conn *arm.Connection) (*armnetwork.NetworkSecurityGroup, error) {
 	networkSecurityGroupClient := armnetwork.NewNetworkSecurityGroupsClient(conn, subscriptionID)
 
 	pollerResp, err := networkSecurityGroupClient.BeginCreateOrUpdate(
@@ -225,10 +225,10 @@ func createNetworkSecurityGroup(ctx context.Context, conn *armcore.Connection) (
 	if err != nil {
 		return nil, err
 	}
-	return resp.NetworkSecurityGroup, nil
+	return &resp.NetworkSecurityGroup, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroup, error) {
+func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
@@ -241,10 +241,10 @@ func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armres
 	if err != nil {
 		return nil, err
 	}
-	return resourceGroupResp.ResourceGroup, nil
+	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, error) {
+func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
@@ -256,5 +256,5 @@ func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, err
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+	return resp.RawResponse, nil
 }

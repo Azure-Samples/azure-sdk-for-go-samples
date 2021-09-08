@@ -7,12 +7,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/armcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/armkeyvault"
 	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
-	"github.com/Azure/azure-sdk-for-go/sdk/to"
 )
 
 var (
@@ -40,8 +40,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn := armcore.NewDefaultConnection(cred, &armcore.ConnectionOptions{
-		Logging: azcore.LogOptions{
+	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
+		Logging: policy.LogOptions{
 			IncludeBody: true,
 		},
 	})
@@ -75,7 +75,7 @@ func main() {
 	}
 }
 
-func createVault(ctx context.Context, conn *armcore.Connection) (*armkeyvault.Vault, error) {
+func createVault(ctx context.Context, conn *arm.Connection) (*armkeyvault.Vault, error) {
 	vaultsClient := armkeyvault.NewVaultsClient(conn, subscriptionID)
 
 	pollerResp, err := vaultsClient.BeginCreateOrUpdate(
@@ -103,10 +103,10 @@ func createVault(ctx context.Context, conn *armcore.Connection) (*armkeyvault.Va
 	if err != nil {
 		return nil, err
 	}
-	return resp.Vault, nil
+	return &resp.Vault, nil
 }
 
-func createSecret(ctx context.Context, conn *armcore.Connection) (*armkeyvault.Secret, error) {
+func createSecret(ctx context.Context, conn *arm.Connection) (*armkeyvault.Secret, error) {
 	secretsClient := armkeyvault.NewSecretsClient(conn, subscriptionID)
 
 	secretResp, err := secretsClient.CreateOrUpdate(
@@ -130,10 +130,10 @@ func createSecret(ctx context.Context, conn *armcore.Connection) (*armkeyvault.S
 		return nil, err
 	}
 
-	return secretResp.Secret, nil
+	return &secretResp.Secret, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroup, error) {
+func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
@@ -146,10 +146,10 @@ func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armres
 	if err != nil {
 		return nil, err
 	}
-	return resourceGroupResp.ResourceGroup, nil
+	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, error) {
+func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
@@ -161,5 +161,5 @@ func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, err
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+	return resp.RawResponse, nil
 }

@@ -7,11 +7,10 @@ import (
 	"math"
 	"os"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/armcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
-	"github.com/Azure/azure-sdk-for-go/sdk/to"
 )
 
 var (
@@ -30,8 +29,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn := armcore.NewDefaultConnection(cred, &armcore.ConnectionOptions{
-		Logging: azcore.LogOptions{
+	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
+		Logging: policy.LogOptions{
 			IncludeBody: true,
 		},
 	})
@@ -78,7 +77,7 @@ func main() {
 	log.Println("get atTenant:", *atTenant.Namespace)
 }
 
-func registerProvider(ctx context.Context, conn *armcore.Connection) (*armresources.Provider, error) {
+func registerProvider(ctx context.Context, conn *arm.Connection) (*armresources.Provider, error) {
 	providerClient := armresources.NewProvidersClient(conn, subscriptionID)
 
 	providerResp, err := providerClient.Register(ctx, resourceProviderNamespace, nil)
@@ -86,10 +85,10 @@ func registerProvider(ctx context.Context, conn *armcore.Connection) (*armresour
 		return nil, err
 	}
 
-	return providerResp.Provider, nil
+	return &providerResp.Provider, nil
 }
 
-func getProvider(ctx context.Context, conn *armcore.Connection) (*armresources.Provider, error) {
+func getProvider(ctx context.Context, conn *arm.Connection) (*armresources.Provider, error) {
 	providerClient := armresources.NewProvidersClient(conn, subscriptionID)
 
 	providerResp, err := providerClient.Get(ctx, resourceProviderNamespace, nil)
@@ -97,10 +96,10 @@ func getProvider(ctx context.Context, conn *armcore.Connection) (*armresources.P
 		return nil, err
 	}
 
-	return providerResp.Provider, nil
+	return &providerResp.Provider, nil
 }
 
-func listProvider(ctx context.Context, conn *armcore.Connection) []*armresources.Provider {
+func listProvider(ctx context.Context, conn *arm.Connection) []*armresources.Provider {
 	providerClient := armresources.NewProvidersClient(conn, subscriptionID)
 
 	providerList := providerClient.List(nil)
@@ -114,7 +113,7 @@ func listProvider(ctx context.Context, conn *armcore.Connection) []*armresources
 	return providers
 }
 
-func getAtTenantScopeProvider(ctx context.Context, conn *armcore.Connection) (*armresources.Provider, error) {
+func getAtTenantScopeProvider(ctx context.Context, conn *arm.Connection) (*armresources.Provider, error) {
 	providerClient := armresources.NewProvidersClient(conn, subscriptionID)
 
 	providerResp, err := providerClient.GetAtTenantScope(ctx, resourceProviderNamespace, nil)
@@ -122,15 +121,13 @@ func getAtTenantScopeProvider(ctx context.Context, conn *armcore.Connection) (*a
 		return nil, err
 	}
 
-	return providerResp.Provider, nil
+	return &providerResp.Provider, nil
 }
 
-func listAtTenantScopeProvider(ctx context.Context, conn *armcore.Connection) []*armresources.Provider {
+func listAtTenantScopeProvider(ctx context.Context, conn *arm.Connection) []*armresources.Provider {
 	providerClient := armresources.NewProvidersClient(conn, subscriptionID)
 
-	providerList := providerClient.ListAtTenantScope(&armresources.ProvidersListAtTenantScopeOptions{
-		Top: to.Int32Ptr(1),
-	})
+	providerList := providerClient.ListAtTenantScope(&armresources.ProvidersListAtTenantScopeOptions{})
 
 	var providers = make([]*armresources.Provider, 0)
 	for providerList.NextPage(ctx) {
@@ -142,7 +139,7 @@ func listAtTenantScopeProvider(ctx context.Context, conn *armcore.Connection) []
 	return providers
 }
 
-func providerPermissions(ctx context.Context, conn *armcore.Connection) (*armresources.ProviderPermissionListResult, error) {
+func providerPermissions(ctx context.Context, conn *arm.Connection) (*armresources.ProviderPermissionListResult, error) {
 	providerClient := armresources.NewProvidersClient(conn, subscriptionID)
 
 	providerPermissionsResp, err := providerClient.ProviderPermissions(ctx, resourceProviderNamespace, nil)
@@ -150,5 +147,5 @@ func providerPermissions(ctx context.Context, conn *armcore.Connection) (*armres
 		return nil, err
 	}
 
-	return providerPermissionsResp.ProviderPermissionListResult, nil
+	return &providerPermissionsResp.ProviderPermissionListResult, nil
 }

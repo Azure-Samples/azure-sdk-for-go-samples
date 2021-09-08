@@ -7,12 +7,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/armcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/armstorage"
-	"github.com/Azure/azure-sdk-for-go/sdk/to"
 )
 
 var (
@@ -34,8 +34,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn := armcore.NewDefaultConnection(cred, &armcore.ConnectionOptions{
-		Logging: azcore.LogOptions{
+	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
+		Logging: policy.LogOptions{
 			IncludeBody: true,
 		},
 	})
@@ -81,7 +81,7 @@ func main() {
 	}
 }
 
-func createStorageAccount(ctx context.Context, conn *armcore.Connection) (*armstorage.StorageAccount, error) {
+func createStorageAccount(ctx context.Context, conn *arm.Connection) (*armstorage.StorageAccount, error) {
 	storageAccountClient := armstorage.NewStorageAccountsClient(conn, subscriptionID)
 
 	pollerResp, err := storageAccountClient.BeginCreate(
@@ -118,10 +118,10 @@ func createStorageAccount(ctx context.Context, conn *armcore.Connection) (*armst
 	if err != nil {
 		return nil, err
 	}
-	return resp.StorageAccount, nil
+	return &resp.StorageAccount, nil
 }
 
-func createFileShare(ctx context.Context, conn *armcore.Connection) (*armstorage.FileShare, error) {
+func createFileShare(ctx context.Context, conn *arm.Connection) (*armstorage.FileShare, error) {
 	fileSharesClient := armstorage.NewFileSharesClient(conn, subscriptionID)
 
 	resp, err := fileSharesClient.Create(
@@ -135,20 +135,20 @@ func createFileShare(ctx context.Context, conn *armcore.Connection) (*armstorage
 	if err != nil {
 		return nil, err
 	}
-	return resp.FileShare, nil
+	return &resp.FileShare, nil
 }
 
-func getFileShare(ctx context.Context, conn *armcore.Connection) (*armstorage.FileShare, error) {
+func getFileShare(ctx context.Context, conn *arm.Connection) (*armstorage.FileShare, error) {
 	fileSharesClient := armstorage.NewFileSharesClient(conn, subscriptionID)
 
 	resp, err := fileSharesClient.Get(ctx, resourceGroupName, storageAccountName, shareName, nil)
 	if err != nil {
 		return nil, err
 	}
-	return resp.FileShare, nil
+	return &resp.FileShare, nil
 }
 
-func updateFileShare(ctx context.Context, conn *armcore.Connection) (*armstorage.FileShare, error) {
+func updateFileShare(ctx context.Context, conn *arm.Connection) (*armstorage.FileShare, error) {
 	fileSharesClient := armstorage.NewFileSharesClient(conn, subscriptionID)
 
 	resp, err := fileSharesClient.Update(
@@ -168,10 +168,10 @@ func updateFileShare(ctx context.Context, conn *armcore.Connection) (*armstorage
 	if err != nil {
 		return nil, err
 	}
-	return resp.FileShare, nil
+	return &resp.FileShare, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroup, error) {
+func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
@@ -184,10 +184,10 @@ func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armres
 	if err != nil {
 		return nil, err
 	}
-	return resourceGroupResp.ResourceGroup, nil
+	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, error) {
+func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
@@ -199,5 +199,5 @@ func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, err
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+	return resp.RawResponse, nil
 }

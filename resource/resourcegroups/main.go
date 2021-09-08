@@ -7,11 +7,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/armcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
-	"github.com/Azure/azure-sdk-for-go/sdk/to"
 )
 
 var (
@@ -31,8 +31,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn := armcore.NewDefaultConnection(cred, &armcore.ConnectionOptions{
-		Logging: azcore.LogOptions{
+	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
+		Logging: policy.LogOptions{
 			IncludeBody: true,
 		},
 	})
@@ -79,7 +79,7 @@ func main() {
 	}
 }
 
-func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroup, error) {
+func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
@@ -92,20 +92,20 @@ func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armres
 	if err != nil {
 		return nil, err
 	}
-	return resourceGroupResp.ResourceGroup, nil
+	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func getResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroup, error) {
+func getResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	resourceGroupResp, err := resourceGroupClient.Get(ctx, resourceGroupName, nil)
 	if err != nil {
 		return nil, err
 	}
-	return resourceGroupResp.ResourceGroup, nil
+	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func listResourceGroup(ctx context.Context, conn *armcore.Connection) []*armresources.ResourceGroup {
+func listResourceGroup(ctx context.Context, conn *arm.Connection) []*armresources.ResourceGroup {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	resultPager := resourceGroupClient.List(nil)
@@ -118,7 +118,7 @@ func listResourceGroup(ctx context.Context, conn *armcore.Connection) []*armreso
 	return resourceGroups
 }
 
-func checkExistenceResourceGroup(ctx context.Context, conn *armcore.Connection) (bool, error) {
+func checkExistenceResourceGroup(ctx context.Context, conn *arm.Connection) (bool, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	boolResp, err := resourceGroupClient.CheckExistence(ctx, resourceGroupName, nil)
@@ -128,7 +128,7 @@ func checkExistenceResourceGroup(ctx context.Context, conn *armcore.Connection) 
 	return boolResp.Success, nil
 }
 
-func exportTemplateResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroupExportResult, error) {
+func exportTemplateResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroupExportResult, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	pollerResp, err := resourceGroupClient.BeginExportTemplate(
@@ -148,10 +148,10 @@ func exportTemplateResourceGroup(ctx context.Context, conn *armcore.Connection) 
 	if err != nil {
 		return nil, err
 	}
-	return resp.ResourceGroupExportResult, nil
+	return &resp.ResourceGroupExportResult, nil
 }
 
-func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, error) {
+func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
@@ -163,5 +163,5 @@ func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, err
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+	return resp.RawResponse, nil
 }

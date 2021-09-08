@@ -8,20 +8,19 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/armcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/armstorage"
-	"github.com/Azure/azure-sdk-for-go/sdk/to"
 )
 
 var (
-	subscriptionID      string
-	location            = "westus"
-	resourceGroupName   = "sample-resource-group"
-	storageAccountName  = "sample2storage2account"
-	encryptionScopeName = "sample2encryption2scope"
+	subscriptionID     string
+	location           = "westus"
+	resourceGroupName  = "sample-resource-group"
+	storageAccountName = "sample2storage2account"
 )
 
 func main() {
@@ -35,8 +34,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn := armcore.NewDefaultConnection(cred, &armcore.ConnectionOptions{
-		Logging: azcore.LogOptions{
+	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
+		Logging: policy.LogOptions{
 			IncludeBody: true,
 		},
 	})
@@ -108,7 +107,7 @@ func main() {
 	}
 }
 
-func storageAccountProperties(ctx context.Context, conn *armcore.Connection) (*armstorage.StorageAccount, error) {
+func storageAccountProperties(ctx context.Context, conn *arm.Connection) (*armstorage.StorageAccount, error) {
 	storageAccountClient := armstorage.NewStorageAccountsClient(conn, subscriptionID)
 
 	storageAccountResponse, err := storageAccountClient.GetProperties(
@@ -120,10 +119,10 @@ func storageAccountProperties(ctx context.Context, conn *armcore.Connection) (*a
 	if err != nil {
 		return nil, err
 	}
-	return storageAccountResponse.StorageAccount, nil
+	return &storageAccountResponse.StorageAccount, nil
 }
 
-func checkNameAvailability(ctx context.Context, conn *armcore.Connection) (*armstorage.CheckNameAvailabilityResult, error) {
+func checkNameAvailability(ctx context.Context, conn *arm.Connection) (*armstorage.CheckNameAvailabilityResult, error) {
 	storageAccountClient := armstorage.NewStorageAccountsClient(conn, subscriptionID)
 	result, err := storageAccountClient.CheckNameAvailability(
 		ctx,
@@ -135,10 +134,10 @@ func checkNameAvailability(ctx context.Context, conn *armcore.Connection) (*arms
 	if err != nil {
 		return nil, err
 	}
-	return result.CheckNameAvailabilityResult, nil
+	return &result.CheckNameAvailabilityResult, nil
 }
 
-func createStorageAccount(ctx context.Context, conn *armcore.Connection) (*armstorage.StorageAccount, error) {
+func createStorageAccount(ctx context.Context, conn *arm.Connection) (*armstorage.StorageAccount, error) {
 	storageAccountClient := armstorage.NewStorageAccountsClient(conn, subscriptionID)
 
 	pollerResp, err := storageAccountClient.BeginCreate(
@@ -183,10 +182,10 @@ func createStorageAccount(ctx context.Context, conn *armcore.Connection) (*armst
 	if err != nil {
 		return nil, err
 	}
-	return resp.StorageAccount, nil
+	return &resp.StorageAccount, nil
 }
 
-func listByResourceGroupStorageAccount(ctx context.Context, conn *armcore.Connection) []*armstorage.StorageAccount {
+func listByResourceGroupStorageAccount(ctx context.Context, conn *arm.Connection) []*armstorage.StorageAccount {
 	storageAccountClient := armstorage.NewStorageAccountsClient(conn, subscriptionID)
 
 	listAccounts := storageAccountClient.ListByResourceGroup(resourceGroupName, nil)
@@ -199,7 +198,7 @@ func listByResourceGroupStorageAccount(ctx context.Context, conn *armcore.Connec
 	return list
 }
 
-func listStorageAccount(ctx context.Context, conn *armcore.Connection) []*armstorage.StorageAccount {
+func listStorageAccount(ctx context.Context, conn *arm.Connection) []*armstorage.StorageAccount {
 	storageAccountClient := armstorage.NewStorageAccountsClient(conn, subscriptionID)
 
 	listAccounts := storageAccountClient.List(nil)
@@ -213,7 +212,7 @@ func listStorageAccount(ctx context.Context, conn *armcore.Connection) []*armsto
 	return list
 }
 
-func listKeysStorageAccount(ctx context.Context, conn *armcore.Connection) []*armstorage.StorageAccountKey {
+func listKeysStorageAccount(ctx context.Context, conn *arm.Connection) []*armstorage.StorageAccountKey {
 	storageAccountClient := armstorage.NewStorageAccountsClient(conn, subscriptionID)
 
 	listKeys, err := storageAccountClient.ListKeys(ctx, resourceGroupName, storageAccountName, nil)
@@ -224,7 +223,7 @@ func listKeysStorageAccount(ctx context.Context, conn *armcore.Connection) []*ar
 	return listKeys.StorageAccountListKeysResult.Keys
 }
 
-func regenerateKeyStorageAccount(ctx context.Context, conn *armcore.Connection) []*armstorage.StorageAccountKey {
+func regenerateKeyStorageAccount(ctx context.Context, conn *arm.Connection) []*armstorage.StorageAccountKey {
 	storageAccountClient := armstorage.NewStorageAccountsClient(conn, subscriptionID)
 
 	regenerateKeyResp, err := storageAccountClient.RegenerateKey(
@@ -243,7 +242,7 @@ func regenerateKeyStorageAccount(ctx context.Context, conn *armcore.Connection) 
 	return regenerateKeyResp.StorageAccountListKeysResult.Keys
 }
 
-func updateStorageAccount(ctx context.Context, conn *armcore.Connection) (*armstorage.StorageAccount, error) {
+func updateStorageAccount(ctx context.Context, conn *arm.Connection) (*armstorage.StorageAccount, error) {
 	storageAccountClient := armstorage.NewStorageAccountsClient(conn, subscriptionID)
 
 	updateResp, err := storageAccountClient.Update(
@@ -260,10 +259,10 @@ func updateStorageAccount(ctx context.Context, conn *armcore.Connection) (*armst
 		return nil, fmt.Errorf("update storage account err:%s", err)
 	}
 
-	return updateResp.StorageAccount, nil
+	return &updateResp.StorageAccount, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroup, error) {
+func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
@@ -276,10 +275,10 @@ func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armres
 	if err != nil {
 		return nil, err
 	}
-	return resourceGroupResp.ResourceGroup, nil
+	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, error) {
+func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
@@ -291,5 +290,5 @@ func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, err
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+	return resp.RawResponse, nil
 }

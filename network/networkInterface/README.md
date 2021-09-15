@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage Virtual Network Manager using Azure SDK for Golang."
-urlFragment: compute
+urlFragment: network
 ---
 
 # Getting started - Managing Virtual Network using Azure Golang SDK
@@ -30,6 +30,7 @@ This project framework provides examples for the following services:
     ```
     git clone https://github.com/Azure-Samples/azure-sdk-for-go-samples.git --branch new-version
     ```
+   
 2. Set the environment variable.
 
    ```

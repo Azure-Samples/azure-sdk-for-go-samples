@@ -47,11 +47,11 @@ func main() {
 	})
 	ctx := context.Background()
 
-	//resourceGroup,err := createResourceGroup(ctx,conn)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//log.Println("resources group:",*resourceGroup.ID)
+	resourceGroup, err := createResourceGroup(ctx, conn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("resources group:", *resourceGroup.ID)
 
 	roleAssignment, err := createRoleAssignment(ctx, conn)
 	if err != nil {
@@ -65,14 +65,14 @@ func main() {
 	}
 	log.Println("get role assignment:", *roleAssignment.ID)
 
-	//keepResource := os.Getenv("KEEP_RESOURCE")
-	//if len(keepResource) == 0 {
-	//	_,err := cleanup(ctx,conn)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//	log.Println("cleaned up successfully.")
-	//}
+	keepResource := os.Getenv("KEEP_RESOURCE")
+	if len(keepResource) == 0 {
+		_, err := cleanup(ctx, conn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("cleaned up successfully.")
+	}
 }
 
 func createRoleAssignment(ctx context.Context, connection *arm.Connection) (*armauthorization.RoleAssignment, error) {

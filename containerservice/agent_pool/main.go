@@ -53,11 +53,11 @@ func main() {
 	})
 	ctx := context.Background()
 
-	//resourceGroup,err := createResourceGroup(ctx,conn)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//log.Println("resources group:",*resourceGroup.ID)
+	resourceGroup, err := createResourceGroup(ctx, conn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("resources group:", *resourceGroup.ID)
 
 	managedCluster, err := createManagedCluster(ctx, conn)
 	if err != nil {
@@ -71,14 +71,14 @@ func main() {
 	}
 	log.Println("agent pool:", *agentPool.ID)
 
-	//keepResource := os.Getenv("KEEP_RESOURCE")
-	//if len(keepResource) == 0 {
-	//	_,err := cleanup(ctx,conn)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//	log.Println("cleaned up successfully.")
-	//}
+	keepResource := os.Getenv("KEEP_RESOURCE")
+	if len(keepResource) == 0 {
+		_, err := cleanup(ctx, conn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("cleaned up successfully.")
+	}
 }
 
 func createManagedCluster(ctx context.Context, conn *arm.Connection) (*armcontainerservice.ManagedCluster, error) {

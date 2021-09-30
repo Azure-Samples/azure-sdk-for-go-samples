@@ -46,23 +46,11 @@ func main() {
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	publicIP, err := createPublicIP(ctx, conn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("public IP:", *publicIP.ID)
-
 	exist, err := checkExistResource(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources is not exist:", exist)
-
-	virtualNetwork, err := createVirtualNetwork(ctx, conn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("virtual network:", *virtualNetwork.ID)
 
 	resources, err := createResource(ctx, conn)
 	if err != nil {
@@ -109,38 +97,6 @@ func checkExistResource(ctx context.Context, conn *arm.Connection) (bool, error)
 	return boolResp.Success, nil
 }
 
-func createVirtualNetwork(ctx context.Context, conn *arm.Connection) (*armnetwork.VirtualNetwork, error) {
-	virtualNetworkClient := armnetwork.NewVirtualNetworksClient(conn, subscriptionID)
-
-	pollerResp, err := virtualNetworkClient.BeginCreateOrUpdate(
-		ctx,
-		resourceGroupName,
-		virtualNetworkName,
-		armnetwork.VirtualNetwork{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
-			Properties: &armnetwork.VirtualNetworkPropertiesFormat{
-				AddressSpace: &armnetwork.AddressSpace{
-					AddressPrefixes: []*string{
-						to.StringPtr("10.1.0.0/16"),
-					},
-				},
-			},
-		},
-		nil)
-
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
-	if err != nil {
-		return nil, err
-	}
-	return &resp.VirtualNetwork, nil
-}
-
 func createResource(ctx context.Context, conn *arm.Connection) (*armresources.GenericResource, error) {
 	resourceClient := armresources.NewResourcesClient(conn, subscriptionID)
 
@@ -155,6 +111,13 @@ func createResource(ctx context.Context, conn *arm.Connection) (*armresources.Ge
 		armresources.GenericResource{
 			Resource: armresources.Resource{
 				Location: to.StringPtr(location),
+			},
+			Properties: map[string]interface{}{
+				"addressSpace": armnetwork.AddressSpace{
+					AddressPrefixes: []*string{
+						to.StringPtr("10.1.0.0/16"),
+					},
+				},
 			},
 		},
 		nil)
@@ -187,36 +150,6 @@ func getResource(ctx context.Context, conn *arm.Connection) (*armresources.Gener
 	}
 
 	return &resp.GenericResource, nil
-}
-
-func createPublicIP(ctx context.Context, conn *arm.Connection) (*armnetwork.PublicIPAddress, error) {
-	publicIPClient := armnetwork.NewPublicIPAddressesClient(conn, subscriptionID)
-
-	pollerResp, err := publicIPClient.BeginCreateOrUpdate(
-		ctx,
-		resourceGroupName,
-		virtualNetworkName,
-		armnetwork.PublicIPAddress{
-			Resource: armnetwork.Resource{
-				Name:     to.StringPtr(virtualNetworkName),
-				Location: to.StringPtr(location),
-			},
-			Properties: &armnetwork.PublicIPAddressPropertiesFormat{
-				PublicIPAddressVersion:   armnetwork.IPVersionIPv4.ToPtr(),
-				PublicIPAllocationMethod: armnetwork.IPAllocationMethodStatic.ToPtr(),
-			},
-		},
-		nil,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
-	if err != nil {
-		return nil, err
-	}
-	return &resp.PublicIPAddress, nil
 }
 
 func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {

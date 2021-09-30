@@ -7,12 +7,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/armcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/compute/armcompute"
-	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
-	"github.com/Azure/azure-sdk-for-go/sdk/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 )
 
 var (
@@ -40,8 +40,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn := armcore.NewDefaultConnection(cred, &armcore.ConnectionOptions{
-		Logging: azcore.LogOptions{
+	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
+		Logging: policy.LogOptions{
 			IncludeBody: true,
 		},
 	})
@@ -87,7 +87,7 @@ func main() {
 	}
 }
 
-func createDedicatedHostGroups(ctx context.Context, conn *armcore.Connection) (*armcompute.DedicatedHostGroup, error) {
+func createDedicatedHostGroups(ctx context.Context, conn *arm.Connection) (*armcompute.DedicatedHostGroup, error) {
 	dedicatedHostGroupsClient := armcompute.NewDedicatedHostGroupsClient(conn, subscriptionID)
 
 	resp, err := dedicatedHostGroupsClient.CreateOrUpdate(
@@ -109,10 +109,10 @@ func createDedicatedHostGroups(ctx context.Context, conn *armcore.Connection) (*
 		return nil, err
 	}
 
-	return resp.DedicatedHostGroup, nil
+	return &resp.DedicatedHostGroup, nil
 }
 
-func getDedicatedHostGroups(ctx context.Context, conn *armcore.Connection) (*armcompute.DedicatedHostGroup, error) {
+func getDedicatedHostGroups(ctx context.Context, conn *arm.Connection) (*armcompute.DedicatedHostGroup, error) {
 	dedicatedHostGroupsClient := armcompute.NewDedicatedHostGroupsClient(conn, subscriptionID)
 
 	resp, err := dedicatedHostGroupsClient.Get(ctx, resourceGroupName, hostGroupName, nil)
@@ -120,10 +120,10 @@ func getDedicatedHostGroups(ctx context.Context, conn *armcore.Connection) (*arm
 		return nil, err
 	}
 
-	return resp.DedicatedHostGroup, nil
+	return &resp.DedicatedHostGroup, nil
 }
 
-func createDedicatedHost(ctx context.Context, conn *armcore.Connection) (*armcompute.DedicatedHost, error) {
+func createDedicatedHost(ctx context.Context, conn *arm.Connection) (*armcompute.DedicatedHost, error) {
 	dedicatedHostClient := armcompute.NewDedicatedHostsClient(conn, subscriptionID)
 
 	pollerResp, err := dedicatedHostClient.BeginCreateOrUpdate(
@@ -152,10 +152,10 @@ func createDedicatedHost(ctx context.Context, conn *armcore.Connection) (*armcom
 	if err != nil {
 		return nil, err
 	}
-	return resp.DedicatedHost, nil
+	return &resp.DedicatedHost, nil
 }
 
-func getDedicatedHost(ctx context.Context, conn *armcore.Connection) (*armcompute.DedicatedHost, error) {
+func getDedicatedHost(ctx context.Context, conn *arm.Connection) (*armcompute.DedicatedHost, error) {
 	dedicatedHostClient := armcompute.NewDedicatedHostsClient(conn, subscriptionID)
 
 	resp, err := dedicatedHostClient.Get(ctx, resourceGroupName, hostGroupName, hostName, nil)
@@ -163,10 +163,10 @@ func getDedicatedHost(ctx context.Context, conn *armcore.Connection) (*armcomput
 		return nil, err
 	}
 
-	return resp.DedicatedHost, nil
+	return &resp.DedicatedHost, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroup, error) {
+func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
@@ -179,10 +179,10 @@ func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armres
 	if err != nil {
 		return nil, err
 	}
-	return resourceGroupResp.ResourceGroup, nil
+	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, error) {
+func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
@@ -194,5 +194,5 @@ func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, err
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+	return resp.RawResponse, nil
 }

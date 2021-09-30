@@ -7,12 +7,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/armcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/compute/armcompute"
-	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
-	"github.com/Azure/azure-sdk-for-go/sdk/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 )
 
 var (
@@ -43,8 +43,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn := armcore.NewDefaultConnection(cred, &armcore.ConnectionOptions{
-		Logging: azcore.LogOptions{
+	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
+		Logging: policy.LogOptions{
 			IncludeBody: true,
 		},
 	})
@@ -96,7 +96,7 @@ func main() {
 	}
 }
 
-func createDisk(ctx context.Context, conn *armcore.Connection) (*armcompute.Disk, error) {
+func createDisk(ctx context.Context, conn *arm.Connection) (*armcompute.Disk, error) {
 	disksClient := armcompute.NewDisksClient(conn, subscriptionID)
 
 	pollerResp, err := disksClient.BeginCreateOrUpdate(
@@ -128,10 +128,10 @@ func createDisk(ctx context.Context, conn *armcore.Connection) (*armcompute.Disk
 		return nil, err
 	}
 
-	return resp.Disk, nil
+	return &resp.Disk, nil
 }
 
-func createSnapshot(ctx context.Context, conn *armcore.Connection, diskID string) (*armcompute.Snapshot, error) {
+func createSnapshot(ctx context.Context, conn *arm.Connection, diskID string) (*armcompute.Snapshot, error) {
 	snapshotClient := armcompute.NewSnapshotsClient(conn, subscriptionID)
 
 	pollerResp, err := snapshotClient.BeginCreateOrUpdate(
@@ -160,10 +160,10 @@ func createSnapshot(ctx context.Context, conn *armcore.Connection, diskID string
 		return nil, err
 	}
 
-	return resp.Snapshot, nil
+	return &resp.Snapshot, nil
 }
 
-func createGallery(ctx context.Context, conn *armcore.Connection, diskID string) (*armcompute.Gallery, error) {
+func createGallery(ctx context.Context, conn *arm.Connection, diskID string) (*armcompute.Gallery, error) {
 	galleriesClient := armcompute.NewGalleriesClient(conn, subscriptionID)
 
 	pollerResp, err := galleriesClient.BeginCreateOrUpdate(
@@ -189,10 +189,10 @@ func createGallery(ctx context.Context, conn *armcore.Connection, diskID string)
 		return nil, err
 	}
 
-	return resp.Gallery, nil
+	return &resp.Gallery, nil
 }
 
-func createGalleryApplication(ctx context.Context, conn *armcore.Connection) (*armcompute.GalleryApplication, error) {
+func createGalleryApplication(ctx context.Context, conn *arm.Connection) (*armcompute.GalleryApplication, error) {
 	galleriesClient := armcompute.NewGalleryApplicationsClient(conn, subscriptionID)
 
 	pollerResp, err := galleriesClient.BeginCreateOrUpdate(
@@ -221,10 +221,10 @@ func createGalleryApplication(ctx context.Context, conn *armcore.Connection) (*a
 		return nil, err
 	}
 
-	return resp.GalleryApplication, nil
+	return &resp.GalleryApplication, nil
 }
 
-func createGalleryImage(ctx context.Context, conn *armcore.Connection) (*armcompute.GalleryImage, error) {
+func createGalleryImage(ctx context.Context, conn *arm.Connection) (*armcompute.GalleryImage, error) {
 	galleryImageClient := armcompute.NewGalleryImagesClient(conn, subscriptionID)
 
 	pollerResp, err := galleryImageClient.BeginCreateOrUpdate(
@@ -258,10 +258,10 @@ func createGalleryImage(ctx context.Context, conn *armcore.Connection) (*armcomp
 		return nil, err
 	}
 
-	return resp.GalleryImage, nil
+	return &resp.GalleryImage, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroup, error) {
+func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
@@ -274,10 +274,10 @@ func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armres
 	if err != nil {
 		return nil, err
 	}
-	return resourceGroupResp.ResourceGroup, nil
+	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, error) {
+func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
@@ -289,5 +289,5 @@ func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, err
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+	return resp.RawResponse, nil
 }

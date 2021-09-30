@@ -7,12 +7,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/armcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/compute/armcompute"
-	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
-	"github.com/Azure/azure-sdk-for-go/sdk/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 )
 
 var (
@@ -33,8 +33,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn := armcore.NewDefaultConnection(cred, &armcore.ConnectionOptions{
-		Logging: azcore.LogOptions{
+	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
+		Logging: policy.LogOptions{
 			IncludeBody: true,
 		},
 	})
@@ -76,7 +76,7 @@ func main() {
 	}
 }
 
-func createAvailabilitySet(ctx context.Context, conn *armcore.Connection) (*armcompute.AvailabilitySet, error) {
+func createAvailabilitySet(ctx context.Context, conn *arm.Connection) (*armcompute.AvailabilitySet, error) {
 	availabilitySetsClient := armcompute.NewAvailabilitySetsClient(conn, subscriptionID)
 
 	resp, err := availabilitySetsClient.CreateOrUpdate(
@@ -101,10 +101,10 @@ func createAvailabilitySet(ctx context.Context, conn *armcore.Connection) (*armc
 		return nil, err
 	}
 
-	return resp.AvailabilitySet, nil
+	return &resp.AvailabilitySet, nil
 }
 
-func listAvailabilitySet(ctx context.Context, conn *armcore.Connection) []*armcompute.AvailabilitySet {
+func listAvailabilitySet(ctx context.Context, conn *arm.Connection) []*armcompute.AvailabilitySet {
 	availabilitySetsClient := armcompute.NewAvailabilitySetsClient(conn, subscriptionID)
 
 	availability := availabilitySetsClient.List(resourceGroupName, nil)
@@ -118,7 +118,7 @@ func listAvailabilitySet(ctx context.Context, conn *armcore.Connection) []*armco
 	return availabilitySet
 }
 
-func listAvailabilitySizes(ctx context.Context, conn *armcore.Connection) (*armcompute.VirtualMachineSizeListResult, error) {
+func listAvailabilitySizes(ctx context.Context, conn *arm.Connection) (*armcompute.VirtualMachineSizeListResult, error) {
 	availabilitySetsClient := armcompute.NewAvailabilitySetsClient(conn, subscriptionID)
 
 	availability, err := availabilitySetsClient.ListAvailableSizes(ctx, resourceGroupName, availabilitySetName, nil)
@@ -126,10 +126,10 @@ func listAvailabilitySizes(ctx context.Context, conn *armcore.Connection) (*armc
 		return nil, err
 	}
 
-	return availability.VirtualMachineSizeListResult, nil
+	return &availability.VirtualMachineSizeListResult, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroup, error) {
+func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
@@ -142,10 +142,10 @@ func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armres
 	if err != nil {
 		return nil, err
 	}
-	return resourceGroupResp.ResourceGroup, nil
+	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, error) {
+func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
@@ -157,5 +157,5 @@ func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, err
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+	return resp.RawResponse, nil
 }

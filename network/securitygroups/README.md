@@ -43,7 +43,7 @@ This project framework provides examples for the following services:
    export AZURE_OBJECT_ID=<your Azure Client/Object id> 
    ```
 
-3. Run compute sample.
+3. Run network sample.
 
     ```
     cd azure-sdk-for-go-samples/network/securitygroups

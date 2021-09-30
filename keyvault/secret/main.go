@@ -11,8 +11,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/armkeyvault"
-	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/keyvault/armkeyvault"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 )
 
 var (
@@ -20,7 +20,7 @@ var (
 	TenantID          string
 	location          = "westus"
 	resourceGroupName = "sample-resource-group"
-	vaultName         = "sample2vault2"
+	vaultName         = "sample2vault"
 	secretName        = "sample2secret"
 )
 

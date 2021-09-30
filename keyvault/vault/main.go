@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -12,8 +11,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/armkeyvault"
-	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/keyvault/armkeyvault"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 )
 
 var (
@@ -88,13 +87,14 @@ func main() {
 	}
 	log.Println("purge deleted vault.", resp)
 
-	hsms, err := createManagedHsms(ctx, conn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("managed Hsms:", *hsms.ID)
-	data, _ := json.Marshal(hsms)
-	log.Println(string(data))
+	//Unknown API version: 2021-06-01-preview
+	//hsms, err := createManagedHsms(ctx, conn)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//log.Println("managed Hsms:", *hsms.ID)
+	//data, _ := json.Marshal(hsms)
+	//log.Println(string(data))
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {

@@ -11,15 +11,15 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/network/armnetwork"
-	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 )
 
 var (
-	subscriptionID      string
-	location            = "westus"
-	resourceGroupName   = "sample-resource-group"
-	publicIPAddressName = "sample-public-ip"
+	subscriptionID     string
+	location           = "westus"
+	resourceGroupName  = "sample-resource-group"
+	virtualNetworkName = "sample-virtual-network"
 )
 
 func main() {
@@ -46,17 +46,11 @@ func main() {
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	publicIP, err := createPublicIP(ctx, conn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("public IP:", *publicIP.ID)
-
 	exist, err := checkExistResource(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("resources is exist:", exist)
+	log.Println("resources is not exist:", exist)
 
 	resources, err := createResource(ctx, conn)
 	if err != nil {
@@ -81,7 +75,7 @@ func main() {
 }
 
 var resourceProviderNamespace = "Microsoft.Network"
-var resourceType = "publicIPAddresses"
+var resourceType = "virtualNetworks"
 var apiVersion = "2021-02-01"
 
 func checkExistResource(ctx context.Context, conn *arm.Connection) (bool, error) {
@@ -91,9 +85,9 @@ func checkExistResource(ctx context.Context, conn *arm.Connection) (bool, error)
 		ctx,
 		resourceGroupName,
 		resourceProviderNamespace,
-		"",
+		"/",
 		resourceType,
-		publicIPAddressName,
+		virtualNetworkName,
 		apiVersion,
 		nil)
 	if err != nil {
@@ -110,11 +104,22 @@ func createResource(ctx context.Context, conn *arm.Connection) (*armresources.Ge
 		ctx,
 		resourceGroupName,
 		resourceProviderNamespace,
-		resourceGroupName,
+		"/",
 		resourceType,
-		publicIPAddressName,
+		virtualNetworkName,
 		apiVersion,
-		armresources.GenericResource{},
+		armresources.GenericResource{
+			Resource: armresources.Resource{
+				Location: to.StringPtr(location),
+			},
+			Properties: map[string]interface{}{
+				"addressSpace": armnetwork.AddressSpace{
+					AddressPrefixes: []*string{
+						to.StringPtr("10.1.0.0/16"),
+					},
+				},
+			},
+		},
 		nil)
 	if err != nil {
 		return nil, err
@@ -137,7 +142,7 @@ func getResource(ctx context.Context, conn *arm.Connection) (*armresources.Gener
 		resourceProviderNamespace,
 		"/",
 		resourceType,
-		publicIPAddressName,
+		virtualNetworkName,
 		apiVersion,
 		nil)
 	if err != nil {
@@ -145,36 +150,6 @@ func getResource(ctx context.Context, conn *arm.Connection) (*armresources.Gener
 	}
 
 	return &resp.GenericResource, nil
-}
-
-func createPublicIP(ctx context.Context, conn *arm.Connection) (*armnetwork.PublicIPAddress, error) {
-	publicIPClient := armnetwork.NewPublicIPAddressesClient(conn, subscriptionID)
-
-	pollerResp, err := publicIPClient.BeginCreateOrUpdate(
-		ctx,
-		resourceGroupName,
-		publicIPAddressName,
-		armnetwork.PublicIPAddress{
-			Resource: armnetwork.Resource{
-				Name:     to.StringPtr(publicIPAddressName),
-				Location: to.StringPtr(location),
-			},
-			Properties: &armnetwork.PublicIPAddressPropertiesFormat{
-				PublicIPAddressVersion:   armnetwork.IPVersionIPv4.ToPtr(),
-				PublicIPAllocationMethod: armnetwork.IPAllocationMethodStatic.ToPtr(),
-			},
-		},
-		nil,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
-	if err != nil {
-		return nil, err
-	}
-	return &resp.PublicIPAddress, nil
 }
 
 func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {

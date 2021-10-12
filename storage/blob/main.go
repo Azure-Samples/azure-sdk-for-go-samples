@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -12,8 +11,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/armstorage"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/storage/armstorage"
 )
 
 var (
@@ -71,68 +70,6 @@ func main() {
 	for _, item := range containerItems {
 		log.Println("\t", *item.ID)
 	}
-
-	immutabilityPolicy, err := createContainerImmutabilityPolicy(ctx, conn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println(*immutabilityPolicy.ID, immutabilityPolicy.Etag)
-
-	immutabilityPolicy, err = getContainerImmutabilityPolicy(ctx, conn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("get immutability policy:", *immutabilityPolicy.ID, *immutabilityPolicy.Etag)
-
-	immutabilityPolicy, err = updateContainerImmutabilityPolicy(ctx, conn, *immutabilityPolicy.Etag)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("updated immutability policy:", *immutabilityPolicy.ID)
-
-	immutabilityPolicy, err = extendContainerImmutabilityPolicy(ctx, conn, *immutabilityPolicy.Etag)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("extend immutability policy.")
-
-	immutabilityPolicy, err = deleteContainerImmutabilityPolicy(ctx, conn, *immutabilityPolicy.Etag)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("deleted immutability policy.")
-
-	legalHold, err := setLegalHoldBlobContainer(ctx, conn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	data, err := json.Marshal(legalHold)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("Set Legal Hold:", string(data))
-
-	legalHold, err = clearLegalHoldBlobContainer(ctx, conn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	data, err = json.Marshal(legalHold)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("Clear Legal Hold:", string(data))
-
-	leaseContainerResp, err := leaseBlobContainer(ctx, conn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("lease blob container ID:", *leaseContainerResp.LeaseID)
-
-	objectLevelWorm, err := objectLevelWormBlobContainer(ctx, conn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println(objectLevelWorm)
 
 	blobServices(ctx, conn)
 
@@ -233,190 +170,6 @@ func listBlobContainer(ctx context.Context, conn *arm.Connection) (listItems []*
 	return
 }
 
-func createContainerImmutabilityPolicy(ctx context.Context, conn *arm.Connection) (*armstorage.ImmutabilityPolicy, error) {
-	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
-
-	immutabilityPolicyResp, err := blobContainerClient.CreateOrUpdateImmutabilityPolicy(
-		ctx,
-		resourceGroupName,
-		storageAccountName,
-		containerName,
-		&armstorage.BlobContainersCreateOrUpdateImmutabilityPolicyOptions{
-			//IfMatch: to.StringPtr("*"),
-			Parameters: &armstorage.ImmutabilityPolicy{
-				Properties: &armstorage.ImmutabilityPolicyProperty{
-					//AllowProtectedAppendWrites: to.BoolPtr(true),
-					//ImmutabilityPeriodSinceCreationInDays: to.Int32Ptr(2), //retention interval
-				},
-			},
-		})
-	if err != nil {
-		return nil, err
-	}
-
-	return &immutabilityPolicyResp.ImmutabilityPolicy, nil
-}
-
-func updateContainerImmutabilityPolicy(ctx context.Context, conn *arm.Connection, ifMatch string) (*armstorage.ImmutabilityPolicy, error) {
-	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
-
-	immutabilityPolicyResp, err := blobContainerClient.CreateOrUpdateImmutabilityPolicy(
-		ctx,
-		resourceGroupName,
-		storageAccountName,
-		containerName,
-		&armstorage.BlobContainersCreateOrUpdateImmutabilityPolicyOptions{
-			//IfMatch: to.StringPtr(ifMatch),
-			Parameters: &armstorage.ImmutabilityPolicy{
-				Properties: &armstorage.ImmutabilityPolicyProperty{
-					AllowProtectedAppendWrites:            to.BoolPtr(false),
-					ImmutabilityPeriodSinceCreationInDays: to.Int32Ptr(0), //retention interval
-					//State:                                 armstorage.ImmutabilityPolicyStateUnlocked.ToPtr(),
-				},
-			},
-		})
-	if err != nil {
-		return nil, err
-	}
-
-	return &immutabilityPolicyResp.ImmutabilityPolicy, nil
-}
-
-func getContainerImmutabilityPolicy(ctx context.Context, conn *arm.Connection) (*armstorage.ImmutabilityPolicy, error) {
-	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
-
-	immutabilityPolicyResp, err := blobContainerClient.GetImmutabilityPolicy(
-		ctx,
-		resourceGroupName,
-		storageAccountName,
-		containerName,
-		nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &immutabilityPolicyResp.ImmutabilityPolicy, nil
-}
-
-func extendContainerImmutabilityPolicy(ctx context.Context, conn *arm.Connection, ifMatch string) (*armstorage.ImmutabilityPolicy, error) {
-	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
-
-	immutabilityPolicyResp, err := blobContainerClient.ExtendImmutabilityPolicy(
-		ctx,
-		resourceGroupName,
-		storageAccountName,
-		containerName,
-		ifMatch,
-		nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &immutabilityPolicyResp.ImmutabilityPolicy, nil
-}
-
-func deleteContainerImmutabilityPolicy(ctx context.Context, conn *arm.Connection, ifMatch string) (*armstorage.ImmutabilityPolicy, error) {
-	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
-
-	immutabilityPolicyResp, err := blobContainerClient.DeleteImmutabilityPolicy(
-		ctx,
-		resourceGroupName,
-		storageAccountName,
-		containerName,
-		ifMatch,
-		&armstorage.BlobContainersDeleteImmutabilityPolicyOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	return &immutabilityPolicyResp.ImmutabilityPolicy, nil
-}
-
-func setLegalHoldBlobContainer(ctx context.Context, conn *arm.Connection) (*armstorage.LegalHold, error) {
-	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
-
-	legalHoldResp, err := blobContainerClient.SetLegalHold(
-		ctx,
-		resourceGroupName,
-		storageAccountName,
-		containerName,
-		armstorage.LegalHold{
-			Tags: []*string{
-				to.StringPtr("sample"),
-				to.StringPtr("sample2"),
-			},
-		},
-		nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &legalHoldResp.LegalHold, nil
-}
-
-func clearLegalHoldBlobContainer(ctx context.Context, conn *arm.Connection) (*armstorage.LegalHold, error) {
-	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
-
-	legalHoldResp, err := blobContainerClient.ClearLegalHold(
-		ctx,
-		resourceGroupName,
-		storageAccountName,
-		containerName,
-		armstorage.LegalHold{
-			Tags: []*string{
-				to.StringPtr("sample"),
-			},
-		},
-		nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &legalHoldResp.LegalHold, nil
-}
-
-func objectLevelWormBlobContainer(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
-
-	pollerResp, err := blobContainerClient.BeginObjectLevelWorm(
-		ctx,
-		resourceGroupName,
-		storageAccountName,
-		containerName,
-		nil)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp.RawResponse, nil
-}
-
-func leaseBlobContainer(ctx context.Context, conn *arm.Connection) (*armstorage.LeaseContainerResponse, error) {
-	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
-
-	leaseContainerResp, err := blobContainerClient.Lease(
-		ctx,
-		resourceGroupName,
-		storageAccountName,
-		containerName,
-		&armstorage.BlobContainersLeaseOptions{
-			Parameters: &armstorage.LeaseContainerRequest{
-				Action:        armstorage.LeaseContainerRequestActionAcquire.ToPtr(),
-				LeaseDuration: to.Int32Ptr(-1),
-			},
-		})
-	if err != nil {
-		return nil, err
-	}
-
-	return &leaseContainerResp.LeaseContainerResponse, nil
-}
-
 func blobServices(ctx context.Context, conn *arm.Connection) {
 	blobServicesProperties, err := setBlobServices(ctx, conn)
 	if err != nil {
@@ -449,8 +202,9 @@ func setBlobServices(ctx context.Context, conn *arm.Connection) (*armstorage.Blo
 		ctx,
 		resourceGroupName,
 		storageAccountName,
+		armstorage.Enum37Default,
 		armstorage.BlobServiceProperties{
-			BlobServiceProperties: &armstorage.BlobServicePropertiesAutoGenerated{},
+			BlobServiceProperties: &armstorage.BlobServicePropertiesProperties{},
 		},
 		nil,
 	)
@@ -464,7 +218,7 @@ func setBlobServices(ctx context.Context, conn *arm.Connection) (*armstorage.Blo
 func getBlobServices(ctx context.Context, conn *arm.Connection) (*armstorage.BlobServiceProperties, error) {
 	blobServicesClient := armstorage.NewBlobServicesClient(conn, subscriptionID)
 
-	blobServicesResp, err := blobServicesClient.GetServiceProperties(ctx, resourceGroupName, storageAccountName, nil)
+	blobServicesResp, err := blobServicesClient.GetServiceProperties(ctx, resourceGroupName, storageAccountName, armstorage.Enum37Default, nil)
 	if err != nil {
 		return nil, err
 	}

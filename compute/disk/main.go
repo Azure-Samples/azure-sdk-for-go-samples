@@ -7,13 +7,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/armcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/compute/armcompute"
-	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/armkeyvault"
-	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
-	"github.com/Azure/azure-sdk-for-go/sdk/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/keyvault/armkeyvault"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 )
 
 var (
@@ -23,6 +23,7 @@ var (
 	resourceGroupName     = "sample-resource-group"
 	diskName              = "sample-disk"
 	vaultName             = "sample2vault"
+	keyName               = "sample2key"
 	diskEncryptionSetName = "sample-disk-encryption"
 )
 
@@ -42,8 +43,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn := armcore.NewDefaultConnection(cred, &armcore.ConnectionOptions{
-		Logging: azcore.LogOptions{
+	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
+		Logging: policy.LogOptions{
 			IncludeBody: true,
 		},
 	})
@@ -61,13 +62,19 @@ func main() {
 	}
 	log.Println("vault:", *vault.ID)
 
+	key, err := createKey(ctx, conn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("key:", *key.ID)
+
 	disk, err := createDisk(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("virtual disk:", *disk.ID)
 
-	diskEncryptionSet, err := diskEncryptionSets(ctx, conn, *vault.ID, keyUrl)
+	diskEncryptionSet, err := diskEncryptionSets(ctx, conn, *vault.ID, *key.Properties.KeyURIWithVersion)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,7 +90,7 @@ func main() {
 	}
 }
 
-func createDisk(ctx context.Context, conn *armcore.Connection) (*armcompute.Disk, error) {
+func createDisk(ctx context.Context, conn *arm.Connection) (*armcompute.Disk, error) {
 	disksClient := armcompute.NewDisksClient(conn, subscriptionID)
 
 	pollerResp, err := disksClient.BeginCreateOrUpdate(
@@ -115,10 +122,10 @@ func createDisk(ctx context.Context, conn *armcore.Connection) (*armcompute.Disk
 		return nil, err
 	}
 
-	return resp.Disk, nil
+	return &resp.Disk, nil
 }
 
-func createVault(ctx context.Context, conn *armcore.Connection) (*armkeyvault.Vault, error) {
+func createVault(ctx context.Context, conn *arm.Connection) (*armkeyvault.Vault, error) {
 	vaultsClient := armkeyvault.NewVaultsClient(conn, subscriptionID)
 
 	pollerResp, err := vaultsClient.BeginCreateOrUpdate(
@@ -167,10 +174,39 @@ func createVault(ctx context.Context, conn *armcore.Connection) (*armkeyvault.Va
 	if err != nil {
 		return nil, err
 	}
-	return resp.Vault, nil
+	return &resp.Vault, nil
+}
+func createKey(ctx context.Context, conn *arm.Connection) (*armkeyvault.Key, error) {
+	keysClient := armkeyvault.NewKeysClient(conn, subscriptionID)
+
+	secretResp, err := keysClient.CreateIfNotExist(
+		ctx,
+		resourceGroupName,
+		vaultName,
+		keyName,
+		armkeyvault.KeyCreateParameters{
+			Properties: &armkeyvault.KeyProperties{
+				Attributes: &armkeyvault.KeyAttributes{
+					Enabled: to.BoolPtr(true),
+				},
+				KeySize: to.Int32Ptr(2048),
+				KeyOps: []*armkeyvault.JSONWebKeyOperation{
+					armkeyvault.JSONWebKeyOperationEncrypt.ToPtr(),
+					armkeyvault.JSONWebKeyOperationDecrypt.ToPtr(),
+				},
+				Kty: armkeyvault.JSONWebKeyTypeRSA.ToPtr(),
+			},
+		},
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &secretResp.Key, nil
 }
 
-func diskEncryptionSets(ctx context.Context, conn *armcore.Connection, vaultID, keyURL string) (*armcompute.DiskEncryptionSet, error) {
+func diskEncryptionSets(ctx context.Context, conn *arm.Connection, vaultID, keyURL string) (*armcompute.DiskEncryptionSet, error) {
 	diskEncryptionSetsClient := armcompute.NewDiskEncryptionSetsClient(conn, subscriptionID)
 
 	pollerResp, err := diskEncryptionSetsClient.BeginCreateOrUpdate(
@@ -204,10 +240,10 @@ func diskEncryptionSets(ctx context.Context, conn *armcore.Connection, vaultID, 
 		return nil, err
 	}
 
-	return resp.DiskEncryptionSet, nil
+	return &resp.DiskEncryptionSet, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armresources.ResourceGroup, error) {
+func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
@@ -220,10 +256,10 @@ func createResourceGroup(ctx context.Context, conn *armcore.Connection) (*armres
 	if err != nil {
 		return nil, err
 	}
-	return resourceGroupResp.ResourceGroup, nil
+	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, error) {
+func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
@@ -235,5 +271,5 @@ func cleanup(ctx context.Context, conn *armcore.Connection) (*http.Response, err
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+	return resp.RawResponse, nil
 }

@@ -19,7 +19,6 @@ import (
 
 var (
 	subscriptionID            string
-	ObjectID                  string
 	location                  = "westus"
 	resourceGroupName         = "sample-resource-group"
 	virtualNetworkName        = "sample-virtual-network"
@@ -31,11 +30,6 @@ func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
 		log.Fatal("AZURE_SUBSCRIPTION_ID is not set.")
-	}
-
-	ObjectID = os.Getenv("AZURE_OBJECT_ID")
-	if len(ObjectID) == 0 {
-		log.Fatal("AZURE_OBJECT_ID is not set.")
 	}
 
 	cred, err := azidentity.NewDefaultAzureCredential(nil)

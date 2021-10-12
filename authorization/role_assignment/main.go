@@ -17,7 +17,7 @@ import (
 
 var (
 	subscriptionID     string
-	ObjectID           string
+	objectID           string
 	location           = "westus"
 	resourceGroupName  = "sample-resource-group"
 	BuiltInRole        = "sample-built-role"
@@ -30,8 +30,8 @@ func main() {
 		log.Fatal("AZURE_SUBSCRIPTION_ID is not set.")
 	}
 
-	ObjectID = os.Getenv("AZURE_OBJECT_ID")
-	if len(ObjectID) == 0 {
+	objectID = os.Getenv("AZURE_OBJECT_ID")
+	if len(objectID) == 0 {
 		log.Fatal("AZURE_OBJECT_ID is not set.")
 	}
 
@@ -84,7 +84,7 @@ func createRoleAssignment(ctx context.Context, connection *arm.Connection) (*arm
 		roleAssignmentName,
 		armauthorization.RoleAssignmentCreateParameters{
 			Properties: &armauthorization.RoleAssignmentProperties{
-				PrincipalID:      to.StringPtr(ObjectID),
+				PrincipalID:      to.StringPtr(objectID),
 				RoleDefinitionID: to.StringPtr(""),
 			},
 		}, nil)
@@ -119,7 +119,7 @@ func validateRoleAssignment(ctx context.Context, connection *arm.Connection) (*a
 		roleAssignmentName,
 		armauthorization.RoleAssignmentCreateParameters{
 			Properties: &armauthorization.RoleAssignmentProperties{
-				PrincipalID:      to.StringPtr(ObjectID),
+				PrincipalID:      to.StringPtr(objectID),
 				RoleDefinitionID: to.StringPtr(""), // "/subscriptions/" + SUBSCRIPTION_ID + "/providers/Microsoft.Authorization/roleDefinitions/" + ROLE_DEFINITION
 			},
 		}, nil)

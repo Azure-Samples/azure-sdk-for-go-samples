@@ -4,8 +4,8 @@ go 1.16
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v0.19.0
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v0.10.0
-	github.com/Azure/azure-sdk-for-go/sdk/monitor/armmonitor v0.2.0
-	github.com/Azure/azure-sdk-for-go/sdk/operationalinsights/armoperationalinsights v0.2.0
-	github.com/Azure/azure-sdk-for-go/sdk/resources/armresources v0.3.0
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v0.11.0
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/monitor/armmonitor v0.1.0
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/operationalinsights/armoperationalinsights v0.1.0
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources v0.1.0
 )

@@ -11,9 +11,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/monitor/armmonitor"
-	"github.com/Azure/azure-sdk-for-go/sdk/operationalinsights/armoperationalinsights"
-	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/monitor/armmonitor"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/operationalinsights/armoperationalinsights"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 )
 
 var (

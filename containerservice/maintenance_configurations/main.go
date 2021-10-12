@@ -17,8 +17,8 @@ import (
 
 var (
 	subscriptionID      string
-	ObjectID            string
-	ClientSecret        string
+	objectID            string
+	clientSecret        string
 	location            = "westus"
 	resourceGroupName   = "sample-resource-group"
 	managedClustersName = "sample-aks-cluster"
@@ -31,13 +31,13 @@ func main() {
 		log.Fatal("AZURE_SUBSCRIPTION_ID is not set.")
 	}
 
-	ObjectID = os.Getenv("AZURE_OBJECT_ID")
-	if len(ObjectID) == 0 {
+	objectID = os.Getenv("AZURE_OBJECT_ID")
+	if len(objectID) == 0 {
 		log.Fatal("AZURE_OBJECT_ID is not set.")
 	}
 
-	ClientSecret = os.Getenv("AZURE_CLIENT_SECRET")
-	if len(ObjectID) == 0 {
+	clientSecret = os.Getenv("AZURE_CLIENT_SECRET")
+	if len(clientSecret) == 0 {
 		log.Fatal("AZURE_CLIENT_SECRET is not set.")
 	}
 
@@ -120,8 +120,8 @@ func createManagedCluster(ctx context.Context, conn *arm.Connection) (*armcontai
 					},
 				},
 				ServicePrincipalProfile: &armcontainerservice.ManagedClusterServicePrincipalProfile{
-					ClientID: to.StringPtr(ObjectID),
-					Secret:   to.StringPtr(ClientSecret),
+					ClientID: to.StringPtr(objectID),
+					Secret:   to.StringPtr(clientSecret),
 				},
 			},
 		},

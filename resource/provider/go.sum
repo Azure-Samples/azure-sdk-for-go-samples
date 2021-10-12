@@ -6,8 +6,8 @@ github.com/Azure/azure-sdk-for-go/sdk/azidentity v0.11.0 h1:OYa9vmRX2XC5GXRAzegg
 github.com/Azure/azure-sdk-for-go/sdk/azidentity v0.11.0/go.mod h1:HcM1YX14R7CJcghJGOYCgdezslRSVzqwLf/q+4Y2r/0=
 github.com/Azure/azure-sdk-for-go/sdk/internal v0.7.0 h1:v9p9TfTbf7AwNb5NYQt7hI41IfPoLFiFkLtb+bmGjT0=
 github.com/Azure/azure-sdk-for-go/sdk/internal v0.7.0/go.mod h1:yqy467j36fJxcRV2TzfVZ1pCb5vxm4BtZPUdYWe/Xo8=
-github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources v0.0.0-20210930015912-4747f950bd51 h1:2iz2lr5EijKlu6ppdfxow2P/KjSVNso0HQJgiYaWJog=
-github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources v0.0.0-20210930015912-4747f950bd51/go.mod h1:/lmVsBPGJQaPLMwrpS0Gvw/2ISiu9zubmTMTWPSB/jY=
+github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources v0.1.0 h1:TU2isFLwCuypHpn6VN5yZxBod0mtvd8EOP8OptKsw+8=
+github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources v0.1.0/go.mod h1:pnzgwhHYFhAoWdXxwQEoG0QjDyEfYcdIPR86nwBz/uU=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

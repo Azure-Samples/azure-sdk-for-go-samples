@@ -1,4 +1,4 @@
-module azuresample/containerregistry/taskrun
+module azure-sdk-for-go-samples/containerregistry/taskrun
 
 go 1.16
 

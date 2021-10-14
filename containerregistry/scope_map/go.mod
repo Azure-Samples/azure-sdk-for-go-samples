@@ -1,4 +1,4 @@
-module azuresample/containerregistry/scopemap
+module azure-sdk-for-go-samples/containerregistry/scopemap
 
 go 1.16
 

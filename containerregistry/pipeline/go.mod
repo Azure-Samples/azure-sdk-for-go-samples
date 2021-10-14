@@ -1,4 +1,4 @@
-module azuresample/containerregistry/pipeline
+module azure-sdk-for-go-samples/containerregistry/pipeline
 
 go 1.16
 

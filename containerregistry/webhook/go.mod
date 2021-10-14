@@ -1,4 +1,4 @@
-module azuresample/containerregistry/webhook
+module azure-sdk-for-go-samples/containerregistry/webhook
 
 go 1.16
 

@@ -1,4 +1,4 @@
-module azuresample/containerregistry/agentpool
+module azure-sdk-for-go-samples/containerregistry/agentpool
 
 go 1.16
 

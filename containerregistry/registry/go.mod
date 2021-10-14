@@ -1,4 +1,4 @@
-module azuresample/containerregistry/registry
+module azure-sdk-for-go-samples/containerregistry/registry
 
 go 1.16
 

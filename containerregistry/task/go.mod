@@ -1,4 +1,4 @@
-module azuresample/containerregistry/task
+module azure-sdk-for-go-samples/containerregistry/task
 
 go 1.16
 

@@ -1,4 +1,4 @@
-module azuresample/containerregistry/token
+module azure-sdk-for-go-samples/containerregistry/token
 
 go 1.16
 

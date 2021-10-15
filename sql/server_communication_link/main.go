@@ -11,8 +11,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resources/armresources"
-	"github.com/Azure/azure-sdk-for-go/sdk/sql/armsql"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/sql/armsql"
 )
 
 var (
@@ -60,7 +60,7 @@ func main() {
 	}
 	log.Println("partner server:", *partnerServer.ID)
 
-	serverCommunicationLink, err := createServerCommunicationLink(ctx, conn, *partnerServer.ID)
+	serverCommunicationLink, err := createServerCommunicationLink(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -72,14 +72,14 @@ func main() {
 	}
 	log.Println("get server communication link:", *serverCommunicationLink.ID)
 
-	//keepResource := os.Getenv("KEEP_RESOURCE")
-	//if len(keepResource) == 0 {
-	//	_, err := cleanup(ctx, conn)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//	log.Println("cleaned up successfully.")
-	//}
+	keepResource := os.Getenv("KEEP_RESOURCE")
+	if len(keepResource) == 0 {
+		_, err := cleanup(ctx, conn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("cleaned up successfully.")
+	}
 }
 
 func createServer(ctx context.Context, conn *arm.Connection) (*armsql.Server, error) {
@@ -138,7 +138,7 @@ func createPartnerServer(ctx context.Context, conn *arm.Connection) (*armsql.Ser
 	return &resp.Server, nil
 }
 
-func createServerCommunicationLink(ctx context.Context, conn *arm.Connection, partnerServerID string) (*armsql.ServerCommunicationLink, error) {
+func createServerCommunicationLink(ctx context.Context, conn *arm.Connection) (*armsql.ServerCommunicationLink, error) {
 	serverCommunicationLinksClient := armsql.NewServerCommunicationLinksClient(conn, subscriptionID)
 
 	pollerResp, err := serverCommunicationLinksClient.BeginCreateOrUpdate(
@@ -148,7 +148,7 @@ func createServerCommunicationLink(ctx context.Context, conn *arm.Connection, pa
 		communicationLinkName,
 		armsql.ServerCommunicationLink{
 			Properties: &armsql.ServerCommunicationLinkProperties{
-				PartnerServer: to.StringPtr(partnerServerID),
+				PartnerServer: to.StringPtr(partnerServerName),
 			},
 		},
 		nil,

@@ -59,14 +59,14 @@ func main() {
 	}
 	log.Println("database:", *database.ID)
 
-	//keepResource := os.Getenv("KEEP_RESOURCE")
-	//if len(keepResource) == 0 {
-	//	_, err := cleanup(ctx, conn)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//	log.Println("cleaned up successfully.")
-	//}
+	keepResource := os.Getenv("KEEP_RESOURCE")
+	if len(keepResource) == 0 {
+		_, err := cleanup(ctx, conn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("cleaned up successfully.")
+	}
 }
 
 func createServer(ctx context.Context, conn *arm.Connection) (*armsql.Server, error) {

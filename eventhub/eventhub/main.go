@@ -1,0 +1,229 @@
+package main
+
+import (
+	"context"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/eventhub/armeventhub"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/storage/armstorage"
+)
+
+var (
+	subscriptionID        string
+	location              = "westus"
+	resourceGroupName     = "sample-resource-group"
+	storageAccountName    = "sample1storage"
+	namespacesName        = "sample1namespace"
+	eventHubName          = "sample-eventhub"
+	authorizationRuleName = "sample-eventhub-authorization-rule"
+)
+
+func main() {
+	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
+	if len(subscriptionID) == 0 {
+		log.Fatal("AZURE_SUBSCRIPTION_ID is not set.")
+	}
+
+	cred, err := azidentity.NewDefaultAzureCredential(nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
+		Logging: policy.LogOptions{
+			IncludeBody: true,
+		},
+	})
+	ctx := context.Background()
+
+	resourceGroup, err := createResourceGroup(ctx, conn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("resources group:", *resourceGroup.ID)
+
+	storageAccount, err := createStorageAccount(ctx, conn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("storage account:", *storageAccount.ID)
+
+	namespace, err := createNamespace(ctx, conn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("eventhub namespace:", *namespace.ID)
+
+	eventhub, err := createEventHub(ctx, conn, *storageAccount.ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("eventhub:", *eventhub.ID)
+
+	keepResource := os.Getenv("KEEP_RESOURCE")
+	if len(keepResource) == 0 {
+		_, err := cleanup(ctx, conn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("cleaned up successfully.")
+	}
+}
+
+func createStorageAccount(ctx context.Context, conn *arm.Connection) (*armstorage.StorageAccount, error) {
+	storageAccountClient := armstorage.NewStorageAccountsClient(conn, subscriptionID)
+
+	pollerResp, err := storageAccountClient.BeginCreate(
+		ctx,
+		resourceGroupName,
+		storageAccountName,
+		armstorage.StorageAccountCreateParameters{
+			Kind: armstorage.KindStorageV2.ToPtr(),
+			SKU: &armstorage.SKU{
+				Name: armstorage.SKUNameStandardLRS.ToPtr(),
+			},
+			Location: to.StringPtr(location),
+		}, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.StorageAccount, nil
+}
+
+func createNamespace(ctx context.Context, conn *arm.Connection) (*armeventhub.EHNamespace, error) {
+	namespacesClient := armeventhub.NewNamespacesClient(conn, subscriptionID)
+
+	pollerResp, err := namespacesClient.BeginCreateOrUpdate(
+		ctx,
+		resourceGroupName,
+		namespacesName,
+		armeventhub.EHNamespace{
+			TrackedResource: armeventhub.TrackedResource{
+				Location: to.StringPtr(location),
+				Tags: map[string]*string{
+					"tag1": to.StringPtr("value1"),
+					"tag2": to.StringPtr("value2"),
+				},
+			},
+			SKU: &armeventhub.SKU{
+				Name: armeventhub.SKUNameStandard.ToPtr(),
+				Tier: armeventhub.SKUTierStandard.ToPtr(),
+			},
+		},
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.EHNamespace, nil
+}
+
+func createEventHub(ctx context.Context, conn *arm.Connection, storageAccountID string) (*armeventhub.Eventhub, error) {
+	eventHubsClient := armeventhub.NewEventHubsClient(conn, subscriptionID)
+
+	resp, err := eventHubsClient.CreateOrUpdate(
+		ctx,
+		resourceGroupName,
+		namespacesName,
+		eventHubName,
+		armeventhub.Eventhub{
+			Properties: &armeventhub.EventhubProperties{
+				MessageRetentionInDays: to.Int64Ptr(4),
+				PartitionCount:         to.Int64Ptr(4),
+				Status:                 armeventhub.EntityStatusActive.ToPtr(),
+				CaptureDescription: &armeventhub.CaptureDescription{
+					Enabled:           to.BoolPtr(true),
+					Encoding:          armeventhub.EncodingCaptureDescriptionAvro.ToPtr(),
+					IntervalInSeconds: to.Int32Ptr(120),
+					SizeLimitInBytes:  to.Int32Ptr(10485763),
+					Destination: &armeventhub.Destination{
+						Name: to.StringPtr("EventHubArchive.AzureBlockBlob"),
+						Properties: &armeventhub.DestinationProperties{
+							ArchiveNameFormat:        to.StringPtr("{Namespace}/{EventHub}/{PartitionId}/{Year}/{Month}/{Day}/{Hour}/{Minute}/{Second}"),
+							BlobContainer:            to.StringPtr("container"),
+							StorageAccountResourceID: to.StringPtr(storageAccountID),
+						},
+					},
+				},
+			},
+		},
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.Eventhub, nil
+}
+
+func createEventHubAuthorizationRule(ctx context.Context, conn *arm.Connection) (*armeventhub.AuthorizationRule, error) {
+	eventHubsClient := armeventhub.NewEventHubsClient(conn, subscriptionID)
+
+	resp, err := eventHubsClient.CreateOrUpdateAuthorizationRule(
+		ctx,
+		resourceGroupName,
+		namespacesName,
+		eventHubName,
+		authorizationRuleName,
+		armeventhub.AuthorizationRule{
+			Properties: &armeventhub.AuthorizationRuleProperties{
+				Rights: []*armeventhub.AccessRights{
+					armeventhub.AccessRightsListen.ToPtr(),
+					armeventhub.AccessRightsManage.ToPtr(),
+					armeventhub.AccessRightsSend.ToPtr(),
+				},
+			},
+		},
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.AuthorizationRule, nil
+}
+
+func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+
+	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
+		ctx,
+		resourceGroupName,
+		armresources.ResourceGroup{
+			Location: to.StringPtr(location),
+		},
+		nil)
+	if err != nil {
+		return nil, err
+	}
+	return &resourceGroupResp.ResourceGroup, nil
+}
+
+func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+
+	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	return resp.RawResponse, nil
+}

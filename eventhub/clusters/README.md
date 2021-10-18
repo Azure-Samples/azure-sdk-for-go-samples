@@ -45,7 +45,7 @@ This project framework provides examples for the following services:
 3. Run eventhub sample.
 
     ```
-    cd azure-sdk-for-go-samples/eventhub/consumer_groups
+    cd azure-sdk-for-go-samples/eventhub/clusters
     go mod tidy
     go run main.go
     ```

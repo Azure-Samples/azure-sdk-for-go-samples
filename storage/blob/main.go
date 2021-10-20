@@ -202,7 +202,6 @@ func setBlobServices(ctx context.Context, conn *arm.Connection) (*armstorage.Blo
 		ctx,
 		resourceGroupName,
 		storageAccountName,
-		armstorage.Enum37Default,
 		armstorage.BlobServiceProperties{
 			BlobServiceProperties: &armstorage.BlobServicePropertiesProperties{},
 		},
@@ -218,7 +217,7 @@ func setBlobServices(ctx context.Context, conn *arm.Connection) (*armstorage.Blo
 func getBlobServices(ctx context.Context, conn *arm.Connection) (*armstorage.BlobServiceProperties, error) {
 	blobServicesClient := armstorage.NewBlobServicesClient(conn, subscriptionID)
 
-	blobServicesResp, err := blobServicesClient.GetServiceProperties(ctx, resourceGroupName, storageAccountName, armstorage.Enum37Default, nil)
+	blobServicesResp, err := blobServicesClient.GetServiceProperties(ctx, resourceGroupName, storageAccountName, nil)
 	if err != nil {
 		return nil, err
 	}

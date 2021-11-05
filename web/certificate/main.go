@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
@@ -33,27 +32,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	appServicePlan, err := createAppServicePlan(ctx, conn)
+	appServicePlan, err := createAppServicePlan(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("app service plan:", *appServicePlan.ID)
 
-	certificate, err := createCertificate(ctx, conn, *appServicePlan.ID)
+	certificate, err := createCertificate(ctx, cred, *appServicePlan.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -69,8 +62,8 @@ func main() {
 	//}
 }
 
-func createAppServicePlan(ctx context.Context, conn *arm.Connection) (*armweb.AppServicePlan, error) {
-	appServicePlansClient := armweb.NewAppServicePlansClient(conn, subscriptionID)
+func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*armweb.AppServicePlan, error) {
+	appServicePlansClient := armweb.NewAppServicePlansClient(subscriptionID, cred, nil)
 
 	pollerResp, err := appServicePlansClient.BeginCreateOrUpdate(
 		ctx,
@@ -102,9 +95,9 @@ func createAppServicePlan(ctx context.Context, conn *arm.Connection) (*armweb.Ap
 	return &resp.AppServicePlan, nil
 }
 
-func createCertificate(ctx context.Context, conn *arm.Connection, appServicePlanID string) (*armweb.Certificate, error) {
-	certificatesClient := armweb.NewCertificatesClient(conn, subscriptionID)
-
+func createCertificate(ctx context.Context, cred azcore.TokenCredential, appServicePlanID string) (*armweb.Certificate, error) {
+	certificatesClient := armweb.NewCertificatesClient(subscriptionID, cred, nil)
+	500
 	resp, err := certificatesClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
@@ -114,9 +107,11 @@ func createCertificate(ctx context.Context, conn *arm.Connection, appServicePlan
 				Location: to.StringPtr(location),
 			},
 			Properties: &armweb.CertificateProperties{
-				CanonicalName: to.StringPtr("sample-canonical"),
-				Password:      to.StringPtr("123456"),
-				ServerFarmID:  to.StringPtr(appServicePlanID), // app service plan
+				HostNames: []*string{
+					to.StringPtr("ServerCert"),
+				},
+				Password:     to.StringPtr("QWE!@#123$"),
+				ServerFarmID: to.StringPtr(appServicePlanID),
 			},
 		},
 		nil,
@@ -128,8 +123,8 @@ func createCertificate(ctx context.Context, conn *arm.Connection, appServicePlan
 	return &resp.Certificate, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -144,8 +139,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
@@ -33,93 +32,79 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	appServicePlan, err := getAppServicePlan(ctx, conn)
+	appServicePlan, err := createAppServicePlan(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("app service plan:", *appServicePlan.ID)
 
-	webApp, err := createWebApp(ctx, conn, *appServicePlan.ID)
+	webApp, err := createWebApp(ctx, cred, *appServicePlan.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("web app:", *webApp.ID)
 
-	keepResource := os.Getenv("KEEP_RESOURCE")
-	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Println("cleaned up successfully.")
+	appConfiguration, err := getAppConfiguration(ctx, cred)
+	if err != nil {
+		log.Fatal(err)
 	}
+	log.Println("app configuration:", *appConfiguration.ID)
+
+	//keepResource := os.Getenv("KEEP_RESOURCE")
+	//if len(keepResource) == 0 {
+	//	_, err := cleanup(ctx, cred)
+	//	if err != nil {
+	//		log.Fatal(err)
+	//	}
+	//	log.Println("cleaned up successfully.")
+	//}
 }
 
-//func createAppServicePlan(ctx context.Context, conn *arm.Connection) (*armweb.AppServicePlan, error) {
-//	appServicePlansClient := armweb.NewAppServicePlansClient(conn, subscriptionID)
-//
-//	pollerResp, err := appServicePlansClient.BeginCreateOrUpdate(
-//		ctx,
-//		resourceGroupName,
-//		appServicePlanName,
-//		armweb.AppServicePlan{
-//			Resource: armweb.Resource{
-//				Location: to.StringPtr(location),
-//			},
-//			SKU: &armweb.SKUDescription{
-//				Name:     to.StringPtr("P1V2"),
-//				Capacity: to.Int32Ptr(1),
-//			},
-//			Properties: &armweb.AppServicePlanProperties{
-//				//FreeOfferExpirationTime: to.TimePtr(time.Now()),
-//				//PerSiteScaling:          to.BoolPtr(false),
-//				//IsXenon:                 to.BoolPtr(false),
-//			},
-//		},
-//		nil,
-//	)
-//	if err != nil {
-//		return nil, err
-//	}
-//	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return &resp.AppServicePlan, nil
-//}
+func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*armweb.AppServicePlan, error) {
+	appServicePlansClient := armweb.NewAppServicePlansClient(subscriptionID, cred, nil)
 
-func getAppServicePlan(ctx context.Context, conn *arm.Connection) (*armweb.AppServicePlan, error) {
-	appServicePlansClient := armweb.NewAppServicePlansClient(conn, subscriptionID)
-
-	resp, err := appServicePlansClient.Get(
+	pollerResp, err := appServicePlansClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		appServicePlanName,
+		armweb.AppServicePlan{
+			Resource: armweb.Resource{
+				Location: to.StringPtr(location),
+				Kind:     to.StringPtr("app"),
+			},
+			SKU: &armweb.SKUDescription{
+				Name:     to.StringPtr("S1"),
+				Capacity: to.Int32Ptr(1),
+				Tier:     to.StringPtr("Standard"),
+			},
+			Properties: &armweb.AppServicePlanProperties{
+				PerSiteScaling: to.BoolPtr(false),
+				IsXenon:        to.BoolPtr(false),
+			},
+		},
 		nil,
 	)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
 		return nil, err
 	}
 	return &resp.AppServicePlan, nil
 }
 
-func createWebApp(ctx context.Context, conn *arm.Connection, appServicePlanID string) (*armweb.Site, error) {
-	appsClient := armweb.NewWebAppsClient(conn, subscriptionID)
-
+func createWebApp(ctx context.Context, cred azcore.TokenCredential, appServicePlanID string) (*armweb.Site, error) {
+	appsClient := armweb.NewWebAppsClient(subscriptionID, cred, nil)
+	409
 	pollerResp, err := appsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
@@ -129,13 +114,23 @@ func createWebApp(ctx context.Context, conn *arm.Connection, appServicePlanID st
 				Location: to.StringPtr(location),
 			},
 			Properties: &armweb.SiteProperties{
+				//ServerFarmID: to.StringPtr(appServicePlanID),
+				Reserved: to.BoolPtr(false),
+				IsXenon:  to.BoolPtr(false),
+				HyperV:   to.BoolPtr(false),
 				SiteConfig: &armweb.SiteConfig{
-					JavaVersion:          to.StringPtr("8"),
-					JavaContainer:        to.StringPtr("tomcat"),
-					JavaContainerVersion: to.StringPtr("8.5"),
-					WindowsFxVersion:     to.StringPtr("10"),
+					NetFrameworkVersion: to.StringPtr("v4.6"),
+					AppSettings: []*armweb.NameValuePair{
+						{
+							Name:  to.StringPtr("WEBSITE_NODE_DEFAULT_VERSION"),
+							Value: to.StringPtr("10.14.1"),
+						},
+					},
+					LocalMySQLEnabled: to.BoolPtr(false),
+					Http20Enabled:     to.BoolPtr(true),
 				},
-				ServerFarmID: to.StringPtr(appServicePlanID),
+				ScmSiteAlsoStopped: to.BoolPtr(false),
+				HTTPSOnly:          to.BoolPtr(false),
 			},
 		},
 		nil,
@@ -143,7 +138,6 @@ func createWebApp(ctx context.Context, conn *arm.Connection, appServicePlanID st
 	if err != nil {
 		return nil, err
 	}
-
 	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
 		return nil, err
@@ -152,8 +146,8 @@ func createWebApp(ctx context.Context, conn *arm.Connection, appServicePlanID st
 	return &resp.Site, nil
 }
 
-func getAppConfiguration(ctx context.Context, conn *arm.Connection) (*armweb.SiteConfigResource, error) {
-	appsClient := armweb.NewWebAppsClient(conn, subscriptionID)
+func getAppConfiguration(ctx context.Context, cred azcore.TokenCredential) (*armweb.SiteConfigResource, error) {
+	appsClient := armweb.NewWebAppsClient(subscriptionID, cred, nil)
 
 	resp, err := appsClient.GetConfiguration(ctx, resourceGroupName, webAppName, nil)
 	if err != nil {
@@ -162,8 +156,8 @@ func getAppConfiguration(ctx context.Context, conn *arm.Connection) (*armweb.Sit
 	return &resp.SiteConfigResource, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -178,8 +172,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

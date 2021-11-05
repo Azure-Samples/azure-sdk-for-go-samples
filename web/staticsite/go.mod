@@ -1,4 +1,4 @@
-module azure-sdk-for-go-samples/web/certificate
+module azure-sdk-for-go-samples/web/staticsite
 
 go 1.16
 

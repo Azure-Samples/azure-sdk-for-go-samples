@@ -17,8 +17,8 @@ import (
 
 var (
 	subscriptionID    string
-	location          = "westus"
-	resourceGroupName = "sample-resource-group"
+	location          = "westus2"
+	resourceGroupName = "sample-resource-groupx"
 	domainName        = "go-sample.co.uk"
 )
 

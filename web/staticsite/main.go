@@ -19,6 +19,7 @@ var (
 	location           = "westus"
 	resourceGroupName  = "sample-resource-group"
 	appServicePlanName = "sample-web-plan"
+	staticSiteName     = "sample-static-site"
 )
 
 func main() {
@@ -45,20 +46,26 @@ func main() {
 	}
 	log.Println("app service plan:", *appServicePlan.ID)
 
-	appServicePlan, err = getAppServicePlan(ctx, cred)
+	webApp, err := createWebApp(ctx, cred, *appServicePlan.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("get app service plan:", *appServicePlan.ID)
+	log.Println("web app:", *webApp.ID)
 
-	keepResource := os.Getenv("KEEP_RESOURCE")
-	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Println("cleaned up successfully.")
+	appConfiguration, err := getAppConfiguration(ctx, cred)
+	if err != nil {
+		log.Fatal(err)
 	}
+	log.Println("app configuration:", *appConfiguration.ID)
+
+	//keepResource := os.Getenv("KEEP_RESOURCE")
+	//if len(keepResource) == 0 {
+	//	_, err := cleanup(ctx, cred)
+	//	if err != nil {
+	//		log.Fatal(err)
+	//	}
+	//	log.Println("cleaned up successfully.")
+	//}
 }
 
 func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*armweb.AppServicePlan, error) {
@@ -71,10 +78,12 @@ func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*ar
 		armweb.AppServicePlan{
 			Resource: armweb.Resource{
 				Location: to.StringPtr(location),
+				Kind:     to.StringPtr("app"),
 			},
 			SKU: &armweb.SKUDescription{
-				Name:     to.StringPtr("P1V2"),
+				Name:     to.StringPtr("S1"),
 				Capacity: to.Int32Ptr(1),
+				Tier:     to.StringPtr("Standard"),
 			},
 			Properties: &armweb.AppServicePlanProperties{
 				PerSiteScaling: to.BoolPtr(false),
@@ -93,19 +102,40 @@ func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.AppServicePlan, nil
 }
 
-func getAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*armweb.AppServicePlan, error) {
-	appServicePlansClient := armweb.NewAppServicePlansClient(subscriptionID, cred, nil)
+func createStaticSite(ctx context.Context, cred azcore.TokenCredential) (*armweb.StaticSiteARMResource, error) {
+	staticSitesClient := armweb.NewStaticSitesClient(subscriptionID, cred, nil)
 
-	resp, err := appServicePlansClient.Get(
+	pollerResp, err := staticSitesClient.BeginCreateOrUpdateStaticSite(
 		ctx,
 		resourceGroupName,
-		appServicePlanName,
+		staticSiteName,
+		armweb.StaticSiteARMResource{
+			Resource: armweb.Resource{
+				Location: to.StringPtr(location),
+			},
+			SKU: &armweb.SKUDescription{
+				Name: to.StringPtr("Free"),
+			},
+			Properties: &armweb.StaticSite{
+				RepositoryURL:   to.StringPtr("https://github.com/colawwj/azure-rest-api-specs"),
+				Branch:          to.StringPtr("master"),
+				RepositoryToken: to.StringPtr(token),
+				BuildProperties: &armweb.StaticSiteBuildProperties{
+					AppLocation: to.StringPtr("app"),
+					APILocation: to.StringPtr("api"),
+				},
+			},
+		},
 		nil,
 	)
 	if err != nil {
 		return nil, err
 	}
-	return &resp.AppServicePlan, nil
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.StaticSiteARMResource, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {

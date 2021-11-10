@@ -82,14 +82,14 @@ func main() {
 		log.Printf("user name:%s,user id:%s\n", *u.Name, *u.ID)
 	}
 
-	//keepResource := os.Getenv("KEEP_RESOURCE")
-	//if len(keepResource) == 0 {
-	//	_, err := cleanup(ctx, conn)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//	log.Println("cleaned up successfully.")
-	//}
+	keepResource := os.Getenv("KEEP_RESOURCE")
+	if len(keepResource) == 0 {
+		_, err := cleanup(ctx, conn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("cleaned up successfully.")
+	}
 }
 
 func createApiManagementService(ctx context.Context, conn *arm.Connection) (*armapimanagement.APIManagementServiceResource, error) {

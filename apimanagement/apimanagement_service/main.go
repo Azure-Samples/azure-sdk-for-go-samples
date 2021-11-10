@@ -65,20 +65,20 @@ func main() {
 	}
 	log.Println("ssoToken:", *ssoToken.RedirectURI)
 
-	//domainOwnershipIdentifier, err := getDomainOwnershipIdentifier(ctx, conn)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//log.Println("domain owner ship Identifier:", *domainOwnershipIdentifier.DomainOwnershipIdentifier)
+	domainOwnershipIdentifier, err := getDomainOwnershipIdentifier(ctx, conn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("domain owner ship Identifier:", *domainOwnershipIdentifier.DomainOwnershipIdentifier)
 
-	//keepResource := os.Getenv("KEEP_RESOURCE")
-	//if len(keepResource) == 0 {
-	//	_, err := cleanup(ctx, conn)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//	log.Println("cleaned up successfully.")
-	//}
+	keepResource := os.Getenv("KEEP_RESOURCE")
+	if len(keepResource) == 0 {
+		_, err := cleanup(ctx, conn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("cleaned up successfully.")
+	}
 }
 
 func createApiManagementService(ctx context.Context, conn *arm.Connection) (*armapimanagement.APIManagementServiceResource, error) {
@@ -141,54 +141,6 @@ func getApiManagementService(ctx context.Context, conn *arm.Connection) (*armapi
 	}
 	return &resp.APIManagementServiceResource, nil
 }
-
-//func backupApiManagement(ctx context.Context, conn *arm.Connection) (*armapimanagement.APIManagementServiceResource, error) {
-//	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(conn, subscriptionID)
-//
-//	pollerResp, err := apiManagementServiceClient.BeginBackup(
-//		ctx,
-//		resourceGroupName,
-//		serviceName,
-//		armapimanagement.APIManagementServiceBackupRestoreParameters{
-//			AccessKey:      to.StringPtr(),
-//			BackupName:     to.StringPtr(),
-//			ContainerName:  to.StringPtr(),
-//			StorageAccount: to.StringPtr(),
-//		},
-//		nil)
-//	if err != nil {
-//		return nil, err
-//	}
-//	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return &resp.APIManagementServiceResource, nil
-//}
-//
-//func restoreApiManagement(ctx context.Context, conn *arm.Connection) (*armapimanagement.APIManagementServiceResource, error) {
-//	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(conn, subscriptionID)
-//
-//	pollerResp, err := apiManagementServiceClient.BeginRestore(
-//		ctx,
-//		resourceGroupName,
-//		serviceName,
-//		armapimanagement.APIManagementServiceBackupRestoreParameters{
-//			AccessKey:      to.StringPtr(),
-//			BackupName:     to.StringPtr(),
-//			ContainerName:  to.StringPtr(),
-//			StorageAccount: to.StringPtr(),
-//		},
-//		nil)
-//	if err != nil {
-//		return nil, err
-//	}
-//	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return &resp.APIManagementServiceResource, nil
-//}
 
 func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
 	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)

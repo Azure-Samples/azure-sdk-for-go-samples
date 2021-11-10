@@ -46,19 +46,19 @@ func main() {
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	// create api service
-	//apiManagementService, err := createApiManagementService(ctx, conn)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//log.Println("api management service:", *apiManagementService.ID)
-	//
-	//// soft-delete api service
-	//apiManagementService, err = deleteApiManagementService(ctx, conn)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//log.Println("deleted api management service.")
+	//create api service
+	apiManagementService, err := createApiManagementService(ctx, conn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("api management service:", *apiManagementService.ID)
+
+	// soft-delete api service
+	apiManagementService, err = deleteApiManagementService(ctx, conn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("deleted api management service.")
 
 	// delete api service
 	resp, err := deleteService(ctx, conn)
@@ -68,20 +68,20 @@ func main() {
 	log.Println("delete service:", resp)
 
 	// again create api service
-	apiManagementService, err := createApiManagementService(ctx, conn)
+	apiManagementService, err = createApiManagementService(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("api management service again:", *apiManagementService.ID)
 
-	//keepResource := os.Getenv("KEEP_RESOURCE")
-	//if len(keepResource) == 0 {
-	//	_, err := cleanup(ctx, conn)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//	log.Println("cleaned up successfully.")
-	//}
+	keepResource := os.Getenv("KEEP_RESOURCE")
+	if len(keepResource) == 0 {
+		_, err := cleanup(ctx, conn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("cleaned up successfully.")
+	}
 }
 
 func deleteService(ctx context.Context, conn *arm.Connection) (*http.Response, error) {

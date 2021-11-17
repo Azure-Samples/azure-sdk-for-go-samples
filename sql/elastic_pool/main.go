@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
@@ -33,33 +33,27 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	server, err := createServer(ctx, conn)
+	server, err := createServer(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("server:", *server.ID)
 
-	elasticPool, err := createElasticPool(ctx, conn)
+	elasticPool, err := createElasticPool(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("elastic pool:", *elasticPool.ID)
 
-	elasticPool, err = getElasticPool(ctx, conn)
+	elasticPool, err = getElasticPool(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,7 +61,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -75,8 +69,8 @@ func main() {
 	}
 }
 
-func createServer(ctx context.Context, conn *arm.Connection) (*armsql.Server, error) {
-	serversClient := armsql.NewServersClient(conn, subscriptionID)
+func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Server, error) {
+	serversClient := armsql.NewServersClient(subscriptionID, cred, nil)
 
 	pollerResp, err := serversClient.BeginCreateOrUpdate(
 		ctx,
@@ -103,8 +97,8 @@ func createServer(ctx context.Context, conn *arm.Connection) (*armsql.Server, er
 	return &resp.Server, nil
 }
 
-func createElasticPool(ctx context.Context, conn *arm.Connection) (*armsql.ElasticPool, error) {
-	elasticPoolsClient := armsql.NewElasticPoolsClient(conn, subscriptionID)
+func createElasticPool(ctx context.Context, cred azcore.TokenCredential) (*armsql.ElasticPool, error) {
+	elasticPoolsClient := armsql.NewElasticPoolsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := elasticPoolsClient.BeginCreateOrUpdate(
 		ctx,
@@ -125,8 +119,8 @@ func createElasticPool(ctx context.Context, conn *arm.Connection) (*armsql.Elast
 	return &resp.ElasticPool, nil
 }
 
-func getElasticPool(ctx context.Context, conn *arm.Connection) (*armsql.ElasticPool, error) {
-	elasticPoolsClient := armsql.NewElasticPoolsClient(conn, subscriptionID)
+func getElasticPool(ctx context.Context, cred azcore.TokenCredential) (*armsql.ElasticPool, error) {
+	elasticPoolsClient := armsql.NewElasticPoolsClient(subscriptionID, cred, nil)
 
 	resp, err := elasticPoolsClient.Get(ctx, resourceGroupName, serverName, elasticPoolName, nil)
 	if err != nil {
@@ -135,8 +129,8 @@ func getElasticPool(ctx context.Context, conn *arm.Connection) (*armsql.ElasticP
 	return &resp.ElasticPool, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -151,8 +145,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

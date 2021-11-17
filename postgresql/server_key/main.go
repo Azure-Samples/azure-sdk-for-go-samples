@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/keyvault/armkeyvault"
@@ -48,39 +47,33 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	server, err := createServer(ctx, conn)
+	server, err := createServer(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("postgresql server:", *server.ID)
 
-	vault, err := createVault(ctx, conn)
+	vault, err := createVault(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("vault:", *vault.ID)
 
-	key, err := createKey(ctx, conn)
+	key, err := createKey(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("key:", *key.ID)
 
-	serverKey, err := createServerKey(ctx, conn, *key.ID)
+	serverKey, err := createServerKey(ctx, cred, *key.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -88,7 +81,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -96,8 +89,8 @@ func main() {
 	}
 }
 
-func createServer(ctx context.Context, conn *arm.Connection) (*armpostgresql.Server, error) {
-	serversClient := armpostgresql.NewServersClient(conn, subscriptionID)
+func createServer(ctx context.Context, cred azcore.TokenCredential) (*armpostgresql.Server, error) {
+	serversClient := armpostgresql.NewServersClient(subscriptionID, cred, nil)
 
 	pollerResp, err := serversClient.BeginCreate(
 		ctx,
@@ -131,8 +124,8 @@ func createServer(ctx context.Context, conn *arm.Connection) (*armpostgresql.Ser
 	return &resp.Server, nil
 }
 
-func createVault(ctx context.Context, conn *arm.Connection) (*armkeyvault.Vault, error) {
-	vaultsClient := armkeyvault.NewVaultsClient(conn, subscriptionID)
+func createVault(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Vault, error) {
+	vaultsClient := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := vaultsClient.BeginCreateOrUpdate(
 		ctx,
@@ -198,8 +191,8 @@ func createVault(ctx context.Context, conn *arm.Connection) (*armkeyvault.Vault,
 	return &resp.Vault, nil
 }
 
-func createKey(ctx context.Context, conn *arm.Connection) (*armkeyvault.Key, error) {
-	keysClient := armkeyvault.NewKeysClient(conn, subscriptionID)
+func createKey(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Key, error) {
+	keysClient := armkeyvault.NewKeysClient(subscriptionID, cred, nil)
 
 	secretResp, err := keysClient.CreateIfNotExist(
 		ctx,
@@ -228,8 +221,8 @@ func createKey(ctx context.Context, conn *arm.Connection) (*armkeyvault.Key, err
 	return &secretResp.Key, nil
 }
 
-func createServerKey(ctx context.Context, conn *arm.Connection, keyID string) (*armpostgresql.ServerKey, error) {
-	serverKeysClient := armpostgresql.NewServerKeysClient(conn, subscriptionID)
+func createServerKey(ctx context.Context, cred azcore.TokenCredential, keyID string) (*armpostgresql.ServerKey, error) {
+	serverKeysClient := armpostgresql.NewServerKeysClient(subscriptionID, cred, nil)
 
 	pollerResp, err := serverKeysClient.BeginCreateOrUpdate(
 		ctx,
@@ -254,8 +247,8 @@ func createServerKey(ctx context.Context, conn *arm.Connection, keyID string) (*
 	return &resp.ServerKey, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -270,8 +263,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

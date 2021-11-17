@@ -1,4 +1,4 @@
-module azure-sdk-for-go-samples/web/staticsite
+module github.com/Azure-Samples/azure-sdk-for-go-samples/web/staticsite
 
 go 1.16
 

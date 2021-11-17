@@ -1,4 +1,4 @@
-module azure-sdk-for-go-samples/web/webplan
+module github.com/Azure-Samples/azure-sdk-for-go-samples/web/webplan
 
 go 1.16
 

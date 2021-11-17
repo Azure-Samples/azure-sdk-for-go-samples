@@ -16,10 +16,11 @@ import (
 
 var (
 	subscriptionID     string
-	location           = "westus"
-	resourceGroupName  = "sample-resource-group"
-	appServicePlanName = "sample-web-plan"
+	location           = "eastus"
+	resourceGroupName  = "sample-resource-group2"
+	appServicePlanName = "sample-web-planx"
 	webAppName         = "sample-web-app"
+	slotName           = "sample-slot"
 )
 
 func main() {
@@ -46,11 +47,30 @@ func main() {
 	}
 	log.Println("app service plan:", *appServicePlan.ID)
 
+	// If encounter missing error information, it may be that webAppName has already been used.
 	webApp, err := createWebApp(ctx, cred, *appServicePlan.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("web app:", *webApp.ID)
+
+	webApp, err = getWebApp(ctx, cred)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("get web app:", *webApp.ID)
+
+	webAppSlot, err := createWebAppSlot(ctx, cred, *appServicePlan.ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("web app slot:", *webAppSlot.ID)
+
+	webAppSlot, err = getWebAppSlot(ctx, cred)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("get web app slot:", *webAppSlot.ID)
 
 	appConfiguration, err := getAppConfiguration(ctx, cred)
 	if err != nil {
@@ -58,14 +78,14 @@ func main() {
 	}
 	log.Println("app configuration:", *appConfiguration.ID)
 
-	//keepResource := os.Getenv("KEEP_RESOURCE")
-	//if len(keepResource) == 0 {
-	//	_, err := cleanup(ctx, cred)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//	log.Println("cleaned up successfully.")
-	//}
+	keepResource := os.Getenv("KEEP_RESOURCE")
+	if len(keepResource) == 0 {
+		_, err := cleanup(ctx, cred)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("cleaned up successfully.")
+	}
 }
 
 func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*armweb.AppServicePlan, error) {
@@ -78,12 +98,11 @@ func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*ar
 		armweb.AppServicePlan{
 			Resource: armweb.Resource{
 				Location: to.StringPtr(location),
-				Kind:     to.StringPtr("app"),
 			},
 			SKU: &armweb.SKUDescription{
-				Name:     to.StringPtr("S1"),
+				Name:     to.StringPtr("B1"),
 				Capacity: to.Int32Ptr(1),
-				Tier:     to.StringPtr("Standard"),
+				Tier:     to.StringPtr("BASIC"),
 			},
 			Properties: &armweb.AppServicePlanProperties{
 				PerSiteScaling: to.BoolPtr(false),
@@ -104,7 +123,6 @@ func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*ar
 
 func createWebApp(ctx context.Context, cred azcore.TokenCredential, appServicePlanID string) (*armweb.Site, error) {
 	appsClient := armweb.NewWebAppsClient(subscriptionID, cred, nil)
-	409
 	pollerResp, err := appsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
@@ -114,16 +132,16 @@ func createWebApp(ctx context.Context, cred azcore.TokenCredential, appServicePl
 				Location: to.StringPtr(location),
 			},
 			Properties: &armweb.SiteProperties{
-				//ServerFarmID: to.StringPtr(appServicePlanID),
-				Reserved: to.BoolPtr(false),
-				IsXenon:  to.BoolPtr(false),
-				HyperV:   to.BoolPtr(false),
+				ServerFarmID: to.StringPtr(appServicePlanID),
+				Reserved:     to.BoolPtr(false),
+				IsXenon:      to.BoolPtr(false),
+				HyperV:       to.BoolPtr(false),
 				SiteConfig: &armweb.SiteConfig{
 					NetFrameworkVersion: to.StringPtr("v4.6"),
 					AppSettings: []*armweb.NameValuePair{
 						{
 							Name:  to.StringPtr("WEBSITE_NODE_DEFAULT_VERSION"),
-							Value: to.StringPtr("10.14.1"),
+							Value: to.StringPtr("10.14"),
 						},
 					},
 					LocalMySQLEnabled: to.BoolPtr(false),
@@ -143,6 +161,63 @@ func createWebApp(ctx context.Context, cred azcore.TokenCredential, appServicePl
 		return nil, err
 	}
 
+	return &resp.Site, nil
+}
+
+func createWebAppSlot(ctx context.Context, cred azcore.TokenCredential, appServicePlanID string) (*armweb.Site, error) {
+	appsClient := armweb.NewWebAppsClient(subscriptionID, cred, nil)
+	pollerResp, err := appsClient.BeginCreateOrUpdateSlot(
+		ctx,
+		resourceGroupName,
+		webAppName,
+		slotName,
+		armweb.Site{
+			Resource: armweb.Resource{
+				Location: to.StringPtr(location),
+			},
+			Properties: &armweb.SiteProperties{
+				ServerFarmID: to.StringPtr(appServicePlanID),
+				Reserved:     to.BoolPtr(false),
+				IsXenon:      to.BoolPtr(false),
+				HyperV:       to.BoolPtr(false),
+				SiteConfig: &armweb.SiteConfig{
+					NetFrameworkVersion: to.StringPtr("v4.6"),
+					LocalMySQLEnabled:   to.BoolPtr(false),
+					Http20Enabled:       to.BoolPtr(true),
+				},
+				ScmSiteAlsoStopped: to.BoolPtr(false),
+			},
+		},
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp.Site, nil
+}
+
+func getWebApp(ctx context.Context, cred azcore.TokenCredential) (*armweb.Site, error) {
+	appsClient := armweb.NewWebAppsClient(subscriptionID, cred, nil)
+
+	resp, err := appsClient.Get(ctx, resourceGroupName, webAppName, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.Site, nil
+}
+
+func getWebAppSlot(ctx context.Context, cred azcore.TokenCredential) (*armweb.Site, error) {
+	appsClient := armweb.NewWebAppsClient(subscriptionID, cred, nil)
+
+	resp, err := appsClient.GetSlot(ctx, resourceGroupName, webAppName, slotName, nil)
+	if err != nil {
+		return nil, err
+	}
 	return &resp.Site, nil
 }
 

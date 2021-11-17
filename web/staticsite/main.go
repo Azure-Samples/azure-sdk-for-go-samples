@@ -15,14 +15,20 @@ import (
 )
 
 var (
-	subscriptionID     string
-	location           = "westus"
-	resourceGroupName  = "sample-resource-group"
-	appServicePlanName = "sample-web-plan"
-	staticSiteName     = "sample-static-site"
+	subscriptionID    string
+	location          = "eastus2"
+	resourceGroupName = "sample-resource-group"
+	staticSiteName    = "sample-static-site"
 )
 
+// replace your repo information
+var repoURL = "https://github.com/804873052/azure-rest-api-specs" // https://github.com/<github-name>/azure-rest-api-specs
+var repoToken = "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"        // github token https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
 func main() {
+	if repoToken == "" || repoToken == "" {
+		log.Fatal("Please input repo information.")
+	}
+
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
 		log.Fatal("AZURE_SUBSCRIPTION_ID is not set.")
@@ -40,66 +46,47 @@ func main() {
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	appServicePlan, err := createAppServicePlan(ctx, cred)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("app service plan:", *appServicePlan.ID)
-
-	webApp, err := createWebApp(ctx, cred, *appServicePlan.ID)
+	webApp, err := createStaticSite(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("web app:", *webApp.ID)
 
-	appConfiguration, err := getAppConfiguration(ctx, cred)
+	webApp, err = getStaticSite(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("app configuration:", *appConfiguration.ID)
+	log.Println("get web app:", *webApp.ID)
 
-	//keepResource := os.Getenv("KEEP_RESOURCE")
-	//if len(keepResource) == 0 {
-	//	_, err := cleanup(ctx, cred)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//	log.Println("cleaned up successfully.")
-	//}
-}
+	listFunctions := listStaticSiteFunctions(ctx, cred)
+	log.Println("list static site functions:", len(listFunctions))
 
-func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*armweb.AppServicePlan, error) {
-	appServicePlansClient := armweb.NewAppServicePlansClient(subscriptionID, cred, nil)
+	list := listStaticSite(ctx, cred)
+	log.Println("list static site:", len(list))
 
-	pollerResp, err := appServicePlansClient.BeginCreateOrUpdate(
-		ctx,
-		resourceGroupName,
-		appServicePlanName,
-		armweb.AppServicePlan{
-			Resource: armweb.Resource{
-				Location: to.StringPtr(location),
-				Kind:     to.StringPtr("app"),
-			},
-			SKU: &armweb.SKUDescription{
-				Name:     to.StringPtr("S1"),
-				Capacity: to.Int32Ptr(1),
-				Tier:     to.StringPtr("Standard"),
-			},
-			Properties: &armweb.AppServicePlanProperties{
-				PerSiteScaling: to.BoolPtr(false),
-				IsXenon:        to.BoolPtr(false),
-			},
-		},
-		nil,
-	)
+	listCustimDomain := listStaticSiteCustomDomain(ctx, cred)
+	log.Println("list static site custom domain:", len(listCustimDomain))
+
+	reset, err := resetStaticSiteApiKey(ctx, cred)
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	log.Println("reset static site api key:", reset.Status)
+
+	detach, err := detachStaticSite(ctx, cred)
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
-	return &resp.AppServicePlan, nil
+	log.Println("detach static site:", detach.Status)
+
+	keepResource := os.Getenv("KEEP_RESOURCE")
+	if len(keepResource) == 0 {
+		_, err := cleanup(ctx, cred)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("cleaned up successfully.")
+	}
 }
 
 func createStaticSite(ctx context.Context, cred azcore.TokenCredential) (*armweb.StaticSiteARMResource, error) {
@@ -117,9 +104,9 @@ func createStaticSite(ctx context.Context, cred azcore.TokenCredential) (*armweb
 				Name: to.StringPtr("Free"),
 			},
 			Properties: &armweb.StaticSite{
-				RepositoryURL:   to.StringPtr("https://github.com/colawwj/azure-rest-api-specs"),
+				RepositoryURL:   to.StringPtr(repoURL),
 				Branch:          to.StringPtr("master"),
-				RepositoryToken: to.StringPtr(token),
+				RepositoryToken: to.StringPtr(repoToken),
 				BuildProperties: &armweb.StaticSiteBuildProperties{
 					AppLocation: to.StringPtr("app"),
 					APILocation: to.StringPtr("api"),
@@ -136,6 +123,81 @@ func createStaticSite(ctx context.Context, cred azcore.TokenCredential) (*armweb
 		return nil, err
 	}
 	return &resp.StaticSiteARMResource, nil
+}
+
+func listStaticSiteFunctions(ctx context.Context, cred azcore.TokenCredential) []*armweb.StaticSiteFunctionOverviewARMResource {
+	staticSitesClient := armweb.NewStaticSitesClient(subscriptionID, cred, nil)
+	result := make([]*armweb.StaticSiteFunctionOverviewARMResource, 0)
+	listPager := staticSitesClient.ListStaticSiteFunctions(resourceGroupName, staticSiteName, nil)
+	for listPager.NextPage(ctx) {
+		resp := listPager.PageResponse()
+		result = append(result, resp.Value...)
+	}
+	return result
+}
+
+func listStaticSite(ctx context.Context, cred azcore.TokenCredential) []*armweb.StaticSiteARMResource {
+	staticSitesClient := armweb.NewStaticSitesClient(subscriptionID, cred, nil)
+	result := make([]*armweb.StaticSiteARMResource, 0)
+	listPager := staticSitesClient.List(nil)
+	for listPager.NextPage(ctx) {
+		resp := listPager.PageResponse()
+		result = append(result, resp.Value...)
+	}
+	return result
+}
+
+func listStaticSiteCustomDomain(ctx context.Context, cred azcore.TokenCredential) []*armweb.StaticSiteCustomDomainOverviewARMResource {
+	staticSitesClient := armweb.NewStaticSitesClient(subscriptionID, cred, nil)
+	result := make([]*armweb.StaticSiteCustomDomainOverviewARMResource, 0)
+	listPager := staticSitesClient.ListStaticSiteCustomDomains(resourceGroupName, staticSiteName, nil)
+	for listPager.NextPage(ctx) {
+		resp := listPager.PageResponse()
+		result = append(result, resp.Value...)
+	}
+	return result
+}
+
+func getStaticSite(ctx context.Context, cred azcore.TokenCredential) (*armweb.StaticSiteARMResource, error) {
+	staticSitesClient := armweb.NewStaticSitesClient(subscriptionID, cred, nil)
+	resp, err := staticSitesClient.GetStaticSite(ctx, resourceGroupName, staticSiteName, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.StaticSiteARMResource, nil
+}
+
+func resetStaticSiteApiKey(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	staticSitesClient := armweb.NewStaticSitesClient(subscriptionID, cred, nil)
+	resp, err := staticSitesClient.ResetStaticSiteAPIKey(
+		ctx,
+		resourceGroupName,
+		staticSiteName,
+		armweb.StaticSiteResetPropertiesARMResource{
+			Properties: &armweb.StaticSiteResetPropertiesARMResourceProperties{
+				ShouldUpdateRepository: to.BoolPtr(true),
+				RepositoryToken:        to.StringPtr(repoToken),
+			},
+		},
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return resp.RawResponse, nil
+}
+
+func detachStaticSite(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	staticSitesClient := armweb.NewStaticSitesClient(subscriptionID, cred, nil)
+	pollerResp, err := staticSitesClient.BeginDetachStaticSite(ctx, resourceGroupName, staticSiteName, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	return resp.RawResponse, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {

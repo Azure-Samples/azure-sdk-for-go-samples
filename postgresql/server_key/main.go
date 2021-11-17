@@ -20,10 +20,10 @@ var (
 	TenantID          string
 	ObjectID          string
 	location          = "eastus"
-	resourceGroupName = "sample-resource-group"
+	resourceGroupName = "sample-resource-group2"
 	serverName        = "sampleXserver"
-	vaultName         = "sample2vault123"
-	keyName           = "sample2key123"
+	vaultName         = "sample2vaultxx"
+	keyName           = "sample2keyxx"
 	serverKeyName     = "sample-postgresql-key"
 )
 

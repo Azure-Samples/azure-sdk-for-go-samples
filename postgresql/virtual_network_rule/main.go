@@ -18,7 +18,7 @@ import (
 var (
 	subscriptionID         string
 	location               = "eastus"
-	resourceGroupName      = "sample-resource-group"
+	resourceGroupName      = "sample-resource-group2"
 	serverName             = "sampleXserver"
 	virtualNetworkName     = "sample-virtual-network"
 	subnetName             = "sample-subnet"

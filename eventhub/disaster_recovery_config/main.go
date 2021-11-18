@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/eventhub/armeventhub"
@@ -34,52 +33,46 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	namespace, err := createNamespace(ctx, conn)
+	namespace, err := createNamespace(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("eventhub namespace:", *namespace.ID)
 
-	secondNamespace, err := createSecondNamespace(ctx, conn)
+	secondNamespace, err := createSecondNamespace(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("eventhub second namespace:", *secondNamespace.ID)
 
-	ava, err := checkNameAva(ctx, conn)
+	ava, err := checkNameAva(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("check name availability:", *ava.NameAvailable)
 
-	disasterRecoveryConfig, err := createDisasterRecoveryConfig(ctx, conn, *secondNamespace.ID)
+	disasterRecoveryConfig, err := createDisasterRecoveryConfig(ctx, cred, *secondNamespace.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("disaster recovery config:", *disasterRecoveryConfig.ID)
 
-	disasterRecoveryConfig, err = getDisasterRecoveryConfig(ctx, conn)
+	disasterRecoveryConfig, err = getDisasterRecoveryConfig(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get disaster recovery config:", *disasterRecoveryConfig.ID)
 
 	// Only after breakPairing or failOVer can clean resource
-	breakPairing, err := breakPairingDisasterRecoveryConfig(ctx, conn)
+	breakPairing, err := breakPairingDisasterRecoveryConfig(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,7 +86,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -101,8 +94,8 @@ func main() {
 	}
 }
 
-func createNamespace(ctx context.Context, conn *arm.Connection) (*armeventhub.EHNamespace, error) {
-	namespacesClient := armeventhub.NewNamespacesClient(conn, subscriptionID)
+func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armeventhub.EHNamespace, error) {
+	namespacesClient := armeventhub.NewNamespacesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := namespacesClient.BeginCreateOrUpdate(
 		ctx,
@@ -133,8 +126,8 @@ func createNamespace(ctx context.Context, conn *arm.Connection) (*armeventhub.EH
 	return &resp.EHNamespace, nil
 }
 
-func createSecondNamespace(ctx context.Context, conn *arm.Connection) (*armeventhub.EHNamespace, error) {
-	namespacesClient := armeventhub.NewNamespacesClient(conn, subscriptionID)
+func createSecondNamespace(ctx context.Context, cred azcore.TokenCredential) (*armeventhub.EHNamespace, error) {
+	namespacesClient := armeventhub.NewNamespacesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := namespacesClient.BeginCreateOrUpdate(
 		ctx,
@@ -165,8 +158,8 @@ func createSecondNamespace(ctx context.Context, conn *arm.Connection) (*armevent
 	return &resp.EHNamespace, nil
 }
 
-func checkNameAva(ctx context.Context, conn *arm.Connection) (*armeventhub.CheckNameAvailabilityResult, error) {
-	disasterRecoveryConfigsClient := armeventhub.NewDisasterRecoveryConfigsClient(conn, subscriptionID)
+func checkNameAva(ctx context.Context, cred azcore.TokenCredential) (*armeventhub.CheckNameAvailabilityResult, error) {
+	disasterRecoveryConfigsClient := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
 
 	resp, err := disasterRecoveryConfigsClient.CheckNameAvailability(
 		ctx,
@@ -183,8 +176,8 @@ func checkNameAva(ctx context.Context, conn *arm.Connection) (*armeventhub.Check
 	return &resp.CheckNameAvailabilityResult, nil
 }
 
-func createDisasterRecoveryConfig(ctx context.Context, conn *arm.Connection, secondNamespaceID string) (*armeventhub.ArmDisasterRecovery, error) {
-	disasterRecoveryConfigsClient := armeventhub.NewDisasterRecoveryConfigsClient(conn, subscriptionID)
+func createDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential, secondNamespaceID string) (*armeventhub.ArmDisasterRecovery, error) {
+	disasterRecoveryConfigsClient := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
 
 	resp, err := disasterRecoveryConfigsClient.CreateOrUpdate(
 		ctx,
@@ -204,8 +197,8 @@ func createDisasterRecoveryConfig(ctx context.Context, conn *arm.Connection, sec
 	return &resp.ArmDisasterRecovery, nil
 }
 
-func getDisasterRecoveryConfig(ctx context.Context, conn *arm.Connection) (*armeventhub.ArmDisasterRecovery, error) {
-	disasterRecoveryConfigsClient := armeventhub.NewDisasterRecoveryConfigsClient(conn, subscriptionID)
+func getDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential) (*armeventhub.ArmDisasterRecovery, error) {
+	disasterRecoveryConfigsClient := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
 
 	resp, err := disasterRecoveryConfigsClient.Get(ctx, resourceGroupName, namespacesName, disasterRecoveryConfigName, nil)
 	if err != nil {
@@ -214,8 +207,8 @@ func getDisasterRecoveryConfig(ctx context.Context, conn *arm.Connection) (*arme
 	return &resp.ArmDisasterRecovery, nil
 }
 
-func breakPairingDisasterRecoveryConfig(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	disasterRecoveryConfigsClient := armeventhub.NewDisasterRecoveryConfigsClient(conn, subscriptionID)
+func breakPairingDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	disasterRecoveryConfigsClient := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
 
 	resp, err := disasterRecoveryConfigsClient.BreakPairing(ctx, resourceGroupName, namespacesName, disasterRecoveryConfigName, nil)
 	if err != nil {
@@ -224,8 +217,8 @@ func breakPairingDisasterRecoveryConfig(ctx context.Context, conn *arm.Connectio
 	return resp.RawResponse, nil
 }
 
-func failOverDisasterRecoveryConfig(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	disasterRecoveryConfigsClient := armeventhub.NewDisasterRecoveryConfigsClient(conn, subscriptionID)
+func failOverDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	disasterRecoveryConfigsClient := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
 
 	resp, err := disasterRecoveryConfigsClient.FailOver(ctx, resourceGroupName, secondNamespacesName, disasterRecoveryConfigName, nil)
 	if err != nil {
@@ -234,8 +227,8 @@ func failOverDisasterRecoveryConfig(ctx context.Context, conn *arm.Connection) (
 	return resp.RawResponse, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -250,8 +243,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

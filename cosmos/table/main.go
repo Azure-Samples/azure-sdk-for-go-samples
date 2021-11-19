@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/cosmos/armcosmos"
@@ -33,27 +32,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	databaseAccount, err := createDatabaseAccount(ctx, conn)
+	databaseAccount, err := createDatabaseAccount(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("cosmos database account:", *databaseAccount.ID)
 
-	table, err := createTable(ctx, conn)
+	table, err := createTable(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,7 +54,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -69,8 +62,8 @@ func main() {
 	}
 }
 
-func createDatabaseAccount(ctx context.Context, conn *arm.Connection) (*armcosmos.DatabaseAccountGetResults, error) {
-	databaseAccountsClient := armcosmos.NewDatabaseAccountsClient(conn, subscriptionID)
+func createDatabaseAccount(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.DatabaseAccountGetResults, error) {
+	databaseAccountsClient := armcosmos.NewDatabaseAccountsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := databaseAccountsClient.BeginCreateOrUpdate(
 		ctx,
@@ -111,8 +104,8 @@ func createDatabaseAccount(ctx context.Context, conn *arm.Connection) (*armcosmo
 	return &resp.DatabaseAccountGetResults, nil
 }
 
-func createTable(ctx context.Context, conn *arm.Connection) (*armcosmos.TableGetResults, error) {
-	tableResourcesClient := armcosmos.NewTableResourcesClient(conn, subscriptionID)
+func createTable(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.TableGetResults, error) {
+	tableResourcesClient := armcosmos.NewTableResourcesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := tableResourcesClient.BeginCreateUpdateTable(
 		ctx,
@@ -143,8 +136,8 @@ func createTable(ctx context.Context, conn *arm.Connection) (*armcosmos.TableGet
 	return &resp.TableGetResults, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -159,8 +152,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

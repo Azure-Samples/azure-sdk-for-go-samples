@@ -17,7 +17,7 @@ These code samples will show you how to manage Authorization using Azure SDK for
 This project framework provides examples for the following services:
 
 ### Authorization
-* Using the Azure SDK for Golang - Authorization Management Library [authorization/armauthorization](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/authorization/armauthorization) for the [Azure Authorization API](https://docs.microsoft.com/en-us/rest/api/authorization/)
+* Using the Azure SDK for Golang - Authorization Management Library [authorization/armauthorization](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization) for the [Azure Authorization API](https://docs.microsoft.com/en-us/rest/api/authorization/)
 
 ### Prerequisites
 * an [Azure subscription](https://azure.microsoft.com)

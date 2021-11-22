@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/operationalinsights/armoperationalinsights"
@@ -33,27 +32,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	workspace, err := createWorkspace(ctx, conn)
+	workspace, err := createWorkspace(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("operational insights workspace:", *workspace.ID)
 
-	dataSource, err := createDatasource(ctx, conn)
+	dataSource, err := createDatasource(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,7 +54,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -69,8 +62,8 @@ func main() {
 	}
 }
 
-func createWorkspace(ctx context.Context, conn *arm.Connection) (*armoperationalinsights.Workspace, error) {
-	workspacesClient := armoperationalinsights.NewWorkspacesClient(conn, subscriptionID)
+func createWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armoperationalinsights.Workspace, error) {
+	workspacesClient := armoperationalinsights.NewWorkspacesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := workspacesClient.BeginCreateOrUpdate(
 		ctx,
@@ -94,8 +87,8 @@ func createWorkspace(ctx context.Context, conn *arm.Connection) (*armoperational
 	return &resp.Workspace, nil
 }
 
-func createDatasource(ctx context.Context, conn *arm.Connection) (*armoperationalinsights.DataSource, error) {
-	sourcesClient := armoperationalinsights.NewDataSourcesClient(conn, subscriptionID)
+func createDatasource(ctx context.Context, cred azcore.TokenCredential) (*armoperationalinsights.DataSource, error) {
+	sourcesClient := armoperationalinsights.NewDataSourcesClient(subscriptionID, cred, nil)
 
 	resp, err := sourcesClient.CreateOrUpdate(
 		ctx,
@@ -104,9 +97,7 @@ func createDatasource(ctx context.Context, conn *arm.Connection) (*armoperationa
 		dataSourceName,
 		armoperationalinsights.DataSource{
 			Kind:       armoperationalinsights.DataSourceKindAzureActivityLog.ToPtr(),
-			Properties: map[string]interface{}{
-				""
-			},
+			Properties: map[string]interface{}{},
 		},
 		nil,
 	)
@@ -116,8 +107,8 @@ func createDatasource(ctx context.Context, conn *arm.Connection) (*armoperationa
 	return &resp.DataSource, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -132,8 +123,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

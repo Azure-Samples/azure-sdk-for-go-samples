@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
@@ -36,39 +35,33 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	virtualNetwork, err := createVirtualNetwork(ctx, conn)
+	virtualNetwork, err := createVirtualNetwork(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("virtual network:", *virtualNetwork.ID)
 
-	subnet, err := createSubnet(ctx, conn)
+	subnet, err := createSubnet(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("subnet:", *subnet.ID)
 
-	redis, err := createRedis(ctx, conn, *subnet.ID)
+	redis, err := createRedis(ctx, cred, *subnet.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("redis:", *redis.ID)
 
-	firewallRule, err := createFireWallRule(ctx, conn)
+	firewallRule, err := createFireWallRule(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -76,7 +69,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -84,8 +77,8 @@ func main() {
 	}
 }
 
-func createVirtualNetwork(ctx context.Context, conn *arm.Connection) (*armnetwork.VirtualNetwork, error) {
-	virtualNetworkClient := armnetwork.NewVirtualNetworksClient(conn, subscriptionID)
+func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.VirtualNetwork, error) {
+	virtualNetworkClient := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
 
 	pollerResp, err := virtualNetworkClient.BeginCreateOrUpdate(
 		ctx,
@@ -116,8 +109,8 @@ func createVirtualNetwork(ctx context.Context, conn *arm.Connection) (*armnetwor
 	return &resp.VirtualNetwork, nil
 }
 
-func createSubnet(ctx context.Context, conn *arm.Connection) (*armnetwork.Subnet, error) {
-	subnetsClient := armnetwork.NewSubnetsClient(conn, subscriptionID)
+func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.Subnet, error) {
+	subnetsClient := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := subnetsClient.BeginCreateOrUpdate(
 		ctx,
@@ -143,8 +136,8 @@ func createSubnet(ctx context.Context, conn *arm.Connection) (*armnetwork.Subnet
 	return &resp.Subnet, nil
 }
 
-func createRedis(ctx context.Context, conn *arm.Connection, subnetID string) (r armredis.RedisCreateResponse, err error) {
-	redisClient := armredis.NewRedisClient(conn, subscriptionID)
+func createRedis(ctx context.Context, cred azcore.TokenCredential, subnetID string) (r armredis.RedisCreateResponse, err error) {
+	redisClient := armredis.NewRedisClient(subscriptionID, cred, nil)
 
 	pollerResp, err := redisClient.BeginCreate(
 		ctx,
@@ -186,8 +179,8 @@ func createRedis(ctx context.Context, conn *arm.Connection, subnetID string) (r 
 	return resp, nil
 }
 
-func createFireWallRule(ctx context.Context, conn *arm.Connection) (r armredis.FirewallRulesCreateOrUpdateResponse, err error) {
-	firewallRulesClient := armredis.NewFirewallRulesClient(conn, subscriptionID)
+func createFireWallRule(ctx context.Context, cred azcore.TokenCredential) (r armredis.FirewallRulesCreateOrUpdateResponse, err error) {
+	firewallRulesClient := armredis.NewFirewallRulesClient(subscriptionID, cred, nil)
 
 	resp, err := firewallRulesClient.CreateOrUpdate(
 		ctx,
@@ -209,8 +202,8 @@ func createFireWallRule(ctx context.Context, conn *arm.Connection) (r armredis.F
 	return resp, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -225,8 +218,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

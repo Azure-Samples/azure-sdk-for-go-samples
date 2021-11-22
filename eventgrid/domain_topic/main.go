@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/eventgrid/armeventgrid"
@@ -33,27 +32,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	domain, err := createDomain(ctx, conn)
+	domain, err := createDomain(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("domain:", *domain.ID)
 
-	domainTopic, err := createDomainTopic(ctx, conn)
+	domainTopic, err := createDomainTopic(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,7 +54,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -69,8 +62,8 @@ func main() {
 	}
 }
 
-func createDomain(ctx context.Context, conn *arm.Connection) (*armeventgrid.Domain, error) {
-	domainsClient := armeventgrid.NewDomainsClient(conn, subscriptionID)
+func createDomain(ctx context.Context, cred azcore.TokenCredential) (*armeventgrid.Domain, error) {
+	domainsClient := armeventgrid.NewDomainsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := domainsClient.BeginCreateOrUpdate(
 		ctx,
@@ -93,8 +86,8 @@ func createDomain(ctx context.Context, conn *arm.Connection) (*armeventgrid.Doma
 	return &resp.Domain, nil
 }
 
-func createDomainTopic(ctx context.Context, conn *arm.Connection) (*armeventgrid.DomainTopic, error) {
-	domainTopicsClient := armeventgrid.NewDomainTopicsClient(conn, subscriptionID)
+func createDomainTopic(ctx context.Context, cred azcore.TokenCredential) (*armeventgrid.DomainTopic, error) {
+	domainTopicsClient := armeventgrid.NewDomainTopicsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := domainTopicsClient.BeginCreateOrUpdate(ctx, resourceGroupName, domainName, domainTopicName, nil)
 	if err != nil {
@@ -107,8 +100,8 @@ func createDomainTopic(ctx context.Context, conn *arm.Connection) (*armeventgrid
 	return &resp.DomainTopic, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -123,8 +116,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

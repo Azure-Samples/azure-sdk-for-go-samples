@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/eventgrid/armeventgrid"
@@ -34,27 +33,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	storageAccount, err := createStorageAccount(ctx, conn)
+	storageAccount, err := createStorageAccount(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("storage account:", *storageAccount.ID)
 
-	systemTopic, err := createSystemTopic(ctx, conn, *storageAccount.ID)
+	systemTopic, err := createSystemTopic(ctx, cred, *storageAccount.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -62,7 +55,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -70,8 +63,8 @@ func main() {
 	}
 }
 
-func createStorageAccount(ctx context.Context, conn *arm.Connection) (*armstorage.StorageAccount, error) {
-	storageAccountClient := armstorage.NewStorageAccountsClient(conn, subscriptionID)
+func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.StorageAccount, error) {
+	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := storageAccountClient.BeginCreate(
 		ctx,
@@ -106,8 +99,8 @@ func createStorageAccount(ctx context.Context, conn *arm.Connection) (*armstorag
 	return &resp.StorageAccount, nil
 }
 
-func createSystemTopic(ctx context.Context, conn *arm.Connection, storageAccountID string) (*armeventgrid.SystemTopic, error) {
-	systemTopicsClient := armeventgrid.NewSystemTopicsClient(conn, subscriptionID)
+func createSystemTopic(ctx context.Context, cred azcore.TokenCredential, storageAccountID string) (*armeventgrid.SystemTopic, error) {
+	systemTopicsClient := armeventgrid.NewSystemTopicsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := systemTopicsClient.BeginCreateOrUpdate(
 		ctx,
@@ -134,8 +127,8 @@ func createSystemTopic(ctx context.Context, conn *arm.Connection, storageAccount
 	return &resp.SystemTopic, nil
 }
 
-func getSystemTopic(ctx context.Context, conn *arm.Connection, storageAccountID string) (*armeventgrid.SystemTopic, error) {
-	systemTopicsClient := armeventgrid.NewSystemTopicsClient(conn, subscriptionID)
+func getSystemTopic(ctx context.Context, cred azcore.TokenCredential, storageAccountID string) (*armeventgrid.SystemTopic, error) {
+	systemTopicsClient := armeventgrid.NewSystemTopicsClient(subscriptionID, cred, nil)
 
 	resp, err := systemTopicsClient.Get(ctx, resourceGroupName, systemTopicName, nil)
 	if err != nil {
@@ -144,8 +137,8 @@ func getSystemTopic(ctx context.Context, conn *arm.Connection, storageAccountID 
 	return &resp.SystemTopic, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -160,8 +153,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

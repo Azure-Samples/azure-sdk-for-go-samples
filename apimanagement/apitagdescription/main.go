@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/apimanagement/armapimanagement"
@@ -35,38 +34,33 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	apiManagementService, err := createApiManagementService(ctx, conn)
+	apiManagementService, err := createApiManagementService(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("api management service:", *apiManagementService.ID)
 
-	api, err := createApi(ctx, conn)
+	api, err := createApi(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("api:", *api.ID)
 
-	tag, err := createTag(ctx, conn)
+	tag, err := createTag(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("tag:", *tag.ID)
 
-	apiTagDescription, err := createApiTagDescription(ctx, conn)
+	apiTagDescription, err := createApiTagDescription(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -74,7 +68,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -82,8 +76,8 @@ func main() {
 	}
 }
 
-func createApiManagementService(ctx context.Context, conn *arm.Connection) (*armapimanagement.APIManagementServiceResource, error) {
-	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(conn, subscriptionID)
+func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIManagementServiceResource, error) {
+	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(subscriptionID, cred, nil)
 
 	pollerResp, err := apiManagementServiceClient.BeginCreateOrUpdate(
 		ctx,
@@ -112,8 +106,8 @@ func createApiManagementService(ctx context.Context, conn *arm.Connection) (*arm
 	return &resp.APIManagementServiceResource, nil
 }
 
-func createApi(ctx context.Context, conn *arm.Connection) (*armapimanagement.APIContract, error) {
-	APIClient := armapimanagement.NewAPIClient(conn, subscriptionID)
+func createApi(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIContract, error) {
+	APIClient := armapimanagement.NewAPIClient(subscriptionID, cred, nil)
 
 	pollerResp, err := APIClient.BeginCreateOrUpdate(
 		ctx,
@@ -144,8 +138,8 @@ func createApi(ctx context.Context, conn *arm.Connection) (*armapimanagement.API
 	return &resp.APIContract, nil
 }
 
-func createTag(ctx context.Context, conn *arm.Connection) (*armapimanagement.TagCreateOrUpdateResult, error) {
-	tagClient := armapimanagement.NewTagClient(conn, subscriptionID)
+func createTag(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.TagCreateOrUpdateResult, error) {
+	tagClient := armapimanagement.NewTagClient(subscriptionID, cred, nil)
 
 	resp, err := tagClient.CreateOrUpdate(
 		ctx,
@@ -165,8 +159,8 @@ func createTag(ctx context.Context, conn *arm.Connection) (*armapimanagement.Tag
 	return &resp.TagCreateOrUpdateResult, nil
 }
 
-func createApiTagDescription(ctx context.Context, conn *arm.Connection) (*armapimanagement.TagDescriptionContract, error) {
-	apiTagDescriptionClient := armapimanagement.NewAPITagDescriptionClient(conn, subscriptionID)
+func createApiTagDescription(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.TagDescriptionContract, error) {
+	apiTagDescriptionClient := armapimanagement.NewAPITagDescriptionClient(subscriptionID, cred, nil)
 
 	resp, err := apiTagDescriptionClient.CreateOrUpdate(
 		ctx,
@@ -188,8 +182,8 @@ func createApiTagDescription(ctx context.Context, conn *arm.Connection) (*armapi
 	}
 	return &resp.TagDescriptionContract, nil
 }
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -204,8 +198,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

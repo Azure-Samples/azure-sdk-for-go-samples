@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/apimanagement/armapimanagement"
@@ -33,33 +32,27 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	apiManagementService, err := createApiManagementService(ctx, conn)
+	apiManagementService, err := createApiManagementService(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("api management service:", *apiManagementService.ID)
 
-	api, err := createApi(ctx, conn)
+	api, err := createApi(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("api:", *api.ID)
 
-	apiPolicy, err := createApiPolicy(ctx, conn)
+	apiPolicy, err := createApiPolicy(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,7 +60,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -75,8 +68,8 @@ func main() {
 	}
 }
 
-func createApiManagementService(ctx context.Context, conn *arm.Connection) (*armapimanagement.APIManagementServiceResource, error) {
-	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(conn, subscriptionID)
+func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIManagementServiceResource, error) {
+	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(subscriptionID, cred, nil)
 
 	pollerResp, err := apiManagementServiceClient.BeginCreateOrUpdate(
 		ctx,
@@ -105,8 +98,8 @@ func createApiManagementService(ctx context.Context, conn *arm.Connection) (*arm
 	return &resp.APIManagementServiceResource, nil
 }
 
-func createApi(ctx context.Context, conn *arm.Connection) (*armapimanagement.APIContract, error) {
-	APIClient := armapimanagement.NewAPIClient(conn, subscriptionID)
+func createApi(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIContract, error) {
+	APIClient := armapimanagement.NewAPIClient(subscriptionID, cred, nil)
 
 	pollerResp, err := APIClient.BeginCreateOrUpdate(
 		ctx,
@@ -154,8 +147,8 @@ var value = `<?xml version="1.0" encoding="utf-8"?>
 </policies>
 `
 
-func createApiPolicy(ctx context.Context, conn *arm.Connection) (*armapimanagement.PolicyContract, error) {
-	apiOperationPolicyClient := armapimanagement.NewAPIPolicyClient(conn, subscriptionID)
+func createApiPolicy(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.PolicyContract, error) {
+	apiOperationPolicyClient := armapimanagement.NewAPIPolicyClient(subscriptionID, cred, nil)
 
 	resp, err := apiOperationPolicyClient.CreateOrUpdate(
 		ctx,
@@ -177,8 +170,8 @@ func createApiPolicy(ctx context.Context, conn *arm.Connection) (*armapimanageme
 	return &resp.PolicyContract, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -193,8 +186,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

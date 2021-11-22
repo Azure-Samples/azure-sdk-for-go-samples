@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/apimanagement/armapimanagement"
@@ -32,40 +31,34 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
 	// if happen soft-delete please use delete_service sample to delete
-	apiManagementService, err := createApiManagementService(ctx, conn)
+	apiManagementService, err := createApiManagementService(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("api management service:", *apiManagementService.ID)
 
-	apiManagementService, err = getApiManagementService(ctx, conn)
+	apiManagementService, err = getApiManagementService(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get api management service:", *apiManagementService.ID)
 
-	ssoToken, err := getSsoToken(ctx, conn)
+	ssoToken, err := getSsoToken(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("ssoToken:", *ssoToken.RedirectURI)
 
-	domainOwnershipIdentifier, err := getDomainOwnershipIdentifier(ctx, conn)
+	domainOwnershipIdentifier, err := getDomainOwnershipIdentifier(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -73,7 +66,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -81,8 +74,8 @@ func main() {
 	}
 }
 
-func createApiManagementService(ctx context.Context, conn *arm.Connection) (*armapimanagement.APIManagementServiceResource, error) {
-	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(conn, subscriptionID)
+func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIManagementServiceResource, error) {
+	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(subscriptionID, cred, nil)
 
 	pollerResp, err := apiManagementServiceClient.BeginCreateOrUpdate(
 		ctx,
@@ -112,8 +105,8 @@ func createApiManagementService(ctx context.Context, conn *arm.Connection) (*arm
 }
 
 //The resource type 'getDomainOwnershipIdentifier' could not be found in the namespace 'Microsoft.ApiManagement' for api version '2021-04-01-preview'. The supported api-versions are '2020-12-01,2021-01-01-preview'."}
-func getDomainOwnershipIdentifier(ctx context.Context, conn *arm.Connection) (*armapimanagement.APIManagementServiceGetDomainOwnershipIdentifierResult, error) {
-	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(conn, subscriptionID)
+func getDomainOwnershipIdentifier(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIManagementServiceGetDomainOwnershipIdentifierResult, error) {
+	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(subscriptionID, cred, nil)
 
 	resp, err := apiManagementServiceClient.GetDomainOwnershipIdentifier(ctx, nil)
 	if err != nil {
@@ -122,8 +115,8 @@ func getDomainOwnershipIdentifier(ctx context.Context, conn *arm.Connection) (*a
 	return &resp.APIManagementServiceGetDomainOwnershipIdentifierResult, nil
 }
 
-func getSsoToken(ctx context.Context, conn *arm.Connection) (*armapimanagement.APIManagementServiceGetSsoTokenResult, error) {
-	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(conn, subscriptionID)
+func getSsoToken(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIManagementServiceGetSsoTokenResult, error) {
+	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(subscriptionID, cred, nil)
 
 	resp, err := apiManagementServiceClient.GetSsoToken(ctx, resourceGroupName, serviceName, nil)
 	if err != nil {
@@ -132,8 +125,8 @@ func getSsoToken(ctx context.Context, conn *arm.Connection) (*armapimanagement.A
 	return &resp.APIManagementServiceGetSsoTokenResult, nil
 }
 
-func getApiManagementService(ctx context.Context, conn *arm.Connection) (*armapimanagement.APIManagementServiceResource, error) {
-	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(conn, subscriptionID)
+func getApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIManagementServiceResource, error) {
+	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(subscriptionID, cred, nil)
 
 	resp, err := apiManagementServiceClient.Get(ctx, resourceGroupName, serviceName, nil)
 	if err != nil {
@@ -142,8 +135,8 @@ func getApiManagementService(ctx context.Context, conn *arm.Connection) (*armapi
 	return &resp.APIManagementServiceResource, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -158,8 +151,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

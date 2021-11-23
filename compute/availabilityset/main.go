@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
@@ -32,32 +31,26 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	availabilitySets, err := createAvailabilitySet(ctx, conn)
+	availabilitySets, err := createAvailabilitySet(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("availability set:", *availabilitySets.ID)
 
-	availabilitySetList := listAvailabilitySet(ctx, conn)
+	availabilitySetList := listAvailabilitySet(ctx, cred)
 	for i, a := range availabilitySetList {
 		log.Println(i, *a.ID)
 	}
 
-	availabilitySetSizes, err := listAvailabilitySizes(ctx, conn)
+	availabilitySetSizes, err := listAvailabilitySizes(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,7 +61,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -76,8 +69,8 @@ func main() {
 	}
 }
 
-func createAvailabilitySet(ctx context.Context, conn *arm.Connection) (*armcompute.AvailabilitySet, error) {
-	availabilitySetsClient := armcompute.NewAvailabilitySetsClient(conn, subscriptionID)
+func createAvailabilitySet(ctx context.Context, cred azcore.TokenCredential) (*armcompute.AvailabilitySet, error) {
+	availabilitySetsClient := armcompute.NewAvailabilitySetsClient(subscriptionID, cred, nil)
 
 	resp, err := availabilitySetsClient.CreateOrUpdate(
 		ctx,
@@ -104,8 +97,8 @@ func createAvailabilitySet(ctx context.Context, conn *arm.Connection) (*armcompu
 	return &resp.AvailabilitySet, nil
 }
 
-func listAvailabilitySet(ctx context.Context, conn *arm.Connection) []*armcompute.AvailabilitySet {
-	availabilitySetsClient := armcompute.NewAvailabilitySetsClient(conn, subscriptionID)
+func listAvailabilitySet(ctx context.Context, cred azcore.TokenCredential) []*armcompute.AvailabilitySet {
+	availabilitySetsClient := armcompute.NewAvailabilitySetsClient(subscriptionID, cred, nil)
 
 	availability := availabilitySetsClient.List(resourceGroupName, nil)
 
@@ -118,8 +111,8 @@ func listAvailabilitySet(ctx context.Context, conn *arm.Connection) []*armcomput
 	return availabilitySet
 }
 
-func listAvailabilitySizes(ctx context.Context, conn *arm.Connection) (*armcompute.VirtualMachineSizeListResult, error) {
-	availabilitySetsClient := armcompute.NewAvailabilitySetsClient(conn, subscriptionID)
+func listAvailabilitySizes(ctx context.Context, cred azcore.TokenCredential) (*armcompute.VirtualMachineSizeListResult, error) {
+	availabilitySetsClient := armcompute.NewAvailabilitySetsClient(subscriptionID, cred, nil)
 
 	availability, err := availabilitySetsClient.ListAvailableSizes(ctx, resourceGroupName, availabilitySetName, nil)
 	if err != nil {
@@ -129,8 +122,8 @@ func listAvailabilitySizes(ctx context.Context, conn *arm.Connection) (*armcompu
 	return &availability.VirtualMachineSizeListResult, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -145,8 +138,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

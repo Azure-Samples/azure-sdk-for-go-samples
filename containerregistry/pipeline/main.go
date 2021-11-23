@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerregistry/armcontainerregistry"
@@ -34,33 +33,27 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	registry, err := createRegistry(ctx, conn)
+	registry, err := createRegistry(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("registry:", *registry.ID)
 
-	importPipeline, err := createImportPipeline(ctx, conn)
+	importPipeline, err := createImportPipeline(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("import pipeline:", *importPipeline.ID)
 
-	exportPipeline, err := createExportPipeline(ctx, conn)
+	exportPipeline, err := createExportPipeline(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,7 +61,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -76,8 +69,8 @@ func main() {
 	}
 }
 
-func createRegistry(ctx context.Context, conn *arm.Connection) (*armcontainerregistry.Registry, error) {
-	registriesClient := armcontainerregistry.NewRegistriesClient(conn, subscriptionID)
+func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.Registry, error) {
+	registriesClient := armcontainerregistry.NewRegistriesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := registriesClient.BeginCreate(
 		ctx,
@@ -109,8 +102,8 @@ func createRegistry(ctx context.Context, conn *arm.Connection) (*armcontainerreg
 	return &resp.Registry, nil
 }
 
-func createImportPipeline(ctx context.Context, conn *arm.Connection) (*armcontainerregistry.ImportPipeline, error) {
-	importPipelinesClient := armcontainerregistry.NewImportPipelinesClient(conn, subscriptionID)
+func createImportPipeline(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.ImportPipeline, error) {
+	importPipelinesClient := armcontainerregistry.NewImportPipelinesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := importPipelinesClient.BeginCreate(
 		ctx,
@@ -147,8 +140,8 @@ func createImportPipeline(ctx context.Context, conn *arm.Connection) (*armcontai
 	return &resp.ImportPipeline, nil
 }
 
-func createExportPipeline(ctx context.Context, conn *arm.Connection) (*armcontainerregistry.ExportPipeline, error) {
-	exportPipelinesClient := armcontainerregistry.NewExportPipelinesClient(conn, subscriptionID)
+func createExportPipeline(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.ExportPipeline, error) {
+	exportPipelinesClient := armcontainerregistry.NewExportPipelinesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := exportPipelinesClient.BeginCreate(
 		ctx,
@@ -183,8 +176,8 @@ func createExportPipeline(ctx context.Context, conn *arm.Connection) (*armcontai
 	return &resp.ExportPipeline, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -199,8 +192,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

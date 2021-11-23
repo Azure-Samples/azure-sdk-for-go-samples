@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerregistry/armcontainerregistry"
@@ -33,33 +32,27 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	registry, err := createRegistry(ctx, conn)
+	registry, err := createRegistry(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("registry:", *registry.ID)
 
-	task, err := createTask(ctx, conn)
+	task, err := createTask(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("task:", *task.ID)
 
-	task, err = getTask(ctx, conn)
+	task, err = getTask(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,7 +60,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -75,8 +68,8 @@ func main() {
 	}
 }
 
-func createRegistry(ctx context.Context, conn *arm.Connection) (*armcontainerregistry.Registry, error) {
-	registriesClient := armcontainerregistry.NewRegistriesClient(conn, subscriptionID)
+func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.Registry, error) {
+	registriesClient := armcontainerregistry.NewRegistriesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := registriesClient.BeginCreate(
 		ctx,
@@ -108,8 +101,8 @@ func createRegistry(ctx context.Context, conn *arm.Connection) (*armcontainerreg
 	return &resp.Registry, nil
 }
 
-func createTask(ctx context.Context, conn *arm.Connection) (*armcontainerregistry.Task, error) {
-	tasksClient := armcontainerregistry.NewTasksClient(conn, subscriptionID)
+func createTask(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.Task, error) {
+	tasksClient := armcontainerregistry.NewTasksClient(subscriptionID, cred, nil)
 
 	pollerResp, err := tasksClient.BeginCreate(
 		ctx,
@@ -163,8 +156,8 @@ func createTask(ctx context.Context, conn *arm.Connection) (*armcontainerregistr
 	return &resp.Task, nil
 }
 
-func getTask(ctx context.Context, conn *arm.Connection) (*armcontainerregistry.Task, error) {
-	tasksClient := armcontainerregistry.NewTasksClient(conn, subscriptionID)
+func getTask(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.Task, error) {
+	tasksClient := armcontainerregistry.NewTasksClient(subscriptionID, cred, nil)
 
 	resp, err := tasksClient.Get(ctx, resourceGroupName, registryName, taskName, nil)
 	if err != nil {
@@ -173,8 +166,8 @@ func getTask(ctx context.Context, conn *arm.Connection) (*armcontainerregistry.T
 	return &resp.Task, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -189,8 +182,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

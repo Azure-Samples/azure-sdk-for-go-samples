@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice"
@@ -19,7 +18,7 @@ var (
 	subscriptionID    string
 	objectID          string
 	clientSecret      string
-	location          = "westus"
+	location          = "westus2"
 	resourceGroupName = "sample-resource-group"
 	agentPool         = "sample-aks"
 	agentPoolName     = "sample-aks-agent-pool"
@@ -45,27 +44,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	managedCluster, err := createManagedCluster(ctx, conn)
+	managedCluster, err := createManagedCluster(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("managed cluster:", *managedCluster.ID)
 
-	agentPool, err := createAgentPool(ctx, conn)
+	agentPool, err := createAgentPool(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -73,7 +66,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -81,8 +74,8 @@ func main() {
 	}
 }
 
-func createManagedCluster(ctx context.Context, conn *arm.Connection) (*armcontainerservice.ManagedCluster, error) {
-	managedClustersClient := armcontainerservice.NewManagedClustersClient(conn, subscriptionID)
+func createManagedCluster(ctx context.Context, cred azcore.TokenCredential) (*armcontainerservice.ManagedCluster, error) {
+	managedClustersClient := armcontainerservice.NewManagedClustersClient(subscriptionID, cred, nil)
 
 	pollerResp, err := managedClustersClient.BeginCreateOrUpdate(
 		ctx,
@@ -128,8 +121,8 @@ func createManagedCluster(ctx context.Context, conn *arm.Connection) (*armcontai
 	return &resp.ManagedCluster, nil
 }
 
-func createAgentPool(ctx context.Context, conn *arm.Connection) (*armcontainerservice.AgentPool, error) {
-	agentPoolsClient := armcontainerservice.NewAgentPoolsClient(conn, subscriptionID)
+func createAgentPool(ctx context.Context, cred azcore.TokenCredential) (*armcontainerservice.AgentPool, error) {
+	agentPoolsClient := armcontainerservice.NewAgentPoolsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := agentPoolsClient.BeginCreateOrUpdate(
 		ctx,
@@ -163,8 +156,8 @@ func createAgentPool(ctx context.Context, conn *arm.Connection) (*armcontainerse
 	return &resp.AgentPool, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -179,8 +172,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

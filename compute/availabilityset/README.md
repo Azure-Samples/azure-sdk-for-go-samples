@@ -17,7 +17,7 @@ These code samples will show you how to manage Compute using Azure SDK for Golan
 This project framework provides examples for the following services:
 
 ### Compute
-* Using the Azure SDK for Golang - Compute Management Library [compute/armcompute](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/compute/armcompute) for the [Azure Compute API](https://docs.microsoft.com/en-us/rest/api/compute/)
+* Using the Azure SDK for Golang - Compute Management Library [compute/armcompute](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute) for the [Azure Compute API](https://docs.microsoft.com/en-us/rest/api/compute/)
 
 ### Prerequisites
 * an [Azure subscription](https://azure.microsoft.com)

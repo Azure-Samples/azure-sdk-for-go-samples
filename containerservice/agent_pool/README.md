@@ -17,7 +17,7 @@ These code samples will show you how to manage Container Service using Azure SDK
 This project framework provides examples for the following services:
 
 ### Container Service
-* Using the Azure SDK for Golang - Container Service Management Library [containerservice/armcontainerservice](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/containerservice/armcontainerservice) for the [Azure Container Service API](https://docs.microsoft.com/en-us/rest/api/aks/)
+* Using the Azure SDK for Golang - Container Service Management Library [containerservice/armcontainerservice](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice) for the [Azure Container Service API](https://docs.microsoft.com/en-us/rest/api/aks/)
 
 ### Prerequisites
 * an [Azure subscription](https://azure.microsoft.com)

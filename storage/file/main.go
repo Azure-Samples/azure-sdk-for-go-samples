@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
@@ -33,39 +32,33 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	storageAccount, err := createStorageAccount(ctx, conn)
+	storageAccount, err := createStorageAccount(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("storage account:", *storageAccount.ID)
 
-	fileShare, err := createFileShare(ctx, conn)
+	fileShare, err := createFileShare(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("file share:", *fileShare.ID)
 
-	fileShare, err = getFileShare(ctx, conn)
+	fileShare, err = getFileShare(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get file share:", *fileShare.ID)
 
-	fileShare, err = updateFileShare(ctx, conn)
+	fileShare, err = updateFileShare(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -73,7 +66,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -81,8 +74,8 @@ func main() {
 	}
 }
 
-func createStorageAccount(ctx context.Context, conn *arm.Connection) (*armstorage.StorageAccount, error) {
-	storageAccountClient := armstorage.NewStorageAccountsClient(conn, subscriptionID)
+func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.StorageAccount, error) {
+	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := storageAccountClient.BeginCreate(
 		ctx,
@@ -121,8 +114,8 @@ func createStorageAccount(ctx context.Context, conn *arm.Connection) (*armstorag
 	return &resp.StorageAccount, nil
 }
 
-func createFileShare(ctx context.Context, conn *arm.Connection) (*armstorage.FileShare, error) {
-	fileSharesClient := armstorage.NewFileSharesClient(conn, subscriptionID)
+func createFileShare(ctx context.Context, cred azcore.TokenCredential) (*armstorage.FileShare, error) {
+	fileSharesClient := armstorage.NewFileSharesClient(subscriptionID, cred, nil)
 
 	resp, err := fileSharesClient.Create(
 		ctx,
@@ -138,8 +131,8 @@ func createFileShare(ctx context.Context, conn *arm.Connection) (*armstorage.Fil
 	return &resp.FileShare, nil
 }
 
-func getFileShare(ctx context.Context, conn *arm.Connection) (*armstorage.FileShare, error) {
-	fileSharesClient := armstorage.NewFileSharesClient(conn, subscriptionID)
+func getFileShare(ctx context.Context, cred azcore.TokenCredential) (*armstorage.FileShare, error) {
+	fileSharesClient := armstorage.NewFileSharesClient(subscriptionID, cred, nil)
 
 	resp, err := fileSharesClient.Get(ctx, resourceGroupName, storageAccountName, shareName, nil)
 	if err != nil {
@@ -148,8 +141,8 @@ func getFileShare(ctx context.Context, conn *arm.Connection) (*armstorage.FileSh
 	return &resp.FileShare, nil
 }
 
-func updateFileShare(ctx context.Context, conn *arm.Connection) (*armstorage.FileShare, error) {
-	fileSharesClient := armstorage.NewFileSharesClient(conn, subscriptionID)
+func updateFileShare(ctx context.Context, cred azcore.TokenCredential) (*armstorage.FileShare, error) {
+	fileSharesClient := armstorage.NewFileSharesClient(subscriptionID, cred, nil)
 
 	resp, err := fileSharesClient.Update(
 		ctx,
@@ -171,8 +164,8 @@ func updateFileShare(ctx context.Context, conn *arm.Connection) (*armstorage.Fil
 	return &resp.FileShare, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -187,8 +180,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

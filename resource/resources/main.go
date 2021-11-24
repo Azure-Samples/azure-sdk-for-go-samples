@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
@@ -32,33 +31,27 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	exist, err := checkExistResource(ctx, conn)
+	exist, err := checkExistResource(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources is not exist:", exist)
 
-	resources, err := createResource(ctx, conn)
+	resources, err := createResource(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("created resources:", *resources.ID)
 
-	genericResource, err := getResource(ctx, conn)
+	genericResource, err := getResource(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -66,7 +59,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -78,8 +71,8 @@ var resourceProviderNamespace = "Microsoft.Network"
 var resourceType = "virtualNetworks"
 var apiVersion = "2021-02-01"
 
-func checkExistResource(ctx context.Context, conn *arm.Connection) (bool, error) {
-	resourceClient := armresources.NewResourcesClient(conn, subscriptionID)
+func checkExistResource(ctx context.Context, cred azcore.TokenCredential) (bool, error) {
+	resourceClient := armresources.NewResourcesClient(subscriptionID, cred, nil)
 
 	boolResp, err := resourceClient.CheckExistence(
 		ctx,
@@ -97,8 +90,8 @@ func checkExistResource(ctx context.Context, conn *arm.Connection) (bool, error)
 	return boolResp.Success, nil
 }
 
-func createResource(ctx context.Context, conn *arm.Connection) (*armresources.GenericResource, error) {
-	resourceClient := armresources.NewResourcesClient(conn, subscriptionID)
+func createResource(ctx context.Context, cred azcore.TokenCredential) (*armresources.GenericResource, error) {
+	resourceClient := armresources.NewResourcesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceClient.BeginCreateOrUpdate(
 		ctx,
@@ -133,8 +126,8 @@ func createResource(ctx context.Context, conn *arm.Connection) (*armresources.Ge
 	return &resp.GenericResource, nil
 }
 
-func getResource(ctx context.Context, conn *arm.Connection) (*armresources.GenericResource, error) {
-	resourceClient := armresources.NewResourcesClient(conn, subscriptionID)
+func getResource(ctx context.Context, cred azcore.TokenCredential) (*armresources.GenericResource, error) {
+	resourceClient := armresources.NewResourcesClient(subscriptionID, cred, nil)
 
 	resp, err := resourceClient.Get(
 		ctx,
@@ -152,8 +145,8 @@ func getResource(ctx context.Context, conn *arm.Connection) (*armresources.Gener
 	return &resp.GenericResource, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -168,8 +161,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

@@ -8,8 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
@@ -33,45 +32,39 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	networkSecurityGroup, err := createNetworkSecurityGroup(ctx, conn)
+	networkSecurityGroup, err := createNetworkSecurityGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("network security group:", *networkSecurityGroup.ID)
 
-	sshRule, err := createSSHRule(ctx, conn)
+	sshRule, err := createSSHRule(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("SSH:", *sshRule.ID)
 
-	httpRule, err := createHTTPRule(ctx, conn)
+	httpRule, err := createHTTPRule(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("HTTP:", *httpRule.ID)
 
-	sqlRule, err := createSQLRule(ctx, conn)
+	sqlRule, err := createSQLRule(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("SQL:", *sqlRule.ID)
 
-	denyOutRule, err := createDenyOutRule(ctx, conn)
+	denyOutRule, err := createDenyOutRule(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -79,7 +72,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -87,8 +80,8 @@ func main() {
 	}
 }
 
-func createNetworkSecurityGroup(ctx context.Context, conn *arm.Connection) (*armnetwork.NetworkSecurityGroup, error) {
-	networkSecurityGroupClient := armnetwork.NewNetworkSecurityGroupsClient(conn, subscriptionID)
+func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.NetworkSecurityGroup, error) {
+	networkSecurityGroupClient := armnetwork.NewNetworkSecurityGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := networkSecurityGroupClient.BeginCreateOrUpdate(
 		ctx,
@@ -142,8 +135,8 @@ func createNetworkSecurityGroup(ctx context.Context, conn *arm.Connection) (*arm
 	return &resp.NetworkSecurityGroup, nil
 }
 
-func createSSHRule(ctx context.Context, conn *arm.Connection) (*armnetwork.SecurityRule, error) {
-	securityRules := armnetwork.NewSecurityRulesClient(conn, subscriptionID)
+func createSSHRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityRule, error) {
+	securityRules := armnetwork.NewSecurityRulesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := securityRules.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
@@ -176,8 +169,8 @@ func createSSHRule(ctx context.Context, conn *arm.Connection) (*armnetwork.Secur
 	return &resp.SecurityRule, nil
 }
 
-func createHTTPRule(ctx context.Context, conn *arm.Connection) (*armnetwork.SecurityRule, error) {
-	securityRules := armnetwork.NewSecurityRulesClient(conn, subscriptionID)
+func createHTTPRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityRule, error) {
+	securityRules := armnetwork.NewSecurityRulesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := securityRules.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
@@ -210,8 +203,8 @@ func createHTTPRule(ctx context.Context, conn *arm.Connection) (*armnetwork.Secu
 	return &resp.SecurityRule, nil
 }
 
-func createSQLRule(ctx context.Context, conn *arm.Connection) (*armnetwork.SecurityRule, error) {
-	securityRules := armnetwork.NewSecurityRulesClient(conn, subscriptionID)
+func createSQLRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityRule, error) {
+	securityRules := armnetwork.NewSecurityRulesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := securityRules.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
@@ -244,8 +237,8 @@ func createSQLRule(ctx context.Context, conn *arm.Connection) (*armnetwork.Secur
 	return &resp.SecurityRule, nil
 }
 
-func createDenyOutRule(ctx context.Context, conn *arm.Connection) (*armnetwork.SecurityRule, error) {
-	securityRules := armnetwork.NewSecurityRulesClient(conn, subscriptionID)
+func createDenyOutRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityRule, error) {
+	securityRules := armnetwork.NewSecurityRulesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := securityRules.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
@@ -278,8 +271,8 @@ func createDenyOutRule(ctx context.Context, conn *arm.Connection) (*armnetwork.S
 	return &resp.SecurityRule, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -294,8 +287,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 	log.Println("cleanup...")
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)

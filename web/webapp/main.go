@@ -19,8 +19,8 @@ var (
 	location           = "eastus"
 	resourceGroupName  = "sample-resource-group2"
 	appServicePlanName = "sample-web-planx"
-	webAppName         = "sample-web-app"
-	slotName           = "sample-slot"
+	webAppName         = "sample-web-appxyz"
+	slotName           = "sample-slotxyz"
 )
 
 func main() {
@@ -100,9 +100,9 @@ func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*ar
 				Location: to.StringPtr(location),
 			},
 			SKU: &armweb.SKUDescription{
-				Name:     to.StringPtr("B1"),
+				Name:     to.StringPtr("S1"),
 				Capacity: to.Int32Ptr(1),
-				Tier:     to.StringPtr("BASIC"),
+				Tier:     to.StringPtr("STANDARD"),
 			},
 			Properties: &armweb.AppServicePlanProperties{
 				PerSiteScaling: to.BoolPtr(false),

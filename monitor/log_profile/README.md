@@ -17,7 +17,7 @@ These code samples will show you how to manage Monitor using Azure SDK for Golan
 This project framework provides examples for the following services:
 
 ### Monitor
-* Using the Azure SDK for Golang - Monitor Management Library [monitor/armmonitor](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/monitor/armmonitor) for the [Azure Monitor API](https://docs.microsoft.com/en-us/rest/api/monitor/)
+* Using the Azure SDK for Golang - Monitor Management Library [monitor/armmonitor](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/monitor/armmonitor) for the [Azure Monitor API](https://docs.microsoft.com/en-us/rest/api/monitor/)
 
 ### Prerequisites
 * an [Azure subscription](https://azure.microsoft.com)

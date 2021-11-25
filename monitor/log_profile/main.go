@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/monitor/armmonitor"
@@ -34,33 +33,27 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	storageAccount, err := createStorageAccount(ctx, conn)
+	storageAccount, err := createStorageAccount(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("storage account:", *storageAccount.ID)
 
-	logProfile, err := createLogProfile(ctx, conn, *storageAccount.ID)
+	logProfile, err := createLogProfile(ctx, cred, *storageAccount.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("log profile:", *logProfile.ID)
 
-	logProfile, err = getLogProfile(ctx, conn)
+	logProfile, err = getLogProfile(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,7 +61,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -76,8 +69,8 @@ func main() {
 	}
 }
 
-func createStorageAccount(ctx context.Context, conn *arm.Connection) (*armstorage.StorageAccount, error) {
-	storageAccountClient := armstorage.NewStorageAccountsClient(conn, subscriptionID)
+func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.StorageAccount, error) {
+	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := storageAccountClient.BeginCreate(
 		ctx,
@@ -103,8 +96,8 @@ func createStorageAccount(ctx context.Context, conn *arm.Connection) (*armstorag
 	return &resp.StorageAccount, nil
 }
 
-func createLogProfile(ctx context.Context, conn *arm.Connection, storageAccountID string) (*armmonitor.LogProfileResource, error) {
-	logProfilesClient := armmonitor.NewLogProfilesClient(conn, subscriptionID)
+func createLogProfile(ctx context.Context, cred azcore.TokenCredential, storageAccountID string) (*armmonitor.LogProfileResource, error) {
+	logProfilesClient := armmonitor.NewLogProfilesClient(subscriptionID, cred, nil)
 
 	resp, err := logProfilesClient.CreateOrUpdate(
 		ctx,
@@ -137,8 +130,8 @@ func createLogProfile(ctx context.Context, conn *arm.Connection, storageAccountI
 	return &resp.LogProfileResource, nil
 }
 
-func getLogProfile(ctx context.Context, conn *arm.Connection) (*armmonitor.LogProfileResource, error) {
-	logProfilesClient := armmonitor.NewLogProfilesClient(conn, subscriptionID)
+func getLogProfile(ctx context.Context, cred azcore.TokenCredential) (*armmonitor.LogProfileResource, error) {
+	logProfilesClient := armmonitor.NewLogProfilesClient(subscriptionID, cred, nil)
 
 	resp, err := logProfilesClient.Get(ctx, logProfileName, nil)
 	if err != nil {
@@ -147,8 +140,8 @@ func getLogProfile(ctx context.Context, conn *arm.Connection) (*armmonitor.LogPr
 	return &resp.LogProfileResource, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -163,8 +156,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

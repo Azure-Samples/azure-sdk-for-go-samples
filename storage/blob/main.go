@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
@@ -33,49 +32,43 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	storageAccount, err := createStorageAccount(ctx, conn)
+	storageAccount, err := createStorageAccount(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("storage account:", *storageAccount.ID)
 
-	blobContainer, err := createBlobContainers(ctx, conn)
+	blobContainer, err := createBlobContainers(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("blob container:", *blobContainer.ID)
 
-	blobContainer, err = getBlobContainer(ctx, conn)
+	blobContainer, err = getBlobContainer(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("blob container ID:", *blobContainer.ID)
 
-	containerItems := listBlobContainer(ctx, conn)
+	containerItems := listBlobContainer(ctx, cred)
 	log.Println("blob container list:")
 	for _, item := range containerItems {
 		log.Println("\t", *item.ID)
 	}
 
-	blobServices(ctx, conn)
+	blobServices(ctx, cred)
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -83,8 +76,8 @@ func main() {
 	}
 }
 
-func createStorageAccount(ctx context.Context, conn *arm.Connection) (*armstorage.StorageAccount, error) {
-	storageAccountClient := armstorage.NewStorageAccountsClient(conn, subscriptionID)
+func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.StorageAccount, error) {
+	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := storageAccountClient.BeginCreate(
 		ctx,
@@ -123,8 +116,8 @@ func createStorageAccount(ctx context.Context, conn *arm.Connection) (*armstorag
 	return &resp.StorageAccount, nil
 }
 
-func createBlobContainers(ctx context.Context, conn *arm.Connection) (*armstorage.BlobContainer, error) {
-	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
+func createBlobContainers(ctx context.Context, cred azcore.TokenCredential) (*armstorage.BlobContainer, error) {
+	blobContainerClient := armstorage.NewBlobContainersClient(subscriptionID, cred, nil)
 
 	blobContainerResp, err := blobContainerClient.Create(
 		ctx,
@@ -145,8 +138,8 @@ func createBlobContainers(ctx context.Context, conn *arm.Connection) (*armstorag
 	return &blobContainerResp.BlobContainer, nil
 }
 
-func getBlobContainer(ctx context.Context, conn *arm.Connection) (blobContainer *armstorage.BlobContainer, err error) {
-	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
+func getBlobContainer(ctx context.Context, cred azcore.TokenCredential) (blobContainer *armstorage.BlobContainer, err error) {
+	blobContainerClient := armstorage.NewBlobContainersClient(subscriptionID, cred, nil)
 
 	blobContainerResp, err := blobContainerClient.Get(ctx, resourceGroupName, storageAccountName, containerName, nil)
 	if err != nil {
@@ -157,8 +150,8 @@ func getBlobContainer(ctx context.Context, conn *arm.Connection) (blobContainer 
 	return
 }
 
-func listBlobContainer(ctx context.Context, conn *arm.Connection) (listItems []*armstorage.ListContainerItem) {
-	blobContainerClient := armstorage.NewBlobContainersClient(conn, subscriptionID)
+func listBlobContainer(ctx context.Context, cred azcore.TokenCredential) (listItems []*armstorage.ListContainerItem) {
+	blobContainerClient := armstorage.NewBlobContainersClient(subscriptionID, cred, nil)
 
 	containerItemsPager := blobContainerClient.List(resourceGroupName, storageAccountName, nil)
 
@@ -170,8 +163,8 @@ func listBlobContainer(ctx context.Context, conn *arm.Connection) (listItems []*
 	return
 }
 
-func blobServices(ctx context.Context, conn *arm.Connection) {
-	blobServicesProperties, err := setBlobServices(ctx, conn)
+func blobServices(ctx context.Context, cred azcore.TokenCredential) {
+	blobServicesProperties, err := setBlobServices(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -180,13 +173,13 @@ func blobServices(ctx context.Context, conn *arm.Connection) {
 	}
 	log.Println(*blobServicesProperties.ID)
 
-	blobServicesProperties, err = getBlobServices(ctx, conn)
+	blobServicesProperties, err = getBlobServices(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println(*blobServicesProperties.ID)
 
-	listBlob, err := listBlobServices(ctx, conn)
+	listBlob, err := listBlobServices(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -195,14 +188,13 @@ func blobServices(ctx context.Context, conn *arm.Connection) {
 	}
 }
 
-func setBlobServices(ctx context.Context, conn *arm.Connection) (*armstorage.BlobServiceProperties, error) {
-	blobServicesClient := armstorage.NewBlobServicesClient(conn, subscriptionID)
+func setBlobServices(ctx context.Context, cred azcore.TokenCredential) (*armstorage.BlobServiceProperties, error) {
+	blobServicesClient := armstorage.NewBlobServicesClient(subscriptionID, cred, nil)
 
 	blobServicesPropertiesResp, err := blobServicesClient.SetServiceProperties(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
-		armstorage.Enum37Default,
 		armstorage.BlobServiceProperties{
 			BlobServiceProperties: &armstorage.BlobServicePropertiesProperties{},
 		},
@@ -215,10 +207,10 @@ func setBlobServices(ctx context.Context, conn *arm.Connection) (*armstorage.Blo
 	return &blobServicesPropertiesResp.BlobServiceProperties, nil
 }
 
-func getBlobServices(ctx context.Context, conn *arm.Connection) (*armstorage.BlobServiceProperties, error) {
-	blobServicesClient := armstorage.NewBlobServicesClient(conn, subscriptionID)
+func getBlobServices(ctx context.Context, cred azcore.TokenCredential) (*armstorage.BlobServiceProperties, error) {
+	blobServicesClient := armstorage.NewBlobServicesClient(subscriptionID, cred, nil)
 
-	blobServicesResp, err := blobServicesClient.GetServiceProperties(ctx, resourceGroupName, storageAccountName, armstorage.Enum37Default, nil)
+	blobServicesResp, err := blobServicesClient.GetServiceProperties(ctx, resourceGroupName, storageAccountName, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -226,8 +218,8 @@ func getBlobServices(ctx context.Context, conn *arm.Connection) (*armstorage.Blo
 	return &blobServicesResp.BlobServiceProperties, nil
 }
 
-func listBlobServices(ctx context.Context, conn *arm.Connection) ([]*armstorage.BlobServiceProperties, error) {
-	blobServicesClient := armstorage.NewBlobServicesClient(conn, subscriptionID)
+func listBlobServices(ctx context.Context, cred azcore.TokenCredential) ([]*armstorage.BlobServiceProperties, error) {
+	blobServicesClient := armstorage.NewBlobServicesClient(subscriptionID, cred, nil)
 
 	blobServicesResp, err := blobServicesClient.List(ctx, resourceGroupName, storageAccountName, nil)
 	if err != nil {
@@ -237,8 +229,8 @@ func listBlobServices(ctx context.Context, conn *arm.Connection) ([]*armstorage.
 	return blobServicesResp.BlobServiceItems.Value, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -253,8 +245,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

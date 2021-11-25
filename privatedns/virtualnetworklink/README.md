@@ -17,7 +17,7 @@ These code samples will show you how to manage PrivateDNS using Azure SDK for Go
 This project framework provides examples for the following services:
 
 ### PrivateDNS
-* Using the Azure SDK for Golang - PrivateDNS Management Library [privatedns/armprivatedns](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/privatedns/armprivatedns) for the [Azure PrivateDNS API](https://docs.microsoft.com/en-us/rest/api/dns/)
+* Using the Azure SDK for Golang - PrivateDNS Management Library [privatedns/armprivatedns](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/privatedns/armprivatedns) for the [Azure PrivateDNS API](https://docs.microsoft.com/en-us/rest/api/dns/)
 
 ### Prerequisites
 * an [Azure subscription](https://azure.microsoft.com)

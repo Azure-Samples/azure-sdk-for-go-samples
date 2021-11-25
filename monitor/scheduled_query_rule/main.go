@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/monitor/armmonitor"
@@ -34,33 +33,27 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	workspace, err := createWorkspaces(ctx, conn)
+	workspace, err := createWorkspaces(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("workspace:", *workspace.ID)
 
-	scheduledQueryRule, err := createScheduledQueryRule(ctx, conn, *workspace.ID)
+	scheduledQueryRule, err := createScheduledQueryRule(ctx, cred, *workspace.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("scheduled query rule:", *scheduledQueryRule.ID)
 
-	scheduledQueryRule, err = getScheduledQueryRule(ctx, conn)
+	scheduledQueryRule, err = getScheduledQueryRule(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,7 +61,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -76,8 +69,8 @@ func main() {
 	}
 }
 
-func createWorkspaces(ctx context.Context, conn *arm.Connection) (*armoperationalinsights.Workspace, error) {
-	workspacesClient := armoperationalinsights.NewWorkspacesClient(conn, subscriptionID)
+func createWorkspaces(ctx context.Context, cred azcore.TokenCredential) (*armoperationalinsights.Workspace, error) {
+	workspacesClient := armoperationalinsights.NewWorkspacesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := workspacesClient.BeginCreateOrUpdate(
 		ctx,
@@ -109,8 +102,8 @@ func createWorkspaces(ctx context.Context, conn *arm.Connection) (*armoperationa
 	return &resp.Workspace, nil
 }
 
-func createScheduledQueryRule(ctx context.Context, conn *arm.Connection, workspaceID string) (*armmonitor.LogSearchRuleResource, error) {
-	scheduledQueryRulesClient := armmonitor.NewScheduledQueryRulesClient(conn, subscriptionID)
+func createScheduledQueryRule(ctx context.Context, cred azcore.TokenCredential, workspaceID string) (*armmonitor.LogSearchRuleResource, error) {
+	scheduledQueryRulesClient := armmonitor.NewScheduledQueryRulesClient(subscriptionID, cred, nil)
 
 	resp, err := scheduledQueryRulesClient.CreateOrUpdate(
 		ctx,
@@ -155,8 +148,8 @@ func createScheduledQueryRule(ctx context.Context, conn *arm.Connection, workspa
 	return &resp.LogSearchRuleResource, nil
 }
 
-func getScheduledQueryRule(ctx context.Context, conn *arm.Connection) (*armmonitor.LogSearchRuleResource, error) {
-	scheduledQueryRulesClient := armmonitor.NewScheduledQueryRulesClient(conn, subscriptionID)
+func getScheduledQueryRule(ctx context.Context, cred azcore.TokenCredential) (*armmonitor.LogSearchRuleResource, error) {
+	scheduledQueryRulesClient := armmonitor.NewScheduledQueryRulesClient(subscriptionID, cred, nil)
 
 	resp, err := scheduledQueryRulesClient.Get(ctx, resourceGroupName, ruleName, nil)
 	if err != nil {
@@ -165,8 +158,8 @@ func getScheduledQueryRule(ctx context.Context, conn *arm.Connection) (*armmonit
 	return &resp.LogSearchRuleResource, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -181,8 +174,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

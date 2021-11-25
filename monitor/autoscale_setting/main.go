@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
@@ -19,17 +18,13 @@ import (
 
 var (
 	subscriptionID       string
-	location             = "westus"
+	location             = "eastus"
 	resourceGroupName    = "sample-resource-group"
 	virtualNetworkName   = "sample-virtual-network"
 	subnetName           = "sample-subnet"
-	publicIPAddressName  = "sample-public-ip"
-	securityGroupName    = "sample-network-security-group"
 	networkInterfaceName = "sample-network-interface"
-	actionGroupName      = "sample-action-group"
-	osDiskName           = "sample-os-disk"
-	virtualMachineName   = "sample-virtual-machine"
 	metricAlertName      = "sample-metric-alert"
+	vmScaleSetName       = "sample-vm-scale-set"
 )
 
 func main() {
@@ -42,57 +37,39 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	virtualNetwork, err := createVirtualNetwork(ctx, conn)
+	virtualNetwork, err := createVirtualNetwork(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("virtual network:", *virtualNetwork.ID)
 
-	subnet, err := createSubnet(ctx, conn)
+	subnet, err := createSubnet(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("subnet:", *subnet.ID)
 
-	publicIP, err := createPublicIP(ctx, conn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("public ip:", *publicIP.ID)
-
-	networkSecurityGroup, err := createNetworkSecurityGroup(ctx, conn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("network security group:", *networkSecurityGroup.ID)
-
-	nic, err := createNIC(ctx, conn, *subnet.ID, *publicIP.ID, *networkSecurityGroup.ID)
+	nic, err := createNIC(ctx, cred, *subnet.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("network interface:", *nic.ID)
 
-	virtualMachine, err := createVirtualMachine(ctx, conn, *nic.ID)
+	vmss, err := createVMSS(ctx, cred, *subnet.ID)
 	if err != nil {
-		log.Fatalf("cannot create virual machine:%+v", err)
+		log.Fatalf("cannot create virtual machine scale sets:%+v", err)
 	}
-	log.Printf("virual machine: %s", *virtualMachine.ID)
+	log.Printf("virtual machine scale sets: %s", *vmss.ID)
 
-	autoscaleSetting, err := createAutoscaleSetting(ctx, conn, *virtualMachine.ID)
+	autoscaleSetting, err := createAutoscaleSetting(ctx, cred, *vmss.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -100,7 +77,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -108,46 +85,8 @@ func main() {
 	}
 }
 
-func createActionGroup(ctx context.Context, conn *arm.Connection) (*armmonitor.ActionGroupResource, error) {
-	actionGroupsClient := armmonitor.NewActionGroupsClient(conn, subscriptionID)
-
-	resp, err := actionGroupsClient.CreateOrUpdate(
-		ctx,
-		resourceGroupName,
-		actionGroupName,
-		armmonitor.ActionGroupResource{
-			AzureResource: armmonitor.AzureResource{
-				Location: to.StringPtr(location),
-			},
-			Properties: &armmonitor.ActionGroup{
-				GroupShortName: to.StringPtr("sample"),
-				Enabled:        to.BoolPtr(true),
-				EmailReceivers: []*armmonitor.EmailReceiver{
-					{
-						Name:                 to.StringPtr("John Doe's email"),
-						EmailAddress:         to.StringPtr("johndoe@eamil.com"),
-						UseCommonAlertSchema: to.BoolPtr(false),
-					},
-				},
-				SmsReceivers: []*armmonitor.SmsReceiver{
-					{
-						Name:        to.StringPtr("Jhon Doe's mobile"),
-						CountryCode: to.StringPtr("1"),
-						PhoneNumber: to.StringPtr("1234567890"),
-					},
-				},
-			},
-		},
-		nil,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return &resp.ActionGroupResource, nil
-}
-
-func createVirtualNetwork(ctx context.Context, conn *arm.Connection) (*armnetwork.VirtualNetwork, error) {
-	virtualNetworkClient := armnetwork.NewVirtualNetworksClient(conn, subscriptionID)
+func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.VirtualNetwork, error) {
+	virtualNetworkClient := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
 
 	pollerResp, err := virtualNetworkClient.BeginCreateOrUpdate(
 		ctx,
@@ -178,8 +117,8 @@ func createVirtualNetwork(ctx context.Context, conn *arm.Connection) (*armnetwor
 	return &resp.VirtualNetwork, nil
 }
 
-func createSubnet(ctx context.Context, conn *arm.Connection) (*armnetwork.Subnet, error) {
-	subnetsClient := armnetwork.NewSubnetsClient(conn, subscriptionID)
+func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.Subnet, error) {
+	subnetsClient := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := subnetsClient.BeginCreateOrUpdate(
 		ctx,
@@ -204,93 +143,8 @@ func createSubnet(ctx context.Context, conn *arm.Connection) (*armnetwork.Subnet
 	return &resp.Subnet, nil
 }
 
-func createPublicIP(ctx context.Context, conn *arm.Connection) (*armnetwork.PublicIPAddress, error) {
-	publicIPClient := armnetwork.NewPublicIPAddressesClient(conn, subscriptionID)
-
-	pollerResp, err := publicIPClient.BeginCreateOrUpdate(
-		ctx,
-		resourceGroupName,
-		publicIPAddressName,
-		armnetwork.PublicIPAddress{
-			Resource: armnetwork.Resource{
-				Name:     to.StringPtr(publicIPAddressName),
-				Location: to.StringPtr(location),
-			},
-			Properties: &armnetwork.PublicIPAddressPropertiesFormat{
-				PublicIPAddressVersion:   armnetwork.IPVersionIPv4.ToPtr(),
-				PublicIPAllocationMethod: armnetwork.IPAllocationMethodStatic.ToPtr(),
-			},
-		},
-		nil,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
-	if err != nil {
-		return nil, err
-	}
-	return &resp.PublicIPAddress, nil
-}
-
-func createNetworkSecurityGroup(ctx context.Context, conn *arm.Connection) (*armnetwork.NetworkSecurityGroup, error) {
-	networkSecurityGroupClient := armnetwork.NewNetworkSecurityGroupsClient(conn, subscriptionID)
-
-	pollerResp, err := networkSecurityGroupClient.BeginCreateOrUpdate(
-		ctx,
-		resourceGroupName,
-		securityGroupName,
-		armnetwork.NetworkSecurityGroup{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
-			Properties: &armnetwork.NetworkSecurityGroupPropertiesFormat{
-				SecurityRules: []*armnetwork.SecurityRule{
-					{
-						Name: to.StringPtr("allow_ssh"),
-						Properties: &armnetwork.SecurityRulePropertiesFormat{
-							Protocol:                 armnetwork.SecurityRuleProtocolTCP.ToPtr(),
-							SourceAddressPrefix:      to.StringPtr("0.0.0.0/0"),
-							SourcePortRange:          to.StringPtr("1-65535"),
-							DestinationAddressPrefix: to.StringPtr("0.0.0.0/0"),
-							DestinationPortRange:     to.StringPtr("22"),
-							Access:                   armnetwork.SecurityRuleAccessAllow.ToPtr(),
-							Direction:                armnetwork.SecurityRuleDirectionInbound.ToPtr(),
-							Priority:                 to.Int32Ptr(100),
-						},
-					},
-					{
-						Name: to.StringPtr("allow_https"),
-						Properties: &armnetwork.SecurityRulePropertiesFormat{
-							Protocol:                 armnetwork.SecurityRuleProtocolTCP.ToPtr(),
-							SourceAddressPrefix:      to.StringPtr("0.0.0.0/0"),
-							SourcePortRange:          to.StringPtr("1-65535"),
-							DestinationAddressPrefix: to.StringPtr("0.0.0.0/0"),
-							DestinationPortRange:     to.StringPtr("443"),
-							Access:                   armnetwork.SecurityRuleAccessAllow.ToPtr(),
-							Direction:                armnetwork.SecurityRuleDirectionInbound.ToPtr(),
-							Priority:                 to.Int32Ptr(200),
-						},
-					},
-				},
-			},
-		},
-		nil)
-
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
-	if err != nil {
-		return nil, err
-	}
-	return &resp.NetworkSecurityGroup, nil
-}
-
-func createNIC(ctx context.Context, conn *arm.Connection, subnetID, publicIPID, networkSecurityGroupID string) (*armnetwork.NetworkInterface, error) {
-	nicClient := armnetwork.NewNetworkInterfacesClient(conn, subscriptionID)
+func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armnetwork.NetworkInterface, error) {
+	nicClient := armnetwork.NewNetworkInterfacesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := nicClient.BeginCreateOrUpdate(
 		ctx,
@@ -305,23 +159,12 @@ func createNIC(ctx context.Context, conn *arm.Connection, subnetID, publicIPID, 
 					{
 						Name: to.StringPtr("ipConfig"),
 						Properties: &armnetwork.NetworkInterfaceIPConfigurationPropertiesFormat{
-							PrivateIPAllocationMethod: armnetwork.IPAllocationMethodDynamic.ToPtr(),
 							Subnet: &armnetwork.Subnet{
 								SubResource: armnetwork.SubResource{
 									ID: to.StringPtr(subnetID),
 								},
 							},
-							PublicIPAddress: &armnetwork.PublicIPAddress{
-								Resource: armnetwork.Resource{
-									ID: to.StringPtr(publicIPID),
-								},
-							},
 						},
-					},
-				},
-				NetworkSecurityGroup: &armnetwork.NetworkSecurityGroup{
-					Resource: armnetwork.Resource{
-						ID: to.StringPtr(networkSecurityGroupID),
 					},
 				},
 			},
@@ -339,73 +182,88 @@ func createNIC(ctx context.Context, conn *arm.Connection, subnetID, publicIPID, 
 	return &resp.NetworkInterface, nil
 }
 
-func createVirtualMachine(ctx context.Context, connection *arm.Connection, networkInterfaceID string) (*armcompute.VirtualMachine, error) {
-	vmClient := armcompute.NewVirtualMachinesClient(connection, subscriptionID)
+func createVMSS(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armcompute.VirtualMachineScaleSet, error) {
+	vmssClient := armcompute.NewVirtualMachineScaleSetsClient(subscriptionID, cred, nil)
 
-	parameters := armcompute.VirtualMachine{
-		Resource: armcompute.Resource{
-			Location: to.StringPtr(location),
-		},
-		Identity: &armcompute.VirtualMachineIdentity{
-			Type: armcompute.ResourceIdentityTypeNone.ToPtr(),
-		},
-		Properties: &armcompute.VirtualMachineProperties{
-			StorageProfile: &armcompute.StorageProfile{
-				ImageReference: &armcompute.ImageReference{
-					// search image reference
-					// az vm image list --output table
-					Offer:     to.StringPtr("WindowsServer"),
-					Publisher: to.StringPtr("MicrosoftWindowsServer"),
-					SKU:       to.StringPtr("2019-Datacenter"),
-					Version:   to.StringPtr("latest"),
+	pollerResp, err := vmssClient.BeginCreateOrUpdate(
+		ctx,
+		resourceGroupName,
+		vmScaleSetName,
+		armcompute.VirtualMachineScaleSet{
+			Resource: armcompute.Resource{
+				Location: to.StringPtr(location),
+			},
+			SKU: &armcompute.SKU{
+				Name:     to.StringPtr("Standard_D1_v2"),
+				Capacity: to.Int64Ptr(2),
+				Tier:     to.StringPtr("Standard"),
+			},
+			Properties: &armcompute.VirtualMachineScaleSetProperties{
+				Overprovision: to.BoolPtr(true),
+				UpgradePolicy: &armcompute.UpgradePolicy{
+					Mode: armcompute.UpgradeModeManual.ToPtr(),
 				},
-				OSDisk: &armcompute.OSDisk{
-					Name:         to.StringPtr(osDiskName),
-					CreateOption: armcompute.DiskCreateOptionTypesFromImage.ToPtr(),
-					Caching:      armcompute.CachingTypesReadWrite.ToPtr(),
-					ManagedDisk: &armcompute.ManagedDiskParameters{
-						StorageAccountType: armcompute.StorageAccountTypesStandardLRS.ToPtr(), // OSDisk type Standard/Premium HDD/SSD
+				VirtualMachineProfile: &armcompute.VirtualMachineScaleSetVMProfile{
+					OSProfile: &armcompute.VirtualMachineScaleSetOSProfile{
+						ComputerNamePrefix: to.StringPtr("vmss"),
+						AdminUsername:      to.StringPtr("sample-user"),
+						AdminPassword:      to.StringPtr("Password01!@#"),
+					},
+					StorageProfile: &armcompute.VirtualMachineScaleSetStorageProfile{
+						ImageReference: &armcompute.ImageReference{
+							Offer:     to.StringPtr("WindowsServer"),
+							Publisher: to.StringPtr("MicrosoftWindowsServer"),
+							SKU:       to.StringPtr("2019-Datacenter"),
+							Version:   to.StringPtr("latest"),
+						},
+						OSDisk: &armcompute.VirtualMachineScaleSetOSDisk{
+							Caching: armcompute.CachingTypesReadWrite.ToPtr(),
+							ManagedDisk: &armcompute.VirtualMachineScaleSetManagedDiskParameters{
+								StorageAccountType: armcompute.StorageAccountTypesStandardLRS.ToPtr(),
+							},
+							CreateOption: armcompute.DiskCreateOptionTypesFromImage.ToPtr(),
+							DiskSizeGB:   to.Int32Ptr(128),
+						},
+					},
+					NetworkProfile: &armcompute.VirtualMachineScaleSetNetworkProfile{
+						NetworkInterfaceConfigurations: []*armcompute.VirtualMachineScaleSetNetworkConfiguration{
+							{
+								Name: to.StringPtr(vmScaleSetName),
+								Properties: &armcompute.VirtualMachineScaleSetNetworkConfigurationProperties{
+									Primary:            to.BoolPtr(true),
+									EnableIPForwarding: to.BoolPtr(true),
+									IPConfigurations: []*armcompute.VirtualMachineScaleSetIPConfiguration{
+										{
+											Name: to.StringPtr(vmScaleSetName),
+											Properties: &armcompute.VirtualMachineScaleSetIPConfigurationProperties{
+												Subnet: &armcompute.APIEntityReference{
+													ID: to.StringPtr(subnetID),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
-			HardwareProfile: &armcompute.HardwareProfile{
-				VMSize: armcompute.VirtualMachineSizeTypesStandardF2S.ToPtr(), // VM size include vCPUs,RAM,Data Disks,Temp storage.
-			},
-			OSProfile: &armcompute.OSProfile{ //
-				ComputerName:  to.StringPtr("sample-compute"),
-				AdminUsername: to.StringPtr("sample-user"),
-				AdminPassword: to.StringPtr("Password01!@#"),
-			},
-			NetworkProfile: &armcompute.NetworkProfile{
-				NetworkInterfaces: []*armcompute.NetworkInterfaceReference{
-					{
-						SubResource: armcompute.SubResource{
-							ID: to.StringPtr(networkInterfaceID),
-						},
-						Properties: &armcompute.NetworkInterfaceReferenceProperties{
-							Primary: to.BoolPtr(true),
-						},
-					},
-				},
-			},
 		},
-	}
-
-	pollerResponse, err := vmClient.BeginCreateOrUpdate(ctx, resourceGroupName, virtualMachineName, parameters, nil)
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
 		return nil, err
 	}
-
-	return &resp.VirtualMachine, nil
+	return &resp.VirtualMachineScaleSet, nil
 }
 
-func createAutoscaleSetting(ctx context.Context, conn *arm.Connection, resourceURI string) (*armmonitor.AutoscaleSettingResource, error) {
-	autoscaleSettingsClient := armmonitor.NewAutoscaleSettingsClient(conn, subscriptionID)
+func createAutoscaleSetting(ctx context.Context, cred azcore.TokenCredential, resourceURI string) (*armmonitor.AutoscaleSettingResource, error) {
+	autoscaleSettingsClient := armmonitor.NewAutoscaleSettingsClient(subscriptionID, cred, nil)
 
 	resp, err := autoscaleSettingsClient.CreateOrUpdate(
 		ctx,
@@ -453,8 +311,8 @@ func createAutoscaleSetting(ctx context.Context, conn *arm.Connection, resourceU
 	return &resp.AutoscaleSettingResource, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -469,8 +327,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

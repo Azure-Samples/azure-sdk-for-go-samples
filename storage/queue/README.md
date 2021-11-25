@@ -17,7 +17,7 @@ These code samples will show you how to manage Storage using Azure SDK for Golan
 This project framework provides examples for the following services:
 
 ### Storage
-* Using the Azure SDK for Golang - Storage Library [storage/armstorage](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/storage/armstorage) for the [Azure Storage API](https://docs.microsoft.com/en-us/rest/api/storage/)
+* Using the Azure SDK for Golang - Storage Library [storage/armstorage](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/storage/armstorage) for the [Azure Storage API](https://docs.microsoft.com/en-us/rest/api/storage/)
 
 ### Prerequisites
 * an [Azure subscription](https://azure.microsoft.com)

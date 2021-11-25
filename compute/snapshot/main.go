@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
@@ -40,33 +39,27 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	disk, err := createDisk(ctx, conn)
+	disk, err := createDisk(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("virtual disk:", *disk.ID)
 
-	snapshot, err := createSnapshot(ctx, conn, *disk.ID)
+	snapshot, err := createSnapshot(ctx, cred, *disk.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("snapshot:", *snapshot.ID)
 
-	image, err := createImage(ctx, conn, *snapshot.ID)
+	image, err := createImage(ctx, cred, *snapshot.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -74,7 +67,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -82,8 +75,8 @@ func main() {
 	}
 }
 
-func createDisk(ctx context.Context, conn *arm.Connection) (*armcompute.Disk, error) {
-	disksClient := armcompute.NewDisksClient(conn, subscriptionID)
+func createDisk(ctx context.Context, cred azcore.TokenCredential) (*armcompute.Disk, error) {
+	disksClient := armcompute.NewDisksClient(subscriptionID, cred, nil)
 
 	pollerResp, err := disksClient.BeginCreateOrUpdate(
 		ctx,
@@ -117,8 +110,8 @@ func createDisk(ctx context.Context, conn *arm.Connection) (*armcompute.Disk, er
 	return &resp.Disk, nil
 }
 
-func createSnapshot(ctx context.Context, conn *arm.Connection, diskID string) (*armcompute.Snapshot, error) {
-	snapshotClient := armcompute.NewSnapshotsClient(conn, subscriptionID)
+func createSnapshot(ctx context.Context, cred azcore.TokenCredential, diskID string) (*armcompute.Snapshot, error) {
+	snapshotClient := armcompute.NewSnapshotsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := snapshotClient.BeginCreateOrUpdate(
 		ctx,
@@ -149,8 +142,8 @@ func createSnapshot(ctx context.Context, conn *arm.Connection, diskID string) (*
 	return &resp.Snapshot, nil
 }
 
-func createImage(ctx context.Context, conn *arm.Connection, snapshotID string) (*armcompute.Image, error) {
-	snapshotClient := armcompute.NewImagesClient(conn, subscriptionID)
+func createImage(ctx context.Context, cred azcore.TokenCredential, snapshotID string) (*armcompute.Image, error) {
+	snapshotClient := armcompute.NewImagesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := snapshotClient.BeginCreateOrUpdate(
 		ctx,
@@ -190,8 +183,8 @@ func createImage(ctx context.Context, conn *arm.Connection, snapshotID string) (
 	return &resp.Image, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -206,8 +199,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

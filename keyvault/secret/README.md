@@ -17,7 +17,7 @@ These code samples will show you how to manage Key Vault using Azure SDK for Gol
 This project framework provides examples for the following services:
 
 ### Key Vault
-* Using the Azure SDK for Golang - Key Vault Management Library [keyvault/armkeyvault](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/keyvault/armkeyvault) for the [Azure Key Vault API](https://docs.microsoft.com/en-us/rest/api/keyvault/)
+* Using the Azure SDK for Golang - Key Vault Management Library [keyvault/armkeyvault](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/keyvault/armkeyvault) for the [Azure Key Vault API](https://docs.microsoft.com/en-us/rest/api/keyvault/)
 
 ### Prerequisites
 * an [Azure subscription](https://azure.microsoft.com)

@@ -17,7 +17,7 @@ These code samples will show you how to manage Resource using Azure SDK for Gola
 This project framework provides examples for the following services:
 
 ### Resource
-* Using the Azure SDK for Golang - Resource Management Library [resources/armresources](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resources/armresources) for the [Azure Resource Manager API](https://docs.microsoft.com/en-us/rest/api/resources/)
+* Using the Azure SDK for Golang - Resource Management Library [resources/armresources](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources) for the [Azure Resource Manager API](https://docs.microsoft.com/en-us/rest/api/resources/)
 
 ### Prerequisites
 * an [Azure subscription](https://azure.microsoft.com)

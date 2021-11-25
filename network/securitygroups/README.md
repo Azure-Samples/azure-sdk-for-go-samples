@@ -17,7 +17,7 @@ These code samples will show you how to manage Virtual Network using Azure SDK f
 This project framework provides examples for the following services:
 
 ### Virtual Network
-* Using the Azure SDK for Golang - Virtual Network Management Library [network/armnetwork](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/network/armnetwork) for the [Azure Virtual Network API](https://docs.microsoft.com/en-us/rest/api/network/)
+* Using the Azure SDK for Golang - Virtual Network Management Library [network/armnetwork](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork) for the [Azure Virtual Network API](https://docs.microsoft.com/en-us/rest/api/network/)
 
 ### Prerequisites
 * an [Azure subscription](https://azure.microsoft.com)

@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
@@ -39,27 +38,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	roleAssignment, err := createRoleAssignment(ctx, conn)
+	roleAssignment, err := createRoleAssignment(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("role assignment:", *roleAssignment.ID)
 
-	roleAssignment, err = getRoleAssignment(ctx, conn)
+	roleAssignment, err = getRoleAssignment(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,7 +60,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -75,9 +68,9 @@ func main() {
 	}
 }
 
-func createRoleAssignment(ctx context.Context, connection *arm.Connection) (*armauthorization.RoleAssignment, error) {
+func createRoleAssignment(ctx context.Context, cred azcore.TokenCredential) (*armauthorization.RoleAssignment, error) {
 
-	roleClient := armauthorization.NewRoleAssignmentsClient(connection, subscriptionID)
+	roleClient := armauthorization.NewRoleAssignmentsClient(subscriptionID, cred, nil)
 	resp, err := roleClient.Create(
 		ctx,
 		BuiltInRole,
@@ -95,8 +88,8 @@ func createRoleAssignment(ctx context.Context, connection *arm.Connection) (*arm
 	return &resp.RoleAssignment, err
 }
 
-func getRoleAssignment(ctx context.Context, connection *arm.Connection) (*armauthorization.RoleAssignment, error) {
-	roleClient := armauthorization.NewRoleAssignmentsClient(connection, subscriptionID)
+func getRoleAssignment(ctx context.Context, cred azcore.TokenCredential) (*armauthorization.RoleAssignment, error) {
+	roleClient := armauthorization.NewRoleAssignmentsClient(subscriptionID, cred, nil)
 
 	resp, err := roleClient.Get(
 		ctx,
@@ -111,8 +104,8 @@ func getRoleAssignment(ctx context.Context, connection *arm.Connection) (*armaut
 	return &resp.RoleAssignment, err
 }
 
-func validateRoleAssignment(ctx context.Context, connection *arm.Connection) (*armauthorization.ValidationResponse, error) {
-	roleClient := armauthorization.NewRoleAssignmentsClient(connection, subscriptionID)
+func validateRoleAssignment(ctx context.Context, cred azcore.TokenCredential) (*armauthorization.ValidationResponse, error) {
+	roleClient := armauthorization.NewRoleAssignmentsClient(subscriptionID, cred, nil)
 	resp, err := roleClient.Validate(
 		ctx,
 		BuiltInRole,
@@ -130,8 +123,8 @@ func validateRoleAssignment(ctx context.Context, connection *arm.Connection) (*a
 	return &resp.ValidationResponse, err
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -146,8 +139,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

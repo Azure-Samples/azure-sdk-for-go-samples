@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/keyvault/armkeyvault"
@@ -21,7 +20,7 @@ var (
 	ObjectID          string
 	location          = "westus"
 	resourceGroupName = "sample-resource-group"
-	vaultName         = "sample2vault"
+	vaultName         = "sample2vaultalan"
 )
 
 func main() {
@@ -44,61 +43,52 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	vault, err := createVault(ctx, conn)
+	vault, err := createVault(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("vault:", *vault.ID)
 
-	vaultForDeployment, err := setVaultPermissionsForDeployment(ctx, conn)
+	vaultForDeployment, err := setVaultPermissionsForDeployment(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("vault for deployment:", *vaultForDeployment.ID)
 
-	deletedVaults := deletedVaultList(ctx, conn)
+	deletedVaults := deletedVaultList(ctx, cred)
 	for i, v := range deletedVaults {
 		log.Println("deleted vault:", i, *v.ID)
 	}
 
-	resp, err := deleteVault(ctx, conn)
+	resp, err := deleteVault(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("deleted vault.", resp)
 
-	resp, err = purgeDeleted(ctx, conn)
+	resp, err = purgeDeleted(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("purge deleted vault.", resp)
 
-	//Unknown API version: 2021-06-01-preview
-	//hsms, err := createManagedHsms(ctx, conn)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//log.Println("managed Hsms:", *hsms.ID)
-	//data, _ := json.Marshal(hsms)
-	//log.Println(string(data))
+	hsms, err := createManagedHsms(ctx, cred)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("managed Hsms:", *hsms.ID)
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -106,8 +96,8 @@ func main() {
 	}
 }
 
-func createVault(ctx context.Context, conn *arm.Connection) (*armkeyvault.Vault, error) {
-	vaultsClient := armkeyvault.NewVaultsClient(conn, subscriptionID)
+func createVault(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Vault, error) {
+	vaultsClient := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := vaultsClient.BeginCreateOrUpdate(
 		ctx,
@@ -158,8 +148,8 @@ func createVault(ctx context.Context, conn *arm.Connection) (*armkeyvault.Vault,
 	return &resp.Vault, nil
 }
 
-func setVaultPermissionsForDeployment(ctx context.Context, conn *arm.Connection) (*armkeyvault.Vault, error) {
-	vaultsClient := armkeyvault.NewVaultsClient(conn, subscriptionID)
+func setVaultPermissionsForDeployment(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Vault, error) {
+	vaultsClient := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := vaultsClient.BeginCreateOrUpdate(ctx, resourceGroupName, vaultName, armkeyvault.VaultCreateOrUpdateParameters{
 		Location: to.StringPtr(location),
@@ -202,8 +192,8 @@ func setVaultPermissionsForDeployment(ctx context.Context, conn *arm.Connection)
 	return &resp.Vault, nil
 }
 
-func deletedVaultList(ctx context.Context, conn *arm.Connection) []*armkeyvault.DeletedVault {
-	vaultsClient := armkeyvault.NewVaultsClient(conn, subscriptionID)
+func deletedVaultList(ctx context.Context, cred azcore.TokenCredential) []*armkeyvault.DeletedVault {
+	vaultsClient := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
 
 	deletedVaultResult := vaultsClient.ListDeleted(nil)
 
@@ -216,8 +206,8 @@ func deletedVaultList(ctx context.Context, conn *arm.Connection) []*armkeyvault.
 	return deleteVaults
 }
 
-func deleteVault(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	vaultsClient := armkeyvault.NewVaultsClient(conn, subscriptionID)
+func deleteVault(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	vaultsClient := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
 
 	resp, err := vaultsClient.Delete(ctx, resourceGroupName, vaultName, nil)
 	if err != nil {
@@ -226,8 +216,8 @@ func deleteVault(ctx context.Context, conn *arm.Connection) (*http.Response, err
 	return resp.RawResponse, nil
 }
 
-func purgeDeleted(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	vaultsClient := armkeyvault.NewVaultsClient(conn, subscriptionID)
+func purgeDeleted(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	vaultsClient := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := vaultsClient.BeginPurgeDeleted(ctx, vaultName, location, nil)
 	if err != nil {
@@ -242,13 +232,13 @@ func purgeDeleted(ctx context.Context, conn *arm.Connection) (*http.Response, er
 	return resp.RawResponse, nil
 }
 
-func createManagedHsms(ctx context.Context, conn *arm.Connection) (*armkeyvault.ManagedHsm, error) {
-	client := armkeyvault.NewManagedHsmsClient(conn, subscriptionID)
+func createManagedHsms(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.ManagedHsm, error) {
+	client := armkeyvault.NewManagedHsmsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := client.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
-		"sample-hsms",
+		"sample-hsmsxx",
 		armkeyvault.ManagedHsm{
 			ManagedHsmResource: armkeyvault.ManagedHsmResource{
 				Location: to.StringPtr(location),
@@ -278,8 +268,8 @@ func createManagedHsms(ctx context.Context, conn *arm.Connection) (*armkeyvault.
 	return &resp.ManagedHsm, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -294,8 +284,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/monitor/armmonitor"
@@ -32,27 +31,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, conn)
+	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	activityLogAlert, err := createActivityLogAlert(ctx, conn)
+	activityLogAlert, err := createActivityLogAlert(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("activity log alert:", *activityLogAlert.ID)
 
-	activityLogAlert, err = getActivityLogAlert(ctx, conn)
+	activityLogAlert, err = getActivityLogAlert(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,7 +53,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, conn)
+		_, err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -68,8 +61,8 @@ func main() {
 	}
 }
 
-func createActivityLogAlert(ctx context.Context, conn *arm.Connection) (*armmonitor.ActivityLogAlertResource, error) {
-	activityLogAlert := armmonitor.NewActivityLogAlertsClient(conn, subscriptionID)
+func createActivityLogAlert(ctx context.Context, cred azcore.TokenCredential) (*armmonitor.ActivityLogAlertResource, error) {
+	activityLogAlert := armmonitor.NewActivityLogAlertsClient(subscriptionID, cred, nil)
 
 	resp, err := activityLogAlert.CreateOrUpdate(
 		ctx,
@@ -77,7 +70,7 @@ func createActivityLogAlert(ctx context.Context, conn *arm.Connection) (*armmoni
 		activityLogAlertName,
 		armmonitor.ActivityLogAlertResource{
 			Resource: armmonitor.Resource{
-				Location: to.StringPtr(location),
+				Location: to.StringPtr("global"),
 			},
 			Properties: &armmonitor.ActivityLogAlert{
 				Scopes: []*string{
@@ -88,7 +81,7 @@ func createActivityLogAlert(ctx context.Context, conn *arm.Connection) (*armmoni
 					AllOf: []*armmonitor.ActivityLogAlertLeafCondition{
 						{
 							Field:  to.StringPtr("category"),
-							Equals: to.StringPtr("Adminstrative"),
+							Equals: to.StringPtr("Administrative"),
 						},
 						{
 							Field:  to.StringPtr("level"),
@@ -97,11 +90,7 @@ func createActivityLogAlert(ctx context.Context, conn *arm.Connection) (*armmoni
 					},
 				},
 				Actions: &armmonitor.ActivityLogAlertActionList{
-					ActionGroups: []*armmonitor.ActivityLogAlertActionGroup{
-						//{
-						//	ActionGroupID: to.StringPtr(""),
-						//},
-					},
+					ActionGroups: []*armmonitor.ActivityLogAlertActionGroup{},
 				},
 				Description: to.StringPtr("Sample activity log alert description"),
 			},
@@ -114,8 +103,8 @@ func createActivityLogAlert(ctx context.Context, conn *arm.Connection) (*armmoni
 	return &resp.ActivityLogAlertResource, nil
 }
 
-func getActivityLogAlert(ctx context.Context, conn *arm.Connection) (*armmonitor.ActivityLogAlertResource, error) {
-	activityLogAlert := armmonitor.NewActivityLogAlertsClient(conn, subscriptionID)
+func getActivityLogAlert(ctx context.Context, cred azcore.TokenCredential) (*armmonitor.ActivityLogAlertResource, error) {
+	activityLogAlert := armmonitor.NewActivityLogAlertsClient(subscriptionID, cred, nil)
 
 	resp, err := activityLogAlert.Get(ctx, resourceGroupName, activityLogAlertName, nil)
 	if err != nil {
@@ -124,8 +113,8 @@ func getActivityLogAlert(ctx context.Context, conn *arm.Connection) (*armmonitor
 	return &resp.ActivityLogAlertResource, nil
 }
 
-func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -140,8 +129,8 @@ func createResourceGroup(ctx context.Context, conn *arm.Connection) (*armresourc
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, conn *arm.Connection) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(conn, subscriptionID)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

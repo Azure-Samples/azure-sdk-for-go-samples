@@ -7,8 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
@@ -158,22 +157,16 @@ func cleanup() {
 	log.Println("success deleted virtual machine.")
 }
 
-func connectionAzure() (*arm.Connection, error) {
+func connectionAzure() (azcore.TokenCredential, error) {
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
 		return nil, err
 	}
-
-	conn := arm.NewDefaultConnection(cred, &arm.ConnectionOptions{
-		Logging: policy.LogOptions{
-			IncludeBody: true,
-		},
-	})
-	return conn, nil
+	return cred, nil
 }
 
-func createResourceGroup(ctx context.Context, connection *arm.Connection) (*armresources.ResourceGroup, error) {
-	resourceGroup := armresources.NewResourceGroupsClient(connection, subscriptionId)
+func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
+	resourceGroup := armresources.NewResourceGroupsClient(subscriptionId, cred, nil)
 
 	parameters := armresources.ResourceGroup{
 		Location: to.StringPtr(location),
@@ -188,8 +181,8 @@ func createResourceGroup(ctx context.Context, connection *arm.Connection) (*armr
 	return &resp.ResourceGroup, nil
 }
 
-func deleteResourceGroup(ctx context.Context, connection *arm.Connection) (*http.Response, error) {
-	resourceGroup := armresources.NewResourceGroupsClient(connection, subscriptionId)
+func deleteResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	resourceGroup := armresources.NewResourceGroupsClient(subscriptionId, cred, nil)
 
 	pollerResponse, err := resourceGroup.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
@@ -204,8 +197,8 @@ func deleteResourceGroup(ctx context.Context, connection *arm.Connection) (*http
 	return resp.RawResponse, nil
 }
 
-func createVirtualNetwork(ctx context.Context, connection *arm.Connection) (*armnetwork.VirtualNetwork, error) {
-	vnetClient := armnetwork.NewVirtualNetworksClient(connection, subscriptionId)
+func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.VirtualNetwork, error) {
+	vnetClient := armnetwork.NewVirtualNetworksClient(subscriptionId, cred, nil)
 
 	parameters := armnetwork.VirtualNetwork{
 		Resource: armnetwork.Resource{
@@ -241,8 +234,8 @@ func createVirtualNetwork(ctx context.Context, connection *arm.Connection) (*arm
 	return &resp.VirtualNetwork, nil
 }
 
-func deleteVirtualNetWork(ctx context.Context, connection *arm.Connection) (*http.Response, error) {
-	vnetClient := armnetwork.NewVirtualNetworksClient(connection, subscriptionId)
+func deleteVirtualNetWork(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	vnetClient := armnetwork.NewVirtualNetworksClient(subscriptionId, cred, nil)
 
 	pollerResponse, err := vnetClient.BeginDelete(ctx, resourceGroupName, vnetName, nil)
 	if err != nil {
@@ -257,8 +250,8 @@ func deleteVirtualNetWork(ctx context.Context, connection *arm.Connection) (*htt
 	return resp.RawResponse, nil
 }
 
-func createSubnets(ctx context.Context, connection *arm.Connection) (*armnetwork.Subnet, error) {
-	subnetClient := armnetwork.NewSubnetsClient(connection, subscriptionId)
+func createSubnets(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.Subnet, error) {
+	subnetClient := armnetwork.NewSubnetsClient(subscriptionId, cred, nil)
 
 	parameters := armnetwork.Subnet{
 		Properties: &armnetwork.SubnetPropertiesFormat{
@@ -279,8 +272,8 @@ func createSubnets(ctx context.Context, connection *arm.Connection) (*armnetwork
 	return &resp.Subnet, nil
 }
 
-func deleteSubnets(ctx context.Context, connection *arm.Connection) (*http.Response, error) {
-	subnetClient := armnetwork.NewSubnetsClient(connection, subscriptionId)
+func deleteSubnets(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	subnetClient := armnetwork.NewSubnetsClient(subscriptionId, cred, nil)
 
 	pollerResponse, err := subnetClient.BeginDelete(ctx, resourceGroupName, vnetName, subnetName, nil)
 	if err != nil {
@@ -295,8 +288,8 @@ func deleteSubnets(ctx context.Context, connection *arm.Connection) (*http.Respo
 	return resp.RawResponse, nil
 }
 
-func createNetworkSecurityGroup(ctx context.Context, connection *arm.Connection) (*armnetwork.NetworkSecurityGroup, error) {
-	nsgClient := armnetwork.NewNetworkSecurityGroupsClient(connection, subscriptionId)
+func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.NetworkSecurityGroup, error) {
+	nsgClient := armnetwork.NewNetworkSecurityGroupsClient(subscriptionId, cred, nil)
 
 	parameters := armnetwork.NetworkSecurityGroup{
 		Resource: armnetwork.Resource{
@@ -351,8 +344,8 @@ func createNetworkSecurityGroup(ctx context.Context, connection *arm.Connection)
 	return &resp.NetworkSecurityGroup, nil
 }
 
-func deleteNetworkSecurityGroup(ctx context.Context, connection *arm.Connection) (*http.Response, error) {
-	nsgClient := armnetwork.NewNetworkSecurityGroupsClient(connection, subscriptionId)
+func deleteNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	nsgClient := armnetwork.NewNetworkSecurityGroupsClient(subscriptionId, cred, nil)
 
 	pollerResponse, err := nsgClient.BeginDelete(ctx, resourceGroupName, nsgName, nil)
 	if err != nil {
@@ -366,8 +359,8 @@ func deleteNetworkSecurityGroup(ctx context.Context, connection *arm.Connection)
 	return resp.RawResponse, nil
 }
 
-func createPublicIP(ctx context.Context, connection *arm.Connection) (*armnetwork.PublicIPAddress, error) {
-	publicIPAddressClient := armnetwork.NewPublicIPAddressesClient(connection, subscriptionId)
+func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.PublicIPAddress, error) {
+	publicIPAddressClient := armnetwork.NewPublicIPAddressesClient(subscriptionId, cred, nil)
 
 	parameters := armnetwork.PublicIPAddress{
 		Resource: armnetwork.Resource{
@@ -390,8 +383,8 @@ func createPublicIP(ctx context.Context, connection *arm.Connection) (*armnetwor
 	return &resp.PublicIPAddress, err
 }
 
-func deletePublicIP(ctx context.Context, connection *arm.Connection) (*http.Response, error) {
-	publicIPAddressClient := armnetwork.NewPublicIPAddressesClient(connection, subscriptionId)
+func deletePublicIP(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	publicIPAddressClient := armnetwork.NewPublicIPAddressesClient(subscriptionId, cred, nil)
 
 	pollerResponse, err := publicIPAddressClient.BeginDelete(ctx, resourceGroupName, publicIPName, nil)
 	if err != nil {
@@ -405,8 +398,8 @@ func deletePublicIP(ctx context.Context, connection *arm.Connection) (*http.Resp
 	return resp.RawResponse, err
 }
 
-func createNetWorkInterface(ctx context.Context, connection *arm.Connection, subnetID string, publicIPID string, networkSecurityGroupID string) (*armnetwork.NetworkInterface, error) {
-	nicClient := armnetwork.NewNetworkInterfacesClient(connection, subscriptionId)
+func createNetWorkInterface(ctx context.Context, cred azcore.TokenCredential, subnetID string, publicIPID string, networkSecurityGroupID string) (*armnetwork.NetworkInterface, error) {
+	nicClient := armnetwork.NewNetworkInterfacesClient(subscriptionId, cred, nil)
 
 	parameters := armnetwork.NetworkInterface{
 		Resource: armnetwork.Resource{
@@ -453,8 +446,8 @@ func createNetWorkInterface(ctx context.Context, connection *arm.Connection, sub
 	return &resp.NetworkInterface, err
 }
 
-func deleteNetWorkInterface(ctx context.Context, connection *arm.Connection) (*http.Response, error) {
-	nicClient := armnetwork.NewNetworkInterfacesClient(connection, subscriptionId)
+func deleteNetWorkInterface(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	nicClient := armnetwork.NewNetworkInterfacesClient(subscriptionId, cred, nil)
 
 	pollerResponse, err := nicClient.BeginDelete(ctx, resourceGroupName, nicName, nil)
 	if err != nil {
@@ -469,8 +462,8 @@ func deleteNetWorkInterface(ctx context.Context, connection *arm.Connection) (*h
 	return resp.RawResponse, err
 }
 
-func createVirtualMachine(ctx context.Context, connection *arm.Connection, networkInterfaceID string) (*armcompute.VirtualMachine, error) {
-	vmClient := armcompute.NewVirtualMachinesClient(connection, subscriptionId)
+func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, networkInterfaceID string) (*armcompute.VirtualMachine, error) {
+	vmClient := armcompute.NewVirtualMachinesClient(subscriptionId, cred, nil)
 
 	//require ssh key for authentication on linux
 	//sshPublicKeyPath := "/home/user/.ssh/id_rsa.pub"
@@ -560,8 +553,8 @@ func createVirtualMachine(ctx context.Context, connection *arm.Connection, netwo
 	return &resp.VirtualMachine, nil
 }
 
-func deleteVirtualMachine(ctx context.Context, connection *arm.Connection) (*http.Response, error) {
-	vmClient := armcompute.NewVirtualMachinesClient(connection, subscriptionId)
+func deleteVirtualMachine(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	vmClient := armcompute.NewVirtualMachinesClient(subscriptionId, cred, nil)
 
 	pollerResponse, err := vmClient.BeginDelete(ctx, resourceGroupName, vmName, nil)
 	if err != nil {
@@ -576,8 +569,8 @@ func deleteVirtualMachine(ctx context.Context, connection *arm.Connection) (*htt
 	return resp.RawResponse, nil
 }
 
-func deleteDisk(ctx context.Context, connection *arm.Connection) (*http.Response, error) {
-	diskClient := armcompute.NewDisksClient(connection, subscriptionId)
+func deleteDisk(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
+	diskClient := armcompute.NewDisksClient(subscriptionId, cred, nil)
 
 	pollerResponse, err := diskClient.BeginDelete(ctx, resourceGroupName, diskName, nil)
 	if err != nil {

@@ -340,7 +340,7 @@ func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, netw
 				},
 			},
 			HardwareProfile: &armcompute.HardwareProfile{
-				VMSize: armcompute.VirtualMachineSizeTypesStandardF2S.ToPtr(), // VM size include vCPUs,RAM,Data Disks,Temp storage.
+				VMSize: armcompute.VirtualMachineSizeTypes("Standard_F2s").ToPtr(), // VM size include vCPUs,RAM,Data Disks,Temp storage.
 			},
 			OSProfile: &armcompute.OSProfile{ //
 				ComputerName:  to.StringPtr("sample-compute"),

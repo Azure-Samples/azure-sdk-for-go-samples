@@ -69,12 +69,10 @@ func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armeven
 		resourceGroupName,
 		namespacesName,
 		armeventhub.EHNamespace{
-			TrackedResource: armeventhub.TrackedResource{
-				Location: to.StringPtr(location),
-				Tags: map[string]*string{
-					"tag1": to.StringPtr("value1"),
-					"tag2": to.StringPtr("value2"),
-				},
+			Location: to.StringPtr(location),
+			Tags: map[string]*string{
+				"tag1": to.StringPtr("value1"),
+				"tag2": to.StringPtr("value2"),
 			},
 			SKU: &armeventhub.SKU{
 				Name: armeventhub.SKUNameStandard.ToPtr(),

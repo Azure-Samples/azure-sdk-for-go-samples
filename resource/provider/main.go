@@ -120,7 +120,7 @@ func getAtTenantScopeProvider(ctx context.Context, cred azcore.TokenCredential) 
 func listAtTenantScopeProvider(ctx context.Context, cred azcore.TokenCredential) []*armresources.Provider {
 	providerClient := armresources.NewProvidersClient(subscriptionID, cred, nil)
 
-	providerList := providerClient.ListAtTenantScope(&armresources.ProvidersListAtTenantScopeOptions{})
+	providerList := providerClient.ListAtTenantScope(&armresources.ProvidersClientListAtTenantScopeOptions{})
 
 	var providers = make([]*armresources.Provider, 0)
 	for providerList.NextPage(ctx) {

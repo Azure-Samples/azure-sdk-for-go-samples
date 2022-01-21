@@ -10,8 +10,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/appservice/armappservice"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/web/armweb"
 )
 
 var (
@@ -61,22 +61,20 @@ func main() {
 	}
 }
 
-func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*armweb.AppServicePlan, error) {
-	appServicePlansClient := armweb.NewAppServicePlansClient(subscriptionID, cred, nil)
+func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*armappservice.Plan, error) {
+	appServicePlansClient := armappservice.NewPlansClient(subscriptionID, cred, nil)
 
 	pollerResp, err := appServicePlansClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		appServicePlanName,
-		armweb.AppServicePlan{
-			Resource: armweb.Resource{
-				Location: to.StringPtr(location),
-			},
-			SKU: &armweb.SKUDescription{
+		armappservice.Plan{
+			Location: to.StringPtr(location),
+			SKU: &armappservice.SKUDescription{
 				Name:     to.StringPtr("P1V2"),
 				Capacity: to.Int32Ptr(1),
 			},
-			Properties: &armweb.AppServicePlanProperties{
+			Properties: &armappservice.PlanProperties{
 				PerSiteScaling: to.BoolPtr(false),
 				IsXenon:        to.BoolPtr(false),
 			},
@@ -90,11 +88,11 @@ func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*ar
 	if err != nil {
 		return nil, err
 	}
-	return &resp.AppServicePlan, nil
+	return &resp.Plan, nil
 }
 
-func getAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*armweb.AppServicePlan, error) {
-	appServicePlansClient := armweb.NewAppServicePlansClient(subscriptionID, cred, nil)
+func getAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*armappservice.Plan, error) {
+	appServicePlansClient := armappservice.NewPlansClient(subscriptionID, cred, nil)
 
 	resp, err := appServicePlansClient.Get(
 		ctx,
@@ -105,7 +103,7 @@ func getAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*armwe
 	if err != nil {
 		return nil, err
 	}
-	return &resp.AppServicePlan, nil
+	return &resp.Plan, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {

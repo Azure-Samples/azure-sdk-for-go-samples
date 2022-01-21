@@ -201,9 +201,7 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 	vnetClient := armnetwork.NewVirtualNetworksClient(subscriptionId, cred, nil)
 
 	parameters := armnetwork.VirtualNetwork{
-		Resource: armnetwork.Resource{
-			Location: to.StringPtr(location),
-		},
+		Location: to.StringPtr(location),
 		Properties: &armnetwork.VirtualNetworkPropertiesFormat{
 			AddressSpace: &armnetwork.AddressSpace{
 				AddressPrefixes: []*string{
@@ -288,14 +286,12 @@ func deleteSubnets(ctx context.Context, cred azcore.TokenCredential) (*http.Resp
 	return resp.RawResponse, nil
 }
 
-func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.NetworkSecurityGroup, error) {
-	nsgClient := armnetwork.NewNetworkSecurityGroupsClient(subscriptionId, cred, nil)
+func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityGroup, error) {
+	nsgClient := armnetwork.NewSecurityGroupsClient(subscriptionId, cred, nil)
 
-	parameters := armnetwork.NetworkSecurityGroup{
-		Resource: armnetwork.Resource{
-			Location: to.StringPtr(location),
-		},
-		Properties: &armnetwork.NetworkSecurityGroupPropertiesFormat{
+	parameters := armnetwork.SecurityGroup{
+		Location: to.StringPtr(location),
+		Properties: &armnetwork.SecurityGroupPropertiesFormat{
 			SecurityRules: []*armnetwork.SecurityRule{
 				// Windows connection to virtual machine needs to open port 3389,RDP
 				// inbound
@@ -341,11 +337,11 @@ func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential
 	if err != nil {
 		return nil, err
 	}
-	return &resp.NetworkSecurityGroup, nil
+	return &resp.SecurityGroup, nil
 }
 
 func deleteNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	nsgClient := armnetwork.NewNetworkSecurityGroupsClient(subscriptionId, cred, nil)
+	nsgClient := armnetwork.NewSecurityGroupsClient(subscriptionId, cred, nil)
 
 	pollerResponse, err := nsgClient.BeginDelete(ctx, resourceGroupName, nsgName, nil)
 	if err != nil {
@@ -363,9 +359,7 @@ func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwo
 	publicIPAddressClient := armnetwork.NewPublicIPAddressesClient(subscriptionId, cred, nil)
 
 	parameters := armnetwork.PublicIPAddress{
-		Resource: armnetwork.Resource{
-			Location: to.StringPtr(location),
-		},
+		Location: to.StringPtr(location),
 		Properties: &armnetwork.PublicIPAddressPropertiesFormat{
 			PublicIPAllocationMethod: armnetwork.IPAllocationMethodStatic.ToPtr(), // Static or Dynamic
 		},
@@ -398,37 +392,29 @@ func deletePublicIP(ctx context.Context, cred azcore.TokenCredential) (*http.Res
 	return resp.RawResponse, err
 }
 
-func createNetWorkInterface(ctx context.Context, cred azcore.TokenCredential, subnetID string, publicIPID string, networkSecurityGroupID string) (*armnetwork.NetworkInterface, error) {
-	nicClient := armnetwork.NewNetworkInterfacesClient(subscriptionId, cred, nil)
+func createNetWorkInterface(ctx context.Context, cred azcore.TokenCredential, subnetID string, publicIPID string, networkSecurityGroupID string) (*armnetwork.Interface, error) {
+	nicClient := armnetwork.NewInterfacesClient(subscriptionId, cred, nil)
 
-	parameters := armnetwork.NetworkInterface{
-		Resource: armnetwork.Resource{
-			Location: to.StringPtr(location),
-		},
-		Properties: &armnetwork.NetworkInterfacePropertiesFormat{
+	parameters := armnetwork.Interface{
+		Location: to.StringPtr(location),
+		Properties: &armnetwork.InterfacePropertiesFormat{
 			//NetworkSecurityGroup:
-			IPConfigurations: []*armnetwork.NetworkInterfaceIPConfiguration{
+			IPConfigurations: []*armnetwork.InterfaceIPConfiguration{
 				{
 					Name: to.StringPtr("ipConfig"),
-					Properties: &armnetwork.NetworkInterfaceIPConfigurationPropertiesFormat{
+					Properties: &armnetwork.InterfaceIPConfigurationPropertiesFormat{
 						PrivateIPAllocationMethod: armnetwork.IPAllocationMethodDynamic.ToPtr(),
 						Subnet: &armnetwork.Subnet{
-							SubResource: armnetwork.SubResource{
-								ID: to.StringPtr(subnetID),
-							},
+							ID: to.StringPtr(subnetID),
 						},
 						PublicIPAddress: &armnetwork.PublicIPAddress{
-							Resource: armnetwork.Resource{
-								ID: to.StringPtr(publicIPID),
-							},
+							ID: to.StringPtr(publicIPID),
 						},
 					},
 				},
 			},
-			NetworkSecurityGroup: &armnetwork.NetworkSecurityGroup{
-				Resource: armnetwork.Resource{
-					ID: to.StringPtr(networkSecurityGroupID),
-				},
+			NetworkSecurityGroup: &armnetwork.SecurityGroup{
+				ID: to.StringPtr(networkSecurityGroupID),
 			},
 		},
 	}
@@ -443,11 +429,11 @@ func createNetWorkInterface(ctx context.Context, cred azcore.TokenCredential, su
 		return nil, err
 	}
 
-	return &resp.NetworkInterface, err
+	return &resp.Interface, err
 }
 
 func deleteNetWorkInterface(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	nicClient := armnetwork.NewNetworkInterfacesClient(subscriptionId, cred, nil)
+	nicClient := armnetwork.NewInterfacesClient(subscriptionId, cred, nil)
 
 	pollerResponse, err := nicClient.BeginDelete(ctx, resourceGroupName, nicName, nil)
 	if err != nil {
@@ -477,9 +463,7 @@ func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, netw
 	//}
 
 	parameters := armcompute.VirtualMachine{
-		Resource: armcompute.Resource{
-			Location: to.StringPtr(location),
-		},
+		Location: to.StringPtr(location),
 		Identity: &armcompute.VirtualMachineIdentity{
 			Type: armcompute.ResourceIdentityTypeNone.ToPtr(),
 		},
@@ -531,9 +515,7 @@ func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, netw
 			NetworkProfile: &armcompute.NetworkProfile{
 				NetworkInterfaces: []*armcompute.NetworkInterfaceReference{
 					{
-						SubResource: armcompute.SubResource{
-							ID: to.StringPtr(networkInterfaceID),
-						},
+						ID: to.StringPtr(networkInterfaceID),
 					},
 				},
 			},

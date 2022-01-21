@@ -68,7 +68,7 @@ func main() {
 	}
 }
 
-func createNamespace(ctx context.Context, cred azcore.TokenCredential) (np armservicebus.NamespacesCreateOrUpdateResponse, err error) {
+func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBNamespace, error) {
 	namespacesClient := armservicebus.NewNamespacesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := namespacesClient.BeginCreateOrUpdate(
@@ -76,9 +76,7 @@ func createNamespace(ctx context.Context, cred azcore.TokenCredential) (np armse
 		resourceGroupName,
 		namespaceName,
 		armservicebus.SBNamespace{
-			TrackedResource: armservicebus.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			SKU: &armservicebus.SBSKU{
 				Name: armservicebus.SKUNameStandard.ToPtr(),
 				Tier: armservicebus.SKUTierStandard.ToPtr(),
@@ -87,14 +85,14 @@ func createNamespace(ctx context.Context, cred azcore.TokenCredential) (np armse
 		nil,
 	)
 	if err != nil {
-		return np, err
+		return nil, err
 	}
 
 	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return np, err
+		return nil, err
 	}
-	return resp, nil
+	return &resp.SBNamespace, nil
 }
 
 func createTopic(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBTopic, error) {
@@ -119,14 +117,14 @@ func createTopic(ctx context.Context, cred azcore.TokenCredential) (*armserviceb
 	return &resp.SBTopic, nil
 }
 
-func getTopic(ctx context.Context, cred azcore.TokenCredential) (t armservicebus.TopicsGetResponse, err error) {
+func getTopic(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBTopic, error) {
 	topicsClient := armservicebus.NewTopicsClient(subscriptionID, cred, nil)
 
 	resp, err := topicsClient.Get(ctx, resourceGroupName, namespaceName, topicName, nil)
 	if err != nil {
-		return t, err
+		return nil, err
 	}
-	return resp, nil
+	return &resp.SBTopic, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {

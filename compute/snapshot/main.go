@@ -83,9 +83,7 @@ func createDisk(ctx context.Context, cred azcore.TokenCredential) (*armcompute.D
 		resourceGroupName,
 		diskName,
 		armcompute.Disk{
-			Resource: armcompute.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			SKU: &armcompute.DiskSKU{
 				Name: armcompute.DiskStorageAccountTypesStandardLRS.ToPtr(),
 			},
@@ -118,9 +116,7 @@ func createSnapshot(ctx context.Context, cred azcore.TokenCredential, diskID str
 		resourceGroupName,
 		snapshotName,
 		armcompute.Snapshot{
-			Resource: armcompute.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcompute.SnapshotProperties{
 				CreationData: &armcompute.CreationData{
 					CreateOption:     armcompute.DiskCreateOptionCopy.ToPtr(),
@@ -150,17 +146,13 @@ func createImage(ctx context.Context, cred azcore.TokenCredential, snapshotID st
 		resourceGroupName,
 		imageName,
 		armcompute.Image{
-			Resource: armcompute.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcompute.ImageProperties{
 				StorageProfile: &armcompute.ImageStorageProfile{
 					OSDisk: &armcompute.ImageOSDisk{
 						OSType: armcompute.OperatingSystemTypesWindows.ToPtr(),
-						ImageDisk: armcompute.ImageDisk{
-							Snapshot: &armcompute.SubResource{
-								ID: to.StringPtr(snapshotID),
-							},
+						Snapshot: &armcompute.SubResource{
+							ID: to.StringPtr(snapshotID),
 						},
 						OSState: armcompute.OperatingSystemStateTypesGeneralized.ToPtr(),
 					},

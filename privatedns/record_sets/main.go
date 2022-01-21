@@ -70,9 +70,7 @@ func createPrivateZone(ctx context.Context, cred azcore.TokenCredential) (*armpr
 		resourceGroupName,
 		privateZoneName,
 		armprivatedns.PrivateZone{
-			TrackedResource: armprivatedns.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 		},
 		nil,
 	)

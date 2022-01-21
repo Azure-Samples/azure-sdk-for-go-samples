@@ -72,12 +72,10 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armpostgre
 		armpostgresql.ServerForCreate{
 			Location: to.StringPtr(location),
 			Properties: &armpostgresql.ServerPropertiesForDefaultCreate{
-				ServerPropertiesForCreate: armpostgresql.ServerPropertiesForCreate{
-					CreateMode:               armpostgresql.CreateModeDefault.ToPtr(),
-					InfrastructureEncryption: armpostgresql.InfrastructureEncryptionDisabled.ToPtr(),
-					PublicNetworkAccess:      armpostgresql.PublicNetworkAccessEnumEnabled.ToPtr(),
-					Version:                  armpostgresql.ServerVersionEleven.ToPtr(),
-				},
+				CreateMode:                 armpostgresql.CreateModeDefault.ToPtr(),
+				InfrastructureEncryption:   armpostgresql.InfrastructureEncryptionDisabled.ToPtr(),
+				PublicNetworkAccess:        armpostgresql.PublicNetworkAccessEnumEnabled.ToPtr(),
+				Version:                    armpostgresql.ServerVersionEleven.ToPtr(),
 				AdministratorLogin:         to.StringPtr("dummylogin"),
 				AdministratorLoginPassword: to.StringPtr("QWE123!@#"),
 			},

@@ -76,11 +76,9 @@ func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armconta
 		resourceGroupName,
 		registryName,
 		armcontainerregistry.Registry{
-			Resource: armcontainerregistry.Resource{
-				Location: to.StringPtr(location),
-				Tags: map[string]*string{
-					"key": to.StringPtr("value"),
-				},
+			Location: to.StringPtr(location),
+			Tags: map[string]*string{
+				"key": to.StringPtr("value"),
 			},
 			SKU: &armcontainerregistry.SKU{
 				Name: armcontainerregistry.SKUNameStandard.ToPtr(),
@@ -115,7 +113,7 @@ func createWebhook(ctx context.Context, cred azcore.TokenCredential) (*armcontai
 				Actions: []*armcontainerregistry.WebhookAction{
 					armcontainerregistry.WebhookActionPush.ToPtr(),
 				},
-				ServiceURI: to.StringPtr("http://www.microsoft.com"),
+				ServiceURI: to.StringPtr("https://www.microsoft.com"),
 				Status:     armcontainerregistry.WebhookStatusEnabled.ToPtr(),
 			},
 		},

@@ -84,9 +84,7 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 		resourceGroupName,
 		virtualNetworkName,
 		armnetwork.VirtualNetwork{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armnetwork.VirtualNetworkPropertiesFormat{
 				AddressSpace: &armnetwork.AddressSpace{
 					AddressPrefixes: []*string{
@@ -146,10 +144,8 @@ func createSubnetWithNetworkSecurityGroup(ctx context.Context, cred azcore.Token
 		armnetwork.Subnet{
 			Properties: &armnetwork.SubnetPropertiesFormat{
 				AddressPrefix: to.StringPtr("10.1.1.0/24"),
-				NetworkSecurityGroup: &armnetwork.NetworkSecurityGroup{
-					Resource: armnetwork.Resource{
-						ID: to.StringPtr(nsgID),
-					},
+				NetworkSecurityGroup: &armnetwork.SecurityGroup{
+					ID: to.StringPtr(nsgID),
 				},
 			},
 		},
@@ -166,18 +162,16 @@ func createSubnetWithNetworkSecurityGroup(ctx context.Context, cred azcore.Token
 	return &resp.Subnet, nil
 }
 
-func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.NetworkSecurityGroup, error) {
-	networkSecurityGroupClient := armnetwork.NewNetworkSecurityGroupsClient(subscriptionID, cred, nil)
+func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityGroup, error) {
+	networkSecurityGroupClient := armnetwork.NewSecurityGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := networkSecurityGroupClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		securityGroupName,
-		armnetwork.NetworkSecurityGroup{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
-			Properties: &armnetwork.NetworkSecurityGroupPropertiesFormat{
+		armnetwork.SecurityGroup{
+			Location: to.StringPtr(location),
+			Properties: &armnetwork.SecurityGroupPropertiesFormat{
 				SecurityRules: []*armnetwork.SecurityRule{
 					{
 						Name: to.StringPtr("allow_ssh"),
@@ -218,7 +212,7 @@ func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential
 	if err != nil {
 		return nil, err
 	}
-	return &resp.NetworkSecurityGroup, nil
+	return &resp.SecurityGroup, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {

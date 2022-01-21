@@ -77,9 +77,7 @@ func createAvailabilitySet(ctx context.Context, cred azcore.TokenCredential) (*a
 		resourceGroupName,
 		availabilitySetName,
 		armcompute.AvailabilitySet{
-			Resource: armcompute.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcompute.AvailabilitySetProperties{
 				PlatformFaultDomainCount:  to.Int32Ptr(1),
 				PlatformUpdateDomainCount: to.Int32Ptr(1),

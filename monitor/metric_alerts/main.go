@@ -97,9 +97,7 @@ func createActionGroup(ctx context.Context, cred azcore.TokenCredential) (*armmo
 		resourceGroupName,
 		actionGroupName,
 		armmonitor.ActionGroupResource{
-			AzureResource: armmonitor.AzureResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armmonitor.ActionGroup{
 				GroupShortName: to.StringPtr("sample"),
 				Enabled:        to.BoolPtr(true),
@@ -135,9 +133,7 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 		resourceGroupName,
 		virtualNetworkName,
 		armnetwork.VirtualNetwork{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armnetwork.VirtualNetworkPropertiesFormat{
 				AddressSpace: &armnetwork.AddressSpace{
 					AddressPrefixes: []*string{
@@ -193,10 +189,8 @@ func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwo
 		resourceGroupName,
 		publicIPAddressName,
 		armnetwork.PublicIPAddress{
-			Resource: armnetwork.Resource{
-				Name:     to.StringPtr(publicIPAddressName),
-				Location: to.StringPtr(location),
-			},
+			Name:     to.StringPtr(publicIPAddressName),
+			Location: to.StringPtr(location),
 			Properties: &armnetwork.PublicIPAddressPropertiesFormat{
 				PublicIPAddressVersion:   armnetwork.IPVersionIPv4.ToPtr(),
 				PublicIPAllocationMethod: armnetwork.IPAllocationMethodStatic.ToPtr(),
@@ -215,18 +209,16 @@ func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwo
 	return &resp.PublicIPAddress, nil
 }
 
-func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.NetworkSecurityGroup, error) {
-	networkSecurityGroupClient := armnetwork.NewNetworkSecurityGroupsClient(subscriptionID, cred, nil)
+func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityGroup, error) {
+	networkSecurityGroupClient := armnetwork.NewSecurityGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := networkSecurityGroupClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		securityGroupName,
-		armnetwork.NetworkSecurityGroup{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
-			Properties: &armnetwork.NetworkSecurityGroupPropertiesFormat{
+		armnetwork.SecurityGroup{
+			Location: to.StringPtr(location),
+			Properties: &armnetwork.SecurityGroupPropertiesFormat{
 				SecurityRules: []*armnetwork.SecurityRule{
 					{
 						Name: to.StringPtr("allow_ssh"),
@@ -267,30 +259,26 @@ func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential
 	if err != nil {
 		return nil, err
 	}
-	return &resp.NetworkSecurityGroup, nil
+	return &resp.SecurityGroup, nil
 }
 
-func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armnetwork.NetworkInterface, error) {
-	nicClient := armnetwork.NewNetworkInterfacesClient(subscriptionID, cred, nil)
+func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armnetwork.Interface, error) {
+	nicClient := armnetwork.NewInterfacesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := nicClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		networkInterfaceName,
-		armnetwork.NetworkInterface{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
-			Properties: &armnetwork.NetworkInterfacePropertiesFormat{
-				IPConfigurations: []*armnetwork.NetworkInterfaceIPConfiguration{
+		armnetwork.Interface{
+			Location: to.StringPtr(location),
+			Properties: &armnetwork.InterfacePropertiesFormat{
+				IPConfigurations: []*armnetwork.InterfaceIPConfiguration{
 					{
 						Name: to.StringPtr("ipConfig"),
-						Properties: &armnetwork.NetworkInterfaceIPConfigurationPropertiesFormat{
+						Properties: &armnetwork.InterfaceIPConfigurationPropertiesFormat{
 							PrivateIPAllocationMethod: armnetwork.IPAllocationMethodDynamic.ToPtr(),
 							Subnet: &armnetwork.Subnet{
-								SubResource: armnetwork.SubResource{
-									ID: to.StringPtr(subnetID),
-								},
+								ID: to.StringPtr(subnetID),
 							},
 						},
 					},
@@ -307,16 +295,14 @@ func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID string
 	if err != nil {
 		return nil, err
 	}
-	return &resp.NetworkInterface, nil
+	return &resp.Interface, nil
 }
 
 func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, networkInterfaceID string) (*armcompute.VirtualMachine, error) {
 	vmClient := armcompute.NewVirtualMachinesClient(subscriptionID, cred, nil)
 
 	parameters := armcompute.VirtualMachine{
-		Resource: armcompute.Resource{
-			Location: to.StringPtr(location),
-		},
+		Location: to.StringPtr(location),
 		Identity: &armcompute.VirtualMachineIdentity{
 			Type: armcompute.ResourceIdentityTypeNone.ToPtr(),
 		},
@@ -350,9 +336,7 @@ func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, netw
 			NetworkProfile: &armcompute.NetworkProfile{
 				NetworkInterfaces: []*armcompute.NetworkInterfaceReference{
 					{
-						SubResource: armcompute.SubResource{
-							ID: to.StringPtr(networkInterfaceID),
-						},
+						ID: to.StringPtr(networkInterfaceID),
 						Properties: &armcompute.NetworkInterfaceReferenceProperties{
 							Primary: to.BoolPtr(true),
 						},
@@ -383,9 +367,7 @@ func createMetricAlerts(ctx context.Context, cred azcore.TokenCredential, resour
 		resourceGroupName,
 		metricAlertName,
 		armmonitor.MetricAlertResource{
-			Resource: armmonitor.Resource{
-				Location: to.StringPtr("global"),
-			},
+			Location: to.StringPtr("global"),
 			Properties: &armmonitor.MetricAlertProperties{
 				Description: to.StringPtr("This is the description of the rule"),
 				Severity:    to.Int32Ptr(3),
@@ -398,20 +380,16 @@ func createMetricAlerts(ctx context.Context, cred azcore.TokenCredential, resour
 				TargetResourceType:   to.StringPtr("Microsoft.Compute/virtualMachines"),
 				TargetResourceRegion: to.StringPtr("southcentralus"),
 				Criteria: &armmonitor.MetricAlertMultipleResourceMultipleMetricCriteria{
-					MetricAlertCriteria: armmonitor.MetricAlertCriteria{
-						ODataType: armmonitor.OdatatypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria.ToPtr(),
-					},
+					ODataType: armmonitor.OdatatypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria.ToPtr(),
 					AllOf: []armmonitor.MultiMetricCriteriaClassification{
 						&armmonitor.DynamicMetricCriteria{
-							MultiMetricCriteria: armmonitor.MultiMetricCriteria{
-								CriterionType:   armmonitor.CriterionTypeDynamicThresholdCriterion.ToPtr(),
-								Name:            to.StringPtr("High_CPU_80"),
-								MetricName:      to.StringPtr("Percentage CPU"),
-								MetricNamespace: to.StringPtr("Microsoft.Compute/virtualMachines"),
-								TimeAggregation: armmonitor.AggregationTypeEnumAverage.ToPtr(),
-								Dimensions:      []*armmonitor.MetricDimension{},
-							},
-							Operator: armmonitor.DynamicThresholdOperatorGreaterOrLessThan.ToPtr(),
+							CriterionType:   armmonitor.CriterionTypeDynamicThresholdCriterion.ToPtr(),
+							Name:            to.StringPtr("High_CPU_80"),
+							MetricName:      to.StringPtr("Percentage CPU"),
+							MetricNamespace: to.StringPtr("Microsoft.Compute/virtualMachines"),
+							TimeAggregation: armmonitor.AggregationTypeEnumAverage.ToPtr(),
+							Dimensions:      []*armmonitor.MetricDimension{},
+							Operator:        armmonitor.DynamicThresholdOperatorGreaterOrLessThan.ToPtr(),
 							FailingPeriods: &armmonitor.DynamicThresholdFailingPeriods{
 								NumberOfEvaluationPeriods: to.Float32Ptr(4),
 								MinFailingPeriodsToAlert:  to.Float32Ptr(4),

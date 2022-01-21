@@ -76,11 +76,9 @@ func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armconta
 		resourceGroupName,
 		registryName,
 		armcontainerregistry.Registry{
-			Resource: armcontainerregistry.Resource{
-				Location: to.StringPtr(location),
-				Tags: map[string]*string{
-					"key": to.StringPtr("value"),
-				},
+			Location: to.StringPtr(location),
+			Tags: map[string]*string{
+				"key": to.StringPtr("value"),
 			},
 			SKU: &armcontainerregistry.SKU{
 				Name: armcontainerregistry.SKUNamePremium.ToPtr(),
@@ -113,10 +111,8 @@ func createTaskRun(ctx context.Context, cred azcore.TokenCredential) (*armcontai
 			Properties: &armcontainerregistry.TaskRunProperties{
 				ForceUpdateTag: to.StringPtr("test"),
 				RunRequest: &armcontainerregistry.DockerBuildRequest{
-					RunRequest: armcontainerregistry.RunRequest{
-						IsArchiveEnabled: to.BoolPtr(true),
-					},
-					DockerFilePath: to.StringPtr("Dockerfile"),
+					IsArchiveEnabled: to.BoolPtr(true),
+					DockerFilePath:   to.StringPtr("Dockerfile"),
 					Platform: &armcontainerregistry.PlatformProperties{
 						OS:           armcontainerregistry.OSLinux.ToPtr(),
 						Architecture: armcontainerregistry.ArchitectureAmd64.ToPtr(),

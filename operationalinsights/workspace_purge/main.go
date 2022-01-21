@@ -75,9 +75,7 @@ func createWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armoper
 		resourceGroupName,
 		workspaceName,
 		armoperationalinsights.Workspace{
-			TrackedResource: armoperationalinsights.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location:   to.StringPtr(location),
 			Properties: &armoperationalinsights.WorkspaceProperties{},
 		},
 		nil,
@@ -92,7 +90,7 @@ func createWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armoper
 	return &resp.Workspace, nil
 }
 
-func purgeWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armoperationalinsights.WorkspacePurgePurgeResult, error) {
+func purgeWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armoperationalinsights.WorkspacePurgeClientPurgeResult, error) {
 	workspacePurgeClient := armoperationalinsights.NewWorkspacePurgeClient(subscriptionID, cred, nil)
 
 	resp, err := workspacePurgeClient.Purge(
@@ -108,7 +106,7 @@ func purgeWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armopera
 	if err != nil {
 		return nil, err
 	}
-	return &resp.WorkspacePurgePurgeResult, nil
+	return &resp.WorkspacePurgeClientPurgeResult, nil
 }
 
 func purgeStatusWorkspace(ctx context.Context, cred azcore.TokenCredential, purgeID string) (*armoperationalinsights.WorkspacePurgeStatusResponse, error) {

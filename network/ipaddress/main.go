@@ -63,10 +63,8 @@ func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwo
 		resourceGroupName,
 		publicIPAddressName,
 		armnetwork.PublicIPAddress{
-			Resource: armnetwork.Resource{
-				Name:     to.StringPtr(publicIPAddressName),
-				Location: to.StringPtr(location),
-			},
+			Name:     to.StringPtr(publicIPAddressName),
+			Location: to.StringPtr(location),
 			Properties: &armnetwork.PublicIPAddressPropertiesFormat{
 				PublicIPAddressVersion:   armnetwork.IPVersionIPv4.ToPtr(),
 				PublicIPAllocationMethod: armnetwork.IPAllocationMethodStatic.ToPtr(),

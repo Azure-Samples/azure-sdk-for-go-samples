@@ -69,9 +69,7 @@ func createActionGroup(ctx context.Context, cred azcore.TokenCredential) (*armmo
 		resourceGroupName,
 		actionGroupName,
 		armmonitor.ActionGroupResource{
-			AzureResource: armmonitor.AzureResource{
-				Location: to.StringPtr("global"),
-			},
+			Location: to.StringPtr("global"),
 			Properties: &armmonitor.ActionGroup{
 				GroupShortName: to.StringPtr("sample"),
 				Enabled:        to.BoolPtr(true),

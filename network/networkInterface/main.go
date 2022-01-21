@@ -107,9 +107,7 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 		resourceGroupName,
 		virtualNetworkName,
 		armnetwork.VirtualNetwork{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armnetwork.VirtualNetworkPropertiesFormat{
 				AddressSpace: &armnetwork.AddressSpace{
 					AddressPrefixes: []*string{
@@ -165,10 +163,8 @@ func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwo
 		resourceGroupName,
 		publicIPAddressName,
 		armnetwork.PublicIPAddress{
-			Resource: armnetwork.Resource{
-				Name:     to.StringPtr(publicIPAddressName),
-				Location: to.StringPtr(location),
-			},
+			Name:     to.StringPtr(publicIPAddressName),
+			Location: to.StringPtr(location),
 			Properties: &armnetwork.PublicIPAddressPropertiesFormat{
 				PublicIPAddressVersion:   armnetwork.IPVersionIPv4.ToPtr(),
 				PublicIPAllocationMethod: armnetwork.IPAllocationMethodStatic.ToPtr(),
@@ -187,18 +183,15 @@ func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwo
 	return &resp.PublicIPAddress, nil
 }
 
-func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.NetworkSecurityGroup, error) {
-	networkSecurityGroupClient := armnetwork.NewNetworkSecurityGroupsClient(subscriptionID, cred, nil)
-
+func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityGroup, error) {
+	networkSecurityGroupClient := armnetwork.NewSecurityGroupsClient(subscriptionID, cred, nil)
 	pollerResp, err := networkSecurityGroupClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		securityGroupName,
-		armnetwork.NetworkSecurityGroup{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
-			Properties: &armnetwork.NetworkSecurityGroupPropertiesFormat{
+		armnetwork.SecurityGroup{
+			Location: to.StringPtr(location),
+			Properties: &armnetwork.SecurityGroupPropertiesFormat{
 				SecurityRules: []*armnetwork.SecurityRule{
 					{
 						Name: to.StringPtr("allow_ssh"),
@@ -239,43 +232,35 @@ func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential
 	if err != nil {
 		return nil, err
 	}
-	return &resp.NetworkSecurityGroup, nil
+	return &resp.SecurityGroup, nil
 }
 
-func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID, publicIPID, networkSecurityGroupID string) (*armnetwork.NetworkInterface, error) {
-	nicClient := armnetwork.NewNetworkInterfacesClient(subscriptionID, cred, nil)
+func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID, publicIPID, networkSecurityGroupID string) (*armnetwork.Interface, error) {
+	nicClient := armnetwork.NewInterfacesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := nicClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		networkInterfaceName,
-		armnetwork.NetworkInterface{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
-			Properties: &armnetwork.NetworkInterfacePropertiesFormat{
-				IPConfigurations: []*armnetwork.NetworkInterfaceIPConfiguration{
+		armnetwork.Interface{
+			Location: to.StringPtr(location),
+			Properties: &armnetwork.InterfacePropertiesFormat{
+				IPConfigurations: []*armnetwork.InterfaceIPConfiguration{
 					{
 						Name: to.StringPtr("ipConfig"),
-						Properties: &armnetwork.NetworkInterfaceIPConfigurationPropertiesFormat{
+						Properties: &armnetwork.InterfaceIPConfigurationPropertiesFormat{
 							PrivateIPAllocationMethod: armnetwork.IPAllocationMethodDynamic.ToPtr(),
 							Subnet: &armnetwork.Subnet{
-								SubResource: armnetwork.SubResource{
-									ID: to.StringPtr(subnetID),
-								},
+								ID: to.StringPtr(subnetID),
 							},
 							PublicIPAddress: &armnetwork.PublicIPAddress{
-								Resource: armnetwork.Resource{
-									ID: to.StringPtr(publicIPID),
-								},
+								ID: to.StringPtr(publicIPID),
 							},
 						},
 					},
 				},
-				NetworkSecurityGroup: &armnetwork.NetworkSecurityGroup{
-					Resource: armnetwork.Resource{
-						ID: to.StringPtr(networkSecurityGroupID),
-					},
+				NetworkSecurityGroup: &armnetwork.SecurityGroup{
+					ID: to.StringPtr(networkSecurityGroupID),
 				},
 			},
 		},
@@ -289,7 +274,7 @@ func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID, publi
 	if err != nil {
 		return nil, err
 	}
-	return &resp.NetworkInterface, nil
+	return &resp.Interface, nil
 }
 
 func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {

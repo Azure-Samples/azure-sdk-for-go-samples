@@ -74,20 +74,20 @@ func main() {
 	}
 }
 
-func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.StorageAccount, error) {
-	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
+func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Account, error) {
+	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := storageAccountClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
-		armstorage.StorageAccountCreateParameters{
+		armstorage.AccountCreateParameters{
 			Kind: armstorage.KindStorageV2.ToPtr(),
 			SKU: &armstorage.SKU{
 				Name: armstorage.SKUNameStandardLRS.ToPtr(),
 			},
 			Location: to.StringPtr(location),
-			Properties: &armstorage.StorageAccountPropertiesCreateParameters{
+			Properties: &armstorage.AccountPropertiesCreateParameters{
 				AccessTier: armstorage.AccessTierCool.ToPtr(),
 				Encryption: &armstorage.Encryption{
 					Services: &armstorage.EncryptionServices{
@@ -111,10 +111,10 @@ func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*ar
 	if err != nil {
 		return nil, err
 	}
-	return &resp.StorageAccount, nil
+	return &resp.Account, nil
 }
 
-func createQueue(ctx context.Context, cred azcore.TokenCredential) (*armstorage.StorageQueue, error) {
+func createQueue(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Queue, error) {
 	queueClient := armstorage.NewQueueClient(subscriptionID, cred, nil)
 
 	storageQueueResp, err := queueClient.Create(
@@ -122,15 +122,15 @@ func createQueue(ctx context.Context, cred azcore.TokenCredential) (*armstorage.
 		resourceGroupName,
 		storageAccountName,
 		queueName,
-		armstorage.StorageQueue{},
+		armstorage.Queue{},
 		nil)
 	if err != nil {
 		return nil, err
 	}
-	return &storageQueueResp.StorageQueue, nil
+	return &storageQueueResp.Queue, nil
 }
 
-func getQueue(ctx context.Context, cred azcore.TokenCredential) (*armstorage.StorageQueue, error) {
+func getQueue(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Queue, error) {
 	queueClient := armstorage.NewQueueClient(subscriptionID, cred, nil)
 
 	storageQueueResp, err := queueClient.Get(
@@ -142,10 +142,10 @@ func getQueue(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Sto
 	if err != nil {
 		return nil, err
 	}
-	return &storageQueueResp.StorageQueue, nil
+	return &storageQueueResp.Queue, nil
 }
 
-func updateQueue(ctx context.Context, cred azcore.TokenCredential) (*armstorage.StorageQueue, error) {
+func updateQueue(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Queue, error) {
 	queueClient := armstorage.NewQueueClient(subscriptionID, cred, nil)
 
 	storageQueueResp, err := queueClient.Update(
@@ -153,7 +153,7 @@ func updateQueue(ctx context.Context, cred azcore.TokenCredential) (*armstorage.
 		resourceGroupName,
 		storageAccountName,
 		queueName,
-		armstorage.StorageQueue{
+		armstorage.Queue{
 			QueueProperties: &armstorage.QueueProperties{
 				Metadata: map[string]*string{
 					"sample1": to.StringPtr("value1"),
@@ -165,7 +165,7 @@ func updateQueue(ctx context.Context, cred azcore.TokenCredential) (*armstorage.
 	if err != nil {
 		return nil, err
 	}
-	return &storageQueueResp.StorageQueue, nil
+	return &storageQueueResp.Queue, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {

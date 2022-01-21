@@ -97,9 +97,7 @@ func createDisk(ctx context.Context, cred azcore.TokenCredential) (*armcompute.D
 		resourceGroupName,
 		diskName,
 		armcompute.Disk{
-			Resource: armcompute.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			SKU: &armcompute.DiskSKU{
 				Name: armcompute.DiskStorageAccountTypesStandardLRS.ToPtr(),
 			},
@@ -132,9 +130,7 @@ func createSnapshot(ctx context.Context, cred azcore.TokenCredential, diskID str
 		resourceGroupName,
 		snapshotName,
 		armcompute.Snapshot{
-			Resource: armcompute.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcompute.SnapshotProperties{
 				CreationData: &armcompute.CreationData{
 					CreateOption:     armcompute.DiskCreateOptionCopy.ToPtr(),
@@ -164,9 +160,7 @@ func createGallery(ctx context.Context, cred azcore.TokenCredential, diskID stri
 		resourceGroupName,
 		galleryName,
 		armcompute.Gallery{
-			Resource: armcompute.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcompute.GalleryProperties{
 				Description: to.StringPtr("This is gallery description."),
 			},
@@ -194,9 +188,7 @@ func createGalleryApplication(ctx context.Context, cred azcore.TokenCredential) 
 		galleryName,
 		galleryApplicationName,
 		armcompute.GalleryApplication{
-			Resource: armcompute.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcompute.GalleryApplicationProperties{
 				Description:     to.StringPtr("This is the gallery application description."),
 				Eula:            to.StringPtr("This is the gallery application EULA."),
@@ -226,9 +218,7 @@ func createGalleryImage(ctx context.Context, cred azcore.TokenCredential) (*armc
 		galleryName,
 		galleryImageName,
 		armcompute.GalleryImage{
-			Resource: armcompute.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcompute.GalleryImageProperties{
 				OSType:           armcompute.OperatingSystemTypesWindows.ToPtr(),
 				OSState:          armcompute.OperatingSystemStateTypesGeneralized.ToPtr(),

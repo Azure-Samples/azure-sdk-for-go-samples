@@ -17,7 +17,7 @@ import (
 
 var (
 	subscriptionID    string
-	location          = "westus"
+	location          = "eastus"
 	resourceGroupName = "sample-resource-group"
 	serverName        = "sample2server"
 	elasticPoolName   = "sample-elastic-pool"
@@ -77,9 +77,7 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Ser
 		resourceGroupName,
 		serverName,
 		armsql.Server{
-			TrackedResource: armsql.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armsql.ServerProperties{
 				AdministratorLogin:         to.StringPtr("dummylogin"),
 				AdministratorLoginPassword: to.StringPtr("QWE123!@#"),
@@ -106,9 +104,7 @@ func createElasticPool(ctx context.Context, cred azcore.TokenCredential) (*armsq
 		serverName,
 		elasticPoolName,
 		armsql.ElasticPool{
-			TrackedResource: armsql.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 		},
 		nil,
 	)

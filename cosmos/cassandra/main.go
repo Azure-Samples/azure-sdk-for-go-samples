@@ -78,9 +78,7 @@ func createCassandraKeyspace(ctx context.Context, cred azcore.TokenCredential) (
 		accountName,
 		keyspaceName,
 		armcosmos.CassandraKeyspaceCreateUpdateParameters{
-			ARMResourceProperties: armcosmos.ARMResourceProperties{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcosmos.CassandraKeyspaceCreateUpdateProperties{
 				Resource: &armcosmos.CassandraKeyspaceResource{
 					ID: to.StringPtr(keyspaceName),
@@ -113,9 +111,7 @@ func createCassandraTable(ctx context.Context, cred azcore.TokenCredential) (*ar
 		keyspaceName,
 		tableName,
 		armcosmos.CassandraTableCreateUpdateParameters{
-			ARMResourceProperties: armcosmos.ARMResourceProperties{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcosmos.CassandraTableCreateUpdateProperties{
 				Resource: &armcosmos.CassandraTableResource{
 					ID:         to.StringPtr(tableName),
@@ -160,10 +156,8 @@ func createDatabaseAccount(ctx context.Context, cred azcore.TokenCredential) (*a
 		resourceGroupName,
 		accountName,
 		armcosmos.DatabaseAccountCreateUpdateParameters{
-			ARMResourceProperties: armcosmos.ARMResourceProperties{
-				Location: to.StringPtr(location),
-			},
-			Kind: armcosmos.DatabaseAccountKindGlobalDocumentDB.ToPtr(),
+			Location: to.StringPtr(location),
+			Kind:     armcosmos.DatabaseAccountKindGlobalDocumentDB.ToPtr(),
 			Properties: &armcosmos.DatabaseAccountCreateUpdateProperties{
 				DatabaseAccountOfferType: to.StringPtr("Standard"),
 				Locations: []*armcosmos.Location{

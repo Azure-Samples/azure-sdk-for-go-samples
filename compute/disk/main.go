@@ -91,9 +91,7 @@ func createDisk(ctx context.Context, cred azcore.TokenCredential) (*armcompute.D
 		resourceGroupName,
 		diskName,
 		armcompute.Disk{
-			Resource: armcompute.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			SKU: &armcompute.DiskSKU{
 				Name: armcompute.DiskStorageAccountTypesStandardLRS.ToPtr(),
 			},
@@ -207,9 +205,7 @@ func diskEncryptionSets(ctx context.Context, cred azcore.TokenCredential, vaultI
 		resourceGroupName,
 		diskEncryptionSetName,
 		armcompute.DiskEncryptionSet{
-			Resource: armcompute.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Identity: &armcompute.EncryptionSetIdentity{
 				Type: armcompute.DiskEncryptionSetIdentityTypeSystemAssigned.ToPtr(),
 			},

@@ -74,20 +74,20 @@ func main() {
 	}
 }
 
-func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.StorageAccount, error) {
-	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
+func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Account, error) {
+	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := storageAccountClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
-		armstorage.StorageAccountCreateParameters{
+		armstorage.AccountCreateParameters{
 			Kind: armstorage.KindStorageV2.ToPtr(),
 			SKU: &armstorage.SKU{
 				Name: armstorage.SKUNameStandardLRS.ToPtr(),
 			},
 			Location: to.StringPtr(location),
-			Properties: &armstorage.StorageAccountPropertiesCreateParameters{
+			Properties: &armstorage.AccountPropertiesCreateParameters{
 				AccessTier: armstorage.AccessTierCool.ToPtr(),
 				Encryption: &armstorage.Encryption{
 					Services: &armstorage.EncryptionServices{
@@ -111,7 +111,7 @@ func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*ar
 	if err != nil {
 		return nil, err
 	}
-	return &resp.StorageAccount, nil
+	return &resp.Account, nil
 }
 
 func createFileShare(ctx context.Context, cred azcore.TokenCredential) (*armstorage.FileShare, error) {

@@ -77,10 +77,8 @@ func createDatabaseAccount(ctx context.Context, cred azcore.TokenCredential) (*a
 		resourceGroupName,
 		accountName,
 		armcosmos.DatabaseAccountCreateUpdateParameters{
-			ARMResourceProperties: armcosmos.ARMResourceProperties{
-				Location: to.StringPtr(location),
-			},
-			Kind: armcosmos.DatabaseAccountKindGlobalDocumentDB.ToPtr(),
+			Location: to.StringPtr(location),
+			Kind:     armcosmos.DatabaseAccountKindGlobalDocumentDB.ToPtr(),
 			Properties: &armcosmos.DatabaseAccountCreateUpdateProperties{
 				DatabaseAccountOfferType: to.StringPtr("Standard"),
 				Locations: []*armcosmos.Location{
@@ -114,9 +112,7 @@ func createSqlDatabase(ctx context.Context, cred azcore.TokenCredential) (*armco
 		accountName,
 		databaseName,
 		armcosmos.SQLDatabaseCreateUpdateParameters{
-			ARMResourceProperties: armcosmos.ARMResourceProperties{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcosmos.SQLDatabaseCreateUpdateProperties{
 				Resource: &armcosmos.SQLDatabaseResource{
 					ID: to.StringPtr(databaseName),
@@ -149,9 +145,7 @@ func createSqlContainer(ctx context.Context, cred azcore.TokenCredential) (*armc
 		databaseName,
 		containerName,
 		armcosmos.SQLContainerCreateUpdateParameters{
-			ARMResourceProperties: armcosmos.ARMResourceProperties{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcosmos.SQLContainerCreateUpdateProperties{
 				Resource: &armcosmos.SQLContainerResource{
 					ID: to.StringPtr(containerName),

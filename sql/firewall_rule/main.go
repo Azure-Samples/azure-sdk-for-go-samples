@@ -76,9 +76,7 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Ser
 		resourceGroupName,
 		serverName,
 		armsql.Server{
-			TrackedResource: armsql.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armsql.ServerProperties{
 				AdministratorLogin:         to.StringPtr("dummylogin"),
 				AdministratorLoginPassword: to.StringPtr("QWE123!@#"),

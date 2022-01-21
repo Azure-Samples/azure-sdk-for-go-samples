@@ -16,7 +16,7 @@ import (
 
 var (
 	subscriptionID    string
-	location          = "westus"
+	location          = "eastus"
 	resourceGroupName = "sample-resource-group"
 	serverName        = "sample2server"
 	databaseName      = "sample-database"
@@ -70,9 +70,7 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Ser
 		resourceGroupName,
 		serverName,
 		armsql.Server{
-			TrackedResource: armsql.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armsql.ServerProperties{
 				AdministratorLogin:         to.StringPtr("dummylogin"),
 				AdministratorLoginPassword: to.StringPtr("QWE123!@#"),
@@ -99,9 +97,7 @@ func createDatabase(ctx context.Context, cred azcore.TokenCredential) (*armsql.D
 		serverName,
 		databaseName,
 		armsql.Database{
-			TrackedResource: armsql.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armsql.DatabaseProperties{
 				ReadScale: armsql.DatabaseReadScaleDisabled.ToPtr(),
 			},

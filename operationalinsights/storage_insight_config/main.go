@@ -77,20 +77,20 @@ func main() {
 	}
 }
 
-func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.StorageAccount, error) {
-	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
+func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Account, error) {
+	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := storageAccountClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
-		armstorage.StorageAccountCreateParameters{
+		armstorage.AccountCreateParameters{
 			Kind: armstorage.KindStorageV2.ToPtr(),
 			SKU: &armstorage.SKU{
 				Name: armstorage.SKUNameStandardLRS.ToPtr(),
 			},
 			Location: to.StringPtr(location),
-			Properties: &armstorage.StorageAccountPropertiesCreateParameters{
+			Properties: &armstorage.AccountPropertiesCreateParameters{
 				AccessTier: armstorage.AccessTierCool.ToPtr(),
 				Encryption: &armstorage.Encryption{
 					Services: &armstorage.EncryptionServices{
@@ -122,17 +122,17 @@ func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*ar
 	if err != nil {
 		return nil, err
 	}
-	return &resp.StorageAccount, nil
+	return &resp.Account, nil
 }
 
-func regenerateKeyStorageAccount(ctx context.Context, cred azcore.TokenCredential) []*armstorage.StorageAccountKey {
-	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
+func regenerateKeyStorageAccount(ctx context.Context, cred azcore.TokenCredential) []*armstorage.AccountKey {
+	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
 
 	regenerateKeyResp, err := storageAccountClient.RegenerateKey(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
-		armstorage.StorageAccountRegenerateKeyParameters{
+		armstorage.AccountRegenerateKeyParameters{
 			KeyName: to.StringPtr("key1"),
 		},
 		nil)
@@ -141,7 +141,7 @@ func regenerateKeyStorageAccount(ctx context.Context, cred azcore.TokenCredentia
 		log.Fatal(err)
 	}
 
-	return regenerateKeyResp.StorageAccountListKeysResult.Keys
+	return regenerateKeyResp.AccountListKeysResult.Keys
 }
 
 func createWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armoperationalinsights.Workspace, error) {
@@ -152,9 +152,7 @@ func createWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armoper
 		resourceGroupName,
 		workspaceName,
 		armoperationalinsights.Workspace{
-			TrackedResource: armoperationalinsights.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location:   to.StringPtr(location),
 			Properties: &armoperationalinsights.WorkspaceProperties{},
 		},
 		nil,

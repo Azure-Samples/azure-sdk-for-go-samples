@@ -92,20 +92,20 @@ func deleteService(ctx context.Context, cred azcore.TokenCredential) (*http.Resp
 	return resp.RawResponse, nil
 }
 
-func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIManagementServiceResource, error) {
-	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(subscriptionID, cred, nil)
+func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceResource, error) {
+	apiManagementServiceClient := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
 
 	pollerResp, err := apiManagementServiceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
-		armapimanagement.APIManagementServiceResource{
+		armapimanagement.ServiceResource{
 			Location: to.StringPtr(location),
-			Properties: &armapimanagement.APIManagementServiceProperties{
+			Properties: &armapimanagement.ServiceProperties{
 				PublisherName:  to.StringPtr("sample"),
 				PublisherEmail: to.StringPtr("xxx@wircesoft.com"),
 			},
-			SKU: &armapimanagement.APIManagementServiceSKUProperties{
+			SKU: &armapimanagement.ServiceSKUProperties{
 				Name:     armapimanagement.SKUTypeStandard.ToPtr(),
 				Capacity: to.Int32Ptr(2),
 			},
@@ -119,11 +119,11 @@ func createApiManagementService(ctx context.Context, cred azcore.TokenCredential
 	if err != nil {
 		return nil, err
 	}
-	return &resp.APIManagementServiceResource, nil
+	return &resp.ServiceResource, nil
 }
 
-func deleteApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIManagementServiceResource, error) {
-	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(subscriptionID, cred, nil)
+func deleteApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceResource, error) {
+	apiManagementServiceClient := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
 
 	pollerResp, err := apiManagementServiceClient.BeginDelete(ctx, resourceGroupName, serviceName, nil)
 	if err != nil {
@@ -133,7 +133,7 @@ func deleteApiManagementService(ctx context.Context, cred azcore.TokenCredential
 	if err != nil {
 		return nil, err
 	}
-	return &resp.APIManagementServiceResource, nil
+	return &resp.ServiceResource, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {

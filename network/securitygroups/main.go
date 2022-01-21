@@ -80,18 +80,16 @@ func main() {
 	}
 }
 
-func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.NetworkSecurityGroup, error) {
-	networkSecurityGroupClient := armnetwork.NewNetworkSecurityGroupsClient(subscriptionID, cred, nil)
+func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityGroup, error) {
+	networkSecurityGroupClient := armnetwork.NewSecurityGroupsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := networkSecurityGroupClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		securityGroupName,
-		armnetwork.NetworkSecurityGroup{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
-			Properties: &armnetwork.NetworkSecurityGroupPropertiesFormat{
+		armnetwork.SecurityGroup{
+			Location: to.StringPtr(location),
+			Properties: &armnetwork.SecurityGroupPropertiesFormat{
 				SecurityRules: []*armnetwork.SecurityRule{
 					{
 						Name: to.StringPtr("allow_ssh"),
@@ -132,7 +130,7 @@ func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential
 	if err != nil {
 		return nil, err
 	}
-	return &resp.NetworkSecurityGroup, nil
+	return &resp.SecurityGroup, nil
 }
 
 func createSSHRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityRule, error) {

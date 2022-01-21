@@ -110,9 +110,7 @@ func createSecret(ctx context.Context, cred azcore.TokenCredential) (*armkeyvaul
 		armkeyvault.SecretCreateOrUpdateParameters{
 			Properties: &armkeyvault.SecretProperties{
 				Attributes: &armkeyvault.SecretAttributes{
-					Attributes: armkeyvault.Attributes{
-						Enabled: to.BoolPtr(true),
-					},
+					Enabled: to.BoolPtr(true),
 				},
 				Value: to.StringPtr("sample-secret-value"),
 			},

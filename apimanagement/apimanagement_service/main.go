@@ -74,20 +74,20 @@ func main() {
 	}
 }
 
-func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIManagementServiceResource, error) {
-	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(subscriptionID, cred, nil)
+func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceResource, error) {
+	apiManagementServiceClient := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
 
 	pollerResp, err := apiManagementServiceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
-		armapimanagement.APIManagementServiceResource{
+		armapimanagement.ServiceResource{
 			Location: to.StringPtr(location),
-			Properties: &armapimanagement.APIManagementServiceProperties{
+			Properties: &armapimanagement.ServiceProperties{
 				PublisherName:  to.StringPtr("sample"),
 				PublisherEmail: to.StringPtr("xxx@wircesoft.com"),
 			},
-			SKU: &armapimanagement.APIManagementServiceSKUProperties{
+			SKU: &armapimanagement.ServiceSKUProperties{
 				Name:     armapimanagement.SKUTypeStandard.ToPtr(),
 				Capacity: to.Int32Ptr(2),
 			},
@@ -101,38 +101,38 @@ func createApiManagementService(ctx context.Context, cred azcore.TokenCredential
 	if err != nil {
 		return nil, err
 	}
-	return &resp.APIManagementServiceResource, nil
+	return &resp.ServiceResource, nil
 }
 
 //The resource type 'getDomainOwnershipIdentifier' could not be found in the namespace 'Microsoft.ApiManagement' for api version '2021-04-01-preview'. The supported api-versions are '2020-12-01,2021-01-01-preview'."}
-func getDomainOwnershipIdentifier(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIManagementServiceGetDomainOwnershipIdentifierResult, error) {
-	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(subscriptionID, cred, nil)
+func getDomainOwnershipIdentifier(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceGetDomainOwnershipIdentifierResult, error) {
+	apiManagementServiceClient := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
 
 	resp, err := apiManagementServiceClient.GetDomainOwnershipIdentifier(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &resp.APIManagementServiceGetDomainOwnershipIdentifierResult, nil
+	return &resp.ServiceGetDomainOwnershipIdentifierResult, nil
 }
 
-func getSsoToken(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIManagementServiceGetSsoTokenResult, error) {
-	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(subscriptionID, cred, nil)
+func getSsoToken(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceGetSsoTokenResult, error) {
+	apiManagementServiceClient := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
 
 	resp, err := apiManagementServiceClient.GetSsoToken(ctx, resourceGroupName, serviceName, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &resp.APIManagementServiceGetSsoTokenResult, nil
+	return &resp.ServiceGetSsoTokenResult, nil
 }
 
-func getApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIManagementServiceResource, error) {
-	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(subscriptionID, cred, nil)
+func getApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceResource, error) {
+	apiManagementServiceClient := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
 
 	resp, err := apiManagementServiceClient.Get(ctx, resourceGroupName, serviceName, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &resp.APIManagementServiceResource, nil
+	return &resp.ServiceResource, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {

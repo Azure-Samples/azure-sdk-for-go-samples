@@ -20,10 +20,10 @@ var (
 	TenantID          string
 	ObjectID          string
 	location          = "eastus"
-	resourceGroupName = "sample-resource-group2"
+	resourceGroupName = "sample-resource-group"
 	serverName        = "sampleXserver"
-	vaultName         = "sample2vaultxx"
-	keyName           = "sample2keyxx"
+	vaultName         = "sample2vault"
+	keyName           = "sample2key"
 	serverKeyName     = "sample-postgresql-key"
 )
 
@@ -99,12 +99,10 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armpostgre
 		armpostgresql.ServerForCreate{
 			Location: to.StringPtr(location),
 			Properties: &armpostgresql.ServerPropertiesForDefaultCreate{
-				ServerPropertiesForCreate: armpostgresql.ServerPropertiesForCreate{
-					CreateMode:               armpostgresql.CreateModeDefault.ToPtr(),
-					InfrastructureEncryption: armpostgresql.InfrastructureEncryptionDisabled.ToPtr(),
-					PublicNetworkAccess:      armpostgresql.PublicNetworkAccessEnumEnabled.ToPtr(),
-					Version:                  armpostgresql.ServerVersionEleven.ToPtr(),
-				},
+				CreateMode:                 armpostgresql.CreateModeDefault.ToPtr(),
+				InfrastructureEncryption:   armpostgresql.InfrastructureEncryptionDisabled.ToPtr(),
+				PublicNetworkAccess:        armpostgresql.PublicNetworkAccessEnumEnabled.ToPtr(),
+				Version:                    armpostgresql.ServerVersionEleven.ToPtr(),
 				AdministratorLogin:         to.StringPtr("dummylogin"),
 				AdministratorLoginPassword: to.StringPtr("QWE123!@#"),
 			},

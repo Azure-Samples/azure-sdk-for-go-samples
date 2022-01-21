@@ -68,7 +68,7 @@ func main() {
 	}
 }
 
-func createNamespace(ctx context.Context, cred azcore.TokenCredential) (np armservicebus.NamespacesCreateOrUpdateResponse, err error) {
+func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBNamespace, error) {
 	namespacesClient := armservicebus.NewNamespacesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := namespacesClient.BeginCreateOrUpdate(
@@ -76,9 +76,7 @@ func createNamespace(ctx context.Context, cred azcore.TokenCredential) (np armse
 		resourceGroupName,
 		namespaceName,
 		armservicebus.SBNamespace{
-			TrackedResource: armservicebus.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			SKU: &armservicebus.SBSKU{
 				Name: armservicebus.SKUNamePremium.ToPtr(),
 				Tier: armservicebus.SKUTierPremium.ToPtr(),
@@ -87,17 +85,17 @@ func createNamespace(ctx context.Context, cred azcore.TokenCredential) (np armse
 		nil,
 	)
 	if err != nil {
-		return np, err
+		return nil, err
 	}
 
 	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return np, err
+		return nil, err
 	}
-	return resp, nil
+	return &resp.SBNamespace, nil
 }
 
-func createQueue(ctx context.Context, cred azcore.TokenCredential) (q armservicebus.QueuesCreateOrUpdateResponse, err error) {
+func createQueue(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBQueue, error) {
 	queuesClient := armservicebus.NewQueuesClient(subscriptionID, cred, nil)
 
 	resp, err := queuesClient.CreateOrUpdate(
@@ -113,20 +111,20 @@ func createQueue(ctx context.Context, cred azcore.TokenCredential) (q armservice
 		nil,
 	)
 	if err != nil {
-		return q, nil
+		return nil, nil
 	}
 
-	return resp, nil
+	return &resp.SBQueue, nil
 }
 
-func getQueue(ctx context.Context, cred azcore.TokenCredential) (q armservicebus.QueuesGetResponse, err error) {
+func getQueue(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBQueue, error) {
 	queuesClient := armservicebus.NewQueuesClient(subscriptionID, cred, nil)
 
 	resp, err := queuesClient.Get(ctx, resourceGroupName, namespaceName, queueName, nil)
 	if err != nil {
-		return q, err
+		return nil, err
 	}
-	return resp, nil
+	return &resp.SBQueue, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {

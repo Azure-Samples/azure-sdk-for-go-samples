@@ -77,11 +77,9 @@ func createWorkspaces(ctx context.Context, cred azcore.TokenCredential) (*armope
 		resourceGroupName,
 		workspaceName,
 		armoperationalinsights.Workspace{
-			TrackedResource: armoperationalinsights.TrackedResource{
-				Location: to.StringPtr(location),
-				Tags: map[string]*string{
-					"tag1": to.StringPtr("value1"),
-				},
+			Location: to.StringPtr(location),
+			Tags: map[string]*string{
+				"tag1": to.StringPtr("value1"),
 			},
 			Properties: &armoperationalinsights.WorkspaceProperties{
 				SKU: &armoperationalinsights.WorkspaceSKU{
@@ -110,9 +108,7 @@ func createScheduledQueryRule(ctx context.Context, cred azcore.TokenCredential, 
 		resourceGroupName,
 		ruleName,
 		armmonitor.LogSearchRuleResource{
-			TrackedEntityResource: armmonitor.TrackedEntityResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armmonitor.LogSearchRule{
 				Action: &armmonitor.AlertingAction{
 					Severity: armmonitor.AlertSeverityOne.ToPtr(),

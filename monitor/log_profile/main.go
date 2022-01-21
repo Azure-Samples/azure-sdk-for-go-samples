@@ -69,20 +69,20 @@ func main() {
 	}
 }
 
-func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.StorageAccount, error) {
-	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
+func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Account, error) {
+	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := storageAccountClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
-		armstorage.StorageAccountCreateParameters{
+		armstorage.AccountCreateParameters{
 			Kind: armstorage.KindStorageV2.ToPtr(),
 			SKU: &armstorage.SKU{
 				Name: armstorage.SKUNameStandardLRS.ToPtr(),
 			},
 			Location: to.StringPtr(location),
-			Properties: &armstorage.StorageAccountPropertiesCreateParameters{
+			Properties: &armstorage.AccountPropertiesCreateParameters{
 				EnableHTTPSTrafficOnly: to.BoolPtr(true),
 			},
 		}, nil)
@@ -93,7 +93,7 @@ func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*ar
 	if err != nil {
 		return nil, err
 	}
-	return &resp.StorageAccount, nil
+	return &resp.Account, nil
 }
 
 func createLogProfile(ctx context.Context, cred azcore.TokenCredential, storageAccountID string) (*armmonitor.LogProfileResource, error) {
@@ -103,9 +103,7 @@ func createLogProfile(ctx context.Context, cred azcore.TokenCredential, storageA
 		ctx,
 		logProfileName,
 		armmonitor.LogProfileResource{
-			Resource: armmonitor.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armmonitor.LogProfileProperties{
 				Categories: []*string{
 					to.StringPtr("Write"),

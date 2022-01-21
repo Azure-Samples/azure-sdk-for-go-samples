@@ -87,10 +87,8 @@ func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwo
 		resourceGroupName,
 		publicIPAddressName,
 		armnetwork.PublicIPAddress{
-			Resource: armnetwork.Resource{
-				Name:     to.StringPtr(publicIPAddressName),
-				Location: to.StringPtr(location),
-			},
+			Name:     to.StringPtr(publicIPAddressName),
+			Location: to.StringPtr(location),
 			Properties: &armnetwork.PublicIPAddressPropertiesFormat{
 				PublicIPAddressVersion:   armnetwork.IPVersionIPv4.ToPtr(),
 				PublicIPAllocationMethod: armnetwork.IPAllocationMethodStatic.ToPtr(),
@@ -120,9 +118,7 @@ func createLoadBalancer(ctx context.Context, cred azcore.TokenCredential, pip *a
 		resourceGroupName,
 		loadBalancerName,
 		armnetwork.LoadBalancer{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armnetwork.LoadBalancerPropertiesFormat{
 				FrontendIPConfigurations: []*armnetwork.FrontendIPConfiguration{
 					{

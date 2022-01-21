@@ -70,9 +70,7 @@ func createDomain(ctx context.Context, cred azcore.TokenCredential) (*armeventgr
 		resourceGroupName,
 		domainName,
 		armeventgrid.Domain{
-			TrackedResource: armeventgrid.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 		},
 		nil,
 	)

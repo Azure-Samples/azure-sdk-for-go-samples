@@ -69,11 +69,9 @@ func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armconta
 		resourceGroupName,
 		registryName,
 		armcontainerregistry.Registry{
-			Resource: armcontainerregistry.Resource{
-				Location: to.StringPtr(location),
-				Tags: map[string]*string{
-					"key": to.StringPtr("value"),
-				},
+			Location: to.StringPtr(location),
+			Tags: map[string]*string{
+				"key": to.StringPtr("value"),
 			},
 			SKU: &armcontainerregistry.SKU{
 				Name: armcontainerregistry.SKUNameStandard.ToPtr(),

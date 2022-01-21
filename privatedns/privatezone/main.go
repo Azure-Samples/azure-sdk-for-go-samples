@@ -16,9 +16,9 @@ import (
 
 var (
 	subscriptionID    string
-	location          = "westus"
+	location          = "eastus"
 	resourceGroupName = "sample-resource-group"
-	privateZoneName   = "sample-private-zone"
+	privateZoneName   = "sample.private.zone"
 )
 
 func main() {
@@ -63,9 +63,7 @@ func createPrivateZone(ctx context.Context, cred azcore.TokenCredential) (*armpr
 		resourceGroupName,
 		privateZoneName,
 		armprivatedns.PrivateZone{
-			TrackedResource: armprivatedns.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 		},
 		nil,
 	)

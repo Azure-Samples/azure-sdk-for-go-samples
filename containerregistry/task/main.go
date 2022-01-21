@@ -76,11 +76,9 @@ func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armconta
 		resourceGroupName,
 		registryName,
 		armcontainerregistry.Registry{
-			Resource: armcontainerregistry.Resource{
-				Location: to.StringPtr(location),
-				Tags: map[string]*string{
-					"key": to.StringPtr("value"),
-				},
+			Location: to.StringPtr(location),
+			Tags: map[string]*string{
+				"key": to.StringPtr("value"),
 			},
 			SKU: &armcontainerregistry.SKU{
 				Name: armcontainerregistry.SKUNamePremium.ToPtr(),
@@ -110,9 +108,7 @@ func createTask(ctx context.Context, cred azcore.TokenCredential) (*armcontainer
 		registryName,
 		taskName,
 		armcontainerregistry.Task{
-			Resource: armcontainerregistry.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcontainerregistry.TaskProperties{
 				Status: armcontainerregistry.TaskStatusEnabled.ToPtr(),
 				Platform: &armcontainerregistry.PlatformProperties{
@@ -123,10 +119,8 @@ func createTask(ctx context.Context, cred azcore.TokenCredential) (*armcontainer
 					CPU: to.Int32Ptr(2),
 				},
 				Step: &armcontainerregistry.DockerBuildStep{
-					TaskStepProperties: armcontainerregistry.TaskStepProperties{
-						Type:        armcontainerregistry.StepTypeDocker.ToPtr(),
-						ContextPath: to.StringPtr("https://github.com/SteveLasker/node-helloworld"),
-					},
+					Type:        armcontainerregistry.StepTypeDocker.ToPtr(),
+					ContextPath: to.StringPtr("https://github.com/SteveLasker/node-helloworld"),
 					ImageNames: []*string{
 						to.StringPtr("testtask:v1"),
 					},

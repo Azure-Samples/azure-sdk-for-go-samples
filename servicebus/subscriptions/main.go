@@ -77,9 +77,7 @@ func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armserv
 		resourceGroupName,
 		namespaceName,
 		armservicebus.SBNamespace{
-			TrackedResource: armservicebus.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			SKU: &armservicebus.SBSKU{
 				Name: armservicebus.SKUNamePremium.ToPtr(),
 				Tier: armservicebus.SKUTierPremium.ToPtr(),

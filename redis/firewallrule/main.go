@@ -85,9 +85,7 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 		resourceGroupName,
 		virtualNetworkName,
 		armnetwork.VirtualNetwork{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armnetwork.VirtualNetworkPropertiesFormat{
 				AddressSpace: &armnetwork.AddressSpace{
 					AddressPrefixes: []*string{
@@ -136,50 +134,48 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 	return &resp.Subnet, nil
 }
 
-func createRedis(ctx context.Context, cred azcore.TokenCredential, subnetID string) (r armredis.RedisCreateResponse, err error) {
-	redisClient := armredis.NewRedisClient(subscriptionID, cred, nil)
+func createRedis(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armredis.ResourceInfo, error) {
+	redisClient := armredis.NewClient(subscriptionID, cred, nil)
 
 	pollerResp, err := redisClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		redisName,
-		armredis.RedisCreateParameters{
+		armredis.CreateParameters{
 			Location: to.StringPtr(location),
 			Zones: []*string{
 				to.StringPtr("1"),
 			},
-			Properties: &armredis.RedisCreateProperties{
+			Properties: &armredis.CreateProperties{
 				SKU: &armredis.SKU{
 					Name:     armredis.SKUNamePremium.ToPtr(),
 					Family:   armredis.SKUFamilyP.ToPtr(),
 					Capacity: to.Int32Ptr(1),
 				},
-				RedisCommonProperties: armredis.RedisCommonProperties{
-					EnableNonSSLPort: to.BoolPtr(true),
-					ShardCount:       to.Int32Ptr(2),
-					RedisConfiguration: &armredis.RedisCommonPropertiesRedisConfiguration{
-						MaxmemoryPolicy: to.StringPtr("allkeys-lru"),
-					},
-					MinimumTLSVersion: armredis.TLSVersionOne2.ToPtr(),
+				EnableNonSSLPort: to.BoolPtr(true),
+				ShardCount:       to.Int32Ptr(2),
+				RedisConfiguration: &armredis.CommonPropertiesRedisConfiguration{
+					MaxmemoryPolicy: to.StringPtr("allkeys-lru"),
 				},
-				SubnetID: to.StringPtr(subnetID),
-				StaticIP: to.StringPtr("10.0.0.5"),
+				MinimumTLSVersion: armredis.TLSVersionOne2.ToPtr(),
+				SubnetID:          to.StringPtr(subnetID),
+				StaticIP:          to.StringPtr("10.0.0.5"),
 			},
 		},
 		nil,
 	)
 	if err != nil {
-		return r, err
+		return nil, err
 	}
 
 	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return r, err
+		return nil, err
 	}
-	return resp, nil
+	return &resp.ResourceInfo, nil
 }
 
-func createFireWallRule(ctx context.Context, cred azcore.TokenCredential) (r armredis.FirewallRulesCreateOrUpdateResponse, err error) {
+func createFireWallRule(ctx context.Context, cred azcore.TokenCredential) (*armredis.FirewallRule, error) {
 	firewallRulesClient := armredis.NewFirewallRulesClient(subscriptionID, cred, nil)
 
 	resp, err := firewallRulesClient.CreateOrUpdate(
@@ -187,8 +183,8 @@ func createFireWallRule(ctx context.Context, cred azcore.TokenCredential) (r arm
 		resourceGroupName,
 		redisName,
 		ruleName,
-		armredis.RedisFirewallRule{
-			Properties: &armredis.RedisFirewallRuleProperties{
+		armredis.FirewallRule{
+			Properties: &armredis.FirewallRuleProperties{
 				StartIP: to.StringPtr("10.0.1.1"),
 				EndIP:   to.StringPtr("10.0.1.4"),
 			},
@@ -196,10 +192,10 @@ func createFireWallRule(ctx context.Context, cred azcore.TokenCredential) (r arm
 		nil,
 	)
 	if err != nil {
-		return r, err
+		return nil, err
 	}
 
-	return resp, nil
+	return &resp.FirewallRule, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {

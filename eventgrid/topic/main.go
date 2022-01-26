@@ -69,9 +69,7 @@ func createTopic(ctx context.Context, cred azcore.TokenCredential) (*armeventgri
 		resourceGroupName,
 		topicName,
 		armeventgrid.Topic{
-			TrackedResource: armeventgrid.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 		},
 		nil,
 	)

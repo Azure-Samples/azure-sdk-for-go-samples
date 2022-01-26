@@ -172,7 +172,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	if err != nil {
 		return nil, err
 	}
-	return &resourceGroupResp.ResourceGroupsCreateOrUpdateResult.ResourceGroup, nil
+	return &resourceGroupResp.ResourceGroup, nil
 }
 
 func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {

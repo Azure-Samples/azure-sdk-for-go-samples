@@ -78,9 +78,7 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 		resourceGroupName,
 		virtualNetworkName,
 		armnetwork.VirtualNetwork{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armnetwork.VirtualNetworkPropertiesFormat{
 				AddressSpace: &armnetwork.AddressSpace{
 					AddressPrefixes: []*string{
@@ -136,9 +134,7 @@ func createVMSS(ctx context.Context, cred azcore.TokenCredential, subnetID strin
 		resourceGroupName,
 		vmScaleSetName,
 		armcompute.VirtualMachineScaleSet{
-			Resource: armcompute.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			SKU: &armcompute.SKU{
 				Name:     to.StringPtr("Basic_A0"), //armcompute.VirtualMachineSizeTypesBasicA0
 				Capacity: to.Int64Ptr(1),

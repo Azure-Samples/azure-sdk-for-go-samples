@@ -69,10 +69,8 @@ func createDatabaseAccount(ctx context.Context, cred azcore.TokenCredential) (*a
 		resourceGroupName,
 		accountName,
 		armcosmos.DatabaseAccountCreateUpdateParameters{
-			ARMResourceProperties: armcosmos.ARMResourceProperties{
-				Location: to.StringPtr(location),
-			},
-			Kind: armcosmos.DatabaseAccountKindGlobalDocumentDB.ToPtr(),
+			Location: to.StringPtr(location),
+			Kind:     armcosmos.DatabaseAccountKindGlobalDocumentDB.ToPtr(),
 			Properties: &armcosmos.DatabaseAccountCreateUpdateProperties{
 				DatabaseAccountOfferType: to.StringPtr("Standard"),
 				Locations: []*armcosmos.Location{

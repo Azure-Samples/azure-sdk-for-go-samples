@@ -85,9 +85,7 @@ func createPrivateZone(ctx context.Context, cred azcore.TokenCredential) (*armpr
 		resourceGroupName,
 		privateZoneName,
 		armprivatedns.PrivateZone{
-			TrackedResource: armprivatedns.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 		},
 		nil,
 	)
@@ -109,9 +107,7 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 		resourceGroupName,
 		virtualNetworkName,
 		armnetwork.VirtualNetwork{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armnetwork.VirtualNetworkPropertiesFormat{
 				AddressSpace: &armnetwork.AddressSpace{
 					AddressPrefixes: []*string{
@@ -159,7 +155,7 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 	return &resp.Subnet, nil
 }
 
-func createVirtualNetworkLink(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armprivatedns.TrackedResource, error) {
+func createVirtualNetworkLink(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armprivatedns.VirtualNetworkLink, error) {
 	vnetLinksClient := armprivatedns.NewVirtualNetworkLinksClient(subscriptionID, cred, nil)
 
 	pollersResp, err := vnetLinksClient.BeginCreateOrUpdate(
@@ -168,9 +164,7 @@ func createVirtualNetworkLink(ctx context.Context, cred azcore.TokenCredential, 
 		privateZoneName,
 		virtualNetworkLinkName,
 		armprivatedns.VirtualNetworkLink{
-			TrackedResource: armprivatedns.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armprivatedns.VirtualNetworkLinkProperties{
 				RegistrationEnabled: to.BoolPtr(true),
 				VirtualNetwork: &armprivatedns.SubResource{
@@ -187,7 +181,7 @@ func createVirtualNetworkLink(ctx context.Context, cred azcore.TokenCredential, 
 	if err != nil {
 		return nil, err
 	}
-	return &resp.TrackedResource, nil
+	return &resp.VirtualNetworkLink, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {

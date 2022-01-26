@@ -93,9 +93,7 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 		resourceGroupName,
 		virtualNetworkName,
 		armnetwork.VirtualNetwork{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armnetwork.VirtualNetworkPropertiesFormat{
 				AddressSpace: &armnetwork.AddressSpace{
 					AddressPrefixes: []*string{
@@ -143,26 +141,22 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 	return &resp.Subnet, nil
 }
 
-func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armnetwork.NetworkInterface, error) {
-	nicClient := armnetwork.NewNetworkInterfacesClient(subscriptionID, cred, nil)
+func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armnetwork.Interface, error) {
+	nicClient := armnetwork.NewInterfacesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := nicClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		networkInterfaceName,
-		armnetwork.NetworkInterface{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
-			Properties: &armnetwork.NetworkInterfacePropertiesFormat{
-				IPConfigurations: []*armnetwork.NetworkInterfaceIPConfiguration{
+		armnetwork.Interface{
+			Location: to.StringPtr(location),
+			Properties: &armnetwork.InterfacePropertiesFormat{
+				IPConfigurations: []*armnetwork.InterfaceIPConfiguration{
 					{
 						Name: to.StringPtr("ipConfig"),
-						Properties: &armnetwork.NetworkInterfaceIPConfigurationPropertiesFormat{
+						Properties: &armnetwork.InterfaceIPConfigurationPropertiesFormat{
 							Subnet: &armnetwork.Subnet{
-								SubResource: armnetwork.SubResource{
-									ID: to.StringPtr(subnetID),
-								},
+								ID: to.StringPtr(subnetID),
 							},
 						},
 					},
@@ -179,7 +173,7 @@ func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID string
 	if err != nil {
 		return nil, err
 	}
-	return &resp.NetworkInterface, nil
+	return &resp.Interface, nil
 }
 
 func createVMSS(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armcompute.VirtualMachineScaleSet, error) {
@@ -190,9 +184,7 @@ func createVMSS(ctx context.Context, cred azcore.TokenCredential, subnetID strin
 		resourceGroupName,
 		vmScaleSetName,
 		armcompute.VirtualMachineScaleSet{
-			Resource: armcompute.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			SKU: &armcompute.SKU{
 				Name:     to.StringPtr("Standard_D1_v2"),
 				Capacity: to.Int64Ptr(2),
@@ -270,9 +262,7 @@ func createAutoscaleSetting(ctx context.Context, cred azcore.TokenCredential, re
 		resourceGroupName,
 		metricAlertName,
 		armmonitor.AutoscaleSettingResource{
-			Resource: armmonitor.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armmonitor.AutoscaleSetting{
 				Profiles: []*armmonitor.AutoscaleProfile{
 					{

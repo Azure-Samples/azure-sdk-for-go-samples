@@ -100,8 +100,8 @@ func main() {
 	}
 }
 
-func storageAccountProperties(ctx context.Context, cred azcore.TokenCredential) (*armstorage.StorageAccount, error) {
-	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
+func storageAccountProperties(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Account, error) {
+	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
 
 	storageAccountResponse, err := storageAccountClient.GetProperties(
 		ctx,
@@ -112,14 +112,14 @@ func storageAccountProperties(ctx context.Context, cred azcore.TokenCredential) 
 	if err != nil {
 		return nil, err
 	}
-	return &storageAccountResponse.StorageAccount, nil
+	return &storageAccountResponse.Account, nil
 }
 
 func checkNameAvailability(ctx context.Context, cred azcore.TokenCredential) (*armstorage.CheckNameAvailabilityResult, error) {
-	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
+	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
 	result, err := storageAccountClient.CheckNameAvailability(
 		ctx,
-		armstorage.StorageAccountCheckNameAvailabilityParameters{
+		armstorage.AccountCheckNameAvailabilityParameters{
 			Name: to.StringPtr(storageAccountName),
 			Type: to.StringPtr("Microsoft.Storage/storageAccounts"),
 		},
@@ -130,20 +130,20 @@ func checkNameAvailability(ctx context.Context, cred azcore.TokenCredential) (*a
 	return &result.CheckNameAvailabilityResult, nil
 }
 
-func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.StorageAccount, error) {
-	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
+func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Account, error) {
+	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := storageAccountClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
-		armstorage.StorageAccountCreateParameters{
+		armstorage.AccountCreateParameters{
 			Kind: armstorage.KindStorageV2.ToPtr(),
 			SKU: &armstorage.SKU{
 				Name: armstorage.SKUNameStandardLRS.ToPtr(),
 			},
 			Location: to.StringPtr(location),
-			Properties: &armstorage.StorageAccountPropertiesCreateParameters{
+			Properties: &armstorage.AccountPropertiesCreateParameters{
 				AccessTier: armstorage.AccessTierCool.ToPtr(),
 				Encryption: &armstorage.Encryption{
 					Services: &armstorage.EncryptionServices{
@@ -175,55 +175,55 @@ func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*ar
 	if err != nil {
 		return nil, err
 	}
-	return &resp.StorageAccount, nil
+	return &resp.Account, nil
 }
 
-func listByResourceGroupStorageAccount(ctx context.Context, cred azcore.TokenCredential) []*armstorage.StorageAccount {
-	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
+func listByResourceGroupStorageAccount(ctx context.Context, cred azcore.TokenCredential) []*armstorage.Account {
+	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
 
 	listAccounts := storageAccountClient.ListByResourceGroup(resourceGroupName, nil)
 
-	list := make([]*armstorage.StorageAccount, 0)
+	list := make([]*armstorage.Account, 0)
 	for listAccounts.NextPage(ctx) {
 		pageResponse := listAccounts.PageResponse()
-		list = append(list, pageResponse.StorageAccountListResult.Value...)
+		list = append(list, pageResponse.AccountListResult.Value...)
 	}
 	return list
 }
 
-func listStorageAccount(ctx context.Context, cred azcore.TokenCredential) []*armstorage.StorageAccount {
-	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
+func listStorageAccount(ctx context.Context, cred azcore.TokenCredential) []*armstorage.Account {
+	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
 
 	listAccounts := storageAccountClient.List(nil)
 
-	list := make([]*armstorage.StorageAccount, 0)
+	list := make([]*armstorage.Account, 0)
 	for listAccounts.NextPage(ctx) {
 		pageResponse := listAccounts.PageResponse()
-		list = append(list, pageResponse.StorageAccountListResult.Value...)
+		list = append(list, pageResponse.AccountListResult.Value...)
 	}
 
 	return list
 }
 
-func listKeysStorageAccount(ctx context.Context, cred azcore.TokenCredential) []*armstorage.StorageAccountKey {
-	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
+func listKeysStorageAccount(ctx context.Context, cred azcore.TokenCredential) []*armstorage.AccountKey {
+	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
 
 	listKeys, err := storageAccountClient.ListKeys(ctx, resourceGroupName, storageAccountName, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return listKeys.StorageAccountListKeysResult.Keys
+	return listKeys.AccountListKeysResult.Keys
 }
 
-func regenerateKeyStorageAccount(ctx context.Context, cred azcore.TokenCredential) []*armstorage.StorageAccountKey {
-	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
+func regenerateKeyStorageAccount(ctx context.Context, cred azcore.TokenCredential) []*armstorage.AccountKey {
+	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
 
 	regenerateKeyResp, err := storageAccountClient.RegenerateKey(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
-		armstorage.StorageAccountRegenerateKeyParameters{
+		armstorage.AccountRegenerateKeyParameters{
 			KeyName: to.StringPtr("key1"),
 		},
 		nil)
@@ -232,17 +232,17 @@ func regenerateKeyStorageAccount(ctx context.Context, cred azcore.TokenCredentia
 		log.Fatal(err)
 	}
 
-	return regenerateKeyResp.StorageAccountListKeysResult.Keys
+	return regenerateKeyResp.AccountListKeysResult.Keys
 }
 
-func updateStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.StorageAccount, error) {
-	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
+func updateStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Account, error) {
+	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
 
 	updateResp, err := storageAccountClient.Update(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
-		armstorage.StorageAccountUpdateParameters{
+		armstorage.AccountUpdateParameters{
 			Tags: map[string]*string{
 				"sample": to.StringPtr("golang"),
 			},
@@ -252,7 +252,7 @@ func updateStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*ar
 		return nil, fmt.Errorf("update storage account err:%s", err)
 	}
 
-	return &updateResp.StorageAccount, nil
+	return &updateResp.Account, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {

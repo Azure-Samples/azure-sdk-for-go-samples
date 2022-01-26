@@ -75,20 +75,20 @@ func main() {
 	}
 }
 
-func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIManagementServiceResource, error) {
-	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(subscriptionID, cred, nil)
+func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceResource, error) {
+	apiManagementServiceClient := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
 
 	pollerResp, err := apiManagementServiceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
-		armapimanagement.APIManagementServiceResource{
+		armapimanagement.ServiceResource{
 			Location: to.StringPtr(location),
-			Properties: &armapimanagement.APIManagementServiceProperties{
+			Properties: &armapimanagement.ServiceProperties{
 				PublisherName:  to.StringPtr("sample"),
 				PublisherEmail: to.StringPtr("xxx@wircesoft.com"),
 			},
-			SKU: &armapimanagement.APIManagementServiceSKUProperties{
+			SKU: &armapimanagement.ServiceSKUProperties{
 				Name:     armapimanagement.SKUTypeStandard.ToPtr(),
 				Capacity: to.Int32Ptr(2),
 			},
@@ -102,7 +102,7 @@ func createApiManagementService(ctx context.Context, cred azcore.TokenCredential
 	if err != nil {
 		return nil, err
 	}
-	return &resp.APIManagementServiceResource, nil
+	return &resp.ServiceResource, nil
 }
 
 func createApi(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIContract, error) {
@@ -115,13 +115,11 @@ func createApi(ctx context.Context, cred azcore.TokenCredential) (*armapimanagem
 		apiID,
 		armapimanagement.APICreateOrUpdateParameter{
 			Properties: &armapimanagement.APICreateOrUpdateProperties{
-				APIContractProperties: armapimanagement.APIContractProperties{
-					Path:        to.StringPtr("test"),
-					DisplayName: to.StringPtr("sample-sample"),
-					Protocols: []*armapimanagement.Protocol{
-						armapimanagement.ProtocolHTTP.ToPtr(),
-						armapimanagement.ProtocolHTTPS.ToPtr(),
-					},
+				Path:        to.StringPtr("test"),
+				DisplayName: to.StringPtr("sample-sample"),
+				Protocols: []*armapimanagement.Protocol{
+					armapimanagement.ProtocolHTTP.ToPtr(),
+					armapimanagement.ProtocolHTTPS.ToPtr(),
 				},
 			},
 		},
@@ -151,13 +149,11 @@ func createApiOperation(ctx context.Context, cred azcore.TokenCredential) (*arma
 				DisplayName: to.StringPtr("sample operation"),
 				Method:      to.StringPtr("GET"),
 				URLTemplate: to.StringPtr("/operation/customers/{uid}"),
-				OperationEntityBaseContract: armapimanagement.OperationEntityBaseContract{
-					TemplateParameters: []*armapimanagement.ParameterContract{
-						{
-							Name:        to.StringPtr("uid"),
-							Type:        to.StringPtr("string"),
-							Description: to.StringPtr("user id"),
-						},
+				TemplateParameters: []*armapimanagement.ParameterContract{
+					{
+						Name:        to.StringPtr("uid"),
+						Type:        to.StringPtr("string"),
+						Description: to.StringPtr("user id"),
 					},
 				},
 			},

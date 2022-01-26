@@ -240,12 +240,10 @@ func createManagedHsms(ctx context.Context, cred azcore.TokenCredential) (*armke
 		resourceGroupName,
 		"sample-hsmsxx",
 		armkeyvault.ManagedHsm{
-			ManagedHsmResource: armkeyvault.ManagedHsmResource{
-				Location: to.StringPtr(location),
-				SKU: &armkeyvault.ManagedHsmSKU{
-					Family: armkeyvault.ManagedHsmSKUFamilyB.ToPtr(),
-					Name:   armkeyvault.ManagedHsmSKUNameStandardB1.ToPtr(),
-				},
+			Location: to.StringPtr(location),
+			SKU: &armkeyvault.ManagedHsmSKU{
+				Family: armkeyvault.ManagedHsmSKUFamilyB.ToPtr(),
+				Name:   armkeyvault.ManagedHsmSKUNameStandardB1.ToPtr(),
 			},
 			Properties: &armkeyvault.ManagedHsmProperties{
 				TenantID:   to.StringPtr(TenantID),

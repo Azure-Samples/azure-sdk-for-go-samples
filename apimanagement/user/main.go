@@ -86,20 +86,20 @@ func main() {
 	}
 }
 
-func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIManagementServiceResource, error) {
-	apiManagementServiceClient := armapimanagement.NewAPIManagementServiceClient(subscriptionID, cred, nil)
+func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceResource, error) {
+	apiManagementServiceClient := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
 
 	pollerResp, err := apiManagementServiceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
-		armapimanagement.APIManagementServiceResource{
+		armapimanagement.ServiceResource{
 			Location: to.StringPtr(location),
-			Properties: &armapimanagement.APIManagementServiceProperties{
+			Properties: &armapimanagement.ServiceProperties{
 				PublisherName:  to.StringPtr("sample"),
 				PublisherEmail: to.StringPtr("xxx@wircesoft.com"),
 			},
-			SKU: &armapimanagement.APIManagementServiceSKUProperties{
+			SKU: &armapimanagement.ServiceSKUProperties{
 				Name:     armapimanagement.SKUTypeStandard.ToPtr(),
 				Capacity: to.Int32Ptr(2),
 			},
@@ -113,7 +113,7 @@ func createApiManagementService(ctx context.Context, cred azcore.TokenCredential
 	if err != nil {
 		return nil, err
 	}
-	return &resp.APIManagementServiceResource, nil
+	return &resp.ServiceResource, nil
 }
 
 func createUser(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.UserContract, error) {
@@ -139,14 +139,14 @@ func createUser(ctx context.Context, cred azcore.TokenCredential) (*armapimanage
 	return &resp.UserContract, nil
 }
 
-func getEntityTag(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.UserGetEntityTagResult, error) {
+func getEntityTag(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.UserClientGetEntityTagResult, error) {
 	userClient := armapimanagement.NewUserClient(subscriptionID, cred, nil)
 
 	resp, err := userClient.GetEntityTag(ctx, resourceGroupName, serviceName, userID, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &resp.UserGetEntityTagResult, nil
+	return &resp.UserClientGetEntityTagResult, nil
 }
 
 func getSharedAccessToken(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.UserTokenResult, error) {

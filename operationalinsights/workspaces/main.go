@@ -77,9 +77,7 @@ func createWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armoper
 		resourceGroupName,
 		workspaceName,
 		armoperationalinsights.Workspace{
-			TrackedResource: armoperationalinsights.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location:   to.StringPtr(location),
 			Properties: &armoperationalinsights.WorkspaceProperties{},
 		},
 		nil,

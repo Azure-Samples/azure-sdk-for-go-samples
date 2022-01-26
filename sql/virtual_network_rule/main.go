@@ -17,7 +17,7 @@ import (
 
 var (
 	subscriptionID         string
-	location               = "westus"
+	location               = "eastus"
 	resourceGroupName      = "sample-resource-group"
 	serverName             = "sample2server"
 	virtualNetworkName     = "sample-virtual-network"
@@ -91,9 +91,7 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Ser
 		resourceGroupName,
 		serverName,
 		armsql.Server{
-			TrackedResource: armsql.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armsql.ServerProperties{
 				AdministratorLogin:         to.StringPtr("dummylogin"),
 				AdministratorLoginPassword: to.StringPtr("QWE123!@#"),
@@ -119,9 +117,7 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 		resourceGroupName,
 		virtualNetworkName,
 		armnetwork.VirtualNetwork{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armnetwork.VirtualNetworkPropertiesFormat{
 				AddressSpace: &armnetwork.AddressSpace{
 					AddressPrefixes: []*string{

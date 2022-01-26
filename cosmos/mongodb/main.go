@@ -83,10 +83,8 @@ func createDatabaseAccount(ctx context.Context, cred azcore.TokenCredential) (*a
 		resourceGroupName,
 		accountName,
 		armcosmos.DatabaseAccountCreateUpdateParameters{
-			ARMResourceProperties: armcosmos.ARMResourceProperties{
-				Location: to.StringPtr(location),
-			},
-			Kind: armcosmos.DatabaseAccountKindMongoDB.ToPtr(),
+			Location: to.StringPtr(location),
+			Kind:     armcosmos.DatabaseAccountKindMongoDB.ToPtr(),
 			Properties: &armcosmos.DatabaseAccountCreateUpdateProperties{
 				DatabaseAccountOfferType: to.StringPtr("Standard"),
 				Locations: []*armcosmos.Location{
@@ -119,9 +117,7 @@ func createMongoDBDatabase(ctx context.Context, cred azcore.TokenCredential) (*a
 		accountName,
 		mongodbName,
 		armcosmos.MongoDBDatabaseCreateUpdateParameters{
-			ARMResourceProperties: armcosmos.ARMResourceProperties{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcosmos.MongoDBDatabaseCreateUpdateProperties{
 				Resource: &armcosmos.MongoDBDatabaseResource{
 					ID: to.StringPtr(mongodbName),
@@ -154,9 +150,7 @@ func createMongoDBCollection(ctx context.Context, cred azcore.TokenCredential) (
 		mongodbName,
 		collectionName,
 		armcosmos.MongoDBCollectionCreateUpdateParameters{
-			ARMResourceProperties: armcosmos.ARMResourceProperties{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcosmos.MongoDBCollectionCreateUpdateProperties{
 				Resource: &armcosmos.MongoDBCollectionResource{
 					ID: to.StringPtr(collectionName),

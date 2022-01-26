@@ -63,9 +63,7 @@ func createCluster(ctx context.Context, cred azcore.TokenCredential) (*armeventh
 		resourceGroupName,
 		clusterName,
 		armeventhub.Cluster{
-			TrackedResource: armeventhub.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			SKU: &armeventhub.ClusterSKU{
 				Name:     armeventhub.ClusterSKUNameDedicated.ToPtr(),
 				Capacity: to.Int32Ptr(3),

@@ -72,7 +72,7 @@ var resourceType = "virtualNetworks"
 var apiVersion = "2021-02-01"
 
 func checkExistResource(ctx context.Context, cred azcore.TokenCredential) (bool, error) {
-	resourceClient := armresources.NewResourcesClient(subscriptionID, cred, nil)
+	resourceClient := armresources.NewClient(subscriptionID, cred, nil)
 
 	boolResp, err := resourceClient.CheckExistence(
 		ctx,
@@ -91,7 +91,7 @@ func checkExistResource(ctx context.Context, cred azcore.TokenCredential) (bool,
 }
 
 func createResource(ctx context.Context, cred azcore.TokenCredential) (*armresources.GenericResource, error) {
-	resourceClient := armresources.NewResourcesClient(subscriptionID, cred, nil)
+	resourceClient := armresources.NewClient(subscriptionID, cred, nil)
 
 	pollerResp, err := resourceClient.BeginCreateOrUpdate(
 		ctx,
@@ -102,9 +102,7 @@ func createResource(ctx context.Context, cred azcore.TokenCredential) (*armresou
 		virtualNetworkName,
 		apiVersion,
 		armresources.GenericResource{
-			Resource: armresources.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: map[string]interface{}{
 				"addressSpace": armnetwork.AddressSpace{
 					AddressPrefixes: []*string{
@@ -127,7 +125,7 @@ func createResource(ctx context.Context, cred azcore.TokenCredential) (*armresou
 }
 
 func getResource(ctx context.Context, cred azcore.TokenCredential) (*armresources.GenericResource, error) {
-	resourceClient := armresources.NewResourcesClient(subscriptionID, cred, nil)
+	resourceClient := armresources.NewClient(subscriptionID, cred, nil)
 
 	resp, err := resourceClient.Get(
 		ctx,

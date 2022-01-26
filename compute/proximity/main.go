@@ -75,9 +75,7 @@ func createProximityPlacement(ctx context.Context, cred azcore.TokenCredential) 
 		resourceGroupName,
 		proximityPlacementGroupName,
 		armcompute.ProximityPlacementGroup{
-			Resource: armcompute.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcompute.ProximityPlacementGroupProperties{
 				ProximityPlacementGroupType: armcompute.ProximityPlacementGroupTypeStandard.ToPtr(),
 			},

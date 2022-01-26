@@ -88,9 +88,7 @@ func createDedicatedHostGroups(ctx context.Context, cred azcore.TokenCredential)
 		resourceGroupName,
 		hostGroupName,
 		armcompute.DedicatedHostGroup{
-			Resource: armcompute.Resource{
-				Location: to.StringPtr("eastus"),
-			},
+			Location: to.StringPtr("eastus"),
 			Properties: &armcompute.DedicatedHostGroupProperties{
 				PlatformFaultDomainCount: to.Int32Ptr(3),
 			},
@@ -125,9 +123,7 @@ func createDedicatedHost(ctx context.Context, cred azcore.TokenCredential) (*arm
 		hostGroupName,
 		hostName,
 		armcompute.DedicatedHost{
-			Resource: armcompute.Resource{
-				Location: to.StringPtr("eastus"),
-			},
+			Location: to.StringPtr("eastus"),
 			Properties: &armcompute.DedicatedHostProperties{
 				PlatformFaultDomain: to.Int32Ptr(1),
 			},

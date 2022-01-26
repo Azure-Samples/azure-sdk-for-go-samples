@@ -18,7 +18,7 @@ import (
 var (
 	subscriptionID         string
 	location               = "eastus"
-	resourceGroupName      = "sample-resource-group2"
+	resourceGroupName      = "sample-resource-group"
 	serverName             = "sampleXserver"
 	virtualNetworkName     = "sample-virtual-network"
 	subnetName             = "sample-subnet"
@@ -114,9 +114,7 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 		resourceGroupName,
 		virtualNetworkName,
 		armnetwork.VirtualNetwork{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armnetwork.VirtualNetworkPropertiesFormat{
 				AddressSpace: &armnetwork.AddressSpace{
 					AddressPrefixes: []*string{

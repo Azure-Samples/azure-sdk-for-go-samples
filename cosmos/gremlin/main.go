@@ -77,10 +77,8 @@ func createDatabaseAccount(ctx context.Context, cred azcore.TokenCredential) (*a
 		resourceGroupName,
 		accountName,
 		armcosmos.DatabaseAccountCreateUpdateParameters{
-			ARMResourceProperties: armcosmos.ARMResourceProperties{
-				Location: to.StringPtr(location),
-			},
-			Kind: armcosmos.DatabaseAccountKindGlobalDocumentDB.ToPtr(),
+			Location: to.StringPtr(location),
+			Kind:     armcosmos.DatabaseAccountKindGlobalDocumentDB.ToPtr(),
 			Properties: &armcosmos.DatabaseAccountCreateUpdateProperties{
 				DatabaseAccountOfferType: to.StringPtr("Standard"),
 				Locations: []*armcosmos.Location{
@@ -118,9 +116,7 @@ func createGremlinDatabase(ctx context.Context, cred azcore.TokenCredential) (*a
 		accountName,
 		gremlinName,
 		armcosmos.GremlinDatabaseCreateUpdateParameters{
-			ARMResourceProperties: armcosmos.ARMResourceProperties{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcosmos.GremlinDatabaseCreateUpdateProperties{
 				Resource: &armcosmos.GremlinDatabaseResource{
 					ID: to.StringPtr(gremlinName),
@@ -153,9 +149,7 @@ func createGremlinGraph(ctx context.Context, cred azcore.TokenCredential) (*armc
 		gremlinName,
 		graphName,
 		armcosmos.GremlinGraphCreateUpdateParameters{
-			ARMResourceProperties: armcosmos.ARMResourceProperties{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcosmos.GremlinGraphCreateUpdateProperties{
 				Resource: &armcosmos.GremlinGraphResource{
 					ID: to.StringPtr(graphName),

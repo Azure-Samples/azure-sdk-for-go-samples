@@ -17,9 +17,9 @@ import (
 var (
 	subscriptionID     string
 	objectID           string
+	scope              string
 	location           = "westus"
 	resourceGroupName  = "sample-resource-group"
-	BuiltInRole        = "sample-built-role"
 	roleAssignmentName = "sample-role-assignment"
 )
 
@@ -45,6 +45,7 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
+	scope = *resourceGroup.ID
 
 	roleAssignment, err := createRoleAssignment(ctx, cred)
 	if err != nil {
@@ -69,11 +70,10 @@ func main() {
 }
 
 func createRoleAssignment(ctx context.Context, cred azcore.TokenCredential) (*armauthorization.RoleAssignment, error) {
-
 	roleClient := armauthorization.NewRoleAssignmentsClient(subscriptionID, cred, nil)
 	resp, err := roleClient.Create(
 		ctx,
-		BuiltInRole,
+		scope,
 		roleAssignmentName,
 		armauthorization.RoleAssignmentCreateParameters{
 			Properties: &armauthorization.RoleAssignmentProperties{
@@ -93,7 +93,7 @@ func getRoleAssignment(ctx context.Context, cred azcore.TokenCredential) (*armau
 
 	resp, err := roleClient.Get(
 		ctx,
-		BuiltInRole,
+		scope,
 		roleAssignmentName,
 		nil,
 	)
@@ -108,7 +108,7 @@ func validateRoleAssignment(ctx context.Context, cred azcore.TokenCredential) (*
 	roleClient := armauthorization.NewRoleAssignmentsClient(subscriptionID, cred, nil)
 	resp, err := roleClient.Validate(
 		ctx,
-		BuiltInRole,
+		scope,
 		roleAssignmentName,
 		armauthorization.RoleAssignmentCreateParameters{
 			Properties: &armauthorization.RoleAssignmentProperties{

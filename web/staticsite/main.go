@@ -10,8 +10,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/appservice/armappservice"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/web/armweb"
 )
 
 var (
@@ -89,25 +89,23 @@ func main() {
 	}
 }
 
-func createStaticSite(ctx context.Context, cred azcore.TokenCredential) (*armweb.StaticSiteARMResource, error) {
-	staticSitesClient := armweb.NewStaticSitesClient(subscriptionID, cred, nil)
+func createStaticSite(ctx context.Context, cred azcore.TokenCredential) (*armappservice.StaticSiteARMResource, error) {
+	staticSitesClient := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := staticSitesClient.BeginCreateOrUpdateStaticSite(
 		ctx,
 		resourceGroupName,
 		staticSiteName,
-		armweb.StaticSiteARMResource{
-			Resource: armweb.Resource{
-				Location: to.StringPtr(location),
-			},
-			SKU: &armweb.SKUDescription{
+		armappservice.StaticSiteARMResource{
+			Location: to.StringPtr(location),
+			SKU: &armappservice.SKUDescription{
 				Name: to.StringPtr("Free"),
 			},
-			Properties: &armweb.StaticSite{
+			Properties: &armappservice.StaticSite{
 				RepositoryURL:   to.StringPtr(repoURL),
 				Branch:          to.StringPtr("master"),
 				RepositoryToken: to.StringPtr(repoToken),
-				BuildProperties: &armweb.StaticSiteBuildProperties{
+				BuildProperties: &armappservice.StaticSiteBuildProperties{
 					AppLocation: to.StringPtr("app"),
 					APILocation: to.StringPtr("api"),
 				},
@@ -125,9 +123,9 @@ func createStaticSite(ctx context.Context, cred azcore.TokenCredential) (*armweb
 	return &resp.StaticSiteARMResource, nil
 }
 
-func listStaticSiteFunctions(ctx context.Context, cred azcore.TokenCredential) []*armweb.StaticSiteFunctionOverviewARMResource {
-	staticSitesClient := armweb.NewStaticSitesClient(subscriptionID, cred, nil)
-	result := make([]*armweb.StaticSiteFunctionOverviewARMResource, 0)
+func listStaticSiteFunctions(ctx context.Context, cred azcore.TokenCredential) []*armappservice.StaticSiteFunctionOverviewARMResource {
+	staticSitesClient := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
+	result := make([]*armappservice.StaticSiteFunctionOverviewARMResource, 0)
 	listPager := staticSitesClient.ListStaticSiteFunctions(resourceGroupName, staticSiteName, nil)
 	for listPager.NextPage(ctx) {
 		resp := listPager.PageResponse()
@@ -136,9 +134,9 @@ func listStaticSiteFunctions(ctx context.Context, cred azcore.TokenCredential) [
 	return result
 }
 
-func listStaticSite(ctx context.Context, cred azcore.TokenCredential) []*armweb.StaticSiteARMResource {
-	staticSitesClient := armweb.NewStaticSitesClient(subscriptionID, cred, nil)
-	result := make([]*armweb.StaticSiteARMResource, 0)
+func listStaticSite(ctx context.Context, cred azcore.TokenCredential) []*armappservice.StaticSiteARMResource {
+	staticSitesClient := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
+	result := make([]*armappservice.StaticSiteARMResource, 0)
 	listPager := staticSitesClient.List(nil)
 	for listPager.NextPage(ctx) {
 		resp := listPager.PageResponse()
@@ -147,9 +145,9 @@ func listStaticSite(ctx context.Context, cred azcore.TokenCredential) []*armweb.
 	return result
 }
 
-func listStaticSiteCustomDomain(ctx context.Context, cred azcore.TokenCredential) []*armweb.StaticSiteCustomDomainOverviewARMResource {
-	staticSitesClient := armweb.NewStaticSitesClient(subscriptionID, cred, nil)
-	result := make([]*armweb.StaticSiteCustomDomainOverviewARMResource, 0)
+func listStaticSiteCustomDomain(ctx context.Context, cred azcore.TokenCredential) []*armappservice.StaticSiteCustomDomainOverviewARMResource {
+	staticSitesClient := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
+	result := make([]*armappservice.StaticSiteCustomDomainOverviewARMResource, 0)
 	listPager := staticSitesClient.ListStaticSiteCustomDomains(resourceGroupName, staticSiteName, nil)
 	for listPager.NextPage(ctx) {
 		resp := listPager.PageResponse()
@@ -158,8 +156,8 @@ func listStaticSiteCustomDomain(ctx context.Context, cred azcore.TokenCredential
 	return result
 }
 
-func getStaticSite(ctx context.Context, cred azcore.TokenCredential) (*armweb.StaticSiteARMResource, error) {
-	staticSitesClient := armweb.NewStaticSitesClient(subscriptionID, cred, nil)
+func getStaticSite(ctx context.Context, cred azcore.TokenCredential) (*armappservice.StaticSiteARMResource, error) {
+	staticSitesClient := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
 	resp, err := staticSitesClient.GetStaticSite(ctx, resourceGroupName, staticSiteName, nil)
 	if err != nil {
 		return nil, err
@@ -168,13 +166,13 @@ func getStaticSite(ctx context.Context, cred azcore.TokenCredential) (*armweb.St
 }
 
 func resetStaticSiteApiKey(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	staticSitesClient := armweb.NewStaticSitesClient(subscriptionID, cred, nil)
+	staticSitesClient := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
 	resp, err := staticSitesClient.ResetStaticSiteAPIKey(
 		ctx,
 		resourceGroupName,
 		staticSiteName,
-		armweb.StaticSiteResetPropertiesARMResource{
-			Properties: &armweb.StaticSiteResetPropertiesARMResourceProperties{
+		armappservice.StaticSiteResetPropertiesARMResource{
+			Properties: &armappservice.StaticSiteResetPropertiesARMResourceProperties{
 				ShouldUpdateRepository: to.BoolPtr(true),
 				RepositoryToken:        to.StringPtr(repoToken),
 			},
@@ -188,7 +186,7 @@ func resetStaticSiteApiKey(ctx context.Context, cred azcore.TokenCredential) (*h
 }
 
 func detachStaticSite(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	staticSitesClient := armweb.NewStaticSitesClient(subscriptionID, cred, nil)
+	staticSitesClient := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
 	pollerResp, err := staticSitesClient.BeginDetachStaticSite(ctx, resourceGroupName, staticSiteName, nil)
 	if err != nil {
 		return nil, err

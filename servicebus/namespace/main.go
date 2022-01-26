@@ -91,9 +91,7 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 		resourceGroupName,
 		virtualNetworkName,
 		armnetwork.VirtualNetwork{
-			Resource: armnetwork.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armnetwork.VirtualNetworkPropertiesFormat{
 				AddressSpace: &armnetwork.AddressSpace{
 					AddressPrefixes: []*string{
@@ -142,7 +140,7 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 	return &resp.Subnet, nil
 }
 
-func createNamespace(ctx context.Context, cred azcore.TokenCredential) (np armservicebus.NamespacesCreateOrUpdateResponse, err error) {
+func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBNamespace, error) {
 	namespacesClient := armservicebus.NewNamespacesClient(subscriptionID, cred, nil)
 
 	pollerResp, err := namespacesClient.BeginCreateOrUpdate(
@@ -150,9 +148,7 @@ func createNamespace(ctx context.Context, cred azcore.TokenCredential) (np armse
 		resourceGroupName,
 		namespaceName,
 		armservicebus.SBNamespace{
-			TrackedResource: armservicebus.TrackedResource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			SKU: &armservicebus.SBSKU{
 				Name: armservicebus.SKUNamePremium.ToPtr(),
 				Tier: armservicebus.SKUTierPremium.ToPtr(),
@@ -161,17 +157,17 @@ func createNamespace(ctx context.Context, cred azcore.TokenCredential) (np armse
 		nil,
 	)
 	if err != nil {
-		return np, err
+		return nil, err
 	}
 
 	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return np, err
+		return nil, err
 	}
-	return resp, nil
+	return &resp.SBNamespace, nil
 }
 
-func createNamespaceAuthorizationRule(ctx context.Context, cred azcore.TokenCredential) (ar armservicebus.NamespacesCreateOrUpdateAuthorizationRuleResponse, err error) {
+func createNamespaceAuthorizationRule(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBAuthorizationRule, error) {
 	namespacesClient := armservicebus.NewNamespacesClient(subscriptionID, cred, nil)
 
 	resp, err := namespacesClient.CreateOrUpdateAuthorizationRule(
@@ -190,10 +186,10 @@ func createNamespaceAuthorizationRule(ctx context.Context, cred azcore.TokenCred
 		nil,
 	)
 	if err != nil {
-		return ar, err
+		return nil, err
 	}
 
-	return resp, nil
+	return &resp.SBAuthorizationRule, nil
 }
 
 func createNamespaceNetworkRuleSet(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armservicebus.NetworkRuleSet, error) {

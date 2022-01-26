@@ -77,14 +77,14 @@ func main() {
 	}
 }
 
-func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.StorageAccount, error) {
-	storageAccountClient := armstorage.NewStorageAccountsClient(subscriptionID, cred, nil)
+func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Account, error) {
+	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
 
 	pollerResp, err := storageAccountClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
-		armstorage.StorageAccountCreateParameters{
+		armstorage.AccountCreateParameters{
 			Kind: armstorage.KindStorageV2.ToPtr(),
 			SKU: &armstorage.SKU{
 				Name: armstorage.SKUNameStandardLRS.ToPtr(),
@@ -98,7 +98,7 @@ func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*ar
 	if err != nil {
 		return nil, err
 	}
-	return &resp.StorageAccount, nil
+	return &resp.Account, nil
 }
 
 func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armeventhub.EHNamespace, error) {
@@ -109,12 +109,10 @@ func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armeven
 		resourceGroupName,
 		namespacesName,
 		armeventhub.EHNamespace{
-			TrackedResource: armeventhub.TrackedResource{
-				Location: to.StringPtr(location),
-				Tags: map[string]*string{
-					"tag1": to.StringPtr("value1"),
-					"tag2": to.StringPtr("value2"),
-				},
+			Location: to.StringPtr(location),
+			Tags: map[string]*string{
+				"tag1": to.StringPtr("value1"),
+				"tag2": to.StringPtr("value2"),
 			},
 			SKU: &armeventhub.SKU{
 				Name: armeventhub.SKUNameStandard.ToPtr(),
@@ -142,7 +140,7 @@ func createEventHub(ctx context.Context, cred azcore.TokenCredential, storageAcc
 		namespacesName,
 		eventHubName,
 		armeventhub.Eventhub{
-			Properties: &armeventhub.EventhubProperties{
+			Properties: &armeventhub.Properties{
 				MessageRetentionInDays: to.Int64Ptr(4),
 				PartitionCount:         to.Int64Ptr(4),
 				Status:                 armeventhub.EntityStatusActive.ToPtr(),

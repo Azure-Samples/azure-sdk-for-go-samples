@@ -75,25 +75,21 @@ func createManagedCluster(ctx context.Context, cred azcore.TokenCredential) (*ar
 		resourceGroupName,
 		managedClustersName,
 		armcontainerservice.ManagedCluster{
-			Resource: armcontainerservice.Resource{
-				Location: to.StringPtr(location),
-			},
+			Location: to.StringPtr(location),
 			Properties: &armcontainerservice.ManagedClusterProperties{
 				DNSPrefix: to.StringPtr("aksgosdk"),
 				AgentPoolProfiles: []*armcontainerservice.ManagedClusterAgentPoolProfile{
 					{
-						Name: to.StringPtr("askagent"),
-						ManagedClusterAgentPoolProfileProperties: armcontainerservice.ManagedClusterAgentPoolProfileProperties{
-							Count:             to.Int32Ptr(1),
-							VMSize:            to.StringPtr("Standard_DS2_v2"),
-							MaxPods:           to.Int32Ptr(110),
-							MinCount:          to.Int32Ptr(1),
-							MaxCount:          to.Int32Ptr(100),
-							OSType:            armcontainerservice.OSTypeLinux.ToPtr(),
-							Type:              armcontainerservice.AgentPoolTypeVirtualMachineScaleSets.ToPtr(),
-							EnableAutoScaling: to.BoolPtr(true),
-							Mode:              armcontainerservice.AgentPoolModeSystem.ToPtr(),
-						},
+						Name:              to.StringPtr("askagent"),
+						Count:             to.Int32Ptr(1),
+						VMSize:            to.StringPtr("Standard_DS2_v2"),
+						MaxPods:           to.Int32Ptr(110),
+						MinCount:          to.Int32Ptr(1),
+						MaxCount:          to.Int32Ptr(100),
+						OSType:            armcontainerservice.OSTypeLinux.ToPtr(),
+						Type:              armcontainerservice.AgentPoolTypeVirtualMachineScaleSets.ToPtr(),
+						EnableAutoScaling: to.BoolPtr(true),
+						Mode:              armcontainerservice.AgentPoolModeSystem.ToPtr(),
 					},
 				},
 				ServicePrincipalProfile: &armcontainerservice.ManagedClusterServicePrincipalProfile{

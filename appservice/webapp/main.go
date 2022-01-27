@@ -18,8 +18,8 @@ var (
 	subscriptionID     string
 	location           = "eastus"
 	resourceGroupName  = "sample-resource-group"
-	appServicePlanName = "sample-web-planx"
-	webAppName         = "sample-web-appxyz"
+	appServicePlanName = "sample-appservice-planx"
+	webAppName         = "sample-appservice-appxyz"
 	slotName           = "sample-slotxyz"
 )
 
@@ -52,25 +52,25 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("web app:", *webApp.ID)
+	log.Println("appservice app:", *webApp.ID)
 
 	webApp, err = getWebApp(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("get web app:", *webApp.ID)
+	log.Println("get appservice app:", *webApp.ID)
 
 	webAppSlot, err := createWebAppSlot(ctx, cred, *appServicePlan.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("web app slot:", *webAppSlot.ID)
+	log.Println("appservice app slot:", *webAppSlot.ID)
 
 	webAppSlot, err = getWebAppSlot(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("get web app slot:", *webAppSlot.ID)
+	log.Println("get appservice app slot:", *webAppSlot.ID)
 
 	appConfiguration, err := getAppConfiguration(ctx, cred)
 	if err != nil {

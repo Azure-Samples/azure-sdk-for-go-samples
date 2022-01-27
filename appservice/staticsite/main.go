@@ -50,13 +50,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("web app:", *webApp.ID)
+	log.Println("appservice:", *webApp.ID)
 
 	webApp, err = getStaticSite(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("get web app:", *webApp.ID)
+	log.Println("get appservice:", *webApp.ID)
 
 	listFunctions := listStaticSiteFunctions(ctx, cred)
 	log.Println("list static site functions:", len(listFunctions))

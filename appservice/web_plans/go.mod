@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/web/staticsite
+module github.com/Azure-Samples/azure-sdk-for-go-samples/appservice/webplan
 
 go 1.16
 

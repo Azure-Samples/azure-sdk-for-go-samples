@@ -18,7 +18,7 @@ var (
 	subscriptionID     string
 	location           = "westus"
 	resourceGroupName  = "sample-resource-group"
-	appServicePlanName = "sample-web-plan"
+	appServicePlanName = "sample-appservice-plan"
 )
 
 func main() {

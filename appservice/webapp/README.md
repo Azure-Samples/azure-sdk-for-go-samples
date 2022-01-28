@@ -4,20 +4,20 @@ languages:
 - golang
 products:
 - azure
-description: "These code samples will show you how to manage Web Manager using Azure SDK for Golang."
-urlFragment: web
+description: "These code samples will show you how to manage App Service Manager using Azure SDK for Golang."
+urlFragment: appservice
 ---
 
-# Getting started - Managing Web Manager using Azure Golang SDK
+# Getting started - Managing App Service Manager using Azure Golang SDK
 
-These code samples will show you how to manage Web using Azure SDK for Golang.
+These code samples will show you how to manage App Service using Azure SDK for Golang.
 
 ## Features
 
 This project framework provides examples for the following services:
 
-### Web
-* Using the Azure SDK for Golang - Web Management Library [web/armappservice](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/web/armappservice) for the [Azure Web Manager API](https://docs.microsoft.com/en-us/rest/api/web-apps/)
+### App Service
+* Using the Azure SDK for Golang - App Service Management Library [appservice/armappservice](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/appservice/armappservice) for the [Azure App Service Manager API](https://docs.microsoft.com/en-us/rest/api/appservice/)
 
 ### Prerequisites
 * an [Azure subscription](https://azure.microsoft.com)
@@ -46,7 +46,7 @@ This project framework provides examples for the following services:
 3. Run resources sample.
 
     ```
-    cd azure-sdk-for-go-samples/web/web_plans
+    cd azure-sdk-for-go-samples/appservice/webapp
     go mod tidy
     go run main.go
     ```

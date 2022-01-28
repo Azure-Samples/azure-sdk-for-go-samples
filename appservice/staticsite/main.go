@@ -46,17 +46,17 @@ func main() {
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	webApp, err := createStaticSite(ctx, cred)
+	staticSite, err := createStaticSite(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("web app:", *webApp.ID)
+	log.Println("static site:", *staticSite.ID)
 
-	webApp, err = getStaticSite(ctx, cred)
+	staticSite, err = getStaticSite(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("get web app:", *webApp.ID)
+	log.Println("get static site:", *staticSite.ID)
 
 	listFunctions := listStaticSiteFunctions(ctx, cred)
 	log.Println("list static site functions:", len(listFunctions))

@@ -18,8 +18,8 @@ var (
 	subscriptionID     string
 	location           = "eastus"
 	resourceGroupName  = "sample-resource-group"
-	appServicePlanName = "sample-web-planx"
-	webAppName         = "sample-web-appxyz"
+	appServicePlanName = "sample-appservice-planx"
+	appServiceName     = "sample-appservice-appxyz"
 	slotName           = "sample-slotxyz"
 )
 
@@ -47,30 +47,30 @@ func main() {
 	}
 	log.Println("app service plan:", *appServicePlan.ID)
 
-	// If encounter missing error information, it may be that webAppName has already been used.
-	webApp, err := createWebApp(ctx, cred, *appServicePlan.ID)
+	// If encounter missing error information, it may be that appServiceName has already been used.
+	appService, err := createWebApp(ctx, cred, *appServicePlan.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("web app:", *webApp.ID)
+	log.Println("appservice app:", *appService.ID)
 
-	webApp, err = getWebApp(ctx, cred)
+	appService, err = getWebApp(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("get web app:", *webApp.ID)
+	log.Println("get appservice app:", *appService.ID)
 
-	webAppSlot, err := createWebAppSlot(ctx, cred, *appServicePlan.ID)
+	appServiceSlot, err := createWebAppSlot(ctx, cred, *appServicePlan.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("web app slot:", *webAppSlot.ID)
+	log.Println("appservice app slot:", *appServiceSlot.ID)
 
-	webAppSlot, err = getWebAppSlot(ctx, cred)
+	appServiceSlot, err = getWebAppSlot(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("get web app slot:", *webAppSlot.ID)
+	log.Println("get appservice app slot:", *appServiceSlot.ID)
 
 	appConfiguration, err := getAppConfiguration(ctx, cred)
 	if err != nil {
@@ -124,7 +124,7 @@ func createWebApp(ctx context.Context, cred azcore.TokenCredential, appServicePl
 	pollerResp, err := appsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
-		webAppName,
+		appServiceName,
 		armappservice.Site{
 			Location: to.StringPtr(location),
 			Properties: &armappservice.SiteProperties{
@@ -165,7 +165,7 @@ func createWebAppSlot(ctx context.Context, cred azcore.TokenCredential, appServi
 	pollerResp, err := appsClient.BeginCreateOrUpdateSlot(
 		ctx,
 		resourceGroupName,
-		webAppName,
+		appServiceName,
 		slotName,
 		armappservice.Site{
 			Location: to.StringPtr(location),
@@ -198,7 +198,7 @@ func createWebAppSlot(ctx context.Context, cred azcore.TokenCredential, appServi
 func getWebApp(ctx context.Context, cred azcore.TokenCredential) (*armappservice.Site, error) {
 	appsClient := armappservice.NewWebAppsClient(subscriptionID, cred, nil)
 
-	resp, err := appsClient.Get(ctx, resourceGroupName, webAppName, nil)
+	resp, err := appsClient.Get(ctx, resourceGroupName, appServiceName, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,7 @@ func getWebApp(ctx context.Context, cred azcore.TokenCredential) (*armappservice
 func getWebAppSlot(ctx context.Context, cred azcore.TokenCredential) (*armappservice.Site, error) {
 	appsClient := armappservice.NewWebAppsClient(subscriptionID, cred, nil)
 
-	resp, err := appsClient.GetSlot(ctx, resourceGroupName, webAppName, slotName, nil)
+	resp, err := appsClient.GetSlot(ctx, resourceGroupName, appServiceName, slotName, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +218,7 @@ func getWebAppSlot(ctx context.Context, cred azcore.TokenCredential) (*armappser
 func getAppConfiguration(ctx context.Context, cred azcore.TokenCredential) (*armappservice.SiteConfigResource, error) {
 	appsClient := armappservice.NewWebAppsClient(subscriptionID, cred, nil)
 
-	resp, err := appsClient.GetConfiguration(ctx, resourceGroupName, webAppName, nil)
+	resp, err := appsClient.GetConfiguration(ctx, resourceGroupName, appServiceName, nil)
 	if err != nil {
 		return nil, err
 	}

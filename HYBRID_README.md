@@ -35,16 +35,10 @@ the following instructions to find or create these values if necessary.
     they create when done. This can be helpful if you want to further experiment
     with those resources.
 
-    **NOTE:** the environment variables are listed in [.env.tpl](./.env.tpl)
-    so you can copy that to .env (e.g. `cp .env.tpl .env`) and update for
-    convenience. The samples pick up environment variables from .env files
-    automatically.
-
 1. Run `dep ensure` to get dependencies.
 1. Run tests with `go test` as follows:
 
     1. To run individual samples, refer to that folder, e.g. `go test ./storage/hybrid/`, `go test ./network/hybrid/`.
-        * If you use a .env file, copy it into the folder first, e.g. `cp .env ./network/hybrid/`.
     
 # Resources
 

@@ -30,7 +30,7 @@ This package demonstrates how to manage PostgreSQL flexible servers with the Go 
   go get -u $PROJECT
   cd ${GOPATH}/src/${PROJECT}
   ```
-2. Create an Azure service principal with the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/get-started-with-azure-cli) command `az ad sp create-for-rbac --output json` and set the following environment variables per that command's output. You can also copy `.env.tpl` to `.env` and fill it in; the configuration system will utilize this.
+2. Create an Azure service principal with the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/get-started-with-azure-cli) command `az ad sp create-for-rbac --output json` and set the following environment variables per that command's output.
 
   ```bash
   AZURE_CLIENT_ID=

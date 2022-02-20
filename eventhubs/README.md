@@ -9,7 +9,7 @@ The following functionality is demonstrated:
 * Receiving events from a designated partition in [./receive_events.go](./receive_events.go).
 * Receiving events with EventProcessorHost in [./receive_eph.go](./receive_eph.go)
 
-You can run the tests in this repo by creating a `.env` file as described in
+You can run the tests in this repo by defining the AZURE_* environment variables as described in
 the root README, and invoking `go test -v .` from this directory.
 
 [1]: https://docs.microsoft.com/en-us/azure/event-hubs/

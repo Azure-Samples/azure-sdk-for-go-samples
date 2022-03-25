@@ -118,7 +118,7 @@ func CreateVMWithUserAssignedID(ctx context.Context, vmName, nicName, username, 
 			Identity: &compute.VirtualMachineIdentity{
 				Type: compute.ResourceIdentityTypeUserAssigned,
 				UserAssignedIdentities: map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue{
-					*id.ID: &compute.VirtualMachineIdentityUserAssignedIdentitiesValue{},
+					*id.ID: {},
 				},
 			},
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
@@ -172,7 +172,7 @@ func AddUserAssignedIDToVM(ctx context.Context, vmName string, id msi.Identity) 
 			Identity: &compute.VirtualMachineIdentity{
 				Type: compute.ResourceIdentityTypeUserAssigned,
 				UserAssignedIdentities: map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue{
-					*id.ID: &compute.VirtualMachineIdentityUserAssignedIdentitiesValue{},
+					*id.ID: {},
 				},
 			},
 		},

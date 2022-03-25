@@ -58,7 +58,7 @@ steps:
       foreach ($md in $modDirs) {
         pushd $md
         Write-Host "##[command]Executing gofmt -s -l -d in $md"
-        gofmt -s -l -d . | tee >&2
+        gofmt -s -l -d .
       }
     displayName: 'Format Check'
     condition: succeededOrFailed()

@@ -60,7 +60,7 @@ func CreateHadoopCluster(resourceGroup, clusterName string, info StorageAccountI
 			},
 			ComputeProfile: &hdinsight.ComputeProfile{
 				Roles: &[]hdinsight.Role{
-					hdinsight.Role{
+					{
 						Name:                to.StringPtr("headnode"),
 						TargetInstanceCount: to.Int32Ptr(2),
 						HardwareProfile: &hdinsight.HardwareProfile{
@@ -73,7 +73,7 @@ func CreateHadoopCluster(resourceGroup, clusterName string, info StorageAccountI
 							},
 						},
 					},
-					hdinsight.Role{
+					{
 						Name:                to.StringPtr("workernode"),
 						TargetInstanceCount: to.Int32Ptr(1),
 						HardwareProfile: &hdinsight.HardwareProfile{
@@ -86,7 +86,7 @@ func CreateHadoopCluster(resourceGroup, clusterName string, info StorageAccountI
 							},
 						},
 					},
-					hdinsight.Role{
+					{
 						Name:                to.StringPtr("zookeepernode"),
 						TargetInstanceCount: to.Int32Ptr(3),
 						HardwareProfile: &hdinsight.HardwareProfile{
@@ -103,7 +103,7 @@ func CreateHadoopCluster(resourceGroup, clusterName string, info StorageAccountI
 			},
 			StorageProfile: &hdinsight.StorageProfile{
 				Storageaccounts: &[]hdinsight.StorageAccount{
-					hdinsight.StorageAccount{
+					{
 						Name:      &info.Name,
 						Container: &info.Container,
 						IsDefault: to.BoolPtr(true),

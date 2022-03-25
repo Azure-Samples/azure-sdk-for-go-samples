@@ -53,7 +53,7 @@ steps:
       condition: succeededOrFailed()
       workingDirectory: $(System.DefaultWorkingDirectory)
 
-  - script: |
+  - pwsh: |
       $modDirs = ./eng/scripts/get_module_dirs.ps1 '.'
       foreach ($md in $modDirs) {
         pushd $md

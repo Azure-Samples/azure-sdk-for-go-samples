@@ -6,7 +6,10 @@ author: joshgav
 
 # Azure MSSQL Samples
 
-This package demonstrates how to manage SQL databases and their data.
+This // Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+package demonstrates how to manage SQL databases and their data.
 
 ## Contents
 

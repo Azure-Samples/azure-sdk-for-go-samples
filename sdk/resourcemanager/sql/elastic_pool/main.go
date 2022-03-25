@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 package main
 
 import (
@@ -108,6 +111,9 @@ func createElasticPool(ctx context.Context, cred azcore.TokenCredential) (*armsq
 		},
 		nil,
 	)
+	if err != nil {
+		return nil, err
+	}
 	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
 		return nil, err

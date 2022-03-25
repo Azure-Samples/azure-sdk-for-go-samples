@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 package main
 
 import (
@@ -25,7 +28,7 @@ var (
 var repoURL = "https://github.com/804873052/azure-rest-api-specs" // https://github.com/<github-name>/azure-rest-api-specs
 var repoToken = "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"        // github token https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
 func main() {
-	if repoToken == "" || repoToken == "" {
+	if repoToken == "" {
 		log.Fatal("Please input repo information.")
 	}
 

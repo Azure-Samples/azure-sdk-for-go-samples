@@ -18,7 +18,7 @@ This project framework provides examples for the following services:
 
 ### Communication
 
-* Using the Azure SDK for Go - Communication Management Package `github.com/Azure/azure-sdk-for-go/services/preview/communication/mgmt/2020-08-20-preview/communication` for the [Azure Communication API](https://docs.microsoft.com/en-us/rest/api/communication/)
+* Using the Azure SDK for Go - Communication Management package `github.com/Azure/azure-sdk-for-go/services/preview/communication/mgmt/2020-08-20-preview/communication` for the [Azure Communication API](https://docs.microsoft.com/en-us/rest/api/communication/)
 
 ## Getting Started
 

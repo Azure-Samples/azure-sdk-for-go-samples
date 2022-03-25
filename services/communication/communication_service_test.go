@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 package communication
 
 import (
@@ -59,8 +62,7 @@ func addLocalEnvAndParse() error {
 }
 
 func setup() error {
-	var err error
-	err = addLocalEnvAndParse()
+	err := addLocalEnvAndParse()
 	if err != nil {
 		return err
 	}

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 package main
 
 import (
@@ -92,7 +95,7 @@ func main() {
 	}
 	count := 0
 	for disasterRecoveryConfig.Properties.ProvisioningState != armservicebus.ProvisioningStateDRSucceeded.ToPtr() && count < 10 {
-		time.Sleep(30)
+		time.Sleep(30 * time.Second)
 		disasterRecoveryConfig, err = getDisasterRecoveryConfig(ctx, cred)
 		if err != nil {
 			log.Fatal(err)

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 package main
 
 import (
@@ -74,10 +77,10 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armmysql.S
 				CreateMode: armmysql.CreateModeDefault.ToPtr(),
 			},
 			SKU: &armmysql.SKU{
-				Name: to.StringPtr("GP_Gen5_2"),
-				Tier: armmysql.SKUTierGeneralPurpose.ToPtr(),
+				Name:     to.StringPtr("GP_Gen5_2"),
+				Tier:     armmysql.SKUTierGeneralPurpose.ToPtr(),
 				Capacity: to.Int32Ptr(2),
-				Family: to.StringPtr("Gen5"),
+				Family:   to.StringPtr("Gen5"),
 			},
 		},
 		nil,
@@ -92,13 +95,13 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armmysql.S
 	return &resp.Server, nil
 }
 
-func getServer(ctx context.Context, cred azcore.TokenCredential) (*armmysql.Server,error){
+func getServer(ctx context.Context, cred azcore.TokenCredential) (*armmysql.Server, error) {
 	serversClient := armmysql.NewServersClient(subscriptionID, cred, nil)
-	resp, err := serversClient.Get(ctx,resourceGroupName,serverName,nil)
+	resp, err := serversClient.Get(ctx, resourceGroupName, serverName, nil)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	return &resp.Server,nil
+	return &resp.Server, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {

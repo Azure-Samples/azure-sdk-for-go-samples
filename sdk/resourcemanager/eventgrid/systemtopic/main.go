@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 package main
 
 import (
@@ -119,16 +122,6 @@ func createSystemTopic(ctx context.Context, cred azcore.TokenCredential, storage
 		return nil, err
 	}
 	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
-	if err != nil {
-		return nil, err
-	}
-	return &resp.SystemTopic, nil
-}
-
-func getSystemTopic(ctx context.Context, cred azcore.TokenCredential, storageAccountID string) (*armeventgrid.SystemTopic, error) {
-	systemTopicsClient := armeventgrid.NewSystemTopicsClient(subscriptionID, cred, nil)
-
-	resp, err := systemTopicsClient.Get(ctx, resourceGroupName, systemTopicName, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 package main
 
 import (
@@ -19,7 +22,7 @@ var (
 	location          = "eastus"
 	resourceGroupName = "sample-resource-group"
 	serverName        = "sample2server"
-	firewallRuleName = "sample-firewall-rule"
+	firewallRuleName  = "sample-firewall-rule"
 )
 
 func main() {
@@ -81,10 +84,10 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armmysql.S
 				CreateMode: armmysql.CreateModeDefault.ToPtr(),
 			},
 			SKU: &armmysql.SKU{
-				Name: to.StringPtr("GP_Gen5_2"),
-				Tier: armmysql.SKUTierGeneralPurpose.ToPtr(),
+				Name:     to.StringPtr("GP_Gen5_2"),
+				Tier:     armmysql.SKUTierGeneralPurpose.ToPtr(),
 				Capacity: to.Int32Ptr(2),
-				Family: to.StringPtr("Gen5"),
+				Family:   to.StringPtr("Gen5"),
 			},
 		},
 		nil,
@@ -99,9 +102,9 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armmysql.S
 	return &resp.Server, nil
 }
 
-func createFirewallRule(ctx context.Context,cred azcore.TokenCredential) (*armmysql.FirewallRule,error) {
-	firewallRulesClient := armmysql.NewFirewallRulesClient(subscriptionID,cred,nil)
-	pollerResp,err := firewallRulesClient.BeginCreateOrUpdate(
+func createFirewallRule(ctx context.Context, cred azcore.TokenCredential) (*armmysql.FirewallRule, error) {
+	firewallRulesClient := armmysql.NewFirewallRulesClient(subscriptionID, cred, nil)
+	pollerResp, err := firewallRulesClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serverName,
@@ -109,28 +112,28 @@ func createFirewallRule(ctx context.Context,cred azcore.TokenCredential) (*armmy
 		armmysql.FirewallRule{
 			Properties: &armmysql.FirewallRuleProperties{
 				StartIPAddress: to.StringPtr("0.0.0.0"),
-				EndIPAddress: to.StringPtr("255.255.255.255"),
+				EndIPAddress:   to.StringPtr("255.255.255.255"),
 			},
 		},
 		nil,
 	)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	resp,err := pollerResp.PollUntilDone(ctx,30*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, 30*time.Second)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	return &resp.FirewallRule,nil
+	return &resp.FirewallRule, nil
 }
 
-func getFirewallRule(ctx context.Context,cred azcore.TokenCredential) (*armmysql.FirewallRule,error) {
-	firewallRulesClient := armmysql.NewFirewallRulesClient(subscriptionID,cred,nil)
-	resp,err := firewallRulesClient.Get(ctx, resourceGroupName, serverName, firewallRuleName, nil)
+func getFirewallRule(ctx context.Context, cred azcore.TokenCredential) (*armmysql.FirewallRule, error) {
+	firewallRulesClient := armmysql.NewFirewallRulesClient(subscriptionID, cred, nil)
+	resp, err := firewallRulesClient.Get(ctx, resourceGroupName, serverName, firewallRuleName, nil)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	return &resp.FirewallRule,nil
+	return &resp.FirewallRule, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {

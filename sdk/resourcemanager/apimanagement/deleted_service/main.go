@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 package main
 
 import (
@@ -48,7 +51,7 @@ func main() {
 	log.Println("api management service:", *apiManagementService.ID)
 
 	// soft-delete api service
-	apiManagementService, err = deleteApiManagementService(ctx, cred)
+	_, err = deleteApiManagementService(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}

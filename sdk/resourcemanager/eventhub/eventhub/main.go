@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 package main
 
 import (
@@ -160,32 +163,6 @@ func createEventHub(ctx context.Context, cred azcore.TokenCredential, storageAcc
 		return nil, err
 	}
 	return &resp.Eventhub, nil
-}
-
-func createEventHubAuthorizationRule(ctx context.Context, cred azcore.TokenCredential) (*armeventhub.AuthorizationRule, error) {
-	eventHubsClient := armeventhub.NewEventHubsClient(subscriptionID, cred, nil)
-
-	resp, err := eventHubsClient.CreateOrUpdateAuthorizationRule(
-		ctx,
-		resourceGroupName,
-		namespacesName,
-		eventHubName,
-		authorizationRuleName,
-		armeventhub.AuthorizationRule{
-			Properties: &armeventhub.AuthorizationRuleProperties{
-				Rights: []*armeventhub.AccessRights{
-					armeventhub.AccessRightsListen.ToPtr(),
-					armeventhub.AccessRightsManage.ToPtr(),
-					armeventhub.AccessRightsSend.ToPtr(),
-				},
-			},
-		},
-		nil,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return &resp.AuthorizationRule, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {

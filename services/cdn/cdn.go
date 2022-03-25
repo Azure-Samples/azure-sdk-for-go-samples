@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 package cdn
 
 import (
@@ -17,7 +20,7 @@ func getCDNClient() cdn.BaseClient {
 	return cdnClient
 }
 
-// CheckNameAvailability use thes CDN package to determine whether or not a given name is appropriate.
+// CheckNameAvailability use this CDN package to determine whether or not a given name is appropriate.
 func CheckNameAvailability(ctx context.Context, name, resourceType string) (bool, error) {
 	client := getCDNClient()
 	resp, err := client.CheckNameAvailability(ctx, cdn.CheckNameAvailabilityInput{

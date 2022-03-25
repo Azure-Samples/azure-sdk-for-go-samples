@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 package main
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
@@ -154,7 +157,7 @@ func main() {
 		fmt.Print("KVAULT_SECRET Value: ")
 		getSecret(basicClient, secretName)
 	} else {
-		fmt.Println("KVAULT_SECRET_NAME not set.\n")
+		fmt.Println("KVAULT_SECRET_NAME not set.")
 	}
 
 	fmt.Println("Setting 'newsecret' to 'newvalue'")

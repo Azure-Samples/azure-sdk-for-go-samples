@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 package main
 
 import (
@@ -22,10 +25,7 @@ var (
 	resourceGroupName    = "sample-resource-group"
 	virtualNetworkName   = "sample-virtual-network"
 	subnetName           = "sample-subnet"
-	publicIPAddressName  = "sample-public-ip"
-	securityGroupName    = "sample-network-security-group"
 	networkInterfaceName = "sample-network-interface"
-	actionGroupName      = "sample-action-group"
 	osDiskName           = "sample-os-disk"
 	virtualMachineName   = "sample-virtual-machine"
 	metricAlertName      = "sample-metric-alert"
@@ -89,42 +89,6 @@ func main() {
 	}
 }
 
-func createActionGroup(ctx context.Context, cred azcore.TokenCredential) (*armmonitor.ActionGroupResource, error) {
-	actionGroupsClient := armmonitor.NewActionGroupsClient(subscriptionID, cred, nil)
-
-	resp, err := actionGroupsClient.CreateOrUpdate(
-		ctx,
-		resourceGroupName,
-		actionGroupName,
-		armmonitor.ActionGroupResource{
-			Location: to.StringPtr(location),
-			Properties: &armmonitor.ActionGroup{
-				GroupShortName: to.StringPtr("sample"),
-				Enabled:        to.BoolPtr(true),
-				EmailReceivers: []*armmonitor.EmailReceiver{
-					{
-						Name:                 to.StringPtr("John Doe's email"),
-						EmailAddress:         to.StringPtr("johndoe@eamil.com"),
-						UseCommonAlertSchema: to.BoolPtr(false),
-					},
-				},
-				SmsReceivers: []*armmonitor.SmsReceiver{
-					{
-						Name:        to.StringPtr("Jhon Doe's mobile"),
-						CountryCode: to.StringPtr("1"),
-						PhoneNumber: to.StringPtr("1234567890"),
-					},
-				},
-			},
-		},
-		nil,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return &resp.ActionGroupResource, nil
-}
-
 func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.VirtualNetwork, error) {
 	virtualNetworkClient := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
 
@@ -179,87 +143,6 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 		return nil, err
 	}
 	return &resp.Subnet, nil
-}
-
-func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.PublicIPAddress, error) {
-	publicIPClient := armnetwork.NewPublicIPAddressesClient(subscriptionID, cred, nil)
-
-	pollerResp, err := publicIPClient.BeginCreateOrUpdate(
-		ctx,
-		resourceGroupName,
-		publicIPAddressName,
-		armnetwork.PublicIPAddress{
-			Name:     to.StringPtr(publicIPAddressName),
-			Location: to.StringPtr(location),
-			Properties: &armnetwork.PublicIPAddressPropertiesFormat{
-				PublicIPAddressVersion:   armnetwork.IPVersionIPv4.ToPtr(),
-				PublicIPAllocationMethod: armnetwork.IPAllocationMethodStatic.ToPtr(),
-			},
-		},
-		nil,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
-	if err != nil {
-		return nil, err
-	}
-	return &resp.PublicIPAddress, nil
-}
-
-func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityGroup, error) {
-	networkSecurityGroupClient := armnetwork.NewSecurityGroupsClient(subscriptionID, cred, nil)
-
-	pollerResp, err := networkSecurityGroupClient.BeginCreateOrUpdate(
-		ctx,
-		resourceGroupName,
-		securityGroupName,
-		armnetwork.SecurityGroup{
-			Location: to.StringPtr(location),
-			Properties: &armnetwork.SecurityGroupPropertiesFormat{
-				SecurityRules: []*armnetwork.SecurityRule{
-					{
-						Name: to.StringPtr("allow_ssh"),
-						Properties: &armnetwork.SecurityRulePropertiesFormat{
-							Protocol:                 armnetwork.SecurityRuleProtocolTCP.ToPtr(),
-							SourceAddressPrefix:      to.StringPtr("0.0.0.0/0"),
-							SourcePortRange:          to.StringPtr("1-65535"),
-							DestinationAddressPrefix: to.StringPtr("0.0.0.0/0"),
-							DestinationPortRange:     to.StringPtr("22"),
-							Access:                   armnetwork.SecurityRuleAccessAllow.ToPtr(),
-							Direction:                armnetwork.SecurityRuleDirectionInbound.ToPtr(),
-							Priority:                 to.Int32Ptr(100),
-						},
-					},
-					{
-						Name: to.StringPtr("allow_https"),
-						Properties: &armnetwork.SecurityRulePropertiesFormat{
-							Protocol:                 armnetwork.SecurityRuleProtocolTCP.ToPtr(),
-							SourceAddressPrefix:      to.StringPtr("0.0.0.0/0"),
-							SourcePortRange:          to.StringPtr("1-65535"),
-							DestinationAddressPrefix: to.StringPtr("0.0.0.0/0"),
-							DestinationPortRange:     to.StringPtr("443"),
-							Access:                   armnetwork.SecurityRuleAccessAllow.ToPtr(),
-							Direction:                armnetwork.SecurityRuleDirectionInbound.ToPtr(),
-							Priority:                 to.Int32Ptr(200),
-						},
-					},
-				},
-			},
-		},
-		nil)
-
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
-	if err != nil {
-		return nil, err
-	}
-	return &resp.SecurityGroup, nil
 }
 
 func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armnetwork.Interface, error) {

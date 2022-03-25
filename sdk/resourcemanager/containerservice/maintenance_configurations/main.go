@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 package main
 
 import (
@@ -129,7 +132,13 @@ func createManagedCluster(ctx context.Context, cred azcore.TokenCredential) (*ar
 func createMaintenanceConfiguration(ctx context.Context, cred azcore.TokenCredential) (*armcontainerservice.MaintenanceConfiguration, error) {
 	maintenanceConfigurationsClient := armcontainerservice.NewMaintenanceConfigurationsClient(subscriptionID, cred, nil)
 	start, err := time.Parse("2006-01-02 15:04:05 06", "2021-09-25T13:00:00Z")
+	if err != nil {
+		return nil, err
+	}
 	end, err := time.Parse("2006-01-02 15:04:05 06", "2021-09-25T14:00:00Z")
+	if err != nil {
+		return nil, err
+	}
 	resp, err := maintenanceConfigurationsClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,

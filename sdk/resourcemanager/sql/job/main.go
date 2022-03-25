@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 package main
 
 import (
@@ -229,8 +232,8 @@ func createJobTargetGroup(ctx context.Context, cred azcore.TokenCredential) (*ar
 func createJob(ctx context.Context, cred azcore.TokenCredential) (*armsql.Job, error) {
 	jobsClient := armsql.NewJobsClient(subscriptionID, cred, nil)
 
-	startTime, _ := time.Parse("2012-01-02 15:04:05 06", "2021-09-18T18:30:01Z")
-	endTime, _ := time.Parse("2012-01-02 15:04:05 06", "2021-09-18T23:59:59Z")
+	startTime, _ := time.Parse("2006-01-02 15:04:05 06", "2021-09-18T18:30:01Z")
+	endTime, _ := time.Parse("2006-01-02 15:04:05 06", "2021-09-18T23:59:59Z")
 
 	resp, err := jobsClient.CreateOrUpdate(
 		ctx,
@@ -300,6 +303,9 @@ func createJobExecution(ctx context.Context, cred azcore.TokenCredential) (*arms
 		return nil, err
 	}
 	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	if err != nil {
+		return nil, err
+	}
 	return &resp.JobExecution, nil
 }
 

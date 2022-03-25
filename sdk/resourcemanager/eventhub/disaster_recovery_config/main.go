@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 package main
 
 import (
@@ -207,16 +210,6 @@ func breakPairingDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCr
 	disasterRecoveryConfigsClient := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
 
 	resp, err := disasterRecoveryConfigsClient.BreakPairing(ctx, resourceGroupName, namespacesName, disasterRecoveryConfigName, nil)
-	if err != nil {
-		return nil, err
-	}
-	return resp.RawResponse, nil
-}
-
-func failOverDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	disasterRecoveryConfigsClient := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
-
-	resp, err := disasterRecoveryConfigsClient.FailOver(ctx, resourceGroupName, secondNamespacesName, disasterRecoveryConfigName, nil)
 	if err != nil {
 		return nil, err
 	}

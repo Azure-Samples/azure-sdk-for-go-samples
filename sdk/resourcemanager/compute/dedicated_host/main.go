@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 package main
 
 import (
@@ -62,7 +65,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("get dedicated host:", *dedicatedHost.ID)
+	log.Println("get dedicated host:", *dedicatedHostGroup.ID)
 
 	dedicatedHost, err = getDedicatedHost(ctx, cred)
 	if err != nil {

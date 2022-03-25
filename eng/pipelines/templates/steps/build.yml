@@ -1,0 +1,32 @@
+parameters:
+  - name:  Image
+    type: string
+    default: ''
+  - name:  GoVersion
+    type: string
+    default: ''
+
+steps:
+  - pwsh: |
+      $modDirs = ./eng/scripts/get_module_dirs.ps1 '.'
+      foreach ($md in $modDirs) {
+        pushd $md
+        Write-Host "##[command]Executing go build in $md"
+        go build ./...
+      }
+    displayName: Build
+    env:
+      GO111MODULE: 'on'
+    workingDirectory: $(System.DefaultWorkingDirectory)
+
+  - pwsh: |
+      $modDirs = ./eng/scripts/get_module_dirs.ps1 '.'
+      foreach ($md in $modDirs) {
+        pushd $md
+        Write-Host "##[command]Executing go vet in $md"
+        go vet ./...
+      }
+    displayName: Vet
+    env:
+      GO111MODULE: 'on'
+    workingDirectory: $(System.DefaultWorkingDirectory)

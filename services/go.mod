@@ -15,6 +15,7 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/denisenkom/go-mssqldb v0.0.0-20190515213511-eb9f6a1743f3
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
+	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/marstr/randname v0.0.0-20181206212954-d5b0f288ab8c
 	github.com/pkg/errors v0.8.1
 	github.com/satori/go.uuid v1.2.0

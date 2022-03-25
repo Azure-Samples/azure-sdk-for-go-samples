@@ -14,6 +14,7 @@ import (
 	"github.com/Azure-Samples/azure-sdk-for-go-samples/services/network"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/gofrs/uuid"
 )
 
 func getDisksClient() compute.DisksClient {
@@ -226,6 +227,10 @@ func CreateVMWithDisk(ctx context.Context, nicName, diskName, vmName, username, 
 // keys from Key Vault to decrypt disks.
 func AddDiskEncryptionToVM(ctx context.Context, vmName, vaultName, keyID string) (ext compute.VirtualMachineExtension, err error) {
 	extensionsClient := getVMExtensionsClient()
+	sequenceVersion, err := uuid.NewV4()
+	if err != nil {
+		return ext, fmt.Errorf("cannot create sequenceVersion: %v", err)
+	}
 	future, err := extensionsClient.CreateOrUpdate(
 		ctx,
 		config.GroupName(),
@@ -246,7 +251,7 @@ func AddDiskEncryptionToVM(ctx context.Context, vmName, vaultName, keyID string)
 					"KeyEncryptionAlgorithm":    "RSA-OAEP",
 					"KeyEncryptionKeyAlgorithm": keyID,
 					"KeyVaultURL":               fmt.Sprintf("https://%s.%s/", vaultName, config.Environment().KeyVaultDNSSuffix),
-					"SequenceVersion":           uuid.NewV4().String(),
+					"SequenceVersion":           sequenceVersion.String(),
 					"VolumeType":                "ALL",
 				},
 				Type:               to.StringPtr("AzureDiskEncryptionForLinux"),

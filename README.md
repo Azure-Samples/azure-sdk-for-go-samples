@@ -9,18 +9,16 @@ description: "A collection of samples showing how to use the Azure SDK for Go."
 
 # Azure SDK for Go Samples
 
-azure-sdk-for-go-samples is a collection of sample usages of the current version of the [Azure/azure-sdk-for-go][]. The current version of the [Azure/azure-sdk-for-go][] is referring the service packages under the `/services` directory.
+azure-sdk-for-go-samples is a collection of sample usages of the current version of the [Azure/azure-sdk-for-go][][here](https://github.com/Azure-Samples/azure-sdk-for-go-samples/tree/main/services). The current version of the [Azure/azure-sdk-for-go][] is referring the service packages under the `/services` directory.
 
-We have a collection of sample usages of the new version of the [Azure/azure-sdk-for-go][] [here](https://github.com/Azure-Samples/azure-sdk-for-go-samples/tree/new-version). The new version of the [Azure/azure-sdk-for-go][] is referring the service packages under the `/sdk` directory.
-
-[![Build Status](https://dev.azure.com/azure-sdk/public/_apis/build/status/Azure-Samples.azure-sdk-for-go-samples?branchName=master)](https://dev.azure.com/azure-sdk/public/_build/latest?definitionId=1666&branchName=master)
+We have a collection of sample usages of the new version of the [Azure/azure-sdk-for-go][] [here](https://github.com/Azure-Samples/azure-sdk-for-go-samples/tree/main/sdk). The new version of the [Azure/azure-sdk-for-go][] is referring the service packages under the `/sdk` directory.
 
 For general SDK help start with the [main SDK README][].
 
 ## To run tests
 
 1. set up authentication (see following)
-1. `go test -v ./network/` (or any package)
+1. `go test -v ./services/network/` (or any package)
 
 To use service principal authentication, create a principal by running `az ad sp create-for-rbac -n "<yourAppName>"` and set the following environment variables. You can copy `.env.tpl` to a `.env` file in each package for ease of use.
 
@@ -60,9 +58,9 @@ This code is provided under the MIT license. See [LICENSE][] for details.
 
 We welcome your contributions! For instructions and our code of conduct see [CONTRIBUTING.md][]. And thank you!
 
-[main SDK README]: https://github.com/Azure/azure-sdk-for-go/blob/master/README.md
+[main SDK README]: https://github.com/Azure/azure-sdk-for-go/blob/main/README.md
 [Azure update feed]: https://azure.microsoft.com/updates/
 [Azure/azure-sdk-for-go]: https://github.com/Azure/azure-sdk-for-go
 [azure-cli]: https://github.com/Azure/azure-cli
-[LICENSE]: ./LICENSE.md
+[LICENSE]: ./LICENSE.txt
 [CONTRIBUTING.md]: ./CONTRIBUTING.md

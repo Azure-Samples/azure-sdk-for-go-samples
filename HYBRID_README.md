@@ -43,8 +43,8 @@ the following instructions to find or create these values if necessary.
 1. Run `dep ensure` to get dependencies.
 1. Run tests with `go test` as follows:
 
-    1. To run individual samples, refer to that folder, e.g. `go test ./storage/hybrid/`, `go test ./network/hybrid/`.
-        * If you use a .env file, copy it into the folder first, e.g. `cp .env ./network/hybrid/`.
+    1. To run individual samples, refer to that folder, e.g. `go test ./services/storage/hybrid/`, `go test ./services/network/hybrid/`.
+        * If you use a .env file, copy it into the folder first, e.g. `cp .env ./services/network/hybrid/`.
     
 # Resources
 
@@ -63,5 +63,5 @@ This code is provided under the MIT license. See [LICENSE][] for details.
 We welcome your contributions! For instructions and our code of conduct see [CONTRIBUTING.md][]. And thank you!
 
 [azure-cli]: https://github.com/Azure/azure-cli
-[LICENSE]: ./LICENSE.md
+[LICENSE]: ./LICENSE.txt
 [CONTRIBUTING.md]: ./CONTRIBUTING.md

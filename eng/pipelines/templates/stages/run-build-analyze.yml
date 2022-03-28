@@ -1,0 +1,47 @@
+parameters:
+  - name: LicenseCheck
+    type: boolean
+    default: true
+  - name: GoLintCLIVersion
+    type: string
+    default: 'v1.44.0'
+
+
+stages:
+  - stage: Build_Analyze
+    jobs:
+    - job: Build
+      displayName: Build on
+      strategy:
+        matrix:
+          Linux_Go117:
+            pool.name: azsdk-pool-mms-ubuntu-2004-general
+            go.version: '1.17.8'
+          Linux_Go118:
+            pool.name: azsdk-pool-mms-ubuntu-2004-general
+            go.version: '1.18'
+
+      pool:
+        name: $(pool.name)
+        vmImage: $(image.name)
+        
+      steps:
+      - template: ../steps/create-go-workspace.yml
+      
+      - template: ../steps/build.yml
+        parameters:
+          Image: $(vm.image)
+          GoVersion: $(go.version)
+
+    - job: Analyze
+      displayName: Analyze
+      pool:
+        name: azsdk-pool-mms-ubuntu-2004-general
+
+      steps:
+      - template: ../steps/create-go-workspace.yml
+
+      - template: ../steps/analyze.yml
+        parameters:
+          LintVersion: ${{ parameters.GoLintCLIVersion }}
+          LicenseCheck: ${{ parameters.LicenseCheck }}

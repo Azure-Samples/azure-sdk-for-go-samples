@@ -1,0 +1,66 @@
+# This step is designed to work against linux only
+parameters:
+  LintVersion: ''
+  LicenseCheck: true
+
+
+steps:
+
+  - script: |
+      curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin ${{parameters.LintVersion}}
+      golangci-lint --version
+    displayName: 'Install GoLintCLI and dependencies.'
+    workingDirectory: $(System.DefaultWorkingDirectory)
+    continueOnError: true
+
+  - pwsh: |
+      $modDirs = ./eng/scripts/get_module_dirs.ps1 '.'
+      foreach ($md in $modDirs) {
+        pushd $md
+        Write-Host "##[command]Executing golangci-lint run -c $(System.DefaultWorkingDirectory)/eng/.golangci.yml in $md"
+        golangci-lint run -c $(System.DefaultWorkingDirectory)/eng/.golangci.yml
+      }
+    displayName: 'Lint'
+    failOnStderr: false
+    workingDirectory: $(System.DefaultWorkingDirectory)
+
+  - script: |
+      echo scanning copyright headers in $(pwd)
+      grep -L -r --include \*.go -P "Copyright (\d{4}|\(c\)) Microsoft" . | tee >&2
+    displayName: 'Copyright Header Check'
+    condition: succeededOrFailed()
+    failOnStderr: true
+    workingDirectory: $(System.DefaultWorkingDirectory)
+
+  - ${{ if eq(parameters.LicenseCheck, 'true') }}:
+    - pwsh: |
+        $modDirs = ./eng/scripts/get_module_dirs.ps1 '.'
+        foreach ($md in $modDirs) {
+          pushd $md
+          Write-Host "ensuring $(pwd)/LICENSE.txt file exists in $md"
+          if (Test-Path LICENSE.txt) {
+            $patternMatches = Get-Content ./LICENSE.txt | Select-String -Pattern 'Copyright (\d{4}|\(c\)) Microsoft'
+            if ($patternMatches.Length -eq 0) {
+              Write-Host "LICENSE.txt file is invalid"
+              exit 1
+            }
+          } else {
+            Write-Host "Could not find a LICENSE.txt file"
+            exit 1
+          }
+        }
+      displayName: 'LICENSE.txt Check'
+      condition: succeededOrFailed()
+      workingDirectory: $(System.DefaultWorkingDirectory)
+
+  - pwsh: |
+      $modDirs = ./eng/scripts/get_module_dirs.ps1 '.'
+      foreach ($md in $modDirs) {
+        pushd $md
+        Write-Host "##[command]Executing gofmt -s -l -d in $md"
+        gofmt -s -l -d .
+      }
+    displayName: 'Format Check'
+    condition: succeededOrFailed()
+    failOnStderr: true
+    workingDirectory: $(System.DefaultWorkingDirectory)

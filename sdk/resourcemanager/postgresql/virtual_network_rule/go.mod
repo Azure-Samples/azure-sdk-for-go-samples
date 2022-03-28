@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerpostgresql/virtualnetworkrule
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/postgresql/virtualnetworkrule
 
 go 1.16
 

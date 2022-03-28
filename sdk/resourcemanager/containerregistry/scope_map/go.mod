@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagercontainerregistry/scopemap
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/containerregistry/scopemap
 
 go 1.16
 

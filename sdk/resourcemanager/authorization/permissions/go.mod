@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerauthorization/permissions
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/authorization/permissions
 
 go 1.16
 

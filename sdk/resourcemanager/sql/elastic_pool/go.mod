@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagersql/elastic_pool
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/sql/elastic_pool
 
 go 1.16
 

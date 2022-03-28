@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerpostgresql/serverkey
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/postgresql/serverkey
 
 go 1.16
 

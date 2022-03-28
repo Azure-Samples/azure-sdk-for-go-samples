@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagermonitor/autoscalesetting
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/monitor/autoscalesetting
 
 go 1.16
 

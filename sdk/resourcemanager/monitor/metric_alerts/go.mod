@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagermonitor/metricalerts
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/monitor/metricalerts
 
 go 1.16
 

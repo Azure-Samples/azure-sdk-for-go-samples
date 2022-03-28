@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagermysql/database
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/mysql/database
 
 go 1.16
 

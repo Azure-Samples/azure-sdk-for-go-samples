@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagereventhub/consumergroups
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/eventhub/consumergroups
 
 go 1.16
 

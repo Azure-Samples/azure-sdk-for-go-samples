@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagercontainerregistry/replication
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/containerregistry/replication
 
 go 1.16
 

@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagercosmos/gremlin
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/cosmos/gremlin
 
 go 1.16
 

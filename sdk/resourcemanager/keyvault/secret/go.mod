@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerkeyvault/secret
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/keyvault/secret
 
 go 1.16
 

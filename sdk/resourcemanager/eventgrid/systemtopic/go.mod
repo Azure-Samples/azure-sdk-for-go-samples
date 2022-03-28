@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagereventgrid/systemtopic
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/eventgrid/systemtopic
 
 go 1.16
 

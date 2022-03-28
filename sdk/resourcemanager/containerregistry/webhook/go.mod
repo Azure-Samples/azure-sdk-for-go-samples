@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagercontainerregistry/webhook
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/containerregistry/webhook
 
 go 1.16
 

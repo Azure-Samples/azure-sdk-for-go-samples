@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagercompute/dedicatedhost
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/compute/dedicatedhost
 
 go 1.16
 

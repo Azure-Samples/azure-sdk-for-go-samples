@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerkeyvault/vault
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/keyvault/vault
 
 go 1.16
 

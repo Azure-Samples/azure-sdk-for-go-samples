@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagermonitor/actiongroup
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/monitor/actiongroup
 
 go 1.16
 

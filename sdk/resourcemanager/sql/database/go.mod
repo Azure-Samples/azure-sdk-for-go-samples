@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagersql/database
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/sql/database
 
 go 1.16
 

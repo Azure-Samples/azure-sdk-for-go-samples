@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerprivatedns/virutalnetworklink
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/privatedns/virutalnetworklink
 
 go 1.16
 

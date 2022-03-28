@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerstorage/managementpolicy
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/storage/managementpolicy
 
 go 1.16
 

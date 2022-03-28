@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerstorage/blob
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/storage/blob
 
 go 1.16
 

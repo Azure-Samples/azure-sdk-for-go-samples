@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerresource/provider
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/resource/provider
 
 go 1.16
 

@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagereventhub/clusters
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/eventhub/clusters
 
 go 1.16
 

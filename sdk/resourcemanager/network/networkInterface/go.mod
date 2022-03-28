@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagernetwork/networkinterface
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/network/networkinterface
 
 go 1.16
 

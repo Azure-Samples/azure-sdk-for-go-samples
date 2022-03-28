@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanageroperationalinsights/workspaces
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/operationalinsights/workspaces
 
 go 1.16
 

@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagercompute/gallery
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/compute/gallery
 
 go 1.16
 

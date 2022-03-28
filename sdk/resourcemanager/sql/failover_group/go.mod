@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagersql/failovergroup
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/sql/failovergroup
 
 go 1.16
 

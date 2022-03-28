@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanageroperationalinsights/storageinsightconfig
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/operationalinsights/storageinsightconfig
 
 go 1.16
 

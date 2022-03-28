@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerredis/redis
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/redis/redis
 
 go 1.16
 

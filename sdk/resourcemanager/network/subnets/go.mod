@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagernetwork/subnet
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/network/subnet
 
 go 1.16
 

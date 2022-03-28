@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerredis/firewallrule
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/redis/firewallrule
 
 go 1.16
 

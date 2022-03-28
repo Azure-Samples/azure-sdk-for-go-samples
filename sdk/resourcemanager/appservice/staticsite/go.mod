@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerappservice/staticsite
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/appservice/staticsite
 
 go 1.16
 

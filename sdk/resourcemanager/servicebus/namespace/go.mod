@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerservicebus/namespace
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/servicebus/namespace
 
 go 1.16
 

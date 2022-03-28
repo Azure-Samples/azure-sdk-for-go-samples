@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagermonitor/activitylogalert
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/monitor/activitylogalert
 
 go 1.16
 

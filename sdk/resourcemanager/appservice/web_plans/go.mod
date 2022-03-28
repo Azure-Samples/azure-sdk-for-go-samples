@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerappservice/webplan
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/appservice/webplan
 
 go 1.16
 

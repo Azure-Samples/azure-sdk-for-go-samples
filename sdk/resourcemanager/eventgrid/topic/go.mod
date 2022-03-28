@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagereventgrid/topic
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/eventgrid/topic
 
 go 1.16
 

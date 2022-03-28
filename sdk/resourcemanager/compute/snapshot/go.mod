@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagercompute/snapshot
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/compute/snapshot
 
 go 1.16
 

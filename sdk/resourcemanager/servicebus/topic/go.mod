@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerservicebus/topic
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/servicebus/topic
 
 go 1.16
 

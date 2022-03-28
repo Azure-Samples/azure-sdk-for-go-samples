@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagercompute/vmscaleset
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/compute/vmscaleset
 
 go 1.16
 

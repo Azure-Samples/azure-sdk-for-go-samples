@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerapimanagement/apirelease
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/apimanagement/apirelease
 
 go 1.16
 

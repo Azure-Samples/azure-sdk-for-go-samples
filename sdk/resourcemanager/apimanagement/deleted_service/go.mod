@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerapimanagement/deletedservice
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/apimanagement/deletedservice
 
 go 1.16
 

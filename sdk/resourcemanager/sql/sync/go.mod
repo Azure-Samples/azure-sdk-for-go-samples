@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagersql/sync
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/sql/sync
 
 go 1.16
 

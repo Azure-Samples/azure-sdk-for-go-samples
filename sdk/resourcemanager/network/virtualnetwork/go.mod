@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagernetwork/virtualnetwork
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/network/virtualnetwork
 
 go 1.16
 

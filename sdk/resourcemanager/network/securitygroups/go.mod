@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagernetwork/securitygroups
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/network/securitygroups
 
 go 1.16
 

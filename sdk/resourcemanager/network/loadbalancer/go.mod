@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagernetwork/loadbalancer
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/network/loadbalancer
 
 go 1.16
 

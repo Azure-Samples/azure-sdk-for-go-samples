@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerpostgresql/servers
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/postgresql/servers
 
 go 1.16
 

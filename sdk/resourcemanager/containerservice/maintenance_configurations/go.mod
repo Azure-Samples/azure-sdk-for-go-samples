@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagercontainerservice/maintenanceconfigurations
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/containerservice/maintenanceconfigurations
 
 go 1.16
 

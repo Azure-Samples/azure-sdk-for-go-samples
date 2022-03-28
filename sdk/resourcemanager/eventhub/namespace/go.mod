@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagereventhub/namespace
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/eventhub/namespace
 
 go 1.16
 

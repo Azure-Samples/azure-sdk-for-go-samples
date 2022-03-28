@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerservicefabric/applicationtype
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/servicefabric/applicationtype
 
 go 1.16
 

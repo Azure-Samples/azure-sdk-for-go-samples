@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerredis/patchschedule
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/redis/patchschedule
 
 go 1.16
 

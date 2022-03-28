@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerservicebus/disasterrecoveryconfig
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/servicebus/disasterrecoveryconfig
 
 go 1.16
 

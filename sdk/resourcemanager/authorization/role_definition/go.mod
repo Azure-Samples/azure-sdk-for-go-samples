@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerauthorization/roledefinition
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/authorization/roledefinition
 
 go 1.16
 

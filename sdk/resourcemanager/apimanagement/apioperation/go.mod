@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerapimanagement/apioperation
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/apimanagement/apioperation
 
 go 1.16
 

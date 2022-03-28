@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerstorage/queue
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/storage/queue
 
 go 1.16
 

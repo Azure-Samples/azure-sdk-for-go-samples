@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagercontainerregistry/pipeline
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/containerregistry/pipeline
 
 go 1.16
 

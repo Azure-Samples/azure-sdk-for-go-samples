@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagersql/serverdnsalias
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/sql/serverdnsalias
 
 go 1.16
 

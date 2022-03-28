@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagernetwork/ipaddress
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/network/ipaddress
 
 go 1.16
 

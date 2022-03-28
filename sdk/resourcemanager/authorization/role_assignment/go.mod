@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerauthorization/roleassignment
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/authorization/roleassignment
 
 go 1.16
 

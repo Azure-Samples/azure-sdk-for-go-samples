@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerstorage/file
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/storage/file
 
 go 1.16
 

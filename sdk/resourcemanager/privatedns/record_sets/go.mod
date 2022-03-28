@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerprivatedns/recordsets
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/privatedns/recordsets
 
 go 1.16
 

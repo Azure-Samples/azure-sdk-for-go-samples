@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagercontainerregistry/task
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/containerregistry/task
 
 go 1.16
 

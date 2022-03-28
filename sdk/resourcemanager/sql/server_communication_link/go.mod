@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagersql/servercommunicationlink
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/sql/servercommunicationlink
 
 go 1.16
 

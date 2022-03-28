@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagercompute/disk
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/compute/disk
 
 go 1.16
 

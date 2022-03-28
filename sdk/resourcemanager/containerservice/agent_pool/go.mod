@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagercontainerservice/agentpool
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/containerservice/agentpool
 
 go 1.16
 

@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerservicebus/queue
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/servicebus/queue
 
 go 1.16
 

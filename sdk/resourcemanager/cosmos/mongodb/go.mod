@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagercosmos/mongodb
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/cosmos/mongodb
 
 go 1.16
 

@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerservicefabric/clusters
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/servicefabric/clusters
 
 go 1.16
 

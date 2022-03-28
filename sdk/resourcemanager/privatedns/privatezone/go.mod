@@ -1,4 +1,4 @@
-module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanagerprivatedns/privatezone
+module github.com/Azure-Samples/azure-sdk-for-go-samples/sdk/resourcemanager/privatedns/privatezone
 
 go 1.16
 

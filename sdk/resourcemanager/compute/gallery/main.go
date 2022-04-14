@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -84,7 +83,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -93,22 +92,25 @@ func main() {
 }
 
 func createDisk(ctx context.Context, cred azcore.TokenCredential) (*armcompute.Disk, error) {
-	disksClient := armcompute.NewDisksClient(subscriptionID, cred, nil)
+	disksClient, err := armcompute.NewDisksClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := disksClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		diskName,
 		armcompute.Disk{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			SKU: &armcompute.DiskSKU{
-				Name: armcompute.DiskStorageAccountTypesStandardLRS.ToPtr(),
+				Name: to.Ptr(armcompute.DiskStorageAccountTypesStandardLRS),
 			},
 			Properties: &armcompute.DiskProperties{
 				CreationData: &armcompute.CreationData{
-					CreateOption: armcompute.DiskCreateOptionEmpty.ToPtr(),
+					CreateOption: to.Ptr(armcompute.DiskCreateOptionEmpty),
 				},
-				DiskSizeGB: to.Int32Ptr(64),
+				DiskSizeGB: to.Ptr[int32](64),
 			},
 		},
 		nil,
@@ -126,18 +128,21 @@ func createDisk(ctx context.Context, cred azcore.TokenCredential) (*armcompute.D
 }
 
 func createSnapshot(ctx context.Context, cred azcore.TokenCredential, diskID string) (*armcompute.Snapshot, error) {
-	snapshotClient := armcompute.NewSnapshotsClient(subscriptionID, cred, nil)
+	snapshotClient, err := armcompute.NewSnapshotsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := snapshotClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		snapshotName,
 		armcompute.Snapshot{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armcompute.SnapshotProperties{
 				CreationData: &armcompute.CreationData{
-					CreateOption:     armcompute.DiskCreateOptionCopy.ToPtr(),
-					SourceResourceID: to.StringPtr(diskID),
+					CreateOption:     to.Ptr(armcompute.DiskCreateOptionCopy),
+					SourceResourceID: to.Ptr(diskID),
 				},
 			},
 		},
@@ -156,16 +161,19 @@ func createSnapshot(ctx context.Context, cred azcore.TokenCredential, diskID str
 }
 
 func createGallery(ctx context.Context, cred azcore.TokenCredential, diskID string) (*armcompute.Gallery, error) {
-	galleriesClient := armcompute.NewGalleriesClient(subscriptionID, cred, nil)
+	galleriesClient, err := armcompute.NewGalleriesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := galleriesClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		galleryName,
 		armcompute.Gallery{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armcompute.GalleryProperties{
-				Description: to.StringPtr("This is gallery description."),
+				Description: to.Ptr("This is gallery description."),
 			},
 		},
 		nil,
@@ -183,7 +191,10 @@ func createGallery(ctx context.Context, cred azcore.TokenCredential, diskID stri
 }
 
 func createGalleryApplication(ctx context.Context, cred azcore.TokenCredential) (*armcompute.GalleryApplication, error) {
-	galleriesClient := armcompute.NewGalleryApplicationsClient(subscriptionID, cred, nil)
+	galleriesClient, err := armcompute.NewGalleryApplicationsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := galleriesClient.BeginCreateOrUpdate(
 		ctx,
@@ -191,11 +202,11 @@ func createGalleryApplication(ctx context.Context, cred azcore.TokenCredential) 
 		galleryName,
 		galleryApplicationName,
 		armcompute.GalleryApplication{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armcompute.GalleryApplicationProperties{
-				Description:     to.StringPtr("This is the gallery application description."),
-				Eula:            to.StringPtr("This is the gallery application EULA."),
-				SupportedOSType: armcompute.OperatingSystemTypesWindows.ToPtr(),
+				Description:     to.Ptr("This is the gallery application description."),
+				Eula:            to.Ptr("This is the gallery application EULA."),
+				SupportedOSType: to.Ptr(armcompute.OperatingSystemTypesWindows),
 			},
 		},
 		nil,
@@ -213,7 +224,10 @@ func createGalleryApplication(ctx context.Context, cred azcore.TokenCredential) 
 }
 
 func createGalleryImage(ctx context.Context, cred azcore.TokenCredential) (*armcompute.GalleryImage, error) {
-	galleryImageClient := armcompute.NewGalleryImagesClient(subscriptionID, cred, nil)
+	galleryImageClient, err := armcompute.NewGalleryImagesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := galleryImageClient.BeginCreateOrUpdate(
 		ctx,
@@ -221,15 +235,15 @@ func createGalleryImage(ctx context.Context, cred azcore.TokenCredential) (*armc
 		galleryName,
 		galleryImageName,
 		armcompute.GalleryImage{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armcompute.GalleryImageProperties{
-				OSType:           armcompute.OperatingSystemTypesWindows.ToPtr(),
-				OSState:          armcompute.OperatingSystemStateTypesGeneralized.ToPtr(),
-				HyperVGeneration: armcompute.HyperVGenerationV1.ToPtr(),
+				OSType:           to.Ptr(armcompute.OperatingSystemTypesWindows),
+				OSState:          to.Ptr(armcompute.OperatingSystemStateTypesGeneralized),
+				HyperVGeneration: to.Ptr(armcompute.HyperVGenerationV1),
 				Identifier: &armcompute.GalleryImageIdentifier{
-					Offer:     to.StringPtr("myPublisherName"),
-					Publisher: to.StringPtr("myOfferName"),
-					SKU:       to.StringPtr("mySkuName"),
+					Offer:     to.Ptr("myPublisherName"),
+					Publisher: to.Ptr("myOfferName"),
+					SKU:       to.Ptr("mySkuName"),
 				},
 			},
 		},
@@ -248,13 +262,16 @@ func createGalleryImage(ctx context.Context, cred azcore.TokenCredential) (*armc
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -263,17 +280,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

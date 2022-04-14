@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -110,49 +109,49 @@ func cleanup() {
 	ctx := context.Background()
 
 	log.Println("start deleting virtual machine...")
-	_, err = deleteVirtualMachine(ctx, conn)
+	err = deleteVirtualMachine(ctx, conn)
 	if err != nil {
 		log.Fatalf("cannot delete virtual machine:%+v", err)
 	}
 	log.Println("deleted virtual machine")
 
-	_, err = deleteDisk(ctx, conn)
+	err = deleteDisk(ctx, conn)
 	if err != nil {
 		log.Fatalf("cannot delete disk:%+v", err)
 	}
 	log.Println("deleted disk")
 
-	_, err = deleteNetWorkInterface(ctx, conn)
+	err = deleteNetWorkInterface(ctx, conn)
 	if err != nil {
 		log.Fatalf("cannot delete network interface:%+v", err)
 	}
 	log.Println("deleted network interface")
 
-	_, err = deleteNetworkSecurityGroup(ctx, conn)
+	err = deleteNetworkSecurityGroup(ctx, conn)
 	if err != nil {
 		log.Fatalf("cannot delete network security group:%+v", err)
 	}
 	log.Println("deleted network security group")
 
-	_, err = deletePublicIP(ctx, conn)
+	err = deletePublicIP(ctx, conn)
 	if err != nil {
 		log.Fatalf("cannot delete public IP address:%+v", err)
 	}
 	log.Println("deleted public IP address")
 
-	_, err = deleteSubnets(ctx, conn)
+	err = deleteSubnets(ctx, conn)
 	if err != nil {
 		log.Fatalf("cannot delete subnet:%+v", err)
 	}
 	log.Println("deleted subnet")
 
-	_, err = deleteVirtualNetWork(ctx, conn)
+	err = deleteVirtualNetWork(ctx, conn)
 	if err != nil {
 		log.Fatalf("cannot delete virtual network:%+v", err)
 	}
 	log.Println("deleted virtual network")
 
-	_, err = deleteResourceGroup(ctx, conn)
+	err = deleteResourceGroup(ctx, conn)
 	if err != nil {
 		log.Fatalf("cannot delete resource group:%+v", err)
 	}
@@ -169,11 +168,14 @@ func connectionAzure() (azcore.TokenCredential, error) {
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroup := armresources.NewResourceGroupsClient(subscriptionId, cred, nil)
+	resourceGroup, err := armresources.NewResourceGroupsClient(subscriptionId, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	parameters := armresources.ResourceGroup{
-		Location: to.StringPtr(location),
-		Tags:     map[string]*string{"sample-rs-tag": to.StringPtr("sample-tag")}, // resource group update tags
+		Location: to.Ptr(location),
+		Tags:     map[string]*string{"sample-rs-tag": to.Ptr("sample-tag")}, // resource group update tags
 	}
 
 	resp, err := resourceGroup.CreateOrUpdate(ctx, resourceGroupName, parameters, nil)
@@ -184,38 +186,44 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resp.ResourceGroup, nil
 }
 
-func deleteResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroup := armresources.NewResourceGroupsClient(subscriptionId, cred, nil)
+func deleteResourceGroup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroup, err := armresources.NewResourceGroupsClient(subscriptionId, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResponse, err := resourceGroup.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.VirtualNetwork, error) {
+	vnetClient, err := armnetwork.NewVirtualNetworksClient(subscriptionId, cred, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return resp.RawResponse, nil
-}
-
-func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.VirtualNetwork, error) {
-	vnetClient := armnetwork.NewVirtualNetworksClient(subscriptionId, cred, nil)
-
 	parameters := armnetwork.VirtualNetwork{
-		Location: to.StringPtr(location),
+		Location: to.Ptr(location),
 		Properties: &armnetwork.VirtualNetworkPropertiesFormat{
 			AddressSpace: &armnetwork.AddressSpace{
 				AddressPrefixes: []*string{
-					to.StringPtr("10.1.0.0/16"), // example 10.1.0.0/16
+					to.Ptr("10.1.0.0/16"), // example 10.1.0.0/16
 				},
 			},
 			//Subnets: []*armnetwork.Subnet{
 			//	{
-			//		Name: to.StringPtr(subnetName+"3"),
+			//		Name: to.Ptr(subnetName+"3"),
 			//		Properties: &armnetwork.SubnetPropertiesFormat{
-			//			AddressPrefix: to.StringPtr("10.1.0.0/24"),
+			//			AddressPrefix: to.Ptr("10.1.0.0/24"),
 			//		},
 			//	},
 			//},
@@ -235,28 +243,34 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.VirtualNetwork, nil
 }
 
-func deleteVirtualNetWork(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	vnetClient := armnetwork.NewVirtualNetworksClient(subscriptionId, cred, nil)
+func deleteVirtualNetWork(ctx context.Context, cred azcore.TokenCredential) error {
+	vnetClient, err := armnetwork.NewVirtualNetworksClient(subscriptionId, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResponse, err := vnetClient.BeginDelete(ctx, resourceGroupName, vnetName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createSubnets(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.Subnet, error) {
+	subnetClient, err := armnetwork.NewSubnetsClient(subscriptionId, cred, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return resp.RawResponse, nil
-}
-
-func createSubnets(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.Subnet, error) {
-	subnetClient := armnetwork.NewSubnetsClient(subscriptionId, cred, nil)
-
 	parameters := armnetwork.Subnet{
 		Properties: &armnetwork.SubnetPropertiesFormat{
-			AddressPrefix: to.StringPtr("10.1.10.0/24"),
+			AddressPrefix: to.Ptr("10.1.10.0/24"),
 		},
 	}
 
@@ -273,58 +287,64 @@ func createSubnets(ctx context.Context, cred azcore.TokenCredential) (*armnetwor
 	return &resp.Subnet, nil
 }
 
-func deleteSubnets(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	subnetClient := armnetwork.NewSubnetsClient(subscriptionId, cred, nil)
+func deleteSubnets(ctx context.Context, cred azcore.TokenCredential) error {
+	subnetClient, err := armnetwork.NewSubnetsClient(subscriptionId, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResponse, err := subnetClient.BeginDelete(ctx, resourceGroupName, vnetName, subnetName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityGroup, error) {
+	nsgClient, err := armnetwork.NewSecurityGroupsClient(subscriptionId, cred, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return resp.RawResponse, nil
-}
-
-func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityGroup, error) {
-	nsgClient := armnetwork.NewSecurityGroupsClient(subscriptionId, cred, nil)
-
 	parameters := armnetwork.SecurityGroup{
-		Location: to.StringPtr(location),
+		Location: to.Ptr(location),
 		Properties: &armnetwork.SecurityGroupPropertiesFormat{
 			SecurityRules: []*armnetwork.SecurityRule{
 				// Windows connection to virtual machine needs to open port 3389,RDP
 				// inbound
 				{
-					Name: to.StringPtr("sample_inbound_22"), //
+					Name: to.Ptr("sample_inbound_22"), //
 					Properties: &armnetwork.SecurityRulePropertiesFormat{
-						SourceAddressPrefix:      to.StringPtr("0.0.0.0/0"),
-						SourcePortRange:          to.StringPtr("*"),
-						DestinationAddressPrefix: to.StringPtr("0.0.0.0/0"),
-						DestinationPortRange:     to.StringPtr("22"),
-						Protocol:                 armnetwork.SecurityRuleProtocolTCP.ToPtr(),
-						Access:                   armnetwork.SecurityRuleAccessAllow.ToPtr(),
-						Priority:                 to.Int32Ptr(100),
-						Description:              to.StringPtr("sample network security group inbound port 22"),
-						Direction:                armnetwork.SecurityRuleDirectionInbound.ToPtr(),
+						SourceAddressPrefix:      to.Ptr("0.0.0.0/0"),
+						SourcePortRange:          to.Ptr("*"),
+						DestinationAddressPrefix: to.Ptr("0.0.0.0/0"),
+						DestinationPortRange:     to.Ptr("22"),
+						Protocol:                 to.Ptr(armnetwork.SecurityRuleProtocolTCP),
+						Access:                   to.Ptr(armnetwork.SecurityRuleAccessAllow),
+						Priority:                 to.Ptr[int32](100),
+						Description:              to.Ptr("sample network security group inbound port 22"),
+						Direction:                to.Ptr(armnetwork.SecurityRuleDirectionInbound),
 					},
 				},
 				// outbound
 				{
-					Name: to.StringPtr("sample_outbound_22"), //
+					Name: to.Ptr("sample_outbound_22"), //
 					Properties: &armnetwork.SecurityRulePropertiesFormat{
-						SourceAddressPrefix:      to.StringPtr("0.0.0.0/0"),
-						SourcePortRange:          to.StringPtr("*"),
-						DestinationAddressPrefix: to.StringPtr("0.0.0.0/0"),
-						DestinationPortRange:     to.StringPtr("22"),
-						Protocol:                 armnetwork.SecurityRuleProtocolTCP.ToPtr(),
-						Access:                   armnetwork.SecurityRuleAccessAllow.ToPtr(),
-						Priority:                 to.Int32Ptr(100),
-						Description:              to.StringPtr("sample network security group outbound port 22"),
-						Direction:                armnetwork.SecurityRuleDirectionOutbound.ToPtr(),
+						SourceAddressPrefix:      to.Ptr("0.0.0.0/0"),
+						SourcePortRange:          to.Ptr("*"),
+						DestinationAddressPrefix: to.Ptr("0.0.0.0/0"),
+						DestinationPortRange:     to.Ptr("22"),
+						Protocol:                 to.Ptr(armnetwork.SecurityRuleProtocolTCP),
+						Access:                   to.Ptr(armnetwork.SecurityRuleAccessAllow),
+						Priority:                 to.Ptr[int32](100),
+						Description:              to.Ptr("sample network security group outbound port 22"),
+						Direction:                to.Ptr(armnetwork.SecurityRuleDirectionOutbound),
 					},
 				},
 			},
@@ -343,28 +363,34 @@ func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential
 	return &resp.SecurityGroup, nil
 }
 
-func deleteNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	nsgClient := armnetwork.NewSecurityGroupsClient(subscriptionId, cred, nil)
+func deleteNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) error {
+	nsgClient, err := armnetwork.NewSecurityGroupsClient(subscriptionId, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResponse, err := nsgClient.BeginDelete(ctx, resourceGroupName, nsgName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResponse.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }
 
 func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.PublicIPAddress, error) {
-	publicIPAddressClient := armnetwork.NewPublicIPAddressesClient(subscriptionId, cred, nil)
+	publicIPAddressClient, err := armnetwork.NewPublicIPAddressesClient(subscriptionId, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	parameters := armnetwork.PublicIPAddress{
-		Location: to.StringPtr(location),
+		Location: to.Ptr(location),
 		Properties: &armnetwork.PublicIPAddressPropertiesFormat{
-			PublicIPAllocationMethod: armnetwork.IPAllocationMethodStatic.ToPtr(), // Static or Dynamic
+			PublicIPAllocationMethod: to.Ptr(armnetwork.IPAllocationMethodStatic), // Static or Dynamic
 		},
 	}
 
@@ -380,44 +406,50 @@ func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwo
 	return &resp.PublicIPAddress, err
 }
 
-func deletePublicIP(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	publicIPAddressClient := armnetwork.NewPublicIPAddressesClient(subscriptionId, cred, nil)
+func deletePublicIP(ctx context.Context, cred azcore.TokenCredential) error {
+	publicIPAddressClient, err := armnetwork.NewPublicIPAddressesClient(subscriptionId, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResponse, err := publicIPAddressClient.BeginDelete(ctx, resourceGroupName, publicIPName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResponse.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, err
+	return nil
 }
 
 func createNetWorkInterface(ctx context.Context, cred azcore.TokenCredential, subnetID string, publicIPID string, networkSecurityGroupID string) (*armnetwork.Interface, error) {
-	nicClient := armnetwork.NewInterfacesClient(subscriptionId, cred, nil)
+	nicClient, err := armnetwork.NewInterfacesClient(subscriptionId, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	parameters := armnetwork.Interface{
-		Location: to.StringPtr(location),
+		Location: to.Ptr(location),
 		Properties: &armnetwork.InterfacePropertiesFormat{
 			//NetworkSecurityGroup:
 			IPConfigurations: []*armnetwork.InterfaceIPConfiguration{
 				{
-					Name: to.StringPtr("ipConfig"),
+					Name: to.Ptr("ipConfig"),
 					Properties: &armnetwork.InterfaceIPConfigurationPropertiesFormat{
-						PrivateIPAllocationMethod: armnetwork.IPAllocationMethodDynamic.ToPtr(),
+						PrivateIPAllocationMethod: to.Ptr(armnetwork.IPAllocationMethodDynamic),
 						Subnet: &armnetwork.Subnet{
-							ID: to.StringPtr(subnetID),
+							ID: to.Ptr(subnetID),
 						},
 						PublicIPAddress: &armnetwork.PublicIPAddress{
-							ID: to.StringPtr(publicIPID),
+							ID: to.Ptr(publicIPID),
 						},
 					},
 				},
 			},
 			NetworkSecurityGroup: &armnetwork.SecurityGroup{
-				ID: to.StringPtr(networkSecurityGroupID),
+				ID: to.Ptr(networkSecurityGroupID),
 			},
 		},
 	}
@@ -435,24 +467,30 @@ func createNetWorkInterface(ctx context.Context, cred azcore.TokenCredential, su
 	return &resp.Interface, err
 }
 
-func deleteNetWorkInterface(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	nicClient := armnetwork.NewInterfacesClient(subscriptionId, cred, nil)
+func deleteNetWorkInterface(ctx context.Context, cred azcore.TokenCredential) error {
+	nicClient, err := armnetwork.NewInterfacesClient(subscriptionId, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResponse, err := nicClient.BeginDelete(ctx, resourceGroupName, nicName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResponse.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return resp.RawResponse, err
+	return nil
 }
 
 func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, networkInterfaceID string) (*armcompute.VirtualMachine, error) {
-	vmClient := armcompute.NewVirtualMachinesClient(subscriptionId, cred, nil)
+	vmClient, err := armcompute.NewVirtualMachinesClient(subscriptionId, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	//require ssh key for authentication on linux
 	//sshPublicKeyPath := "/home/user/.ssh/id_rsa.pub"
@@ -466,50 +504,50 @@ func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, netw
 	//}
 
 	parameters := armcompute.VirtualMachine{
-		Location: to.StringPtr(location),
+		Location: to.Ptr(location),
 		Identity: &armcompute.VirtualMachineIdentity{
-			Type: armcompute.ResourceIdentityTypeNone.ToPtr(),
+			Type: to.Ptr(armcompute.ResourceIdentityTypeNone),
 		},
 		Properties: &armcompute.VirtualMachineProperties{
 			StorageProfile: &armcompute.StorageProfile{
 				ImageReference: &armcompute.ImageReference{
 					// search image reference
 					// az vm image list --output table
-					Offer:     to.StringPtr("WindowsServer"),
-					Publisher: to.StringPtr("MicrosoftWindowsServer"),
-					SKU:       to.StringPtr("2019-Datacenter"),
-					Version:   to.StringPtr("latest"),
+					Offer:     to.Ptr("WindowsServer"),
+					Publisher: to.Ptr("MicrosoftWindowsServer"),
+					SKU:       to.Ptr("2019-Datacenter"),
+					Version:   to.Ptr("latest"),
 					//require ssh key for authentication on linux
-					//Offer:     to.StringPtr("UbuntuServer"),
-					//Publisher: to.StringPtr("Canonical"),
-					//SKU:       to.StringPtr("18.04-LTS"),
-					//Version:   to.StringPtr("latest"),
+					//Offer:     to.Ptr("UbuntuServer"),
+					//Publisher: to.Ptr("Canonical"),
+					//SKU:       to.Ptr("18.04-LTS"),
+					//Version:   to.Ptr("latest"),
 				},
 				OSDisk: &armcompute.OSDisk{
-					Name:         to.StringPtr(diskName),
-					CreateOption: armcompute.DiskCreateOptionTypesFromImage.ToPtr(),
-					Caching:      armcompute.CachingTypesReadWrite.ToPtr(),
+					Name:         to.Ptr(diskName),
+					CreateOption: to.Ptr(armcompute.DiskCreateOptionTypesFromImage),
+					Caching:      to.Ptr(armcompute.CachingTypesReadWrite),
 					ManagedDisk: &armcompute.ManagedDiskParameters{
-						StorageAccountType: armcompute.StorageAccountTypesStandardLRS.ToPtr(), // OSDisk type Standard/Premium HDD/SSD
+						StorageAccountType: to.Ptr(armcompute.StorageAccountTypesStandardLRS), // OSDisk type Standard/Premium HDD/SSD
 					},
-					//DiskSizeGB: to.Int32Ptr(100), // default 127G
+					//DiskSizeGB: to.Ptr[int32](100), // default 127G
 				},
 			},
 			HardwareProfile: &armcompute.HardwareProfile{
-				VMSize: armcompute.VirtualMachineSizeTypes("Standard_F2s").ToPtr(), // VM size include vCPUs,RAM,Data Disks,Temp storage.
+				VMSize: to.Ptr(armcompute.VirtualMachineSizeTypes("Standard_F2s")), // VM size include vCPUs,RAM,Data Disks,Temp storage.
 			},
 			OSProfile: &armcompute.OSProfile{ //
-				ComputerName:  to.StringPtr("sample-compute"),
-				AdminUsername: to.StringPtr("sample-user"),
-				AdminPassword: to.StringPtr("Password01!@#"),
+				ComputerName:  to.Ptr("sample-compute"),
+				AdminUsername: to.Ptr("sample-user"),
+				AdminPassword: to.Ptr("Password01!@#"),
 				//require ssh key for authentication on linux
 				//LinuxConfiguration: &armcompute.LinuxConfiguration{
 				//	DisablePasswordAuthentication: to.BoolPtr(true),
 				//	SSH: &armcompute.SSHConfiguration{
 				//		PublicKeys: []*armcompute.SSHPublicKey{
 				//			{
-				//				Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", "sample-user")),
-				//				KeyData: to.StringPtr(string(sshBytes)),
+				//				Path:    to.Ptr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", "sample-user")),
+				//				KeyData: to.Ptr(string(sshBytes)),
 				//			},
 				//		},
 				//	},
@@ -518,7 +556,7 @@ func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, netw
 			NetworkProfile: &armcompute.NetworkProfile{
 				NetworkInterfaces: []*armcompute.NetworkInterfaceReference{
 					{
-						ID: to.StringPtr(networkInterfaceID),
+						ID: to.Ptr(networkInterfaceID),
 					},
 				},
 			},
@@ -538,33 +576,39 @@ func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, netw
 	return &resp.VirtualMachine, nil
 }
 
-func deleteVirtualMachine(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	vmClient := armcompute.NewVirtualMachinesClient(subscriptionId, cred, nil)
+func deleteVirtualMachine(ctx context.Context, cred azcore.TokenCredential) error {
+	vmClient, err := armcompute.NewVirtualMachinesClient(subscriptionId, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResponse, err := vmClient.BeginDelete(ctx, resourceGroupName, vmName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResponse.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return resp.RawResponse, nil
+	return nil
 }
 
-func deleteDisk(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	diskClient := armcompute.NewDisksClient(subscriptionId, cred, nil)
+func deleteDisk(ctx context.Context, cred azcore.TokenCredential) error {
+	diskClient, err := armcompute.NewDisksClient(subscriptionId, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResponse, err := diskClient.BeginDelete(ctx, resourceGroupName, diskName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResponse.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

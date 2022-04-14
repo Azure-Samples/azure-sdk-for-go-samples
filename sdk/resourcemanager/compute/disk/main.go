@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -78,7 +77,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -87,22 +86,25 @@ func main() {
 }
 
 func createDisk(ctx context.Context, cred azcore.TokenCredential) (*armcompute.Disk, error) {
-	disksClient := armcompute.NewDisksClient(subscriptionID, cred, nil)
+	disksClient, err := armcompute.NewDisksClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := disksClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		diskName,
 		armcompute.Disk{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			SKU: &armcompute.DiskSKU{
-				Name: armcompute.DiskStorageAccountTypesStandardLRS.ToPtr(),
+				Name: to.Ptr(armcompute.DiskStorageAccountTypesStandardLRS),
 			},
 			Properties: &armcompute.DiskProperties{
 				CreationData: &armcompute.CreationData{
-					CreateOption: armcompute.DiskCreateOptionEmpty.ToPtr(),
+					CreateOption: to.Ptr(armcompute.DiskCreateOptionEmpty),
 				},
-				DiskSizeGB: to.Int32Ptr(64),
+				DiskSizeGB: to.Ptr[int32](64),
 			},
 		},
 		nil,
@@ -120,38 +122,41 @@ func createDisk(ctx context.Context, cred azcore.TokenCredential) (*armcompute.D
 }
 
 func createVault(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Vault, error) {
-	vaultsClient := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
+	vaultsClient, err := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := vaultsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		vaultName,
 		armkeyvault.VaultCreateOrUpdateParameters{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armkeyvault.VaultProperties{
 				SKU: &armkeyvault.SKU{
-					Family: armkeyvault.SKUFamilyA.ToPtr(),
-					Name:   armkeyvault.SKUNameStandard.ToPtr(),
+					Family: to.Ptr(armkeyvault.SKUFamilyA),
+					Name:   to.Ptr(armkeyvault.SKUNameStandard),
 				},
-				TenantID: to.StringPtr(TenantID),
+				TenantID: to.Ptr(TenantID),
 				AccessPolicies: []*armkeyvault.AccessPolicyEntry{
 					{
-						TenantID: to.StringPtr(TenantID),
-						ObjectID: to.StringPtr("00000000-0000-0000-0000-000000000000"),
+						TenantID: to.Ptr(TenantID),
+						ObjectID: to.Ptr("00000000-0000-0000-0000-000000000000"),
 						Permissions: &armkeyvault.Permissions{
 							Keys: []*armkeyvault.KeyPermissions{
-								armkeyvault.KeyPermissionsGet.ToPtr(),
-								armkeyvault.KeyPermissionsList.ToPtr(),
-								armkeyvault.KeyPermissionsCreate.ToPtr(),
+								to.Ptr(armkeyvault.KeyPermissionsGet),
+								to.Ptr(armkeyvault.KeyPermissionsList),
+								to.Ptr(armkeyvault.KeyPermissionsCreate),
 							},
 							Secrets: []*armkeyvault.SecretPermissions{
-								armkeyvault.SecretPermissionsGet.ToPtr(),
-								armkeyvault.SecretPermissionsList.ToPtr(),
+								to.Ptr(armkeyvault.SecretPermissionsGet),
+								to.Ptr(armkeyvault.SecretPermissionsList),
 							},
 							Certificates: []*armkeyvault.CertificatePermissions{
-								armkeyvault.CertificatePermissionsGet.ToPtr(),
-								armkeyvault.CertificatePermissionsList.ToPtr(),
-								armkeyvault.CertificatePermissionsCreate.ToPtr(),
+								to.Ptr(armkeyvault.CertificatePermissionsGet),
+								to.Ptr(armkeyvault.CertificatePermissionsList),
+								to.Ptr(armkeyvault.CertificatePermissionsCreate),
 							},
 						},
 					},
@@ -171,7 +176,10 @@ func createVault(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault
 	return &resp.Vault, nil
 }
 func createKey(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Key, error) {
-	keysClient := armkeyvault.NewKeysClient(subscriptionID, cred, nil)
+	keysClient, err := armkeyvault.NewKeysClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	secretResp, err := keysClient.CreateIfNotExist(
 		ctx,
@@ -181,14 +189,14 @@ func createKey(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.K
 		armkeyvault.KeyCreateParameters{
 			Properties: &armkeyvault.KeyProperties{
 				Attributes: &armkeyvault.KeyAttributes{
-					Enabled: to.BoolPtr(true),
+					Enabled: to.Ptr(true),
 				},
-				KeySize: to.Int32Ptr(2048),
+				KeySize: to.Ptr[int32](2048),
 				KeyOps: []*armkeyvault.JSONWebKeyOperation{
-					armkeyvault.JSONWebKeyOperationEncrypt.ToPtr(),
-					armkeyvault.JSONWebKeyOperationDecrypt.ToPtr(),
+					to.Ptr(armkeyvault.JSONWebKeyOperationEncrypt),
+					to.Ptr(armkeyvault.JSONWebKeyOperationDecrypt),
 				},
-				Kty: armkeyvault.JSONWebKeyTypeRSA.ToPtr(),
+				Kty: to.Ptr(armkeyvault.JSONWebKeyTypeRSA),
 			},
 		},
 		nil,
@@ -201,23 +209,26 @@ func createKey(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.K
 }
 
 func diskEncryptionSets(ctx context.Context, cred azcore.TokenCredential, vaultID, keyURL string) (*armcompute.DiskEncryptionSet, error) {
-	diskEncryptionSetsClient := armcompute.NewDiskEncryptionSetsClient(subscriptionID, cred, nil)
+	diskEncryptionSetsClient, err := armcompute.NewDiskEncryptionSetsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := diskEncryptionSetsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		diskEncryptionSetName,
 		armcompute.DiskEncryptionSet{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Identity: &armcompute.EncryptionSetIdentity{
-				Type: armcompute.DiskEncryptionSetIdentityTypeSystemAssigned.ToPtr(),
+				Type: to.Ptr(armcompute.DiskEncryptionSetIdentityTypeSystemAssigned),
 			},
 			Properties: &armcompute.EncryptionSetProperties{
 				ActiveKey: &armcompute.KeyForDiskEncryptionSet{
 					SourceVault: &armcompute.SourceVault{
-						ID: to.StringPtr(vaultID),
+						ID: to.Ptr(vaultID),
 					},
-					KeyURL: to.StringPtr(keyURL),
+					KeyURL: to.Ptr(keyURL),
 				},
 			},
 		},
@@ -236,13 +247,16 @@ func diskEncryptionSets(ctx context.Context, cred azcore.TokenCredential, vaultI
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -251,17 +265,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

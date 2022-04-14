@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -62,7 +61,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -71,16 +70,19 @@ func main() {
 }
 
 func createProximityPlacement(ctx context.Context, cred azcore.TokenCredential) (*armcompute.ProximityPlacementGroup, error) {
-	proximityPlacementGroupClient := armcompute.NewProximityPlacementGroupsClient(subscriptionID, cred, nil)
+	proximityPlacementGroupClient, err := armcompute.NewProximityPlacementGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := proximityPlacementGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		proximityPlacementGroupName,
 		armcompute.ProximityPlacementGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armcompute.ProximityPlacementGroupProperties{
-				ProximityPlacementGroupType: armcompute.ProximityPlacementGroupTypeStandard.ToPtr(),
+				ProximityPlacementGroupType: to.Ptr(armcompute.ProximityPlacementGroupTypeStandard),
 			},
 		},
 		nil,
@@ -93,7 +95,10 @@ func createProximityPlacement(ctx context.Context, cred azcore.TokenCredential) 
 }
 
 func getProximityPlacement(ctx context.Context, cred azcore.TokenCredential) (*armcompute.ProximityPlacementGroup, error) {
-	proximityPlacementGroupClient := armcompute.NewProximityPlacementGroupsClient(subscriptionID, cred, nil)
+	proximityPlacementGroupClient, err := armcompute.NewProximityPlacementGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := proximityPlacementGroupClient.Get(ctx, resourceGroupName, proximityPlacementGroupName, nil)
 	if err != nil {
@@ -104,13 +109,16 @@ func getProximityPlacement(ctx context.Context, cred azcore.TokenCredential) (*a
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -119,17 +127,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

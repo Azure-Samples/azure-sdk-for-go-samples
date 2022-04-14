@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -48,23 +47,25 @@ func main() {
 	}
 	log.Println("availability set:", *availabilitySets.ID)
 
-	availabilitySetList := listAvailabilitySet(ctx, cred)
-	for i, a := range availabilitySetList {
-		log.Println(i, *a.ID)
-	}
-
-	availabilitySetSizes, err := listAvailabilitySizes(ctx, cred)
+	availabilitySetList, err := listAvailabilitySet(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("list availability size:", len(availabilitySetSizes.Value))
-	for i, v := range availabilitySetSizes.Value {
-		log.Println(i, *v.Name)
+	for i, v := range availabilitySetList {
+		log.Println(i, *v.ID)
+	}
+
+	availabilitySetSizesList, err := listAvailabilitySizes(ctx, cred)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for i, v := range availabilitySetSizesList {
+		log.Println(i, v.Name)
 	}
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -73,20 +74,23 @@ func main() {
 }
 
 func createAvailabilitySet(ctx context.Context, cred azcore.TokenCredential) (*armcompute.AvailabilitySet, error) {
-	availabilitySetsClient := armcompute.NewAvailabilitySetsClient(subscriptionID, cred, nil)
+	availabilitySetsClient, err := armcompute.NewAvailabilitySetsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := availabilitySetsClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		availabilitySetName,
 		armcompute.AvailabilitySet{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armcompute.AvailabilitySetProperties{
-				PlatformFaultDomainCount:  to.Int32Ptr(1),
-				PlatformUpdateDomainCount: to.Int32Ptr(1),
+				PlatformFaultDomainCount:  to.Ptr[int32](1),
+				PlatformUpdateDomainCount: to.Ptr[int32](1),
 			},
 			SKU: &armcompute.SKU{
-				Name: to.StringPtr("Aligned"),
+				Name: to.Ptr("Aligned"),
 			},
 		},
 		nil,
@@ -98,39 +102,55 @@ func createAvailabilitySet(ctx context.Context, cred azcore.TokenCredential) (*a
 	return &resp.AvailabilitySet, nil
 }
 
-func listAvailabilitySet(ctx context.Context, cred azcore.TokenCredential) []*armcompute.AvailabilitySet {
-	availabilitySetsClient := armcompute.NewAvailabilitySetsClient(subscriptionID, cred, nil)
-
-	availability := availabilitySetsClient.List(resourceGroupName, nil)
-
-	availabilitySet := make([]*armcompute.AvailabilitySet, 0)
-	for availability.NextPage(ctx) {
-		resp := availability.PageResponse()
-		availabilitySet = append(availabilitySet, resp.AvailabilitySetListResult.Value...)
-	}
-
-	return availabilitySet
-}
-
-func listAvailabilitySizes(ctx context.Context, cred azcore.TokenCredential) (*armcompute.VirtualMachineSizeListResult, error) {
-	availabilitySetsClient := armcompute.NewAvailabilitySetsClient(subscriptionID, cred, nil)
-
-	availability, err := availabilitySetsClient.ListAvailableSizes(ctx, resourceGroupName, availabilitySetName, nil)
+func listAvailabilitySet(ctx context.Context, cred azcore.TokenCredential) ([]*armcompute.AvailabilitySet, error) {
+	availabilitySetsClient, err := armcompute.NewAvailabilitySetsClient(subscriptionID, cred, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return &availability.VirtualMachineSizeListResult, nil
+	pager := availabilitySetsClient.List(resourceGroupName, nil)
+	availabilitySets := make([]*armcompute.AvailabilitySet, 0)
+	for pager.More() {
+		nextResult, err := pager.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
+		availabilitySets = append(availabilitySets, nextResult.Value...)
+	}
+
+	return availabilitySets, nil
+}
+
+func listAvailabilitySizes(ctx context.Context, cred azcore.TokenCredential) ([]*armcompute.VirtualMachineSize, error) {
+	availabilitySetsClient, err := armcompute.NewAvailabilitySetsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	pager := availabilitySetsClient.ListAvailableSizes(resourceGroupName, availabilitySetName, nil)
+	availabilitySizes := make([]*armcompute.VirtualMachineSize, 0)
+	for pager.More() {
+		nextResult, err := pager.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
+		availabilitySizes = append(availabilitySizes, nextResult.Value...)
+	}
+
+	return availabilitySizes, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -139,17 +159,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

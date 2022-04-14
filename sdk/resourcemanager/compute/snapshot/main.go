@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -70,7 +69,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -79,22 +78,25 @@ func main() {
 }
 
 func createDisk(ctx context.Context, cred azcore.TokenCredential) (*armcompute.Disk, error) {
-	disksClient := armcompute.NewDisksClient(subscriptionID, cred, nil)
+	disksClient, err := armcompute.NewDisksClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := disksClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		diskName,
 		armcompute.Disk{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			SKU: &armcompute.DiskSKU{
-				Name: armcompute.DiskStorageAccountTypesStandardLRS.ToPtr(),
+				Name: to.Ptr(armcompute.DiskStorageAccountTypesStandardLRS),
 			},
 			Properties: &armcompute.DiskProperties{
 				CreationData: &armcompute.CreationData{
-					CreateOption: armcompute.DiskCreateOptionEmpty.ToPtr(),
+					CreateOption: to.Ptr(armcompute.DiskCreateOptionEmpty),
 				},
-				DiskSizeGB: to.Int32Ptr(64),
+				DiskSizeGB: to.Ptr[int32](64),
 			},
 		},
 		nil,
@@ -112,18 +114,21 @@ func createDisk(ctx context.Context, cred azcore.TokenCredential) (*armcompute.D
 }
 
 func createSnapshot(ctx context.Context, cred azcore.TokenCredential, diskID string) (*armcompute.Snapshot, error) {
-	snapshotClient := armcompute.NewSnapshotsClient(subscriptionID, cred, nil)
+	snapshotClient, err := armcompute.NewSnapshotsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := snapshotClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		snapshotName,
 		armcompute.Snapshot{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armcompute.SnapshotProperties{
 				CreationData: &armcompute.CreationData{
-					CreateOption:     armcompute.DiskCreateOptionCopy.ToPtr(),
-					SourceResourceID: to.StringPtr(diskID),
+					CreateOption:     to.Ptr(armcompute.DiskCreateOptionCopy),
+					SourceResourceID: to.Ptr(diskID),
 				},
 			},
 		},
@@ -142,26 +147,29 @@ func createSnapshot(ctx context.Context, cred azcore.TokenCredential, diskID str
 }
 
 func createImage(ctx context.Context, cred azcore.TokenCredential, snapshotID string) (*armcompute.Image, error) {
-	snapshotClient := armcompute.NewImagesClient(subscriptionID, cred, nil)
+	snapshotClient, err := armcompute.NewImagesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := snapshotClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		imageName,
 		armcompute.Image{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armcompute.ImageProperties{
 				StorageProfile: &armcompute.ImageStorageProfile{
 					OSDisk: &armcompute.ImageOSDisk{
-						OSType: armcompute.OperatingSystemTypesWindows.ToPtr(),
+						OSType: to.Ptr(armcompute.OperatingSystemTypesWindows),
 						Snapshot: &armcompute.SubResource{
-							ID: to.StringPtr(snapshotID),
+							ID: to.Ptr(snapshotID),
 						},
-						OSState: armcompute.OperatingSystemStateTypesGeneralized.ToPtr(),
+						OSState: to.Ptr(armcompute.OperatingSystemStateTypesGeneralized),
 					},
-					ZoneResilient: to.BoolPtr(false),
+					ZoneResilient: to.Ptr(false),
 				},
-				HyperVGeneration: armcompute.HyperVGenerationTypesV1.ToPtr(),
+				HyperVGeneration: to.Ptr(armcompute.HyperVGenerationTypesV1),
 			},
 		},
 		nil,
@@ -179,13 +187,16 @@ func createImage(ctx context.Context, cred azcore.TokenCredential, snapshotID st
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -194,17 +205,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -75,7 +74,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err := cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -84,18 +83,21 @@ func main() {
 }
 
 func createDedicatedHostGroups(ctx context.Context, cred azcore.TokenCredential) (*armcompute.DedicatedHostGroup, error) {
-	dedicatedHostGroupsClient := armcompute.NewDedicatedHostGroupsClient(subscriptionID, cred, nil)
+	dedicatedHostGroupsClient, err := armcompute.NewDedicatedHostGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := dedicatedHostGroupsClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		hostGroupName,
 		armcompute.DedicatedHostGroup{
-			Location: to.StringPtr("eastus"),
+			Location: to.Ptr("eastus"),
 			Properties: &armcompute.DedicatedHostGroupProperties{
-				PlatformFaultDomainCount: to.Int32Ptr(3),
+				PlatformFaultDomainCount: to.Ptr[int32](3),
 			},
-			Zones: []*string{to.StringPtr("1")},
+			Zones: []*string{to.Ptr("1")},
 		},
 		nil,
 	)
@@ -107,7 +109,10 @@ func createDedicatedHostGroups(ctx context.Context, cred azcore.TokenCredential)
 }
 
 func getDedicatedHostGroups(ctx context.Context, cred azcore.TokenCredential) (*armcompute.DedicatedHostGroup, error) {
-	dedicatedHostGroupsClient := armcompute.NewDedicatedHostGroupsClient(subscriptionID, cred, nil)
+	dedicatedHostGroupsClient, err := armcompute.NewDedicatedHostGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := dedicatedHostGroupsClient.Get(ctx, resourceGroupName, hostGroupName, nil)
 	if err != nil {
@@ -118,7 +123,10 @@ func getDedicatedHostGroups(ctx context.Context, cred azcore.TokenCredential) (*
 }
 
 func createDedicatedHost(ctx context.Context, cred azcore.TokenCredential) (*armcompute.DedicatedHost, error) {
-	dedicatedHostClient := armcompute.NewDedicatedHostsClient(subscriptionID, cred, nil)
+	dedicatedHostClient, err := armcompute.NewDedicatedHostsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := dedicatedHostClient.BeginCreateOrUpdate(
 		ctx,
@@ -126,12 +134,12 @@ func createDedicatedHost(ctx context.Context, cred azcore.TokenCredential) (*arm
 		hostGroupName,
 		hostName,
 		armcompute.DedicatedHost{
-			Location: to.StringPtr("eastus"),
+			Location: to.Ptr("eastus"),
 			Properties: &armcompute.DedicatedHostProperties{
-				PlatformFaultDomain: to.Int32Ptr(1),
+				PlatformFaultDomain: to.Ptr[int32](1),
 			},
 			SKU: &armcompute.SKU{
-				Name: to.StringPtr("DSv3-Type1"),
+				Name: to.Ptr("DSv3-Type1"),
 			},
 		},
 		nil,
@@ -148,7 +156,10 @@ func createDedicatedHost(ctx context.Context, cred azcore.TokenCredential) (*arm
 }
 
 func getDedicatedHost(ctx context.Context, cred azcore.TokenCredential) (*armcompute.DedicatedHost, error) {
-	dedicatedHostClient := armcompute.NewDedicatedHostsClient(subscriptionID, cred, nil)
+	dedicatedHostClient, err := armcompute.NewDedicatedHostsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := dedicatedHostClient.Get(ctx, resourceGroupName, hostGroupName, hostName, nil)
 	if err != nil {
@@ -159,13 +170,16 @@ func getDedicatedHost(ctx context.Context, cred azcore.TokenCredential) (*armcom
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -174,17 +188,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

@@ -5,8 +5,8 @@ go 1.18
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v0.23.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v0.14.0
-	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute v0.6.0
-	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources v0.4.0
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute v0.7.0
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources v0.5.0
 )
 
 require (

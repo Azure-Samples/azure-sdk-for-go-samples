@@ -108,7 +108,7 @@ func listAvailabilitySet(ctx context.Context, cred azcore.TokenCredential) ([]*a
 		return nil, err
 	}
 
-	pager := availabilitySetsClient.List(resourceGroupName, nil)
+	pager := availabilitySetsClient.NewListPager(resourceGroupName, nil)
 	availabilitySets := make([]*armcompute.AvailabilitySet, 0)
 	for pager.More() {
 		nextResult, err := pager.NextPage(ctx)
@@ -127,7 +127,7 @@ func listAvailabilitySizes(ctx context.Context, cred azcore.TokenCredential) ([]
 		return nil, err
 	}
 
-	pager := availabilitySetsClient.ListAvailableSizes(resourceGroupName, availabilitySetName, nil)
+	pager := availabilitySetsClient.NewListAvailableSizesPager(resourceGroupName, availabilitySetName, nil)
 	availabilitySizes := make([]*armcompute.VirtualMachineSize, 0)
 	for pager.More() {
 		nextResult, err := pager.NextPage(ctx)

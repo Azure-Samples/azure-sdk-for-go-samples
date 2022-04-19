@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -81,7 +80,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -90,18 +89,21 @@ func main() {
 }
 
 func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.VirtualNetwork, error) {
-	virtualNetworkClient := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
+	virtualNetworkClient, err := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := virtualNetworkClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		virtualNetworkName,
 		armnetwork.VirtualNetwork{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armnetwork.VirtualNetworkPropertiesFormat{
 				AddressSpace: &armnetwork.AddressSpace{
 					AddressPrefixes: []*string{
-						to.StringPtr("10.1.0.0/16"),
+						to.Ptr("10.1.0.0/16"),
 					},
 				},
 			},
@@ -120,7 +122,10 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 }
 
 func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.Subnet, error) {
-	subnetsClient := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
+	subnetsClient, err := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := subnetsClient.BeginCreateOrUpdate(
 		ctx,
@@ -129,7 +134,7 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 		subnetName,
 		armnetwork.Subnet{
 			Properties: &armnetwork.SubnetPropertiesFormat{
-				AddressPrefix: to.StringPtr("10.1.0.0/24"),
+				AddressPrefix: to.Ptr("10.1.0.0/24"),
 			},
 		},
 		nil)
@@ -146,22 +151,25 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 }
 
 func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armnetwork.Interface, error) {
-	nicClient := armnetwork.NewInterfacesClient(subscriptionID, cred, nil)
+	nicClient, err := armnetwork.NewInterfacesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := nicClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		networkInterfaceName,
 		armnetwork.Interface{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armnetwork.InterfacePropertiesFormat{
 				IPConfigurations: []*armnetwork.InterfaceIPConfiguration{
 					{
-						Name: to.StringPtr("ipConfig"),
+						Name: to.Ptr("ipConfig"),
 						Properties: &armnetwork.InterfaceIPConfigurationPropertiesFormat{
-							PrivateIPAllocationMethod: armnetwork.IPAllocationMethodDynamic.ToPtr(),
+							PrivateIPAllocationMethod: to.Ptr(armnetwork.IPAllocationMethodDynamic),
 							Subnet: &armnetwork.Subnet{
-								ID: to.StringPtr(subnetID),
+								ID: to.Ptr(subnetID),
 							},
 						},
 					},
@@ -182,46 +190,49 @@ func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID string
 }
 
 func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, networkInterfaceID string) (*armcompute.VirtualMachine, error) {
-	vmClient := armcompute.NewVirtualMachinesClient(subscriptionID, cred, nil)
+	vmClient, err := armcompute.NewVirtualMachinesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	parameters := armcompute.VirtualMachine{
-		Location: to.StringPtr(location),
+		Location: to.Ptr(location),
 		Identity: &armcompute.VirtualMachineIdentity{
-			Type: armcompute.ResourceIdentityTypeNone.ToPtr(),
+			Type: to.Ptr(armcompute.ResourceIdentityTypeNone),
 		},
 		Properties: &armcompute.VirtualMachineProperties{
 			StorageProfile: &armcompute.StorageProfile{
 				ImageReference: &armcompute.ImageReference{
 					// search image reference
 					// az vm image list --output table
-					Offer:     to.StringPtr("WindowsServer"),
-					Publisher: to.StringPtr("MicrosoftWindowsServer"),
-					SKU:       to.StringPtr("2019-Datacenter"),
-					Version:   to.StringPtr("latest"),
+					Offer:     to.Ptr("WindowsServer"),
+					Publisher: to.Ptr("MicrosoftWindowsServer"),
+					SKU:       to.Ptr("2019-Datacenter"),
+					Version:   to.Ptr("latest"),
 				},
 				OSDisk: &armcompute.OSDisk{
-					Name:         to.StringPtr(osDiskName),
-					CreateOption: armcompute.DiskCreateOptionTypesFromImage.ToPtr(),
-					Caching:      armcompute.CachingTypesReadWrite.ToPtr(),
+					Name:         to.Ptr(osDiskName),
+					CreateOption: to.Ptr(armcompute.DiskCreateOptionTypesFromImage),
+					Caching:      to.Ptr(armcompute.CachingTypesReadWrite),
 					ManagedDisk: &armcompute.ManagedDiskParameters{
-						StorageAccountType: armcompute.StorageAccountTypesStandardLRS.ToPtr(), // OSDisk type Standard/Premium HDD/SSD
+						StorageAccountType: to.Ptr(armcompute.StorageAccountTypesStandardLRS), // OSDisk type Standard/Premium HDD/SSD
 					},
 				},
 			},
 			HardwareProfile: &armcompute.HardwareProfile{
-				VMSize: armcompute.VirtualMachineSizeTypes("Standard_F2s").ToPtr(), // VM size include vCPUs,RAM,Data Disks,Temp storage.
+				VMSize: to.Ptr(armcompute.VirtualMachineSizeTypes("Standard_F2s")), // VM size include vCPUs,RAM,Data Disks,Temp storage.
 			},
 			OSProfile: &armcompute.OSProfile{ //
-				ComputerName:  to.StringPtr("sample-compute"),
-				AdminUsername: to.StringPtr("sample-user"),
-				AdminPassword: to.StringPtr("Password01!@#"),
+				ComputerName:  to.Ptr("sample-compute"),
+				AdminUsername: to.Ptr("sample-user"),
+				AdminPassword: to.Ptr("Password01!@#"),
 			},
 			NetworkProfile: &armcompute.NetworkProfile{
 				NetworkInterfaces: []*armcompute.NetworkInterfaceReference{
 					{
-						ID: to.StringPtr(networkInterfaceID),
+						ID: to.Ptr(networkInterfaceID),
 						Properties: &armcompute.NetworkInterfaceReferenceProperties{
-							Primary: to.BoolPtr(true),
+							Primary: to.Ptr(true),
 						},
 					},
 				},
@@ -243,45 +254,48 @@ func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, netw
 }
 
 func createMetricAlerts(ctx context.Context, cred azcore.TokenCredential, resourceURI string) (*armmonitor.MetricAlertResource, error) {
-	metricAlertsClient := armmonitor.NewMetricAlertsClient(subscriptionID, cred, nil)
+	metricAlertsClient, err := armmonitor.NewMetricAlertsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := metricAlertsClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		metricAlertName,
 		armmonitor.MetricAlertResource{
-			Location: to.StringPtr("global"),
+			Location: to.Ptr("global"),
 			Properties: &armmonitor.MetricAlertProperties{
-				Description: to.StringPtr("This is the description of the rule"),
-				Severity:    to.Int32Ptr(3),
-				Enabled:     to.BoolPtr(true),
+				Description: to.Ptr("This is the description of the rule"),
+				Severity:    to.Ptr[int32](3),
+				Enabled:     to.Ptr(true),
 				Scopes: []*string{
-					to.StringPtr(resourceURI),
+					to.Ptr(resourceURI),
 				},
-				EvaluationFrequency:  to.StringPtr("PT1M"),
-				WindowSize:           to.StringPtr("PT15M"),
-				TargetResourceType:   to.StringPtr("Microsoft.Compute/virtualMachines"),
-				TargetResourceRegion: to.StringPtr("southcentralus"),
+				EvaluationFrequency:  to.Ptr("PT1M"),
+				WindowSize:           to.Ptr("PT15M"),
+				TargetResourceType:   to.Ptr("Microsoft.Compute/virtualMachines"),
+				TargetResourceRegion: to.Ptr("southcentralus"),
 				Criteria: &armmonitor.MetricAlertMultipleResourceMultipleMetricCriteria{
-					ODataType: armmonitor.OdatatypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria.ToPtr(),
+					ODataType: to.Ptr(armmonitor.OdatatypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria),
 					AllOf: []armmonitor.MultiMetricCriteriaClassification{
 						&armmonitor.DynamicMetricCriteria{
-							CriterionType:   armmonitor.CriterionTypeDynamicThresholdCriterion.ToPtr(),
-							Name:            to.StringPtr("High_CPU_80"),
-							MetricName:      to.StringPtr("Percentage CPU"),
-							MetricNamespace: to.StringPtr("Microsoft.Compute/virtualMachines"),
-							TimeAggregation: armmonitor.AggregationTypeEnumAverage.ToPtr(),
+							CriterionType:   to.Ptr(armmonitor.CriterionTypeDynamicThresholdCriterion),
+							Name:            to.Ptr("High_CPU_80"),
+							MetricName:      to.Ptr("Percentage CPU"),
+							MetricNamespace: to.Ptr("Microsoft.Compute/virtualMachines"),
+							TimeAggregation: to.Ptr(armmonitor.AggregationTypeEnumAverage),
 							Dimensions:      []*armmonitor.MetricDimension{},
-							Operator:        armmonitor.DynamicThresholdOperatorGreaterOrLessThan.ToPtr(),
+							Operator:        to.Ptr(armmonitor.DynamicThresholdOperatorGreaterOrLessThan),
 							FailingPeriods: &armmonitor.DynamicThresholdFailingPeriods{
-								NumberOfEvaluationPeriods: to.Float32Ptr(4),
-								MinFailingPeriodsToAlert:  to.Float32Ptr(4),
+								NumberOfEvaluationPeriods: to.Ptr[float32](4),
+								MinFailingPeriodsToAlert:  to.Ptr[float32](4),
 							},
-							AlertSensitivity: armmonitor.DynamicThresholdSensitivityMedium.ToPtr(),
+							AlertSensitivity: to.Ptr(armmonitor.DynamicThresholdSensitivityMedium),
 						},
 					},
 				},
-				AutoMitigate: to.BoolPtr(false),
+				AutoMitigate: to.Ptr(false),
 				Actions:      []*armmonitor.MetricAlertAction{},
 			},
 		},
@@ -294,13 +308,16 @@ func createMetricAlerts(ctx context.Context, cred azcore.TokenCredential, resour
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -309,17 +326,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

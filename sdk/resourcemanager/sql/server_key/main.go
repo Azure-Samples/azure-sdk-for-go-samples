@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -84,7 +83,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -93,22 +92,25 @@ func main() {
 }
 
 func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Server, error) {
-	serversClient := armsql.NewServersClient(subscriptionID, cred, nil)
+	serversClient, err := armsql.NewServersClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := serversClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serverName,
 		armsql.Server{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Identity: &armsql.ResourceIdentity{
-				Type: armsql.IdentityTypeSystemAssigned.ToPtr(),
+				Type: to.Ptr(armsql.IdentityTypeSystemAssigned),
 			},
 			Properties: &armsql.ServerProperties{
-				AdministratorLogin:         to.StringPtr("dummylogin"),
-				AdministratorLoginPassword: to.StringPtr("QWE123!@#"),
-				Version:                    to.StringPtr("12.0"),
-				PublicNetworkAccess:        armsql.ServerNetworkAccessFlagEnabled.ToPtr(),
+				AdministratorLogin:         to.Ptr("dummylogin"),
+				AdministratorLoginPassword: to.Ptr("QWE123!@#"),
+				Version:                    to.Ptr("12.0"),
+				PublicNetworkAccess:        to.Ptr(armsql.ServerNetworkAccessFlagEnabled),
 			},
 		},
 		nil,
@@ -124,54 +126,57 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Ser
 }
 
 func createVault(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Vault, error) {
-	vaultsClient := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
+	vaultsClient, err := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := vaultsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		vaultName,
 		armkeyvault.VaultCreateOrUpdateParameters{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armkeyvault.VaultProperties{
 				SKU: &armkeyvault.SKU{
-					Family: armkeyvault.SKUFamilyA.ToPtr(),
-					Name:   armkeyvault.SKUNameStandard.ToPtr(),
+					Family: to.Ptr(armkeyvault.SKUFamilyA),
+					Name:   to.Ptr(armkeyvault.SKUNameStandard),
 				},
-				TenantID: to.StringPtr(TenantID),
+				TenantID: to.Ptr(TenantID),
 				AccessPolicies: []*armkeyvault.AccessPolicyEntry{
 					{
-						TenantID: to.StringPtr(TenantID),
-						ObjectID: to.StringPtr(ObjectID),
+						TenantID: to.Ptr(TenantID),
+						ObjectID: to.Ptr(ObjectID),
 						Permissions: &armkeyvault.Permissions{
 							Keys: []*armkeyvault.KeyPermissions{
-								armkeyvault.KeyPermissionsGet.ToPtr(),
-								armkeyvault.KeyPermissionsList.ToPtr(),
-								armkeyvault.KeyPermissionsCreate.ToPtr(),
+								to.Ptr(armkeyvault.KeyPermissionsGet),
+								to.Ptr(armkeyvault.KeyPermissionsList),
+								to.Ptr(armkeyvault.KeyPermissionsCreate),
 							},
 							Secrets: []*armkeyvault.SecretPermissions{
-								armkeyvault.SecretPermissionsGet.ToPtr(),
-								armkeyvault.SecretPermissionsList.ToPtr(),
+								to.Ptr(armkeyvault.SecretPermissionsGet),
+								to.Ptr(armkeyvault.SecretPermissionsList),
 							},
 							Certificates: []*armkeyvault.CertificatePermissions{
-								armkeyvault.CertificatePermissionsGet.ToPtr(),
-								armkeyvault.CertificatePermissionsList.ToPtr(),
-								armkeyvault.CertificatePermissionsCreate.ToPtr(),
+								to.Ptr(armkeyvault.CertificatePermissionsGet),
+								to.Ptr(armkeyvault.CertificatePermissionsList),
+								to.Ptr(armkeyvault.CertificatePermissionsCreate),
 							},
 							Storage: []*armkeyvault.StoragePermissions{
-								armkeyvault.StoragePermissionsGet.ToPtr(),
-								armkeyvault.StoragePermissionsList.ToPtr(),
-								armkeyvault.StoragePermissionsDelete.ToPtr(),
-								armkeyvault.StoragePermissionsSet.ToPtr(),
+								to.Ptr(armkeyvault.StoragePermissionsGet),
+								to.Ptr(armkeyvault.StoragePermissionsList),
+								to.Ptr(armkeyvault.StoragePermissionsDelete),
+								to.Ptr(armkeyvault.StoragePermissionsSet),
 							},
 						},
 					},
 				},
-				EnabledForDiskEncryption:  to.BoolPtr(true),
-				EnableSoftDelete:          to.BoolPtr(true),
-				SoftDeleteRetentionInDays: to.Int32Ptr(90),
+				EnabledForDiskEncryption:  to.Ptr(true),
+				EnableSoftDelete:          to.Ptr(true),
+				SoftDeleteRetentionInDays: to.Ptr[int32](90),
 				NetworkACLs: &armkeyvault.NetworkRuleSet{
-					Bypass:              armkeyvault.NetworkRuleBypassOptionsAzureServices.ToPtr(),
-					DefaultAction:       armkeyvault.NetworkRuleActionAllow.ToPtr(),
+					Bypass:              to.Ptr(armkeyvault.NetworkRuleBypassOptionsAzureServices),
+					DefaultAction:       to.Ptr(armkeyvault.NetworkRuleActionAllow),
 					IPRules:             []*armkeyvault.IPRule{},
 					VirtualNetworkRules: []*armkeyvault.VirtualNetworkRule{},
 				},
@@ -191,7 +196,10 @@ func createVault(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault
 }
 
 func createKey(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Key, error) {
-	keysClient := armkeyvault.NewKeysClient(subscriptionID, cred, nil)
+	keysClient, err := armkeyvault.NewKeysClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	secretResp, err := keysClient.CreateIfNotExist(
 		ctx,
@@ -201,14 +209,14 @@ func createKey(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.K
 		armkeyvault.KeyCreateParameters{
 			Properties: &armkeyvault.KeyProperties{
 				Attributes: &armkeyvault.KeyAttributes{
-					Enabled: to.BoolPtr(true),
+					Enabled: to.Ptr(true),
 				},
-				KeySize: to.Int32Ptr(2048),
+				KeySize: to.Ptr[int32](2048),
 				KeyOps: []*armkeyvault.JSONWebKeyOperation{
-					armkeyvault.JSONWebKeyOperationEncrypt.ToPtr(),
-					armkeyvault.JSONWebKeyOperationDecrypt.ToPtr(),
+					to.Ptr(armkeyvault.JSONWebKeyOperationEncrypt),
+					to.Ptr(armkeyvault.JSONWebKeyOperationDecrypt),
 				},
-				Kty: armkeyvault.JSONWebKeyTypeRSA.ToPtr(),
+				Kty: to.Ptr(armkeyvault.JSONWebKeyTypeRSA),
 			},
 		},
 		nil,
@@ -221,7 +229,10 @@ func createKey(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.K
 }
 
 func createServerKey(ctx context.Context, cred azcore.TokenCredential, keyID string) (*armsql.ServerKey, error) {
-	serverKeysClient := armsql.NewServerKeysClient(subscriptionID, cred, nil)
+	serverKeysClient, err := armsql.NewServerKeysClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := serverKeysClient.BeginCreateOrUpdate(
 		ctx,
@@ -230,8 +241,8 @@ func createServerKey(ctx context.Context, cred azcore.TokenCredential, keyID str
 		serverKeyName,
 		armsql.ServerKey{
 			Properties: &armsql.ServerKeyProperties{
-				ServerKeyType: armsql.ServerKeyTypeAzureKeyVault.ToPtr(),
-				URI:           to.StringPtr(keyID),
+				ServerKeyType: to.Ptr(armsql.ServerKeyTypeAzureKeyVault),
+				URI:           to.Ptr(keyID),
 			},
 		},
 		nil,
@@ -247,13 +258,16 @@ func createServerKey(ctx context.Context, cred azcore.TokenCredential, keyID str
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -262,17 +276,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

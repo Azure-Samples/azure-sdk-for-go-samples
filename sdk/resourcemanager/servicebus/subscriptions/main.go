@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -64,7 +63,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -73,17 +72,20 @@ func main() {
 }
 
 func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBNamespace, error) {
-	namespacesClient := armservicebus.NewNamespacesClient(subscriptionID, cred, nil)
+	namespacesClient, err := armservicebus.NewNamespacesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := namespacesClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		namespaceName,
 		armservicebus.SBNamespace{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			SKU: &armservicebus.SBSKU{
-				Name: armservicebus.SKUNamePremium.ToPtr(),
-				Tier: armservicebus.SKUTierPremium.ToPtr(),
+				Name: to.Ptr(armservicebus.SKUNamePremium),
+				Tier: to.Ptr(armservicebus.SKUTierPremium),
 			},
 		},
 		nil,
@@ -100,7 +102,10 @@ func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armserv
 }
 
 func createTopic(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBTopic, error) {
-	topicsClient := armservicebus.NewTopicsClient(subscriptionID, cred, nil)
+	topicsClient, err := armservicebus.NewTopicsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := topicsClient.CreateOrUpdate(
 		ctx,
@@ -119,7 +124,10 @@ func createTopic(ctx context.Context, cred azcore.TokenCredential) (*armserviceb
 }
 
 func createSubscription(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBSubscription, error) {
-	subscriptionsClient := armservicebus.NewSubscriptionsClient(subscriptionID, cred, nil)
+	subscriptionsClient, err := armservicebus.NewSubscriptionsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := subscriptionsClient.CreateOrUpdate(
 		ctx,
@@ -137,13 +145,16 @@ func createSubscription(ctx context.Context, cred azcore.TokenCredential) (*arms
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -152,17 +163,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

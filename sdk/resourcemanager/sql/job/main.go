@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -98,7 +97,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -107,17 +106,20 @@ func main() {
 }
 
 func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Server, error) {
-	serversClient := armsql.NewServersClient(subscriptionID, cred, nil)
+	serversClient, err := armsql.NewServersClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := serversClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serverName,
 		armsql.Server{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armsql.ServerProperties{
-				AdministratorLogin:         to.StringPtr("dummylogin"),
-				AdministratorLoginPassword: to.StringPtr("QWE123!@#"),
+				AdministratorLogin:         to.Ptr("dummylogin"),
+				AdministratorLoginPassword: to.Ptr("QWE123!@#"),
 			},
 		},
 		nil,
@@ -133,7 +135,10 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Ser
 }
 
 func createDatabase(ctx context.Context, cred azcore.TokenCredential) (*armsql.Database, error) {
-	databasesClient := armsql.NewDatabasesClient(subscriptionID, cred, nil)
+	databasesClient, err := armsql.NewDatabasesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := databasesClient.BeginCreateOrUpdate(
 		ctx,
@@ -141,9 +146,9 @@ func createDatabase(ctx context.Context, cred azcore.TokenCredential) (*armsql.D
 		serverName,
 		databaseName,
 		armsql.Database{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armsql.DatabaseProperties{
-				ReadScale: armsql.DatabaseReadScaleDisabled.ToPtr(),
+				ReadScale: to.Ptr(armsql.DatabaseReadScaleDisabled),
 			},
 		},
 		nil,
@@ -159,7 +164,10 @@ func createDatabase(ctx context.Context, cred azcore.TokenCredential) (*armsql.D
 }
 
 func createJobAgent(ctx context.Context, cred azcore.TokenCredential, databaseID string) (*armsql.JobAgent, error) {
-	jobAgentsClient := armsql.NewJobAgentsClient(subscriptionID, cred, nil)
+	jobAgentsClient, err := armsql.NewJobAgentsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := jobAgentsClient.BeginCreateOrUpdate(
 		ctx,
@@ -167,9 +175,9 @@ func createJobAgent(ctx context.Context, cred azcore.TokenCredential, databaseID
 		serverName,
 		jobAgentName,
 		armsql.JobAgent{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armsql.JobAgentProperties{
-				DatabaseID: to.StringPtr(databaseID),
+				DatabaseID: to.Ptr(databaseID),
 			},
 		},
 		nil,
@@ -185,7 +193,10 @@ func createJobAgent(ctx context.Context, cred azcore.TokenCredential, databaseID
 }
 
 func createJobCredential(ctx context.Context, cred azcore.TokenCredential) (*armsql.JobCredential, error) {
-	jobCredentialsClient := armsql.NewJobCredentialsClient(subscriptionID, cred, nil)
+	jobCredentialsClient, err := armsql.NewJobCredentialsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := jobCredentialsClient.CreateOrUpdate(
 		ctx,
@@ -195,8 +206,8 @@ func createJobCredential(ctx context.Context, cred azcore.TokenCredential) (*arm
 		credentialName,
 		armsql.JobCredential{
 			Properties: &armsql.JobCredentialProperties{
-				Username: to.StringPtr("dummylogin"),
-				Password: to.StringPtr("QWE123!@#"),
+				Username: to.Ptr("dummylogin"),
+				Password: to.Ptr("QWE123!@#"),
 			},
 		},
 		nil,
@@ -208,7 +219,10 @@ func createJobCredential(ctx context.Context, cred azcore.TokenCredential) (*arm
 }
 
 func createJobTargetGroup(ctx context.Context, cred azcore.TokenCredential) (*armsql.JobTargetGroup, error) {
-	jobTargetGroupsClient := armsql.NewJobTargetGroupsClient(subscriptionID, cred, nil)
+	jobTargetGroupsClient, err := armsql.NewJobTargetGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := jobTargetGroupsClient.CreateOrUpdate(
 		ctx,
@@ -230,7 +244,10 @@ func createJobTargetGroup(ctx context.Context, cred azcore.TokenCredential) (*ar
 }
 
 func createJob(ctx context.Context, cred azcore.TokenCredential) (*armsql.Job, error) {
-	jobsClient := armsql.NewJobsClient(subscriptionID, cred, nil)
+	jobsClient, err := armsql.NewJobsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	startTime, _ := time.Parse("2006-01-02 15:04:05 06", "2021-09-18T18:30:01Z")
 	endTime, _ := time.Parse("2006-01-02 15:04:05 06", "2021-09-18T23:59:59Z")
@@ -243,13 +260,13 @@ func createJob(ctx context.Context, cred azcore.TokenCredential) (*armsql.Job, e
 		jobName,
 		armsql.Job{
 			Properties: &armsql.JobProperties{
-				Description: to.StringPtr("my favourite job"),
+				Description: to.Ptr("my favourite job"),
 				Schedule: &armsql.JobSchedule{
-					StartTime: to.TimePtr(startTime),
-					EndTime:   to.TimePtr(endTime),
-					Type:      armsql.JobScheduleTypeRecurring.ToPtr(),
-					Interval:  to.StringPtr("PT5M"),
-					Enabled:   to.BoolPtr(true),
+					StartTime: to.Ptr(startTime),
+					EndTime:   to.Ptr(endTime),
+					Type:      to.Ptr(armsql.JobScheduleTypeRecurring),
+					Interval:  to.Ptr("PT5M"),
+					Enabled:   to.Ptr(true),
 				},
 			},
 		},
@@ -262,7 +279,10 @@ func createJob(ctx context.Context, cred azcore.TokenCredential) (*armsql.Job, e
 }
 
 func createJobStep(ctx context.Context, cred azcore.TokenCredential, credentialID, targetGroupID string) (*armsql.JobStep, error) {
-	jobStepsClient := armsql.NewJobStepsClient(subscriptionID, cred, nil)
+	jobStepsClient, err := armsql.NewJobStepsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := jobStepsClient.CreateOrUpdate(
 		ctx,
@@ -274,10 +294,10 @@ func createJobStep(ctx context.Context, cred azcore.TokenCredential, credentialI
 		armsql.JobStep{
 			Properties: &armsql.JobStepProperties{
 				Action: &armsql.JobStepAction{
-					Value: to.StringPtr("select 1"),
+					Value: to.Ptr("select 1"),
 				},
-				Credential:  to.StringPtr(credentialID),
-				TargetGroup: to.StringPtr(targetGroupID),
+				Credential:  to.Ptr(credentialID),
+				TargetGroup: to.Ptr(targetGroupID),
 			},
 		},
 		nil,
@@ -289,7 +309,10 @@ func createJobStep(ctx context.Context, cred azcore.TokenCredential, credentialI
 }
 
 func createJobExecution(ctx context.Context, cred azcore.TokenCredential) (*armsql.JobExecution, error) {
-	jobExecutionsClient := armsql.NewJobExecutionsClient(subscriptionID, cred, nil)
+	jobExecutionsClient, err := armsql.NewJobExecutionsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := jobExecutionsClient.BeginCreate(
 		ctx,
@@ -310,13 +333,16 @@ func createJobExecution(ctx context.Context, cred azcore.TokenCredential) (*arms
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -325,17 +351,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

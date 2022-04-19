@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -63,7 +62,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -72,20 +71,23 @@ func main() {
 }
 
 func createVault(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Vault, error) {
-	vaultsClient := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
+	vaultsClient, err := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := vaultsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		vaultName,
 		armkeyvault.VaultCreateOrUpdateParameters{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armkeyvault.VaultProperties{
 				SKU: &armkeyvault.SKU{
-					Family: armkeyvault.SKUFamilyA.ToPtr(),
-					Name:   armkeyvault.SKUNameStandard.ToPtr(),
+					Family: to.Ptr(armkeyvault.SKUFamilyA),
+					Name:   to.Ptr(armkeyvault.SKUNameStandard),
 				},
-				TenantID:       to.StringPtr(TenantID),
+				TenantID:       to.Ptr(TenantID),
 				AccessPolicies: []*armkeyvault.AccessPolicyEntry{},
 			},
 		},
@@ -103,7 +105,10 @@ func createVault(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault
 }
 
 func createSecret(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Secret, error) {
-	secretsClient := armkeyvault.NewSecretsClient(subscriptionID, cred, nil)
+	secretsClient, err := armkeyvault.NewSecretsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	secretResp, err := secretsClient.CreateOrUpdate(
 		ctx,
@@ -113,9 +118,9 @@ func createSecret(ctx context.Context, cred azcore.TokenCredential) (*armkeyvaul
 		armkeyvault.SecretCreateOrUpdateParameters{
 			Properties: &armkeyvault.SecretProperties{
 				Attributes: &armkeyvault.SecretAttributes{
-					Enabled: to.BoolPtr(true),
+					Enabled: to.Ptr(true),
 				},
-				Value: to.StringPtr("sample-secret-value"),
+				Value: to.Ptr("sample-secret-value"),
 			},
 		},
 		nil,
@@ -128,13 +133,16 @@ func createSecret(ctx context.Context, cred azcore.TokenCredential) (*armkeyvaul
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -143,17 +151,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

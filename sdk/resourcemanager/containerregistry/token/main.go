@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -64,7 +63,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -73,24 +72,25 @@ func main() {
 }
 
 func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.Registry, error) {
-	registriesClient := armcontainerregistry.NewRegistriesClient(subscriptionID, cred, nil)
+	registriesClient, err := armcontainerregistry.NewRegistriesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := registriesClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		registryName,
 		armcontainerregistry.Registry{
-			Resource: armcontainerregistry.Resource{
-				Location: to.StringPtr(location),
-				Tags: map[string]*string{
-					"key": to.StringPtr("value"),
-				},
+			Location: to.Ptr(location),
+			Tags: map[string]*string{
+				"key": to.Ptr("value"),
 			},
 			SKU: &armcontainerregistry.SKU{
-				Name: armcontainerregistry.SKUNamePremium.ToPtr(),
+				Name: to.Ptr(armcontainerregistry.SKUNamePremium),
 			},
 			Properties: &armcontainerregistry.RegistryProperties{
-				AdminUserEnabled: to.BoolPtr(true),
+				AdminUserEnabled: to.Ptr(true),
 			},
 		},
 		nil,
@@ -106,7 +106,10 @@ func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armconta
 }
 
 func createScopeMap(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.ScopeMap, error) {
-	scopeMapsClient := armcontainerregistry.NewScopeMapsClient(subscriptionID, cred, nil)
+	scopeMapsClient, err := armcontainerregistry.NewScopeMapsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := scopeMapsClient.BeginCreate(
 		ctx,
@@ -116,10 +119,10 @@ func createScopeMap(ctx context.Context, cred azcore.TokenCredential) (*armconta
 		armcontainerregistry.ScopeMap{
 			Properties: &armcontainerregistry.ScopeMapProperties{
 				Actions: []*string{
-					to.StringPtr("repositories/foo/content/read"),
-					to.StringPtr("repositories/foo/content/delete"),
+					to.Ptr("repositories/foo/content/read"),
+					to.Ptr("repositories/foo/content/delete"),
 				},
-				Description: to.StringPtr("Developer Scopes"),
+				Description: to.Ptr("Developer Scopes"),
 			},
 		},
 		nil,
@@ -135,7 +138,10 @@ func createScopeMap(ctx context.Context, cred azcore.TokenCredential) (*armconta
 }
 
 func createToken(ctx context.Context, cred azcore.TokenCredential, scopeMapID string) (*armcontainerregistry.Token, error) {
-	tokensClient := armcontainerregistry.NewTokensClient(subscriptionID, cred, nil)
+	tokensClient, err := armcontainerregistry.NewTokensClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := tokensClient.BeginCreate(
 		ctx,
@@ -144,8 +150,8 @@ func createToken(ctx context.Context, cred azcore.TokenCredential, scopeMapID st
 		tokenName,
 		armcontainerregistry.Token{
 			Properties: &armcontainerregistry.TokenProperties{
-				ScopeMapID: to.StringPtr(scopeMapID),
-				Status:     armcontainerregistry.TokenStatusEnabled.ToPtr(),
+				ScopeMapID: to.Ptr(scopeMapID),
+				Status:     to.Ptr(armcontainerregistry.TokenStatusEnabled),
 			},
 		},
 		nil,
@@ -161,13 +167,16 @@ func createToken(ctx context.Context, cred azcore.TokenCredential, scopeMapID st
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -176,17 +185,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

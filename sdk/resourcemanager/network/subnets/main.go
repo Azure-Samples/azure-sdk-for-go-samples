@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -71,7 +70,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -80,18 +79,21 @@ func main() {
 }
 
 func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.VirtualNetwork, error) {
-	virtualNetworkClient := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
+	virtualNetworkClient, err := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := virtualNetworkClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		virtualNetworkName,
 		armnetwork.VirtualNetwork{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armnetwork.VirtualNetworkPropertiesFormat{
 				AddressSpace: &armnetwork.AddressSpace{
 					AddressPrefixes: []*string{
-						to.StringPtr("10.1.0.0/16"),
+						to.Ptr("10.1.0.0/16"),
 					},
 				},
 			},
@@ -110,7 +112,10 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 }
 
 func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.Subnet, error) {
-	subnetsClient := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
+	subnetsClient, err := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := subnetsClient.BeginCreateOrUpdate(
 		ctx,
@@ -119,7 +124,7 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 		subnetName,
 		armnetwork.Subnet{
 			Properties: &armnetwork.SubnetPropertiesFormat{
-				AddressPrefix: to.StringPtr("10.1.0.0/24"),
+				AddressPrefix: to.Ptr("10.1.0.0/24"),
 			},
 		},
 		nil,
@@ -137,7 +142,10 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 }
 
 func createSubnetWithNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential, nsgID string) (*armnetwork.Subnet, error) {
-	subnetsClient := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
+	subnetsClient, err := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := subnetsClient.BeginCreateOrUpdate(
 		ctx,
@@ -146,9 +154,9 @@ func createSubnetWithNetworkSecurityGroup(ctx context.Context, cred azcore.Token
 		subnetName,
 		armnetwork.Subnet{
 			Properties: &armnetwork.SubnetPropertiesFormat{
-				AddressPrefix: to.StringPtr("10.1.1.0/24"),
+				AddressPrefix: to.Ptr("10.1.1.0/24"),
 				NetworkSecurityGroup: &armnetwork.SecurityGroup{
-					ID: to.StringPtr(nsgID),
+					ID: to.Ptr(nsgID),
 				},
 			},
 		},
@@ -166,40 +174,43 @@ func createSubnetWithNetworkSecurityGroup(ctx context.Context, cred azcore.Token
 }
 
 func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityGroup, error) {
-	networkSecurityGroupClient := armnetwork.NewSecurityGroupsClient(subscriptionID, cred, nil)
+	networkSecurityGroupClient, err := armnetwork.NewSecurityGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := networkSecurityGroupClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		securityGroupName,
 		armnetwork.SecurityGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armnetwork.SecurityGroupPropertiesFormat{
 				SecurityRules: []*armnetwork.SecurityRule{
 					{
-						Name: to.StringPtr("allow_ssh"),
+						Name: to.Ptr("allow_ssh"),
 						Properties: &armnetwork.SecurityRulePropertiesFormat{
-							Protocol:                 armnetwork.SecurityRuleProtocolTCP.ToPtr(),
-							SourceAddressPrefix:      to.StringPtr("0.0.0.0/0"),
-							SourcePortRange:          to.StringPtr("1-65535"),
-							DestinationAddressPrefix: to.StringPtr("0.0.0.0/0"),
-							DestinationPortRange:     to.StringPtr("22"),
-							Access:                   armnetwork.SecurityRuleAccessAllow.ToPtr(),
-							Direction:                armnetwork.SecurityRuleDirectionInbound.ToPtr(),
-							Priority:                 to.Int32Ptr(100),
+							Protocol:                 to.Ptr(armnetwork.SecurityRuleProtocolTCP),
+							SourceAddressPrefix:      to.Ptr("0.0.0.0/0"),
+							SourcePortRange:          to.Ptr("1-65535"),
+							DestinationAddressPrefix: to.Ptr("0.0.0.0/0"),
+							DestinationPortRange:     to.Ptr("22"),
+							Access:                   to.Ptr(armnetwork.SecurityRuleAccessAllow),
+							Direction:                to.Ptr(armnetwork.SecurityRuleDirectionInbound),
+							Priority:                 to.Ptr[int32](100),
 						},
 					},
 					{
-						Name: to.StringPtr("allow_https"),
+						Name: to.Ptr("allow_https"),
 						Properties: &armnetwork.SecurityRulePropertiesFormat{
-							Protocol:                 armnetwork.SecurityRuleProtocolTCP.ToPtr(),
-							SourceAddressPrefix:      to.StringPtr("0.0.0.0/0"),
-							SourcePortRange:          to.StringPtr("1-65535"),
-							DestinationAddressPrefix: to.StringPtr("0.0.0.0/0"),
-							DestinationPortRange:     to.StringPtr("443"),
-							Access:                   armnetwork.SecurityRuleAccessAllow.ToPtr(),
-							Direction:                armnetwork.SecurityRuleDirectionInbound.ToPtr(),
-							Priority:                 to.Int32Ptr(200),
+							Protocol:                 to.Ptr(armnetwork.SecurityRuleProtocolTCP),
+							SourceAddressPrefix:      to.Ptr("0.0.0.0/0"),
+							SourcePortRange:          to.Ptr("1-65535"),
+							DestinationAddressPrefix: to.Ptr("0.0.0.0/0"),
+							DestinationPortRange:     to.Ptr("443"),
+							Access:                   to.Ptr(armnetwork.SecurityRuleAccessAllow),
+							Direction:                to.Ptr(armnetwork.SecurityRuleDirectionInbound),
+							Priority:                 to.Ptr[int32](200),
 						},
 					},
 				},
@@ -219,13 +230,16 @@ func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -234,17 +248,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

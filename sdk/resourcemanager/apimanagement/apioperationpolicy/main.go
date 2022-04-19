@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -70,7 +69,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -79,21 +78,24 @@ func main() {
 }
 
 func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceResource, error) {
-	apiManagementServiceClient := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
+	apiManagementServiceClient, err := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := apiManagementServiceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
 		armapimanagement.ServiceResource{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armapimanagement.ServiceProperties{
-				PublisherName:  to.StringPtr("sample"),
-				PublisherEmail: to.StringPtr("xxx@wircesoft.com"),
+				PublisherName:  to.Ptr("sample"),
+				PublisherEmail: to.Ptr("xxx@wircesoft.com"),
 			},
 			SKU: &armapimanagement.ServiceSKUProperties{
-				Name:     armapimanagement.SKUTypeStandard.ToPtr(),
-				Capacity: to.Int32Ptr(2),
+				Name:     to.Ptr(armapimanagement.SKUTypeStandard),
+				Capacity: to.Ptr[int32](2),
 			},
 		},
 		nil,
@@ -109,7 +111,10 @@ func createApiManagementService(ctx context.Context, cred azcore.TokenCredential
 }
 
 func createApi(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIContract, error) {
-	APIClient := armapimanagement.NewAPIClient(subscriptionID, cred, nil)
+	APIClient, err := armapimanagement.NewAPIClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := APIClient.BeginCreateOrUpdate(
 		ctx,
@@ -118,11 +123,11 @@ func createApi(ctx context.Context, cred azcore.TokenCredential) (*armapimanagem
 		apiID,
 		armapimanagement.APICreateOrUpdateParameter{
 			Properties: &armapimanagement.APICreateOrUpdateProperties{
-				Path:        to.StringPtr("test"),
-				DisplayName: to.StringPtr("sample-sample"),
+				Path:        to.Ptr("test"),
+				DisplayName: to.Ptr("sample-sample"),
 				Protocols: []*armapimanagement.Protocol{
-					armapimanagement.ProtocolHTTP.ToPtr(),
-					armapimanagement.ProtocolHTTPS.ToPtr(),
+					to.Ptr(armapimanagement.ProtocolHTTP),
+					to.Ptr(armapimanagement.ProtocolHTTPS),
 				},
 			},
 		},
@@ -139,7 +144,10 @@ func createApi(ctx context.Context, cred azcore.TokenCredential) (*armapimanagem
 }
 
 func createApiOperation(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.OperationContract, error) {
-	apiOperationClient := armapimanagement.NewAPIOperationClient(subscriptionID, cred, nil)
+	apiOperationClient, err := armapimanagement.NewAPIOperationClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := apiOperationClient.CreateOrUpdate(
 		ctx,
@@ -149,14 +157,14 @@ func createApiOperation(ctx context.Context, cred azcore.TokenCredential) (*arma
 		operationID,
 		armapimanagement.OperationContract{
 			Properties: &armapimanagement.OperationContractProperties{
-				DisplayName: to.StringPtr("sample operation"),
-				Method:      to.StringPtr("GET"),
-				URLTemplate: to.StringPtr("/operation/customers/{uid}"),
+				DisplayName: to.Ptr("sample operation"),
+				Method:      to.Ptr("GET"),
+				URLTemplate: to.Ptr("/operation/customers/{uid}"),
 				TemplateParameters: []*armapimanagement.ParameterContract{
 					{
-						Name:        to.StringPtr("uid"),
-						Type:        to.StringPtr("string"),
-						Description: to.StringPtr("user id"),
+						Name:        to.Ptr("uid"),
+						Type:        to.Ptr("string"),
+						Description: to.Ptr("user id"),
 					},
 				},
 			},
@@ -187,7 +195,10 @@ var value = `<?xml version="1.0" encoding="utf-8"?>
 `
 
 func createApiOperationPolicy(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.PolicyContract, error) {
-	apiOperationPolicyClient := armapimanagement.NewAPIOperationPolicyClient(subscriptionID, cred, nil)
+	apiOperationPolicyClient, err := armapimanagement.NewAPIOperationPolicyClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := apiOperationPolicyClient.CreateOrUpdate(
 		ctx,
@@ -198,8 +209,8 @@ func createApiOperationPolicy(ctx context.Context, cred azcore.TokenCredential) 
 		armapimanagement.PolicyIDNamePolicy,
 		armapimanagement.PolicyContract{
 			Properties: &armapimanagement.PolicyContractProperties{
-				Format: armapimanagement.PolicyContentFormatXML.ToPtr(),
-				Value:  to.StringPtr(value),
+				Format: to.Ptr(armapimanagement.PolicyContentFormatXML),
+				Value:  to.Ptr(value),
 			},
 		},
 		nil,
@@ -211,13 +222,16 @@ func createApiOperationPolicy(ctx context.Context, cred azcore.TokenCredential) 
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -226,17 +240,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -64,7 +63,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -73,20 +72,23 @@ func main() {
 }
 
 func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Account, error) {
-	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
+	storageAccountClient, err := armstorage.NewAccountsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := storageAccountClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
 		armstorage.AccountCreateParameters{
-			Kind: armstorage.KindStorageV2.ToPtr(),
+			Kind: to.Ptr(armstorage.KindStorageV2),
 			SKU: &armstorage.SKU{
-				Name: armstorage.SKUNameStandardLRS.ToPtr(),
+				Name: to.Ptr(armstorage.SKUNameStandardLRS),
 			},
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armstorage.AccountPropertiesCreateParameters{
-				EnableHTTPSTrafficOnly: to.BoolPtr(true),
+				EnableHTTPSTrafficOnly: to.Ptr(true),
 			},
 		}, nil)
 	if err != nil {
@@ -100,27 +102,30 @@ func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*ar
 }
 
 func createLogProfile(ctx context.Context, cred azcore.TokenCredential, storageAccountID string) (*armmonitor.LogProfileResource, error) {
-	logProfilesClient := armmonitor.NewLogProfilesClient(subscriptionID, cred, nil)
+	logProfilesClient, err := armmonitor.NewLogProfilesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := logProfilesClient.CreateOrUpdate(
 		ctx,
 		logProfileName,
 		armmonitor.LogProfileResource{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armmonitor.LogProfileProperties{
 				Categories: []*string{
-					to.StringPtr("Write"),
-					to.StringPtr("Delete"),
-					to.StringPtr("Action"),
+					to.Ptr("Write"),
+					to.Ptr("Delete"),
+					to.Ptr("Action"),
 				},
 				Locations: []*string{
-					to.StringPtr("global"),
+					to.Ptr("global"),
 				},
 				RetentionPolicy: &armmonitor.RetentionPolicy{
-					Enabled: to.BoolPtr(true),
-					Days:    to.Int32Ptr(3),
+					Enabled: to.Ptr(true),
+					Days:    to.Ptr[int32](3),
 				},
-				StorageAccountID: to.StringPtr(storageAccountID),
+				StorageAccountID: to.Ptr(storageAccountID),
 			},
 		},
 		nil,
@@ -132,7 +137,10 @@ func createLogProfile(ctx context.Context, cred azcore.TokenCredential, storageA
 }
 
 func getLogProfile(ctx context.Context, cred azcore.TokenCredential) (*armmonitor.LogProfileResource, error) {
-	logProfilesClient := armmonitor.NewLogProfilesClient(subscriptionID, cred, nil)
+	logProfilesClient, err := armmonitor.NewLogProfilesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := logProfilesClient.Get(ctx, logProfileName, nil)
 	if err != nil {
@@ -142,13 +150,16 @@ func getLogProfile(ctx context.Context, cred azcore.TokenCredential) (*armmonito
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -157,17 +168,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

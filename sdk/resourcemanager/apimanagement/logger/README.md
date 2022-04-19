@@ -21,7 +21,7 @@ This project framework provides examples for the following services:
 
 ### Prerequisites
 * an [Azure subscription](https://azure.microsoft.com)
-* Go 1.13 or above
+* Go 1.18 or above
 
 ### Quickstart
 

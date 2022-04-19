@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -66,22 +65,25 @@ func main() {
 	}
 	log.Println("vault for deployment:", *vaultForDeployment.ID)
 
-	deletedVaults := deletedVaultList(ctx, cred)
+	deletedVaults, err := deletedVaultList(ctx, cred)
+	if err != nil {
+		log.Fatal(err)
+	}
 	for i, v := range deletedVaults {
 		log.Println("deleted vault:", i, *v.ID)
 	}
 
-	resp, err := deleteVault(ctx, cred)
+	err = deleteVault(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("deleted vault.", resp)
+	log.Println("deleted vault.")
 
-	resp, err = purgeDeleted(ctx, cred)
+	err = purgeDeleted(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("purge deleted vault.", resp)
+	log.Println("purge deleted vault.")
 
 	hsms, err := createManagedHsms(ctx, cred)
 	if err != nil {
@@ -91,7 +93,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -100,38 +102,41 @@ func main() {
 }
 
 func createVault(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Vault, error) {
-	vaultsClient := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
+	vaultsClient, err := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := vaultsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		vaultName,
 		armkeyvault.VaultCreateOrUpdateParameters{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armkeyvault.VaultProperties{
 				SKU: &armkeyvault.SKU{
-					Family: armkeyvault.SKUFamilyA.ToPtr(),
-					Name:   armkeyvault.SKUNameStandard.ToPtr(),
+					Family: to.Ptr(armkeyvault.SKUFamilyA),
+					Name:   to.Ptr(armkeyvault.SKUNameStandard),
 				},
-				TenantID: to.StringPtr(TenantID),
+				TenantID: to.Ptr(TenantID),
 				AccessPolicies: []*armkeyvault.AccessPolicyEntry{
 					{
-						TenantID: to.StringPtr(TenantID),
-						ObjectID: to.StringPtr(ObjectID),
+						TenantID: to.Ptr(TenantID),
+						ObjectID: to.Ptr(ObjectID),
 						Permissions: &armkeyvault.Permissions{
 							Keys: []*armkeyvault.KeyPermissions{
-								armkeyvault.KeyPermissionsGet.ToPtr(),
-								armkeyvault.KeyPermissionsList.ToPtr(),
-								armkeyvault.KeyPermissionsCreate.ToPtr(),
+								to.Ptr(armkeyvault.KeyPermissionsGet),
+								to.Ptr(armkeyvault.KeyPermissionsList),
+								to.Ptr(armkeyvault.KeyPermissionsCreate),
 							},
 							Secrets: []*armkeyvault.SecretPermissions{
-								armkeyvault.SecretPermissionsGet.ToPtr(),
-								armkeyvault.SecretPermissionsList.ToPtr(),
+								to.Ptr(armkeyvault.SecretPermissionsGet),
+								to.Ptr(armkeyvault.SecretPermissionsList),
 							},
 							Certificates: []*armkeyvault.CertificatePermissions{
-								armkeyvault.CertificatePermissionsGet.ToPtr(),
-								armkeyvault.CertificatePermissionsList.ToPtr(),
-								armkeyvault.CertificatePermissionsCreate.ToPtr(),
+								to.Ptr(armkeyvault.CertificatePermissionsGet),
+								to.Ptr(armkeyvault.CertificatePermissionsList),
+								to.Ptr(armkeyvault.CertificatePermissionsCreate),
 							},
 						},
 					},
@@ -152,32 +157,35 @@ func createVault(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault
 }
 
 func setVaultPermissionsForDeployment(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Vault, error) {
-	vaultsClient := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
+	vaultsClient, err := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := vaultsClient.BeginCreateOrUpdate(ctx, resourceGroupName, vaultName, armkeyvault.VaultCreateOrUpdateParameters{
-		Location: to.StringPtr(location),
+		Location: to.Ptr(location),
 		Properties: &armkeyvault.VaultProperties{
 			SKU: &armkeyvault.SKU{
-				Family: armkeyvault.SKUFamilyA.ToPtr(),
-				Name:   armkeyvault.SKUNameStandard.ToPtr(),
+				Family: to.Ptr(armkeyvault.SKUFamilyA),
+				Name:   to.Ptr(armkeyvault.SKUNameStandard),
 			},
-			TenantID:                     to.StringPtr(TenantID),
-			EnabledForDeployment:         to.BoolPtr(true),
-			EnabledForTemplateDeployment: to.BoolPtr(true),
+			TenantID:                     to.Ptr(TenantID),
+			EnabledForDeployment:         to.Ptr(true),
+			EnabledForTemplateDeployment: to.Ptr(true),
 			AccessPolicies: []*armkeyvault.AccessPolicyEntry{
 				{
-					TenantID: to.StringPtr(TenantID),
-					ObjectID: to.StringPtr("00000000-0000-0000-0000-000000000000"),
+					TenantID: to.Ptr(TenantID),
+					ObjectID: to.Ptr("00000000-0000-0000-0000-000000000000"),
 					Permissions: &armkeyvault.Permissions{
 						Keys: []*armkeyvault.KeyPermissions{
-							armkeyvault.KeyPermissionsGet.ToPtr(),
-							armkeyvault.KeyPermissionsList.ToPtr(),
-							armkeyvault.KeyPermissionsCreate.ToPtr(),
+							to.Ptr(armkeyvault.KeyPermissionsGet),
+							to.Ptr(armkeyvault.KeyPermissionsList),
+							to.Ptr(armkeyvault.KeyPermissionsCreate),
 						},
 						Secrets: []*armkeyvault.SecretPermissions{
-							armkeyvault.SecretPermissionsGet.ToPtr(),
-							armkeyvault.SecretPermissionsGet.ToPtr(),
-							armkeyvault.SecretPermissionsList.ToPtr(),
+							to.Ptr(armkeyvault.SecretPermissionsGet),
+							to.Ptr(armkeyvault.SecretPermissionsGet),
+							to.Ptr(armkeyvault.SecretPermissionsList),
 						},
 					},
 				},
@@ -195,64 +203,79 @@ func setVaultPermissionsForDeployment(ctx context.Context, cred azcore.TokenCred
 	return &resp.Vault, nil
 }
 
-func deletedVaultList(ctx context.Context, cred azcore.TokenCredential) []*armkeyvault.DeletedVault {
-	vaultsClient := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
+func deletedVaultList(ctx context.Context, cred azcore.TokenCredential) ([]*armkeyvault.DeletedVault, error) {
+	vaultsClient, err := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
-	deletedVaultResult := vaultsClient.ListDeleted(nil)
+	deletedVaultResult := vaultsClient.NewListDeletedPager(nil)
 
 	deleteVaults := make([]*armkeyvault.DeletedVault, 0)
-	for deletedVaultResult.NextPage(ctx) {
-		resp := deletedVaultResult.PageResponse()
+	for deletedVaultResult.More() {
+		resp, err := deletedVaultResult.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
 		deleteVaults = append(deleteVaults, resp.DeletedVaultListResult.Value...)
 	}
 
-	return deleteVaults
+	return deleteVaults, nil
 }
 
-func deleteVault(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	vaultsClient := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
-
-	resp, err := vaultsClient.Delete(ctx, resourceGroupName, vaultName, nil)
+func deleteVault(ctx context.Context, cred azcore.TokenCredential) error {
+	vaultsClient, err := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+
+	_, err = vaultsClient.Delete(ctx, resourceGroupName, vaultName, nil)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func purgeDeleted(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	vaultsClient := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
+func purgeDeleted(ctx context.Context, cred azcore.TokenCredential) error {
+	vaultsClient, err := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := vaultsClient.BeginPurgeDeleted(ctx, vaultName, location, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return resp.RawResponse, nil
+	return nil
 }
 
 func createManagedHsms(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.ManagedHsm, error) {
-	client := armkeyvault.NewManagedHsmsClient(subscriptionID, cred, nil)
+	client, err := armkeyvault.NewManagedHsmsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := client.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		"sample-hsmsxx",
 		armkeyvault.ManagedHsm{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			SKU: &armkeyvault.ManagedHsmSKU{
-				Family: armkeyvault.ManagedHsmSKUFamilyB.ToPtr(),
-				Name:   armkeyvault.ManagedHsmSKUNameStandardB1.ToPtr(),
+				Family: to.Ptr(armkeyvault.ManagedHsmSKUFamilyB),
+				Name:   to.Ptr(armkeyvault.ManagedHsmSKUNameStandardB1),
 			},
 			Properties: &armkeyvault.ManagedHsmProperties{
-				TenantID:   to.StringPtr(TenantID),
-				CreateMode: armkeyvault.CreateModeDefault.ToPtr(),
+				TenantID:   to.Ptr(TenantID),
+				CreateMode: to.Ptr(armkeyvault.CreateModeDefault),
 				InitialAdminObjectIDs: []*string{
-					to.StringPtr(ObjectID),
+					to.Ptr(ObjectID),
 				},
 			},
 		},
@@ -270,13 +293,16 @@ func createManagedHsms(ctx context.Context, cred azcore.TokenCredential) (*armke
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -285,17 +311,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

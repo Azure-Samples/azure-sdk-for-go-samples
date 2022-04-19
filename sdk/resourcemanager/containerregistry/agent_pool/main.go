@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -63,7 +62,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -72,22 +71,25 @@ func main() {
 }
 
 func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.Registry, error) {
-	registriesClient := armcontainerregistry.NewRegistriesClient(subscriptionID, cred, nil)
+	registriesClient, err := armcontainerregistry.NewRegistriesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := registriesClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		registryName,
 		armcontainerregistry.Registry{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Tags: map[string]*string{
-				"key": to.StringPtr("value"),
+				"key": to.Ptr("value"),
 			},
 			SKU: &armcontainerregistry.SKU{
-				Name: armcontainerregistry.SKUNamePremium.ToPtr(),
+				Name: to.Ptr(armcontainerregistry.SKUNamePremium),
 			},
 			Properties: &armcontainerregistry.RegistryProperties{
-				AdminUserEnabled: to.BoolPtr(true),
+				AdminUserEnabled: to.Ptr(true),
 			},
 		},
 		nil,
@@ -103,7 +105,10 @@ func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armconta
 }
 
 func createAgentPool(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.AgentPool, error) {
-	agentPoolsClient := armcontainerregistry.NewAgentPoolsClient(subscriptionID, cred, nil)
+	agentPoolsClient, err := armcontainerregistry.NewAgentPoolsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := agentPoolsClient.BeginCreate(
 		ctx,
@@ -111,14 +116,14 @@ func createAgentPool(ctx context.Context, cred azcore.TokenCredential) (*armcont
 		registryName,
 		agentPoolName,
 		armcontainerregistry.AgentPool{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Tags: map[string]*string{
-				"key": to.StringPtr("value"),
+				"key": to.Ptr("value"),
 			},
 			Properties: &armcontainerregistry.AgentPoolProperties{
-				Count: to.Int32Ptr(1),
-				OS:    armcontainerregistry.OSLinux.ToPtr(),
-				Tier:  to.StringPtr("S1"),
+				Count: to.Ptr[int32](1),
+				OS:    to.Ptr(armcontainerregistry.OSLinux),
+				Tier:  to.Ptr("S1"),
 			},
 		},
 		nil,
@@ -134,7 +139,7 @@ func createAgentPool(ctx context.Context, cred azcore.TokenCredential) (*armcont
 }
 
 func getAgentPool(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.AgentPool, error) {
-	agentPoolsClient := armcontainerregistry.NewAgentPoolsClient(subscriptionID, cred, nil)
+	agentPoolsClient, err := armcontainerregistry.NewAgentPoolsClient(subscriptionID, cred, nil)
 
 	resp, err := agentPoolsClient.Get(ctx, resourceGroupName, registryName, agentPoolName, nil)
 	if err != nil {
@@ -144,13 +149,13 @@ func getAgentPool(ctx context.Context, cred azcore.TokenCredential) (*armcontain
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -159,17 +164,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

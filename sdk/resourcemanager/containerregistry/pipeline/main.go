@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -64,7 +63,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -73,24 +72,25 @@ func main() {
 }
 
 func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.Registry, error) {
-	registriesClient := armcontainerregistry.NewRegistriesClient(subscriptionID, cred, nil)
+	registriesClient, err := armcontainerregistry.NewRegistriesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := registriesClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		registryName,
 		armcontainerregistry.Registry{
-			Resource: armcontainerregistry.Resource{
-				Location: to.StringPtr(location),
-				Tags: map[string]*string{
-					"key": to.StringPtr("value"),
-				},
+			Location: to.Ptr(location),
+			Tags: map[string]*string{
+				"key": to.Ptr("value"),
 			},
 			SKU: &armcontainerregistry.SKU{
-				Name: armcontainerregistry.SKUNamePremium.ToPtr(),
+				Name: to.Ptr(armcontainerregistry.SKUNamePremium),
 			},
 			Properties: &armcontainerregistry.RegistryProperties{
-				AdminUserEnabled: to.BoolPtr(true),
+				AdminUserEnabled: to.Ptr(true),
 			},
 		},
 		nil,
@@ -106,7 +106,10 @@ func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armconta
 }
 
 func createImportPipeline(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.ImportPipeline, error) {
-	importPipelinesClient := armcontainerregistry.NewImportPipelinesClient(subscriptionID, cred, nil)
+	importPipelinesClient, err := armcontainerregistry.NewImportPipelinesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := importPipelinesClient.BeginCreate(
 		ctx,
@@ -114,20 +117,20 @@ func createImportPipeline(ctx context.Context, cred azcore.TokenCredential) (*ar
 		registryName,
 		importPipelineName,
 		armcontainerregistry.ImportPipeline{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Identity: &armcontainerregistry.IdentityProperties{
-				Type: armcontainerregistry.ResourceIdentityTypeSystemAssigned.ToPtr(),
+				Type: to.Ptr(armcontainerregistry.ResourceIdentityTypeSystemAssigned),
 			},
 			Properties: &armcontainerregistry.ImportPipelineProperties{
 				Source: &armcontainerregistry.ImportPipelineSourceProperties{
-					KeyVaultURI: to.StringPtr("https://myvault.vault.azure.net/secrets/acrimportsas"),
-					Type:        armcontainerregistry.PipelineSourceTypeAzureStorageBlobContainer.ToPtr(),
-					URI:         to.StringPtr("https://accountname.blob.core.windows.net/containername"),
+					KeyVaultURI: to.Ptr("https://myvault.vault.azure.net/secrets/acrimportsas"),
+					Type:        to.Ptr(armcontainerregistry.PipelineSourceTypeAzureStorageBlobContainer),
+					URI:         to.Ptr("https://accountname.blob.core.windows.net/containername"),
 				},
 				Options: []*armcontainerregistry.PipelineOptions{
-					armcontainerregistry.PipelineOptionsContinueOnErrors.ToPtr(),
-					armcontainerregistry.PipelineOptionsDeleteSourceBlobOnSuccess.ToPtr(),
-					armcontainerregistry.PipelineOptionsOverwriteTags.ToPtr(),
+					to.Ptr(armcontainerregistry.PipelineOptionsContinueOnErrors),
+					to.Ptr(armcontainerregistry.PipelineOptionsDeleteSourceBlobOnSuccess),
+					to.Ptr(armcontainerregistry.PipelineOptionsOverwriteTags),
 				},
 			},
 		},
@@ -144,7 +147,10 @@ func createImportPipeline(ctx context.Context, cred azcore.TokenCredential) (*ar
 }
 
 func createExportPipeline(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.ExportPipeline, error) {
-	exportPipelinesClient := armcontainerregistry.NewExportPipelinesClient(subscriptionID, cred, nil)
+	exportPipelinesClient, err := armcontainerregistry.NewExportPipelinesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := exportPipelinesClient.BeginCreate(
 		ctx,
@@ -152,18 +158,18 @@ func createExportPipeline(ctx context.Context, cred azcore.TokenCredential) (*ar
 		registryName,
 		exportPipelineName,
 		armcontainerregistry.ExportPipeline{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Identity: &armcontainerregistry.IdentityProperties{
-				Type: armcontainerregistry.ResourceIdentityTypeSystemAssigned.ToPtr(),
+				Type: to.Ptr(armcontainerregistry.ResourceIdentityTypeSystemAssigned),
 			},
 			Properties: &armcontainerregistry.ExportPipelineProperties{
 				Target: &armcontainerregistry.ExportPipelineTargetProperties{
-					KeyVaultURI: to.StringPtr("https://myvault.vault.azure.net/secrets/acrimportsas"),
-					Type:        to.StringPtr("AzureStorageBlobContainer"),
-					URI:         to.StringPtr("https://accountname.blob.core.windows.net/containername"),
+					KeyVaultURI: to.Ptr("https://myvault.vault.azure.net/secrets/acrimportsas"),
+					Type:        to.Ptr("AzureStorageBlobContainer"),
+					URI:         to.Ptr("https://accountname.blob.core.windows.net/containername"),
 				},
 				Options: []*armcontainerregistry.PipelineOptions{
-					armcontainerregistry.PipelineOptionsOverwriteBlobs.ToPtr(),
+					to.Ptr(armcontainerregistry.PipelineOptionsOverwriteBlobs),
 				},
 			},
 		},
@@ -180,13 +186,16 @@ func createExportPipeline(ctx context.Context, cred azcore.TokenCredential) (*ar
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -195,17 +204,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

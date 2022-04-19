@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -62,7 +61,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -75,7 +74,10 @@ var resourceType = "virtualNetworks"
 var apiVersion = "2021-02-01"
 
 func checkExistResource(ctx context.Context, cred azcore.TokenCredential) (bool, error) {
-	resourceClient := armresources.NewClient(subscriptionID, cred, nil)
+	resourceClient, err := armresources.NewClient(subscriptionID, cred, nil)
+	if err != nil {
+		return false, err
+	}
 
 	boolResp, err := resourceClient.CheckExistence(
 		ctx,
@@ -94,7 +96,10 @@ func checkExistResource(ctx context.Context, cred azcore.TokenCredential) (bool,
 }
 
 func createResource(ctx context.Context, cred azcore.TokenCredential) (*armresources.GenericResource, error) {
-	resourceClient := armresources.NewClient(subscriptionID, cred, nil)
+	resourceClient, err := armresources.NewClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := resourceClient.BeginCreateOrUpdate(
 		ctx,
@@ -105,11 +110,11 @@ func createResource(ctx context.Context, cred azcore.TokenCredential) (*armresou
 		virtualNetworkName,
 		apiVersion,
 		armresources.GenericResource{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: map[string]interface{}{
 				"addressSpace": armnetwork.AddressSpace{
 					AddressPrefixes: []*string{
-						to.StringPtr("10.1.0.0/16"),
+						to.Ptr("10.1.0.0/16"),
 					},
 				},
 			},
@@ -128,7 +133,10 @@ func createResource(ctx context.Context, cred azcore.TokenCredential) (*armresou
 }
 
 func getResource(ctx context.Context, cred azcore.TokenCredential) (*armresources.GenericResource, error) {
-	resourceClient := armresources.NewClient(subscriptionID, cred, nil)
+	resourceClient, err := armresources.NewClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := resourceClient.Get(
 		ctx,
@@ -147,13 +155,16 @@ func getResource(ctx context.Context, cred azcore.TokenCredential) (*armresource
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -162,17 +173,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

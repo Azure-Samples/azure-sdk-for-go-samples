@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -70,7 +69,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -79,21 +78,24 @@ func main() {
 }
 
 func createDatabaseAccount(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.DatabaseAccountGetResults, error) {
-	databaseAccountsClient := armcosmos.NewDatabaseAccountsClient(subscriptionID, cred, nil)
+	databaseAccountsClient, err := armcosmos.NewDatabaseAccountsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := databaseAccountsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		accountName,
 		armcosmos.DatabaseAccountCreateUpdateParameters{
-			Location: to.StringPtr(location),
-			Kind:     armcosmos.DatabaseAccountKindMongoDB.ToPtr(),
+			Location: to.Ptr(location),
+			Kind:     to.Ptr(armcosmos.DatabaseAccountKindMongoDB),
 			Properties: &armcosmos.DatabaseAccountCreateUpdateProperties{
-				DatabaseAccountOfferType: to.StringPtr("Standard"),
+				DatabaseAccountOfferType: to.Ptr("Standard"),
 				Locations: []*armcosmos.Location{
 					{
-						FailoverPriority: to.Int32Ptr(0),
-						LocationName:     to.StringPtr(location),
+						FailoverPriority: to.Ptr[int32](0),
+						LocationName:     to.Ptr(location),
 					},
 				},
 			},
@@ -112,7 +114,10 @@ func createDatabaseAccount(ctx context.Context, cred azcore.TokenCredential) (*a
 }
 
 func createMongoDBDatabase(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.MongoDBDatabaseGetResults, error) {
-	mongodbResourcesClient := armcosmos.NewMongoDBResourcesClient(subscriptionID, cred, nil)
+	mongodbResourcesClient, err := armcosmos.NewMongoDBResourcesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := mongodbResourcesClient.BeginCreateUpdateMongoDBDatabase(
 		ctx,
@@ -120,13 +125,13 @@ func createMongoDBDatabase(ctx context.Context, cred azcore.TokenCredential) (*a
 		accountName,
 		mongodbName,
 		armcosmos.MongoDBDatabaseCreateUpdateParameters{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armcosmos.MongoDBDatabaseCreateUpdateProperties{
 				Resource: &armcosmos.MongoDBDatabaseResource{
-					ID: to.StringPtr(mongodbName),
+					ID: to.Ptr(mongodbName),
 				},
 				Options: &armcosmos.CreateUpdateOptions{
-					Throughput: to.Int32Ptr(2000),
+					Throughput: to.Ptr[int32](2000),
 				},
 			},
 		},
@@ -144,7 +149,10 @@ func createMongoDBDatabase(ctx context.Context, cred azcore.TokenCredential) (*a
 }
 
 func createMongoDBCollection(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.MongoDBCollectionGetResults, error) {
-	mongodbResourcesClient := armcosmos.NewMongoDBResourcesClient(subscriptionID, cred, nil)
+	mongodbResourcesClient, err := armcosmos.NewMongoDBResourcesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := mongodbResourcesClient.BeginCreateUpdateMongoDBCollection(
 		ctx,
@@ -153,16 +161,16 @@ func createMongoDBCollection(ctx context.Context, cred azcore.TokenCredential) (
 		mongodbName,
 		collectionName,
 		armcosmos.MongoDBCollectionCreateUpdateParameters{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armcosmos.MongoDBCollectionCreateUpdateProperties{
 				Resource: &armcosmos.MongoDBCollectionResource{
-					ID: to.StringPtr(collectionName),
+					ID: to.Ptr(collectionName),
 					ShardKey: map[string]*string{
-						"sample-shard-key": to.StringPtr("Hash"),
+						"sample-shard-key": to.Ptr("Hash"),
 					},
 				},
 				Options: &armcosmos.CreateUpdateOptions{
-					Throughput: to.Int32Ptr(2000),
+					Throughput: to.Ptr[int32](2000),
 				},
 			},
 		},
@@ -180,7 +188,10 @@ func createMongoDBCollection(ctx context.Context, cred azcore.TokenCredential) (
 }
 
 func getMongoDB(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.MongoDBDatabaseGetResults, error) {
-	mongodbResourcesClient := armcosmos.NewMongoDBResourcesClient(subscriptionID, cred, nil)
+	mongodbResourcesClient, err := armcosmos.NewMongoDBResourcesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := mongodbResourcesClient.GetMongoDBDatabase(ctx, resourceGroupName, accountName, mongodbName, nil)
 	if err != nil {
@@ -191,13 +202,16 @@ func getMongoDB(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.Mo
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -206,17 +220,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

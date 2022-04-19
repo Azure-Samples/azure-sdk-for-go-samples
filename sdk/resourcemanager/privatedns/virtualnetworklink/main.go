@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -72,7 +71,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -81,14 +80,17 @@ func main() {
 }
 
 func createPrivateZone(ctx context.Context, cred azcore.TokenCredential) (*armprivatedns.PrivateZone, error) {
-	privateZonesClient := armprivatedns.NewPrivateZonesClient(subscriptionID, cred, nil)
+	privateZonesClient, err := armprivatedns.NewPrivateZonesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollersResp, err := privateZonesClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		privateZoneName,
 		armprivatedns.PrivateZone{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil,
 	)
@@ -103,18 +105,21 @@ func createPrivateZone(ctx context.Context, cred azcore.TokenCredential) (*armpr
 }
 
 func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.VirtualNetwork, error) {
-	virtualNetworkClient := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
+	virtualNetworkClient, err := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := virtualNetworkClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		virtualNetworkName,
 		armnetwork.VirtualNetwork{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armnetwork.VirtualNetworkPropertiesFormat{
 				AddressSpace: &armnetwork.AddressSpace{
 					AddressPrefixes: []*string{
-						to.StringPtr("10.1.0.0/16"),
+						to.Ptr("10.1.0.0/16"),
 					},
 				},
 			},
@@ -133,7 +138,10 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 }
 
 func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.Subnet, error) {
-	subnetsClient := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
+	subnetsClient, err := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := subnetsClient.BeginCreateOrUpdate(
 		ctx,
@@ -142,7 +150,7 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 		subnetName,
 		armnetwork.Subnet{
 			Properties: &armnetwork.SubnetPropertiesFormat{
-				AddressPrefix: to.StringPtr("10.1.0.0/24"),
+				AddressPrefix: to.Ptr("10.1.0.0/24"),
 			},
 		},
 		nil)
@@ -159,7 +167,10 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 }
 
 func createVirtualNetworkLink(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armprivatedns.VirtualNetworkLink, error) {
-	vnetLinksClient := armprivatedns.NewVirtualNetworkLinksClient(subscriptionID, cred, nil)
+	vnetLinksClient, err := armprivatedns.NewVirtualNetworkLinksClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollersResp, err := vnetLinksClient.BeginCreateOrUpdate(
 		ctx,
@@ -167,11 +178,11 @@ func createVirtualNetworkLink(ctx context.Context, cred azcore.TokenCredential, 
 		privateZoneName,
 		virtualNetworkLinkName,
 		armprivatedns.VirtualNetworkLink{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armprivatedns.VirtualNetworkLinkProperties{
-				RegistrationEnabled: to.BoolPtr(true),
+				RegistrationEnabled: to.Ptr(true),
 				VirtualNetwork: &armprivatedns.SubResource{
-					ID: to.StringPtr(subnetID),
+					ID: to.Ptr(subnetID),
 				},
 			},
 		},
@@ -188,13 +199,16 @@ func createVirtualNetworkLink(ctx context.Context, cred azcore.TokenCredential, 
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -203,17 +217,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

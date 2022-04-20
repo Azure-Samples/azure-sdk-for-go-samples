@@ -88,7 +88,10 @@ func main() {
 }
 
 func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.VirtualNetwork, error) {
-	virtualNetworkClient := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
+	virtualNetworkClient, err := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := virtualNetworkClient.BeginCreateOrUpdate(
 		ctx,
@@ -118,7 +121,10 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 }
 
 func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.Subnet, error) {
-	subnetsClient := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
+	subnetsClient, err := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := subnetsClient.BeginCreateOrUpdate(
 		ctx,
@@ -144,7 +150,10 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 }
 
 func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armnetwork.Interface, error) {
-	nicClient := armnetwork.NewInterfacesClient(subscriptionID, cred, nil)
+	nicClient, err := armnetwork.NewInterfacesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := nicClient.BeginCreateOrUpdate(
 		ctx,
@@ -179,7 +188,10 @@ func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID string
 }
 
 func createVMSS(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armcompute.VirtualMachineScaleSet, error) {
-	vmssClient := armcompute.NewVirtualMachineScaleSetsClient(subscriptionID, cred, nil)
+	vmssClient, err := armcompute.NewVirtualMachineScaleSetsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := vmssClient.BeginCreateOrUpdate(
 		ctx,
@@ -195,7 +207,7 @@ func createVMSS(ctx context.Context, cred azcore.TokenCredential, subnetID strin
 			Properties: &armcompute.VirtualMachineScaleSetProperties{
 				Overprovision: to.Ptr(true),
 				UpgradePolicy: &armcompute.UpgradePolicy{
-					Mode: armcompute.UpgradeModeManual),
+					Mode: to.Ptr(armcompute.UpgradeModeManual),
 				},
 				VirtualMachineProfile: &armcompute.VirtualMachineScaleSetVMProfile{
 					OSProfile: &armcompute.VirtualMachineScaleSetOSProfile{
@@ -211,11 +223,11 @@ func createVMSS(ctx context.Context, cred azcore.TokenCredential, subnetID strin
 							Version:   to.Ptr("latest"),
 						},
 						OSDisk: &armcompute.VirtualMachineScaleSetOSDisk{
-							Caching: armcompute.CachingTypesReadWrite),
+							Caching: to.Ptr(armcompute.CachingTypesReadWrite),
 							ManagedDisk: &armcompute.VirtualMachineScaleSetManagedDiskParameters{
-							StorageAccountType: armcompute.StorageAccountTypesStandardLRS),
-						},
-							CreateOption: armcompute.DiskCreateOptionTypesFromImage),
+								StorageAccountType: to.Ptr(armcompute.StorageAccountTypesStandardLRS),
+							},
+							CreateOption: to.Ptr(armcompute.DiskCreateOptionTypesFromImage),
 							DiskSizeGB:   to.Ptr[int32](128),
 						},
 					},
@@ -257,7 +269,10 @@ func createVMSS(ctx context.Context, cred azcore.TokenCredential, subnetID strin
 }
 
 func createAutoscaleSetting(ctx context.Context, cred azcore.TokenCredential, resourceURI string) (*armmonitor.AutoscaleSettingResource, error) {
-	autoscaleSettingsClient := armmonitor.NewAutoscaleSettingsClient(subscriptionID, cred, nil)
+	autoscaleSettingsClient, err := armmonitor.NewAutoscaleSettingsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := autoscaleSettingsClient.CreateOrUpdate(
 		ctx,
@@ -304,7 +319,10 @@ func createAutoscaleSetting(ctx context.Context, cred azcore.TokenCredential, re
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,

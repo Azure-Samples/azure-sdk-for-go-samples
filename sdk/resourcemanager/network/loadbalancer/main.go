@@ -6,15 +6,14 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
-	"time"
-
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
+	"log"
+	"os"
+	"time"
 )
 
 var (
@@ -66,7 +65,10 @@ func main() {
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -82,7 +84,10 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 }
 
 func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.PublicIPAddress, error) {
-	publicIPClient := armnetwork.NewPublicIPAddressesClient(subscriptionID, cred, nil)
+	publicIPClient, err := armnetwork.NewPublicIPAddressesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := publicIPClient.BeginCreateOrUpdate(
 		ctx,
@@ -92,8 +97,8 @@ func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwo
 			Name:     to.Ptr(publicIPAddressName),
 			Location: to.Ptr(location),
 			Properties: &armnetwork.PublicIPAddressPropertiesFormat{
-				PublicIPAddressVersion: armnetwork.IPVersionIPv4),
-				PublicIPAllocationMethod: armnetwork.IPAllocationMethodStatic),
+				PublicIPAddressVersion:   to.Ptr(armnetwork.IPVersionIPv4),
+				PublicIPAllocationMethod: to.Ptr(armnetwork.IPAllocationMethodStatic),
 			},
 		},
 		nil,
@@ -115,7 +120,11 @@ func createLoadBalancer(ctx context.Context, cred azcore.TokenCredential, pip *a
 	backEndAddressPoolName := "backEndPool"
 	idPrefix := fmt.Sprintf("subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers", subscriptionID, resourceGroupName)
 
-	lbClient := armnetwork.NewLoadBalancersClient(subscriptionID, cred, nil)
+	lbClient, err := armnetwork.NewLoadBalancersClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	pollerResp, err := lbClient.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
 		loadBalancerName,
@@ -126,7 +135,7 @@ func createLoadBalancer(ctx context.Context, cred azcore.TokenCredential, pip *a
 					{
 						Name: &frontEndIPConfigName,
 						Properties: &armnetwork.FrontendIPConfigurationPropertiesFormat{
-							PrivateIPAllocationMethod: armnetwork.IPAllocationMethodDynamic),
+							PrivateIPAllocationMethod: to.Ptr(armnetwork.IPAllocationMethodDynamic),
 							PublicIPAddress:           pip,
 						},
 					},
@@ -140,7 +149,7 @@ func createLoadBalancer(ctx context.Context, cred azcore.TokenCredential, pip *a
 					{
 						Name: &probeName,
 						Properties: &armnetwork.ProbePropertiesFormat{
-							Protocol: armnetwork.ProbeProtocolHTTP),
+							Protocol:          to.Ptr(armnetwork.ProbeProtocolHTTP),
 							Port:              to.Ptr[int32](80),
 							IntervalInSeconds: to.Ptr[int32](15),
 							NumberOfProbes:    to.Ptr[int32](4),
@@ -152,21 +161,21 @@ func createLoadBalancer(ctx context.Context, cred azcore.TokenCredential, pip *a
 					{
 						Name: to.Ptr("lbRule"),
 						Properties: &armnetwork.LoadBalancingRulePropertiesFormat{
-							Protocol: armnetwork.TransportProtocolTCP),
+							Protocol:             to.Ptr(armnetwork.TransportProtocolTCP),
 							FrontendPort:         to.Ptr[int32](80),
 							BackendPort:          to.Ptr[int32](80),
 							IdleTimeoutInMinutes: to.Ptr[int32](4),
 							EnableFloatingIP:     to.Ptr(false),
-							LoadDistribution:     armnetwork.LoadDistributionDefault),
+							LoadDistribution:     to.Ptr(armnetwork.LoadDistributionDefault),
 							FrontendIPConfiguration: &armnetwork.SubResource{
-							ID: to.Ptr(fmt.Sprintf("/%s/%s/frontendIPConfigurations/%s", idPrefix, loadBalancerName, frontEndIPConfigName)),
-						},
+								ID: to.Ptr(fmt.Sprintf("/%s/%s/frontendIPConfigurations/%s", idPrefix, loadBalancerName, frontEndIPConfigName)),
+							},
 							BackendAddressPool: &armnetwork.SubResource{
-							ID: to.Ptr(fmt.Sprintf("/%s/%s/backendAddressPools/%s", idPrefix, loadBalancerName, backEndAddressPoolName)),
-						},
+								ID: to.Ptr(fmt.Sprintf("/%s/%s/backendAddressPools/%s", idPrefix, loadBalancerName, backEndAddressPoolName)),
+							},
 							Probe: &armnetwork.SubResource{
-							ID: to.Ptr(fmt.Sprintf("/%s/%s/probes/%s", idPrefix, loadBalancerName, probeName)),
-						},
+								ID: to.Ptr(fmt.Sprintf("/%s/%s/probes/%s", idPrefix, loadBalancerName, probeName)),
+							},
 						},
 					},
 				},
@@ -174,27 +183,27 @@ func createLoadBalancer(ctx context.Context, cred azcore.TokenCredential, pip *a
 					{
 						Name: to.Ptr("natRule1"),
 						Properties: &armnetwork.InboundNatRulePropertiesFormat{
-							Protocol: armnetwork.TransportProtocolTCP),
+							Protocol:             to.Ptr(armnetwork.TransportProtocolTCP),
 							FrontendPort:         to.Ptr[int32](21),
 							BackendPort:          to.Ptr[int32](22),
 							EnableFloatingIP:     to.Ptr(false),
 							IdleTimeoutInMinutes: to.Ptr[int32](4),
 							FrontendIPConfiguration: &armnetwork.SubResource{
-							ID: to.Ptr(fmt.Sprintf("/%s/%s/frontendIPConfigurations/%s", idPrefix, loadBalancerName, frontEndIPConfigName)),
-						},
+								ID: to.Ptr(fmt.Sprintf("/%s/%s/frontendIPConfigurations/%s", idPrefix, loadBalancerName, frontEndIPConfigName)),
+							},
 						},
 					},
 					{
 						Name: to.Ptr("natRule2"),
 						Properties: &armnetwork.InboundNatRulePropertiesFormat{
-							Protocol: armnetwork.TransportProtocolTCP),
+							Protocol:             to.Ptr(armnetwork.TransportProtocolTCP),
 							FrontendPort:         to.Ptr[int32](23),
 							BackendPort:          to.Ptr[int32](22),
 							EnableFloatingIP:     to.Ptr(false),
 							IdleTimeoutInMinutes: to.Ptr[int32](4),
 							FrontendIPConfiguration: &armnetwork.SubResource{
-							ID: to.Ptr(fmt.Sprintf("/%s/%s/frontendIPConfigurations/%s", idPrefix, loadBalancerName, frontEndIPConfigName)),
-						},
+								ID: to.Ptr(fmt.Sprintf("/%s/%s/frontendIPConfigurations/%s", idPrefix, loadBalancerName, frontEndIPConfigName)),
+							},
 						},
 					},
 				},

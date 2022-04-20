@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -63,7 +62,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -72,53 +71,57 @@ func main() {
 }
 
 func createCluster(ctx context.Context, cred azcore.TokenCredential) (*armservicefabric.Cluster, error) {
-	clustersClient := armservicefabric.NewClustersClient(subscriptionID, cred, nil)
+	clustersClient, err := armservicefabric.NewClustersClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	pollerResp, err := clustersClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		clusterName,
 		armservicefabric.Cluster{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armservicefabric.ClusterProperties{
-				ManagementEndpoint: to.StringPtr("https://myCluster.eastus.cloudapp.azure.com:19080"),
+				ManagementEndpoint: to.Ptr("https://myCluster.eastus.cloudapp.azure.com:19080"),
 				NodeTypes: []*armservicefabric.NodeTypeDescription{
 					{
-						Name:                         to.StringPtr("nt1vm"),
-						ClientConnectionEndpointPort: to.Int32Ptr(19000),
-						HTTPGatewayEndpointPort:      to.Int32Ptr(19007),
+						Name:                         to.Ptr("nt1vm"),
+						ClientConnectionEndpointPort: to.Ptr[int32](19000),
+						HTTPGatewayEndpointPort:      to.Ptr[int32](19007),
 						ApplicationPorts: &armservicefabric.EndpointRangeDescription{
-							StartPort: to.Int32Ptr(20000),
-							EndPort:   to.Int32Ptr(30000),
+							StartPort: to.Ptr[int32](20000),
+							EndPort:   to.Ptr[int32](30000),
 						},
 						EphemeralPorts: &armservicefabric.EndpointRangeDescription{
-							StartPort: to.Int32Ptr(49000),
-							EndPort:   to.Int32Ptr(64000),
+							StartPort: to.Ptr[int32](49000),
+							EndPort:   to.Ptr[int32](64000),
 						},
-						IsPrimary:       to.BoolPtr(true),
-						VMInstanceCount: to.Int32Ptr(5),
-						DurabilityLevel: armservicefabric.DurabilityLevelBronze.ToPtr(),
+						IsPrimary:       to.Ptr(true),
+						VMInstanceCount: to.Ptr[int32](5),
+						DurabilityLevel: to.Ptr(armservicefabric.DurabilityLevelBronze),
 					},
 				},
 				FabricSettings: []*armservicefabric.SettingsSectionDescription{
 					{
-						Name: to.StringPtr("UpgradeService"),
+						Name: to.Ptr("UpgradeService"),
 						Parameters: []*armservicefabric.SettingsParameterDescription{
 							{
-								Name:  to.StringPtr("AppPollIntervalInSeconds"),
-								Value: to.StringPtr("60"),
+								Name:  to.Ptr("AppPollIntervalInSeconds"),
+								Value: to.Ptr("60"),
 							},
 						},
 					},
 				},
 				DiagnosticsStorageAccountConfig: &armservicefabric.DiagnosticsStorageAccountConfig{
-					StorageAccountName:      to.StringPtr("diag"),
-					ProtectedAccountKeyName: to.StringPtr("StorageAccountKey1"),
-					BlobEndpoint:            to.StringPtr("https://diag.blob.core.windows.net/"),
-					QueueEndpoint:           to.StringPtr("https://diag.queue.core.windows.net/"),
-					TableEndpoint:           to.StringPtr("https://diag.table.core.windows.net/"),
+					StorageAccountName:      to.Ptr("diag"),
+					ProtectedAccountKeyName: to.Ptr("StorageAccountKey1"),
+					BlobEndpoint:            to.Ptr("https://diag.blob.core.windows.net/"),
+					QueueEndpoint:           to.Ptr("https://diag.queue.core.windows.net/"),
+					TableEndpoint:           to.Ptr("https://diag.table.core.windows.net/"),
 				},
-				ReliabilityLevel: armservicefabric.ReliabilityLevelSilver.ToPtr(),
-				UpgradeMode:      armservicefabric.UpgradeModeAutomatic.ToPtr(),
+				ReliabilityLevel: to.Ptr(armservicefabric.ReliabilityLevelSilver),
+				UpgradeMode:      to.Ptr(armservicefabric.UpgradeModeAutomatic),
 			},
 		},
 		nil,
@@ -134,52 +137,56 @@ func createCluster(ctx context.Context, cred azcore.TokenCredential) (*armservic
 }
 
 func createApplication(ctx context.Context, cred azcore.TokenCredential) (*armservicefabric.ApplicationResource, error) {
-	applicationsClient := armservicefabric.NewApplicationsClient(subscriptionID, cred, nil)
+	applicationsClient, err := armservicefabric.NewApplicationsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	pollerResp, err := applicationsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		clusterName,
 		applicationName,
 		armservicefabric.ApplicationResource{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armservicefabric.ApplicationResourceProperties{
 				// minimum parameters
-				TypeName:                  to.StringPtr("myAppType"),
-				TypeVersion:               to.StringPtr("1.0"),
-				RemoveApplicationCapacity: to.BoolPtr(false),
+				TypeName:                  to.Ptr("myAppType"),
+				TypeVersion:               to.Ptr("1.0"),
+				RemoveApplicationCapacity: to.Ptr(false),
 				Parameters: map[string]*string{
-					"param1": to.StringPtr("value1"),
+					"param1": to.Ptr("value1"),
 				},
 				// minimum parameters
 				UpgradePolicy: &armservicefabric.ApplicationUpgradePolicy{
 					ApplicationHealthPolicy: &armservicefabric.ArmApplicationHealthPolicy{
-						ConsiderWarningAsError:                  to.BoolPtr(true),
-						MaxPercentUnhealthyDeployedApplications: to.Int32Ptr(0),
+						ConsiderWarningAsError:                  to.Ptr(true),
+						MaxPercentUnhealthyDeployedApplications: to.Ptr[int32](0),
 						DefaultServiceTypeHealthPolicy: &armservicefabric.ArmServiceTypeHealthPolicy{
-							MaxPercentUnhealthyServices:             to.Int32Ptr(0),
-							MaxPercentUnhealthyPartitionsPerService: to.Int32Ptr(0),
-							MaxPercentUnhealthyReplicasPerPartition: to.Int32Ptr(0),
+							MaxPercentUnhealthyServices:             to.Ptr[int32](0),
+							MaxPercentUnhealthyPartitionsPerService: to.Ptr[int32](0),
+							MaxPercentUnhealthyReplicasPerPartition: to.Ptr[int32](0),
 						},
 					},
 					RollingUpgradeMonitoringPolicy: &armservicefabric.ArmRollingUpgradeMonitoringPolicy{
-						FailureAction:             armservicefabric.ArmUpgradeFailureActionRollback.ToPtr(),
-						HealthCheckRetryTimeout:   to.StringPtr("00:10:00"),
-						HealthCheckWaitDuration:   to.StringPtr("00:02:00"),
-						HealthCheckStableDuration: to.StringPtr("00:05:00"),
-						UpgradeDomainTimeout:      to.StringPtr("1.06:00:00"),
-						UpgradeTimeout:            to.StringPtr("01:00:00"),
+						FailureAction:             to.Ptr(armservicefabric.ArmUpgradeFailureActionRollback),
+						HealthCheckRetryTimeout:   to.Ptr("00:10:00"),
+						HealthCheckWaitDuration:   to.Ptr("00:02:00"),
+						HealthCheckStableDuration: to.Ptr("00:05:00"),
+						UpgradeDomainTimeout:      to.Ptr("1.06:00:00"),
+						UpgradeTimeout:            to.Ptr("01:00:00"),
 					},
-					UpgradeReplicaSetCheckTimeout: to.StringPtr("01:00:00"),
-					ForceRestart:                  to.BoolPtr(false),
+					UpgradeReplicaSetCheckTimeout: to.Ptr("01:00:00"),
+					ForceRestart:                  to.Ptr(false),
 				},
-				MaximumNodes: to.Int64Ptr(3),
-				MinimumNodes: to.Int64Ptr(1),
+				MaximumNodes: to.Ptr[int64](3),
+				MinimumNodes: to.Ptr[int64](1),
 				Metrics: []*armservicefabric.ApplicationMetricDescription{
 					{
-						Name:                     to.StringPtr("metric1"),
-						ReservationCapacity:      to.Int64Ptr(1),
-						MaximumCapacity:          to.Int64Ptr(3),
-						TotalApplicationCapacity: to.Int64Ptr(5),
+						Name:                     to.Ptr("metric1"),
+						ReservationCapacity:      to.Ptr[int64](1),
+						MaximumCapacity:          to.Ptr[int64](3),
+						TotalApplicationCapacity: to.Ptr[int64](5),
 					},
 				},
 			},
@@ -197,7 +204,11 @@ func createApplication(ctx context.Context, cred azcore.TokenCredential) (*armse
 }
 
 func getApplication(ctx context.Context, cred azcore.TokenCredential) (*armservicefabric.ApplicationResource, error) {
-	applicationsClient := armservicefabric.NewApplicationsClient(subscriptionID, cred, nil)
+	applicationsClient, err := armservicefabric.NewApplicationsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	resp, err := applicationsClient.Get(ctx, resourceGroupName, clusterName, applicationName, nil)
 	if err != nil {
 		return nil, err
@@ -206,13 +217,16 @@ func getApplication(ctx context.Context, cred azcore.TokenCredential) (*armservi
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -221,17 +235,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

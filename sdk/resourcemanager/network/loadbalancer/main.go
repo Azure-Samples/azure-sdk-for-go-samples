@@ -6,16 +6,14 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"net/http"
-	"os"
-	"time"
-
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
+	"log"
+	"os"
+	"time"
 )
 
 var (
@@ -58,7 +56,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -67,13 +65,16 @@ func main() {
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -83,18 +84,21 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 }
 
 func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.PublicIPAddress, error) {
-	publicIPClient := armnetwork.NewPublicIPAddressesClient(subscriptionID, cred, nil)
+	publicIPClient, err := armnetwork.NewPublicIPAddressesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := publicIPClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		publicIPAddressName,
 		armnetwork.PublicIPAddress{
-			Name:     to.StringPtr(publicIPAddressName),
-			Location: to.StringPtr(location),
+			Name:     to.Ptr(publicIPAddressName),
+			Location: to.Ptr(location),
 			Properties: &armnetwork.PublicIPAddressPropertiesFormat{
-				PublicIPAddressVersion:   armnetwork.IPVersionIPv4.ToPtr(),
-				PublicIPAllocationMethod: armnetwork.IPAllocationMethodStatic.ToPtr(),
+				PublicIPAddressVersion:   to.Ptr(armnetwork.IPVersionIPv4),
+				PublicIPAllocationMethod: to.Ptr(armnetwork.IPAllocationMethodStatic),
 			},
 		},
 		nil,
@@ -116,18 +120,22 @@ func createLoadBalancer(ctx context.Context, cred azcore.TokenCredential, pip *a
 	backEndAddressPoolName := "backEndPool"
 	idPrefix := fmt.Sprintf("subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers", subscriptionID, resourceGroupName)
 
-	lbClient := armnetwork.NewLoadBalancersClient(subscriptionID, cred, nil)
+	lbClient, err := armnetwork.NewLoadBalancersClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	pollerResp, err := lbClient.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
 		loadBalancerName,
 		armnetwork.LoadBalancer{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armnetwork.LoadBalancerPropertiesFormat{
 				FrontendIPConfigurations: []*armnetwork.FrontendIPConfiguration{
 					{
 						Name: &frontEndIPConfigName,
 						Properties: &armnetwork.FrontendIPConfigurationPropertiesFormat{
-							PrivateIPAllocationMethod: armnetwork.IPAllocationMethodDynamic.ToPtr(),
+							PrivateIPAllocationMethod: to.Ptr(armnetwork.IPAllocationMethodDynamic),
 							PublicIPAddress:           pip,
 						},
 					},
@@ -141,60 +149,60 @@ func createLoadBalancer(ctx context.Context, cred azcore.TokenCredential, pip *a
 					{
 						Name: &probeName,
 						Properties: &armnetwork.ProbePropertiesFormat{
-							Protocol:          armnetwork.ProbeProtocolHTTP.ToPtr(),
-							Port:              to.Int32Ptr(80),
-							IntervalInSeconds: to.Int32Ptr(15),
-							NumberOfProbes:    to.Int32Ptr(4),
-							RequestPath:       to.StringPtr("healthprobe.aspx"),
+							Protocol:          to.Ptr(armnetwork.ProbeProtocolHTTP),
+							Port:              to.Ptr[int32](80),
+							IntervalInSeconds: to.Ptr[int32](15),
+							NumberOfProbes:    to.Ptr[int32](4),
+							RequestPath:       to.Ptr("healthprobe.aspx"),
 						},
 					},
 				},
 				LoadBalancingRules: []*armnetwork.LoadBalancingRule{
 					{
-						Name: to.StringPtr("lbRule"),
+						Name: to.Ptr("lbRule"),
 						Properties: &armnetwork.LoadBalancingRulePropertiesFormat{
-							Protocol:             armnetwork.TransportProtocolTCP.ToPtr(),
-							FrontendPort:         to.Int32Ptr(80),
-							BackendPort:          to.Int32Ptr(80),
-							IdleTimeoutInMinutes: to.Int32Ptr(4),
-							EnableFloatingIP:     to.BoolPtr(false),
-							LoadDistribution:     armnetwork.LoadDistributionDefault.ToPtr(),
+							Protocol:             to.Ptr(armnetwork.TransportProtocolTCP),
+							FrontendPort:         to.Ptr[int32](80),
+							BackendPort:          to.Ptr[int32](80),
+							IdleTimeoutInMinutes: to.Ptr[int32](4),
+							EnableFloatingIP:     to.Ptr(false),
+							LoadDistribution:     to.Ptr(armnetwork.LoadDistributionDefault),
 							FrontendIPConfiguration: &armnetwork.SubResource{
-								ID: to.StringPtr(fmt.Sprintf("/%s/%s/frontendIPConfigurations/%s", idPrefix, loadBalancerName, frontEndIPConfigName)),
+								ID: to.Ptr(fmt.Sprintf("/%s/%s/frontendIPConfigurations/%s", idPrefix, loadBalancerName, frontEndIPConfigName)),
 							},
 							BackendAddressPool: &armnetwork.SubResource{
-								ID: to.StringPtr(fmt.Sprintf("/%s/%s/backendAddressPools/%s", idPrefix, loadBalancerName, backEndAddressPoolName)),
+								ID: to.Ptr(fmt.Sprintf("/%s/%s/backendAddressPools/%s", idPrefix, loadBalancerName, backEndAddressPoolName)),
 							},
 							Probe: &armnetwork.SubResource{
-								ID: to.StringPtr(fmt.Sprintf("/%s/%s/probes/%s", idPrefix, loadBalancerName, probeName)),
+								ID: to.Ptr(fmt.Sprintf("/%s/%s/probes/%s", idPrefix, loadBalancerName, probeName)),
 							},
 						},
 					},
 				},
 				InboundNatRules: []*armnetwork.InboundNatRule{
 					{
-						Name: to.StringPtr("natRule1"),
+						Name: to.Ptr("natRule1"),
 						Properties: &armnetwork.InboundNatRulePropertiesFormat{
-							Protocol:             armnetwork.TransportProtocolTCP.ToPtr(),
-							FrontendPort:         to.Int32Ptr(21),
-							BackendPort:          to.Int32Ptr(22),
-							EnableFloatingIP:     to.BoolPtr(false),
-							IdleTimeoutInMinutes: to.Int32Ptr(4),
+							Protocol:             to.Ptr(armnetwork.TransportProtocolTCP),
+							FrontendPort:         to.Ptr[int32](21),
+							BackendPort:          to.Ptr[int32](22),
+							EnableFloatingIP:     to.Ptr(false),
+							IdleTimeoutInMinutes: to.Ptr[int32](4),
 							FrontendIPConfiguration: &armnetwork.SubResource{
-								ID: to.StringPtr(fmt.Sprintf("/%s/%s/frontendIPConfigurations/%s", idPrefix, loadBalancerName, frontEndIPConfigName)),
+								ID: to.Ptr(fmt.Sprintf("/%s/%s/frontendIPConfigurations/%s", idPrefix, loadBalancerName, frontEndIPConfigName)),
 							},
 						},
 					},
 					{
-						Name: to.StringPtr("natRule2"),
+						Name: to.Ptr("natRule2"),
 						Properties: &armnetwork.InboundNatRulePropertiesFormat{
-							Protocol:             armnetwork.TransportProtocolTCP.ToPtr(),
-							FrontendPort:         to.Int32Ptr(23),
-							BackendPort:          to.Int32Ptr(22),
-							EnableFloatingIP:     to.BoolPtr(false),
-							IdleTimeoutInMinutes: to.Int32Ptr(4),
+							Protocol:             to.Ptr(armnetwork.TransportProtocolTCP),
+							FrontendPort:         to.Ptr[int32](23),
+							BackendPort:          to.Ptr[int32](22),
+							EnableFloatingIP:     to.Ptr(false),
+							IdleTimeoutInMinutes: to.Ptr[int32](4),
 							FrontendIPConfiguration: &armnetwork.SubResource{
-								ID: to.StringPtr(fmt.Sprintf("/%s/%s/frontendIPConfigurations/%s", idPrefix, loadBalancerName, frontEndIPConfigName)),
+								ID: to.Ptr(fmt.Sprintf("/%s/%s/frontendIPConfigurations/%s", idPrefix, loadBalancerName, frontEndIPConfigName)),
 							},
 						},
 					},
@@ -213,17 +221,20 @@ func createLoadBalancer(ctx context.Context, cred azcore.TokenCredential, pip *a
 	return &resp.LoadBalancer, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

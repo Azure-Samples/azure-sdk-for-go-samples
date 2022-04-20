@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -64,7 +63,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -73,21 +72,24 @@ func main() {
 }
 
 func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceResource, error) {
-	apiManagementServiceClient := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
+	apiManagementServiceClient, err := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := apiManagementServiceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
 		armapimanagement.ServiceResource{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armapimanagement.ServiceProperties{
-				PublisherName:  to.StringPtr("sample"),
-				PublisherEmail: to.StringPtr("xxx@wircesoft.com"),
+				PublisherName:  to.Ptr("sample"),
+				PublisherEmail: to.Ptr("xxx@wircesoft.com"),
 			},
 			SKU: &armapimanagement.ServiceSKUProperties{
-				Name:     armapimanagement.SKUTypeStandard.ToPtr(),
-				Capacity: to.Int32Ptr(2),
+				Name:     to.Ptr(armapimanagement.SKUTypeStandard),
+				Capacity: to.Ptr[int32](2),
 			},
 		},
 		nil,
@@ -103,7 +105,10 @@ func createApiManagementService(ctx context.Context, cred azcore.TokenCredential
 }
 
 func createApi(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIContract, error) {
-	APIClient := armapimanagement.NewAPIClient(subscriptionID, cred, nil)
+	APIClient, err := armapimanagement.NewAPIClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := APIClient.BeginCreateOrUpdate(
 		ctx,
@@ -112,11 +117,11 @@ func createApi(ctx context.Context, cred azcore.TokenCredential) (*armapimanagem
 		apiID,
 		armapimanagement.APICreateOrUpdateParameter{
 			Properties: &armapimanagement.APICreateOrUpdateProperties{
-				Path:        to.StringPtr("test"),
-				DisplayName: to.StringPtr("sample-sample"),
+				Path:        to.Ptr("test"),
+				DisplayName: to.Ptr("sample-sample"),
 				Protocols: []*armapimanagement.Protocol{
-					armapimanagement.ProtocolHTTP.ToPtr(),
-					armapimanagement.ProtocolHTTPS.ToPtr(),
+					to.Ptr(armapimanagement.ProtocolHTTP),
+					to.Ptr(armapimanagement.ProtocolHTTPS),
 				},
 			},
 		},
@@ -133,7 +138,10 @@ func createApi(ctx context.Context, cred azcore.TokenCredential) (*armapimanagem
 }
 
 func createApiSchema(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.SchemaContract, error) {
-	apiSchemaClient := armapimanagement.NewAPISchemaClient(subscriptionID, cred, nil)
+	apiSchemaClient, err := armapimanagement.NewAPISchemaClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := apiSchemaClient.BeginCreateOrUpdate(
 		ctx,
@@ -143,7 +151,7 @@ func createApiSchema(ctx context.Context, cred azcore.TokenCredential) (*armapim
 		schemaID,
 		armapimanagement.SchemaContract{
 			Properties: &armapimanagement.SchemaContractProperties{
-				ContentType: to.StringPtr("application/json"),
+				ContentType: to.Ptr("application/json"),
 			},
 		},
 		nil,
@@ -159,13 +167,16 @@ func createApiSchema(ctx context.Context, cred azcore.TokenCredential) (*armapim
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -174,17 +185,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -85,7 +84,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -94,17 +93,20 @@ func main() {
 }
 
 func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Server, error) {
-	serversClient := armsql.NewServersClient(subscriptionID, cred, nil)
+	serversClient, err := armsql.NewServersClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := serversClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serverName,
 		armsql.Server{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armsql.ServerProperties{
-				AdministratorLogin:         to.StringPtr("samplelogin"),
-				AdministratorLoginPassword: to.StringPtr("QWE123!@#"),
+				AdministratorLogin:         to.Ptr("samplelogin"),
+				AdministratorLoginPassword: to.Ptr("QWE123!@#"),
 			},
 		},
 		nil,
@@ -120,7 +122,10 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Ser
 }
 
 func createDatabase(ctx context.Context, cred azcore.TokenCredential) (*armsql.Database, error) {
-	databasesClient := armsql.NewDatabasesClient(subscriptionID, cred, nil)
+	databasesClient, err := armsql.NewDatabasesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := databasesClient.BeginCreateOrUpdate(
 		ctx,
@@ -128,7 +133,7 @@ func createDatabase(ctx context.Context, cred azcore.TokenCredential) (*armsql.D
 		serverName,
 		databaseName,
 		armsql.Database{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil,
 	)
@@ -143,7 +148,10 @@ func createDatabase(ctx context.Context, cred azcore.TokenCredential) (*armsql.D
 }
 
 func createSyncDatabase(ctx context.Context, cred azcore.TokenCredential) (*armsql.Database, error) {
-	databasesClient := armsql.NewDatabasesClient(subscriptionID, cred, nil)
+	databasesClient, err := armsql.NewDatabasesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := databasesClient.BeginCreateOrUpdate(
 		ctx,
@@ -151,7 +159,7 @@ func createSyncDatabase(ctx context.Context, cred azcore.TokenCredential) (*arms
 		serverName,
 		syncDatabaseName,
 		armsql.Database{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil,
 	)
@@ -166,7 +174,10 @@ func createSyncDatabase(ctx context.Context, cred azcore.TokenCredential) (*arms
 }
 
 func createSyncAgent(ctx context.Context, cred azcore.TokenCredential, syncDatabaseID string) (*armsql.SyncAgent, error) {
-	syncAgentsClient := armsql.NewSyncAgentsClient(subscriptionID, cred, nil)
+	syncAgentsClient, err := armsql.NewSyncAgentsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := syncAgentsClient.BeginCreateOrUpdate(
 		ctx,
@@ -175,7 +186,7 @@ func createSyncAgent(ctx context.Context, cred azcore.TokenCredential, syncDatab
 		syncAgentName,
 		armsql.SyncAgent{
 			Properties: &armsql.SyncAgentProperties{
-				SyncDatabaseID: to.StringPtr(syncDatabaseID),
+				SyncDatabaseID: to.Ptr(syncDatabaseID),
 			},
 		},
 		nil,
@@ -191,7 +202,10 @@ func createSyncAgent(ctx context.Context, cred azcore.TokenCredential, syncDatab
 }
 
 func createSyncGroup(ctx context.Context, cred azcore.TokenCredential, syncDatabaseID string) (*armsql.SyncGroup, error) {
-	syncGroupsClient := armsql.NewSyncGroupsClient(subscriptionID, cred, nil)
+	syncGroupsClient, err := armsql.NewSyncGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := syncGroupsClient.BeginCreateOrUpdate(
 		ctx,
@@ -201,11 +215,11 @@ func createSyncGroup(ctx context.Context, cred azcore.TokenCredential, syncDatab
 		syncGroupName,
 		armsql.SyncGroup{
 			Properties: &armsql.SyncGroupProperties{
-				Interval:                 to.Int32Ptr(-1),
-				ConflictResolutionPolicy: armsql.SyncConflictResolutionPolicyHubWin.ToPtr(),
-				SyncDatabaseID:           to.StringPtr(syncDatabaseID),
-				HubDatabaseUserName:      to.StringPtr("hubUser"),
-				UsePrivateLinkConnection: to.BoolPtr(false),
+				Interval:                 to.Ptr[int32](-1),
+				ConflictResolutionPolicy: to.Ptr(armsql.SyncConflictResolutionPolicyHubWin),
+				SyncDatabaseID:           to.Ptr(syncDatabaseID),
+				HubDatabaseUserName:      to.Ptr("hubUser"),
+				UsePrivateLinkConnection: to.Ptr(false),
 			},
 		},
 		nil,
@@ -221,7 +235,10 @@ func createSyncGroup(ctx context.Context, cred azcore.TokenCredential, syncDatab
 }
 
 func createSyncMember(ctx context.Context, cred azcore.TokenCredential) (*armsql.SyncMember, error) {
-	syncMembersClient := armsql.NewSyncMembersClient(subscriptionID, cred, nil)
+	syncMembersClient, err := armsql.NewSyncMembersClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := syncMembersClient.BeginCreateOrUpdate(
 		ctx,
@@ -232,14 +249,14 @@ func createSyncMember(ctx context.Context, cred azcore.TokenCredential) (*armsql
 		syncMemberName,
 		armsql.SyncMember{
 			Properties: &armsql.SyncMemberProperties{
-				DatabaseType:             armsql.SyncMemberDbTypeAzureSQLDatabase.ToPtr(),
-				ServerName:               to.StringPtr(serverName),
-				DatabaseName:             to.StringPtr(databaseName),
-				UserName:                 to.StringPtr("dummylogin"),
-				Password:                 to.StringPtr("QWE123!@#"),
-				SyncDirection:            armsql.SyncDirectionBidirectional.ToPtr(),
-				UsePrivateLinkConnection: to.BoolPtr(false),
-				SyncState:                armsql.SyncMemberStateUnProvisioned.ToPtr(),
+				DatabaseType:             to.Ptr(armsql.SyncMemberDbTypeAzureSQLDatabase),
+				ServerName:               to.Ptr(serverName),
+				DatabaseName:             to.Ptr(databaseName),
+				UserName:                 to.Ptr("dummylogin"),
+				Password:                 to.Ptr("QWE123!@#"),
+				SyncDirection:            to.Ptr(armsql.SyncDirectionBidirectional),
+				UsePrivateLinkConnection: to.Ptr(false),
+				SyncState:                to.Ptr(armsql.SyncMemberStateUnProvisioned),
 			},
 		},
 		nil,
@@ -255,13 +272,16 @@ func createSyncMember(ctx context.Context, cred azcore.TokenCredential) (*armsql
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -270,17 +290,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

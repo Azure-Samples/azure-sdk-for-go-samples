@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -57,7 +56,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -66,21 +65,24 @@ func main() {
 }
 
 func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceResource, error) {
-	apiManagementServiceClient := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
+	apiManagementServiceClient, err := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := apiManagementServiceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
 		armapimanagement.ServiceResource{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armapimanagement.ServiceProperties{
-				PublisherName:  to.StringPtr("sample"),
-				PublisherEmail: to.StringPtr("xxx@wircesoft.com"),
+				PublisherName:  to.Ptr("sample"),
+				PublisherEmail: to.Ptr("xxx@wircesoft.com"),
 			},
 			SKU: &armapimanagement.ServiceSKUProperties{
-				Name:     armapimanagement.SKUTypeStandard.ToPtr(),
-				Capacity: to.Int32Ptr(2),
+				Name:     to.Ptr(armapimanagement.SKUTypeStandard),
+				Capacity: to.Ptr[int32](2),
 			},
 		},
 		nil,
@@ -96,7 +98,10 @@ func createApiManagementService(ctx context.Context, cred azcore.TokenCredential
 }
 
 func signInSetting(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.PortalSigninSettings, error) {
-	signInSettingsClient := armapimanagement.NewSignInSettingsClient(subscriptionID, cred, nil)
+	signInSettingsClient, err := armapimanagement.NewSignInSettingsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := signInSettingsClient.CreateOrUpdate(
 		ctx,
@@ -104,7 +109,7 @@ func signInSetting(ctx context.Context, cred azcore.TokenCredential) (*armapiman
 		serviceName,
 		armapimanagement.PortalSigninSettings{
 			Properties: &armapimanagement.PortalSigninSettingProperties{
-				Enabled: to.BoolPtr(true),
+				Enabled: to.Ptr(true),
 			},
 		},
 		nil,
@@ -116,13 +121,16 @@ func signInSetting(ctx context.Context, cred azcore.TokenCredential) (*armapiman
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -131,17 +139,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -56,7 +55,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -65,29 +64,32 @@ func main() {
 }
 
 func createActionGroup(ctx context.Context, cred azcore.TokenCredential) (*armmonitor.ActionGroupResource, error) {
-	actionGroupsClient := armmonitor.NewActionGroupsClient(subscriptionID, cred, nil)
+	actionGroupsClient, err := armmonitor.NewActionGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := actionGroupsClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		actionGroupName,
 		armmonitor.ActionGroupResource{
-			Location: to.StringPtr("global"),
+			Location: to.Ptr("global"),
 			Properties: &armmonitor.ActionGroup{
-				GroupShortName: to.StringPtr("sample"),
-				Enabled:        to.BoolPtr(true),
+				GroupShortName: to.Ptr("sample"),
+				Enabled:        to.Ptr(true),
 				EmailReceivers: []*armmonitor.EmailReceiver{
 					{
-						Name:                 to.StringPtr("John Doe's email"),
-						EmailAddress:         to.StringPtr("johndoe@eamil.com"),
-						UseCommonAlertSchema: to.BoolPtr(false),
+						Name:                 to.Ptr("John Doe's email"),
+						EmailAddress:         to.Ptr("johndoe@eamil.com"),
+						UseCommonAlertSchema: to.Ptr(false),
 					},
 				},
 				SmsReceivers: []*armmonitor.SmsReceiver{
 					{
-						Name:        to.StringPtr("Jhon Doe's mobile"),
-						CountryCode: to.StringPtr("1"),
-						PhoneNumber: to.StringPtr("1234567890"),
+						Name:        to.Ptr("Jhon Doe's mobile"),
+						CountryCode: to.Ptr("1"),
+						PhoneNumber: to.Ptr("1234567890"),
 					},
 				},
 			},
@@ -101,7 +103,10 @@ func createActionGroup(ctx context.Context, cred azcore.TokenCredential) (*armmo
 }
 
 func getActionGroup(ctx context.Context, cred azcore.TokenCredential) (*armmonitor.ActionGroupResource, error) {
-	actionGroupsClient := armmonitor.NewActionGroupsClient(subscriptionID, cred, nil)
+	actionGroupsClient, err := armmonitor.NewActionGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := actionGroupsClient.Get(ctx, resourceGroupName, actionGroupName, nil)
 	if err != nil {
@@ -111,13 +116,16 @@ func getActionGroup(ctx context.Context, cred azcore.TokenCredential) (*armmonit
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -126,17 +134,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

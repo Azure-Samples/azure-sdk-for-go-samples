@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -63,7 +62,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -72,53 +71,57 @@ func main() {
 }
 
 func createCluster(ctx context.Context, cred azcore.TokenCredential) (*armservicefabric.Cluster, error) {
-	clustersClient := armservicefabric.NewClustersClient(subscriptionID, cred, nil)
+	clustersClient, err := armservicefabric.NewClustersClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	pollerResp, err := clustersClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		clusterName,
 		armservicefabric.Cluster{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armservicefabric.ClusterProperties{
-				ManagementEndpoint: to.StringPtr("https://myCluster.eastus.cloudapp.azure.com:19080"),
+				ManagementEndpoint: to.Ptr("https://myCluster.eastus.cloudapp.azure.com:19080"),
 				NodeTypes: []*armservicefabric.NodeTypeDescription{
 					{
-						Name:                         to.StringPtr("nt1vm"),
-						ClientConnectionEndpointPort: to.Int32Ptr(19000),
-						HTTPGatewayEndpointPort:      to.Int32Ptr(19007),
+						Name:                         to.Ptr("nt1vm"),
+						ClientConnectionEndpointPort: to.Ptr[int32](19000),
+						HTTPGatewayEndpointPort:      to.Ptr[int32](19007),
 						ApplicationPorts: &armservicefabric.EndpointRangeDescription{
-							StartPort: to.Int32Ptr(20000),
-							EndPort:   to.Int32Ptr(30000),
+							StartPort: to.Ptr[int32](20000),
+							EndPort:   to.Ptr[int32](30000),
 						},
 						EphemeralPorts: &armservicefabric.EndpointRangeDescription{
-							StartPort: to.Int32Ptr(49000),
-							EndPort:   to.Int32Ptr(64000),
+							StartPort: to.Ptr[int32](49000),
+							EndPort:   to.Ptr[int32](64000),
 						},
-						IsPrimary:       to.BoolPtr(true),
-						VMInstanceCount: to.Int32Ptr(5),
-						DurabilityLevel: armservicefabric.DurabilityLevelBronze.ToPtr(),
+						IsPrimary:       to.Ptr(true),
+						VMInstanceCount: to.Ptr[int32](5),
+						DurabilityLevel: to.Ptr(armservicefabric.DurabilityLevelBronze),
 					},
 				},
 				FabricSettings: []*armservicefabric.SettingsSectionDescription{
 					{
-						Name: to.StringPtr("UpgradeService"),
+						Name: to.Ptr("UpgradeService"),
 						Parameters: []*armservicefabric.SettingsParameterDescription{
 							{
-								Name:  to.StringPtr("AppPollIntervalInSeconds"),
-								Value: to.StringPtr("60"),
+								Name:  to.Ptr("AppPollIntervalInSeconds"),
+								Value: to.Ptr("60"),
 							},
 						},
 					},
 				},
 				DiagnosticsStorageAccountConfig: &armservicefabric.DiagnosticsStorageAccountConfig{
-					StorageAccountName:      to.StringPtr("diag"),
-					ProtectedAccountKeyName: to.StringPtr("StorageAccountKey1"),
-					BlobEndpoint:            to.StringPtr("https://diag.blob.core.windows.net/"),
-					QueueEndpoint:           to.StringPtr("https://diag.queue.core.windows.net/"),
-					TableEndpoint:           to.StringPtr("https://diag.table.core.windows.net/"),
+					StorageAccountName:      to.Ptr("diag"),
+					ProtectedAccountKeyName: to.Ptr("StorageAccountKey1"),
+					BlobEndpoint:            to.Ptr("https://diag.blob.core.windows.net/"),
+					QueueEndpoint:           to.Ptr("https://diag.queue.core.windows.net/"),
+					TableEndpoint:           to.Ptr("https://diag.table.core.windows.net/"),
 				},
-				ReliabilityLevel: armservicefabric.ReliabilityLevelSilver.ToPtr(),
-				UpgradeMode:      armservicefabric.UpgradeModeAutomatic.ToPtr(),
+				ReliabilityLevel: to.Ptr(armservicefabric.ReliabilityLevelSilver),
+				UpgradeMode:      to.Ptr(armservicefabric.UpgradeModeAutomatic),
 			},
 		},
 		nil,
@@ -134,14 +137,18 @@ func createCluster(ctx context.Context, cred azcore.TokenCredential) (*armservic
 }
 
 func createApplicationType(ctx context.Context, cred azcore.TokenCredential) (*armservicefabric.ApplicationTypeResource, error) {
-	applicationTypeClient := armservicefabric.NewApplicationTypesClient(subscriptionID, cred, nil)
+	applicationTypeClient, err := armservicefabric.NewApplicationTypesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	resp, err := applicationTypeClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		clusterName,
 		applicationTypeName,
 		armservicefabric.ApplicationTypeResource{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil,
 	)
@@ -152,13 +159,16 @@ func createApplicationType(ctx context.Context, cred azcore.TokenCredential) (*a
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -167,17 +177,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

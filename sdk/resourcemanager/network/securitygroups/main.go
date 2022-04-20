@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -75,7 +74,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -84,40 +83,43 @@ func main() {
 }
 
 func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityGroup, error) {
-	networkSecurityGroupClient := armnetwork.NewSecurityGroupsClient(subscriptionID, cred, nil)
+	networkSecurityGroupClient, err := armnetwork.NewSecurityGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := networkSecurityGroupClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		securityGroupName,
 		armnetwork.SecurityGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armnetwork.SecurityGroupPropertiesFormat{
 				SecurityRules: []*armnetwork.SecurityRule{
 					{
-						Name: to.StringPtr("allow_ssh"),
+						Name: to.Ptr("allow_ssh"),
 						Properties: &armnetwork.SecurityRulePropertiesFormat{
-							Protocol:                 armnetwork.SecurityRuleProtocolTCP.ToPtr(),
-							SourceAddressPrefix:      to.StringPtr("0.0.0.0/0"),
-							SourcePortRange:          to.StringPtr("1-65535"),
-							DestinationAddressPrefix: to.StringPtr("0.0.0.0/0"),
-							DestinationPortRange:     to.StringPtr("22"),
-							Access:                   armnetwork.SecurityRuleAccessAllow.ToPtr(),
-							Direction:                armnetwork.SecurityRuleDirectionInbound.ToPtr(),
-							Priority:                 to.Int32Ptr(100),
+							Protocol:                 to.Ptr(armnetwork.SecurityRuleProtocolTCP),
+							SourceAddressPrefix:      to.Ptr("0.0.0.0/0"),
+							SourcePortRange:          to.Ptr("1-65535"),
+							DestinationAddressPrefix: to.Ptr("0.0.0.0/0"),
+							DestinationPortRange:     to.Ptr("22"),
+							Access:                   to.Ptr(armnetwork.SecurityRuleAccessAllow),
+							Direction:                to.Ptr(armnetwork.SecurityRuleDirectionInbound),
+							Priority:                 to.Ptr[int32](100),
 						},
 					},
 					{
-						Name: to.StringPtr("allow_https"),
+						Name: to.Ptr("allow_https"),
 						Properties: &armnetwork.SecurityRulePropertiesFormat{
-							Protocol:                 armnetwork.SecurityRuleProtocolTCP.ToPtr(),
-							SourceAddressPrefix:      to.StringPtr("0.0.0.0/0"),
-							SourcePortRange:          to.StringPtr("1-65535"),
-							DestinationAddressPrefix: to.StringPtr("0.0.0.0/0"),
-							DestinationPortRange:     to.StringPtr("443"),
-							Access:                   armnetwork.SecurityRuleAccessAllow.ToPtr(),
-							Direction:                armnetwork.SecurityRuleDirectionInbound.ToPtr(),
-							Priority:                 to.Int32Ptr(200),
+							Protocol:                 to.Ptr(armnetwork.SecurityRuleProtocolTCP),
+							SourceAddressPrefix:      to.Ptr("0.0.0.0/0"),
+							SourcePortRange:          to.Ptr("1-65535"),
+							DestinationAddressPrefix: to.Ptr("0.0.0.0/0"),
+							DestinationPortRange:     to.Ptr("443"),
+							Access:                   to.Ptr(armnetwork.SecurityRuleAccessAllow),
+							Direction:                to.Ptr(armnetwork.SecurityRuleDirectionInbound),
+							Priority:                 to.Ptr[int32](200),
 						},
 					},
 				},
@@ -137,7 +139,10 @@ func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential
 }
 
 func createSSHRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityRule, error) {
-	securityRules := armnetwork.NewSecurityRulesClient(subscriptionID, cred, nil)
+	securityRules, err := armnetwork.NewSecurityRulesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := securityRules.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
@@ -145,15 +150,15 @@ func createSSHRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwor
 		"ALLOW-SSH",
 		armnetwork.SecurityRule{
 			Properties: &armnetwork.SecurityRulePropertiesFormat{
-				Access:                   armnetwork.SecurityRuleAccessAllow.ToPtr(),
-				DestinationAddressPrefix: to.StringPtr("*"),
-				DestinationPortRange:     to.StringPtr("22"),
-				Direction:                armnetwork.SecurityRuleDirectionInbound.ToPtr(),
-				Description:              to.StringPtr("Allow SSH"),
-				Priority:                 to.Int32Ptr(103),
-				Protocol:                 armnetwork.SecurityRuleProtocolTCP.ToPtr(),
-				SourceAddressPrefix:      to.StringPtr("*"),
-				SourcePortRange:          to.StringPtr("*"),
+				Access:                   to.Ptr(armnetwork.SecurityRuleAccessAllow),
+				DestinationAddressPrefix: to.Ptr("*"),
+				DestinationPortRange:     to.Ptr("22"),
+				Direction:                to.Ptr(armnetwork.SecurityRuleDirectionInbound),
+				Description:              to.Ptr("Allow SSH"),
+				Priority:                 to.Ptr[int32](103),
+				Protocol:                 to.Ptr(armnetwork.SecurityRuleProtocolTCP),
+				SourceAddressPrefix:      to.Ptr("*"),
+				SourcePortRange:          to.Ptr("*"),
 			},
 		},
 		nil)
@@ -171,7 +176,10 @@ func createSSHRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwor
 }
 
 func createHTTPRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityRule, error) {
-	securityRules := armnetwork.NewSecurityRulesClient(subscriptionID, cred, nil)
+	securityRules, err := armnetwork.NewSecurityRulesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := securityRules.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
@@ -179,15 +187,15 @@ func createHTTPRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwo
 		"ALLOW-HTTP",
 		armnetwork.SecurityRule{
 			Properties: &armnetwork.SecurityRulePropertiesFormat{
-				Access:                   armnetwork.SecurityRuleAccessAllow.ToPtr(),
-				DestinationAddressPrefix: to.StringPtr("*"),
-				DestinationPortRange:     to.StringPtr("80"),
-				Direction:                armnetwork.SecurityRuleDirectionInbound.ToPtr(),
-				Description:              to.StringPtr("Allow HTTP"),
-				Priority:                 to.Int32Ptr(101),
-				Protocol:                 armnetwork.SecurityRuleProtocolTCP.ToPtr(),
-				SourceAddressPrefix:      to.StringPtr("*"),
-				SourcePortRange:          to.StringPtr("*"),
+				Access:                   to.Ptr(armnetwork.SecurityRuleAccessAllow),
+				DestinationAddressPrefix: to.Ptr("*"),
+				DestinationPortRange:     to.Ptr("80"),
+				Direction:                to.Ptr(armnetwork.SecurityRuleDirectionInbound),
+				Description:              to.Ptr("Allow HTTP"),
+				Priority:                 to.Ptr[int32](101),
+				Protocol:                 to.Ptr(armnetwork.SecurityRuleProtocolTCP),
+				SourceAddressPrefix:      to.Ptr("*"),
+				SourcePortRange:          to.Ptr("*"),
 			},
 		},
 		nil)
@@ -205,7 +213,10 @@ func createHTTPRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwo
 }
 
 func createSQLRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityRule, error) {
-	securityRules := armnetwork.NewSecurityRulesClient(subscriptionID, cred, nil)
+	securityRules, err := armnetwork.NewSecurityRulesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := securityRules.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
@@ -213,15 +224,15 @@ func createSQLRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwor
 		"ALLOW-SQL",
 		armnetwork.SecurityRule{
 			Properties: &armnetwork.SecurityRulePropertiesFormat{
-				Access:                   armnetwork.SecurityRuleAccessAllow.ToPtr(),
-				DestinationAddressPrefix: to.StringPtr("*"),
-				DestinationPortRange:     to.StringPtr("1433"),
-				Direction:                armnetwork.SecurityRuleDirectionInbound.ToPtr(),
-				Description:              to.StringPtr("Allow SQL"),
-				Priority:                 to.Int32Ptr(102),
-				Protocol:                 armnetwork.SecurityRuleProtocolTCP.ToPtr(),
-				SourceAddressPrefix:      to.StringPtr("*"),
-				SourcePortRange:          to.StringPtr("*"),
+				Access:                   to.Ptr(armnetwork.SecurityRuleAccessAllow),
+				DestinationAddressPrefix: to.Ptr("*"),
+				DestinationPortRange:     to.Ptr("1433"),
+				Direction:                to.Ptr(armnetwork.SecurityRuleDirectionInbound),
+				Description:              to.Ptr("Allow SQL"),
+				Priority:                 to.Ptr[int32](102),
+				Protocol:                 to.Ptr(armnetwork.SecurityRuleProtocolTCP),
+				SourceAddressPrefix:      to.Ptr("*"),
+				SourcePortRange:          to.Ptr("*"),
 			},
 		},
 		nil)
@@ -239,7 +250,10 @@ func createSQLRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwor
 }
 
 func createDenyOutRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityRule, error) {
-	securityRules := armnetwork.NewSecurityRulesClient(subscriptionID, cred, nil)
+	securityRules, err := armnetwork.NewSecurityRulesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := securityRules.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
@@ -247,15 +261,15 @@ func createDenyOutRule(ctx context.Context, cred azcore.TokenCredential) (*armne
 		"DENY-OUT",
 		armnetwork.SecurityRule{
 			Properties: &armnetwork.SecurityRulePropertiesFormat{
-				Access:                   armnetwork.SecurityRuleAccessDeny.ToPtr(),
-				DestinationAddressPrefix: to.StringPtr("*"),
-				DestinationPortRange:     to.StringPtr("*"),
-				Direction:                armnetwork.SecurityRuleDirectionOutbound.ToPtr(),
-				Description:              to.StringPtr("Deny outbound traffic"),
-				Priority:                 to.Int32Ptr(100),
-				Protocol:                 armnetwork.SecurityRuleProtocolAsterisk.ToPtr(),
-				SourceAddressPrefix:      to.StringPtr("*"),
-				SourcePortRange:          to.StringPtr("*"),
+				Access:                   to.Ptr(armnetwork.SecurityRuleAccessDeny),
+				DestinationAddressPrefix: to.Ptr("*"),
+				DestinationPortRange:     to.Ptr("*"),
+				Direction:                to.Ptr(armnetwork.SecurityRuleDirectionOutbound),
+				Description:              to.Ptr("Deny outbound traffic"),
+				Priority:                 to.Ptr[int32](100),
+				Protocol:                 to.Ptr(armnetwork.SecurityRuleProtocolAsterisk),
+				SourceAddressPrefix:      to.Ptr("*"),
+				SourcePortRange:          to.Ptr("*"),
 			},
 		},
 		nil)
@@ -273,13 +287,16 @@ func createDenyOutRule(ctx context.Context, cred azcore.TokenCredential) (*armne
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -288,18 +305,19 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	log.Println("cleanup...")
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

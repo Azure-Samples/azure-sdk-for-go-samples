@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -60,14 +59,17 @@ func main() {
 	}
 	log.Println("regenerate key:", *keys.Key1, *keys.Key2)
 
-	domains := listDomain(ctx, cred)
+	domains, err := listDomain(ctx, cred)
+	if err != nil {
+		log.Fatal(err)
+	}
 	for _, d := range domains {
 		log.Println(*d.Name, *d.ID)
 	}
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -76,14 +78,17 @@ func main() {
 }
 
 func createDomain(ctx context.Context, cred azcore.TokenCredential) (*armeventgrid.Domain, error) {
-	domainsClient := armeventgrid.NewDomainsClient(subscriptionID, cred, nil)
+	domainsClient, err := armeventgrid.NewDomainsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := domainsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		domainName,
 		armeventgrid.Domain{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil,
 	)
@@ -98,7 +103,10 @@ func createDomain(ctx context.Context, cred azcore.TokenCredential) (*armeventgr
 }
 
 func getDomain(ctx context.Context, cred azcore.TokenCredential) (*armeventgrid.Domain, error) {
-	domainsClient := armeventgrid.NewDomainsClient(subscriptionID, cred, nil)
+	domainsClient, err := armeventgrid.NewDomainsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := domainsClient.Get(ctx, resourceGroupName, domainName, nil)
 	if err != nil {
@@ -108,14 +116,17 @@ func getDomain(ctx context.Context, cred azcore.TokenCredential) (*armeventgrid.
 }
 
 func regenerateKey(ctx context.Context, cred azcore.TokenCredential) (*armeventgrid.DomainSharedAccessKeys, error) {
-	domainsClient := armeventgrid.NewDomainsClient(subscriptionID, cred, nil)
+	domainsClient, err := armeventgrid.NewDomainsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := domainsClient.RegenerateKey(
 		ctx,
 		resourceGroupName,
 		domainName,
 		armeventgrid.DomainRegenerateKeyRequest{
-			KeyName: to.StringPtr("key1"),
+			KeyName: to.Ptr("key1"),
 		},
 		nil,
 	)
@@ -125,27 +136,36 @@ func regenerateKey(ctx context.Context, cred azcore.TokenCredential) (*armeventg
 	return &resp.DomainSharedAccessKeys, nil
 }
 
-func listDomain(ctx context.Context, cred azcore.TokenCredential) []*armeventgrid.Domain {
-	domainsClient := armeventgrid.NewDomainsClient(subscriptionID, cred, nil)
+func listDomain(ctx context.Context, cred azcore.TokenCredential) ([]*armeventgrid.Domain, error) {
+	domainsClient, err := armeventgrid.NewDomainsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
-	pager := domainsClient.ListByResourceGroup(resourceGroupName, nil)
+	pager := domainsClient.NewListByResourceGroupPager(resourceGroupName, nil)
 
 	domains := make([]*armeventgrid.Domain, 0)
-	for pager.NextPage(ctx) {
-		resp := pager.PageResponse()
+	for pager.More() {
+		resp, err := pager.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
 		domains = append(domains, resp.Value...)
 	}
-	return domains
+	return domains, nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -154,17 +174,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

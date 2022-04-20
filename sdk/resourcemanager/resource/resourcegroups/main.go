@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -54,7 +53,10 @@ func main() {
 	}
 	log.Println("get resources group:", *resourceGroup.ID)
 
-	resourceGroups := listResourceGroup(ctx, cred)
+	resourceGroups, err := listResourceGroup(ctx, cred)
+	if err != nil {
+		log.Fatal(err)
+	}
 	for _, resource := range resourceGroups {
 		log.Printf("Resource Group Name: %s,ID: %s", *resource.Name, *resource.ID)
 	}
@@ -67,7 +69,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -76,13 +78,16 @@ func main() {
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -92,7 +97,10 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 }
 
 func getResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.Get(ctx, resourceGroupName, nil)
 	if err != nil {
@@ -101,21 +109,30 @@ func getResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armres
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func listResourceGroup(ctx context.Context, cred azcore.TokenCredential) []*armresources.ResourceGroup {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func listResourceGroup(ctx context.Context, cred azcore.TokenCredential) ([]*armresources.ResourceGroup, error) {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
-	resultPager := resourceGroupClient.List(nil)
+	resultPager := resourceGroupClient.NewListPager(nil)
 
 	resourceGroups := make([]*armresources.ResourceGroup, 0)
-	for resultPager.NextPage(ctx) {
-		pageResp := resultPager.PageResponse()
+	for resultPager.More() {
+		pageResp, err := resultPager.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
 		resourceGroups = append(resourceGroups, pageResp.ResourceGroupListResult.Value...)
 	}
-	return resourceGroups
+	return resourceGroups, nil
 }
 
 func checkExistenceResourceGroup(ctx context.Context, cred azcore.TokenCredential) (bool, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return false, err
+	}
 
 	boolResp, err := resourceGroupClient.CheckExistence(ctx, resourceGroupName, nil)
 	if err != nil {
@@ -125,14 +142,17 @@ func checkExistenceResourceGroup(ctx context.Context, cred azcore.TokenCredentia
 }
 
 func exportTemplateResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroupExportResult, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginExportTemplate(
 		ctx,
 		resourceGroupName,
 		armresources.ExportTemplateRequest{
 			Resources: []*string{
-				to.StringPtr("*"),
+				to.Ptr("*"),
 			},
 		},
 		nil)
@@ -147,17 +167,20 @@ func exportTemplateResourceGroup(ctx context.Context, cred azcore.TokenCredentia
 	return &resp.ResourceGroupExportResult, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -75,11 +74,11 @@ func main() {
 	log.Println("get disaster recovery config:", *disasterRecoveryConfig.ID)
 
 	// Only after breakPairing or failOVer can clean resource
-	breakPairing, err := breakPairingDisasterRecoveryConfig(ctx, cred)
+	err = breakPairingDisasterRecoveryConfig(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("break pairing:", *breakPairing)
+	log.Println("break pairing")
 
 	//failOver, err := failOverDisasterRecoveryConfig(ctx, conn)
 	//if err != nil {
@@ -89,7 +88,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -98,21 +97,24 @@ func main() {
 }
 
 func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armeventhub.EHNamespace, error) {
-	namespacesClient := armeventhub.NewNamespacesClient(subscriptionID, cred, nil)
+	namespacesClient, err := armeventhub.NewNamespacesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := namespacesClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		namespacesName,
 		armeventhub.EHNamespace{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Tags: map[string]*string{
-				"tag1": to.StringPtr("value1"),
-				"tag2": to.StringPtr("value2"),
+				"tag1": to.Ptr("value1"),
+				"tag2": to.Ptr("value2"),
 			},
 			SKU: &armeventhub.SKU{
-				Name: armeventhub.SKUNameStandard.ToPtr(),
-				Tier: armeventhub.SKUTierStandard.ToPtr(),
+				Name: to.Ptr(armeventhub.SKUNameStandard),
+				Tier: to.Ptr(armeventhub.SKUTierStandard),
 			},
 		},
 		nil,
@@ -128,21 +130,24 @@ func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armeven
 }
 
 func createSecondNamespace(ctx context.Context, cred azcore.TokenCredential) (*armeventhub.EHNamespace, error) {
-	namespacesClient := armeventhub.NewNamespacesClient(subscriptionID, cred, nil)
+	namespacesClient, err := armeventhub.NewNamespacesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := namespacesClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		secondNamespacesName,
 		armeventhub.EHNamespace{
-			Location: to.StringPtr("eastus"),
+			Location: to.Ptr("eastus"),
 			Tags: map[string]*string{
-				"tag1": to.StringPtr("value1"),
-				"tag2": to.StringPtr("value2"),
+				"tag1": to.Ptr("value1"),
+				"tag2": to.Ptr("value2"),
 			},
 			SKU: &armeventhub.SKU{
-				Name: armeventhub.SKUNameStandard.ToPtr(),
-				Tier: armeventhub.SKUTierStandard.ToPtr(),
+				Name: to.Ptr(armeventhub.SKUNameStandard),
+				Tier: to.Ptr(armeventhub.SKUTierStandard),
 			},
 		},
 		nil,
@@ -158,14 +163,17 @@ func createSecondNamespace(ctx context.Context, cred azcore.TokenCredential) (*a
 }
 
 func checkNameAva(ctx context.Context, cred azcore.TokenCredential) (*armeventhub.CheckNameAvailabilityResult, error) {
-	disasterRecoveryConfigsClient := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
+	disasterRecoveryConfigsClient, err := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := disasterRecoveryConfigsClient.CheckNameAvailability(
 		ctx,
 		resourceGroupName,
 		namespacesName,
 		armeventhub.CheckNameAvailabilityParameter{
-			Name: to.StringPtr(secondNamespacesName),
+			Name: to.Ptr(secondNamespacesName),
 		},
 		nil,
 	)
@@ -176,7 +184,10 @@ func checkNameAva(ctx context.Context, cred azcore.TokenCredential) (*armeventhu
 }
 
 func createDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential, secondNamespaceID string) (*armeventhub.ArmDisasterRecovery, error) {
-	disasterRecoveryConfigsClient := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
+	disasterRecoveryConfigsClient, err := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := disasterRecoveryConfigsClient.CreateOrUpdate(
 		ctx,
@@ -185,7 +196,7 @@ func createDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredenti
 		disasterRecoveryConfigName,
 		armeventhub.ArmDisasterRecovery{
 			Properties: &armeventhub.ArmDisasterRecoveryProperties{
-				PartnerNamespace: to.StringPtr(secondNamespaceID),
+				PartnerNamespace: to.Ptr(secondNamespaceID),
 			},
 		},
 		nil,
@@ -197,7 +208,10 @@ func createDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredenti
 }
 
 func getDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential) (*armeventhub.ArmDisasterRecovery, error) {
-	disasterRecoveryConfigsClient := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
+	disasterRecoveryConfigsClient, err := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := disasterRecoveryConfigsClient.Get(ctx, resourceGroupName, namespacesName, disasterRecoveryConfigName, nil)
 	if err != nil {
@@ -206,24 +220,30 @@ func getDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential)
 	return &resp.ArmDisasterRecovery, nil
 }
 
-func breakPairingDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	disasterRecoveryConfigsClient := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
-
-	resp, err := disasterRecoveryConfigsClient.BreakPairing(ctx, resourceGroupName, namespacesName, disasterRecoveryConfigName, nil)
+func breakPairingDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential) error {
+	disasterRecoveryConfigsClient, err := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+
+	_, err = disasterRecoveryConfigsClient.BreakPairing(ctx, resourceGroupName, namespacesName, disasterRecoveryConfigName, nil)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -232,17 +252,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

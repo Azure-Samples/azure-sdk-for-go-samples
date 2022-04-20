@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -63,7 +62,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -72,22 +71,25 @@ func main() {
 }
 
 func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.Registry, error) {
-	registriesClient := armcontainerregistry.NewRegistriesClient(subscriptionID, cred, nil)
+	registriesClient, err := armcontainerregistry.NewRegistriesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := registriesClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		registryName,
 		armcontainerregistry.Registry{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Tags: map[string]*string{
-				"key": to.StringPtr("value"),
+				"key": to.Ptr("value"),
 			},
 			SKU: &armcontainerregistry.SKU{
-				Name: armcontainerregistry.SKUNamePremium.ToPtr(),
+				Name: to.Ptr(armcontainerregistry.SKUNamePremium),
 			},
 			Properties: &armcontainerregistry.RegistryProperties{
-				AdminUserEnabled: to.BoolPtr(true),
+				AdminUserEnabled: to.Ptr(true),
 			},
 		},
 		nil,
@@ -103,7 +105,10 @@ func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armconta
 }
 
 func createReplication(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.Replication, error) {
-	replicationsClient := armcontainerregistry.NewReplicationsClient(subscriptionID, cred, nil)
+	replicationsClient, err := armcontainerregistry.NewReplicationsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := replicationsClient.BeginCreate(
 		ctx,
@@ -111,7 +116,7 @@ func createReplication(ctx context.Context, cred azcore.TokenCredential) (*armco
 		registryName,
 		replicationName,
 		armcontainerregistry.Replication{
-			Location: to.StringPtr("eastus"),
+			Location: to.Ptr("eastus"),
 		},
 		nil,
 	)
@@ -126,7 +131,10 @@ func createReplication(ctx context.Context, cred azcore.TokenCredential) (*armco
 }
 
 func getReplication(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.Replication, error) {
-	replicationsClient := armcontainerregistry.NewReplicationsClient(subscriptionID, cred, nil)
+	replicationsClient, err := armcontainerregistry.NewReplicationsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := replicationsClient.Get(ctx, resourceGroupName, registryName, replicationName, nil)
 	if err != nil {
@@ -136,13 +144,16 @@ func getReplication(ctx context.Context, cred azcore.TokenCredential) (*armconta
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -151,17 +162,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

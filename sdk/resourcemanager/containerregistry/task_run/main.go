@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -63,7 +62,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -72,22 +71,25 @@ func main() {
 }
 
 func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.Registry, error) {
-	registriesClient := armcontainerregistry.NewRegistriesClient(subscriptionID, cred, nil)
+	registriesClient, err := armcontainerregistry.NewRegistriesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := registriesClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		registryName,
 		armcontainerregistry.Registry{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Tags: map[string]*string{
-				"key": to.StringPtr("value"),
+				"key": to.Ptr("value"),
 			},
 			SKU: &armcontainerregistry.SKU{
-				Name: armcontainerregistry.SKUNamePremium.ToPtr(),
+				Name: to.Ptr(armcontainerregistry.SKUNamePremium),
 			},
 			Properties: &armcontainerregistry.RegistryProperties{
-				AdminUserEnabled: to.BoolPtr(true),
+				AdminUserEnabled: to.Ptr(true),
 			},
 		},
 		nil,
@@ -103,7 +105,10 @@ func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armconta
 }
 
 func createTaskRun(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.TaskRun, error) {
-	taskRunsClient := armcontainerregistry.NewTaskRunsClient(subscriptionID, cred, nil)
+	taskRunsClient, err := armcontainerregistry.NewTaskRunsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := taskRunsClient.BeginCreate(
 		ctx,
@@ -112,20 +117,20 @@ func createTaskRun(ctx context.Context, cred azcore.TokenCredential) (*armcontai
 		taskRunName,
 		armcontainerregistry.TaskRun{
 			Properties: &armcontainerregistry.TaskRunProperties{
-				ForceUpdateTag: to.StringPtr("test"),
+				ForceUpdateTag: to.Ptr("test"),
 				RunRequest: &armcontainerregistry.DockerBuildRequest{
-					IsArchiveEnabled: to.BoolPtr(true),
-					DockerFilePath:   to.StringPtr("Dockerfile"),
+					IsArchiveEnabled: to.Ptr(true),
+					DockerFilePath:   to.Ptr("Dockerfile"),
 					Platform: &armcontainerregistry.PlatformProperties{
-						OS:           armcontainerregistry.OSLinux.ToPtr(),
-						Architecture: armcontainerregistry.ArchitectureAmd64.ToPtr(),
+						OS:           to.Ptr(armcontainerregistry.OSLinux),
+						Architecture: to.Ptr(armcontainerregistry.ArchitectureAmd64),
 					},
 					ImageNames: []*string{
-						to.StringPtr("testtaskrun:v1"),
+						to.Ptr("testtaskrun:v1"),
 					},
-					IsPushEnabled:  to.BoolPtr(true),
-					NoCache:        to.BoolPtr(false),
-					SourceLocation: to.StringPtr("https://github.com/Azure-Samples/acr-build-helloworld-node.git"),
+					IsPushEnabled:  to.Ptr(true),
+					NoCache:        to.Ptr(false),
+					SourceLocation: to.Ptr("https://github.com/Azure-Samples/acr-build-helloworld-node.git"),
 				},
 			},
 		},
@@ -142,7 +147,10 @@ func createTaskRun(ctx context.Context, cred azcore.TokenCredential) (*armcontai
 }
 
 func getTaskRun(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.TaskRun, error) {
-	taskRunsClient := armcontainerregistry.NewTaskRunsClient(subscriptionID, cred, nil)
+	taskRunsClient, err := armcontainerregistry.NewTaskRunsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := taskRunsClient.Get(ctx, resourceGroupName, registryName, taskRunName, nil)
 	if err != nil {
@@ -152,13 +160,16 @@ func getTaskRun(ctx context.Context, cred azcore.TokenCredential) (*armcontainer
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -167,17 +178,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

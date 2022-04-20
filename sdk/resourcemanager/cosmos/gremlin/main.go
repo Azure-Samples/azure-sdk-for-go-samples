@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -64,7 +63,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -73,26 +72,29 @@ func main() {
 }
 
 func createDatabaseAccount(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.DatabaseAccountGetResults, error) {
-	databaseAccountsClient := armcosmos.NewDatabaseAccountsClient(subscriptionID, cred, nil)
+	databaseAccountsClient, err := armcosmos.NewDatabaseAccountsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := databaseAccountsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		accountName,
 		armcosmos.DatabaseAccountCreateUpdateParameters{
-			Location: to.StringPtr(location),
-			Kind:     armcosmos.DatabaseAccountKindGlobalDocumentDB.ToPtr(),
+			Location: to.Ptr(location),
+			Kind:     to.Ptr(armcosmos.DatabaseAccountKindGlobalDocumentDB),
 			Properties: &armcosmos.DatabaseAccountCreateUpdateProperties{
-				DatabaseAccountOfferType: to.StringPtr("Standard"),
+				DatabaseAccountOfferType: to.Ptr("Standard"),
 				Locations: []*armcosmos.Location{
 					{
-						FailoverPriority: to.Int32Ptr(0),
-						LocationName:     to.StringPtr(location),
+						FailoverPriority: to.Ptr[int32](0),
+						LocationName:     to.Ptr(location),
 					},
 				},
 				Capabilities: []*armcosmos.Capability{
 					{
-						Name: to.StringPtr("EnableGremlin"),
+						Name: to.Ptr("EnableGremlin"),
 					},
 				},
 			},
@@ -111,7 +113,10 @@ func createDatabaseAccount(ctx context.Context, cred azcore.TokenCredential) (*a
 }
 
 func createGremlinDatabase(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.GremlinDatabaseGetResults, error) {
-	gremlinResourcesClient := armcosmos.NewGremlinResourcesClient(subscriptionID, cred, nil)
+	gremlinResourcesClient, err := armcosmos.NewGremlinResourcesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := gremlinResourcesClient.BeginCreateUpdateGremlinDatabase(
 		ctx,
@@ -119,13 +124,13 @@ func createGremlinDatabase(ctx context.Context, cred azcore.TokenCredential) (*a
 		accountName,
 		gremlinName,
 		armcosmos.GremlinDatabaseCreateUpdateParameters{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armcosmos.GremlinDatabaseCreateUpdateProperties{
 				Resource: &armcosmos.GremlinDatabaseResource{
-					ID: to.StringPtr(gremlinName),
+					ID: to.Ptr(gremlinName),
 				},
 				Options: &armcosmos.CreateUpdateOptions{
-					Throughput: to.Int32Ptr(2000),
+					Throughput: to.Ptr[int32](2000),
 				},
 			},
 		},
@@ -143,7 +148,10 @@ func createGremlinDatabase(ctx context.Context, cred azcore.TokenCredential) (*a
 }
 
 func createGremlinGraph(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.GremlinGraphGetResults, error) {
-	gremlinResourcesClient := armcosmos.NewGremlinResourcesClient(subscriptionID, cred, nil)
+	gremlinResourcesClient, err := armcosmos.NewGremlinResourcesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := gremlinResourcesClient.BeginCreateUpdateGremlinGraph(
 		ctx,
@@ -152,25 +160,25 @@ func createGremlinGraph(ctx context.Context, cred azcore.TokenCredential) (*armc
 		gremlinName,
 		graphName,
 		armcosmos.GremlinGraphCreateUpdateParameters{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armcosmos.GremlinGraphCreateUpdateProperties{
 				Resource: &armcosmos.GremlinGraphResource{
-					ID: to.StringPtr(graphName),
+					ID: to.Ptr(graphName),
 					IndexingPolicy: &armcosmos.IndexingPolicy{
-						Automatic: to.BoolPtr(true),
+						Automatic: to.Ptr(true),
 						IncludedPaths: []*armcosmos.IncludedPath{
 							{
-								Path: to.StringPtr("/*"),
+								Path: to.Ptr("/*"),
 								Indexes: []*armcosmos.Indexes{
 									{
-										Kind:      armcosmos.IndexKindRange.ToPtr(),
-										DataType:  armcosmos.DataTypeString.ToPtr(),
-										Precision: to.Int32Ptr(-1),
+										Kind:      to.Ptr(armcosmos.IndexKindRange),
+										DataType:  to.Ptr(armcosmos.DataTypeString),
+										Precision: to.Ptr[int32](-1),
 									},
 									{
-										Kind:      armcosmos.IndexKindRange.ToPtr(),
-										DataType:  armcosmos.DataTypeNumber.ToPtr(),
-										Precision: to.Int32Ptr(-1),
+										Kind:      to.Ptr(armcosmos.IndexKindRange),
+										DataType:  to.Ptr(armcosmos.DataTypeNumber),
+										Precision: to.Ptr[int32](-1),
 									},
 								},
 							},
@@ -179,18 +187,18 @@ func createGremlinGraph(ctx context.Context, cred azcore.TokenCredential) (*armc
 					},
 					PartitionKey: &armcosmos.ContainerPartitionKey{
 						Paths: []*string{
-							to.StringPtr("/AccountNumber"),
+							to.Ptr("/AccountNumber"),
 						},
-						Kind: armcosmos.PartitionKindHash.ToPtr(),
+						Kind: to.Ptr(armcosmos.PartitionKindHash),
 					},
-					DefaultTTL: to.Int32Ptr(100),
+					DefaultTTL: to.Ptr[int32](100),
 					ConflictResolutionPolicy: &armcosmos.ConflictResolutionPolicy{
-						Mode:                   armcosmos.ConflictResolutionModeLastWriterWins.ToPtr(),
-						ConflictResolutionPath: to.StringPtr("/path"),
+						Mode:                   to.Ptr(armcosmos.ConflictResolutionModeLastWriterWins),
+						ConflictResolutionPath: to.Ptr("/path"),
 					},
 				},
 				Options: &armcosmos.CreateUpdateOptions{
-					Throughput: to.Int32Ptr(2000),
+					Throughput: to.Ptr[int32](2000),
 				},
 			},
 		},
@@ -208,13 +216,16 @@ func createGremlinGraph(ctx context.Context, cred azcore.TokenCredential) (*armc
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -223,17 +234,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

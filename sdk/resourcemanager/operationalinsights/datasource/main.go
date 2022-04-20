@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -57,7 +56,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -66,14 +65,17 @@ func main() {
 }
 
 func createWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armoperationalinsights.Workspace, error) {
-	workspacesClient := armoperationalinsights.NewWorkspacesClient(subscriptionID, cred, nil)
+	workspacesClient, err := armoperationalinsights.NewWorkspacesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := workspacesClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		workspaceName,
 		armoperationalinsights.Workspace{
-			Location:   to.StringPtr(location),
+			Location:   to.Ptr(location),
 			Properties: &armoperationalinsights.WorkspaceProperties{},
 		},
 		nil,
@@ -89,7 +91,10 @@ func createWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armoper
 }
 
 func createDatasource(ctx context.Context, cred azcore.TokenCredential) (*armoperationalinsights.DataSource, error) {
-	sourcesClient := armoperationalinsights.NewDataSourcesClient(subscriptionID, cred, nil)
+	sourcesClient, err := armoperationalinsights.NewDataSourcesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := sourcesClient.CreateOrUpdate(
 		ctx,
@@ -97,7 +102,7 @@ func createDatasource(ctx context.Context, cred azcore.TokenCredential) (*armope
 		workspaceName,
 		dataSourceName,
 		armoperationalinsights.DataSource{
-			Kind:       armoperationalinsights.DataSourceKindAzureActivityLog.ToPtr(),
+			Kind:       to.Ptr(armoperationalinsights.DataSourceKindAzureActivityLog),
 			Properties: map[string]interface{}{},
 		},
 		nil,
@@ -109,13 +114,16 @@ func createDatasource(ctx context.Context, cred azcore.TokenCredential) (*armope
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -124,17 +132,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

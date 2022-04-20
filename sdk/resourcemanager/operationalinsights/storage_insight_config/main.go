@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -51,7 +50,10 @@ func main() {
 	}
 	log.Println("storage account:", *storageAccount.ID)
 
-	keys := regenerateKeyStorageAccount(ctx, cred)
+	keys, err := regenerateKeyStorageAccount(ctx, cred)
+	if err != nil {
+		log.Fatal(err)
+	}
 	for _, v := range keys {
 		if *v.KeyName == "key1" {
 			log.Println("regenerate key:", *v.KeyName, *v.Value, *v.CreationTime, *v.Permissions)
@@ -72,7 +74,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -81,40 +83,43 @@ func main() {
 }
 
 func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Account, error) {
-	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
+	storageAccountClient, err := armstorage.NewAccountsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := storageAccountClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
 		armstorage.AccountCreateParameters{
-			Kind: armstorage.KindStorageV2.ToPtr(),
+			Kind: to.Ptr(armstorage.KindStorageV2),
 			SKU: &armstorage.SKU{
-				Name: armstorage.SKUNameStandardLRS.ToPtr(),
+				Name: to.Ptr(armstorage.SKUNameStandardLRS),
 			},
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armstorage.AccountPropertiesCreateParameters{
-				AccessTier: armstorage.AccessTierCool.ToPtr(),
+				AccessTier: to.Ptr(armstorage.AccessTierCool),
 				Encryption: &armstorage.Encryption{
 					Services: &armstorage.EncryptionServices{
 						File: &armstorage.EncryptionService{
-							KeyType: armstorage.KeyTypeAccount.ToPtr(),
-							Enabled: to.BoolPtr(true),
+							KeyType: to.Ptr(armstorage.KeyTypeAccount),
+							Enabled: to.Ptr(true),
 						},
 						Blob: &armstorage.EncryptionService{
-							KeyType: armstorage.KeyTypeAccount.ToPtr(),
-							Enabled: to.BoolPtr(true),
+							KeyType: to.Ptr(armstorage.KeyTypeAccount),
+							Enabled: to.Ptr(true),
 						},
 						Queue: &armstorage.EncryptionService{
-							KeyType: armstorage.KeyTypeAccount.ToPtr(),
-							Enabled: to.BoolPtr(true),
+							KeyType: to.Ptr(armstorage.KeyTypeAccount),
+							Enabled: to.Ptr(true),
 						},
 						Table: &armstorage.EncryptionService{
-							KeyType: armstorage.KeyTypeAccount.ToPtr(),
-							Enabled: to.BoolPtr(true),
+							KeyType: to.Ptr(armstorage.KeyTypeAccount),
+							Enabled: to.Ptr(true),
 						},
 					},
-					KeySource: armstorage.KeySourceMicrosoftStorage.ToPtr(),
+					KeySource: to.Ptr(armstorage.KeySourceMicrosoftStorage),
 				},
 			},
 		}, nil)
@@ -128,34 +133,39 @@ func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.Account, nil
 }
 
-func regenerateKeyStorageAccount(ctx context.Context, cred azcore.TokenCredential) []*armstorage.AccountKey {
-	storageAccountClient := armstorage.NewAccountsClient(subscriptionID, cred, nil)
+func regenerateKeyStorageAccount(ctx context.Context, cred azcore.TokenCredential) ([]*armstorage.AccountKey, error) {
+	storageAccountClient, err := armstorage.NewAccountsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	regenerateKeyResp, err := storageAccountClient.RegenerateKey(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
 		armstorage.AccountRegenerateKeyParameters{
-			KeyName: to.StringPtr("key1"),
+			KeyName: to.Ptr("key1"),
 		},
 		nil)
-
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return regenerateKeyResp.AccountListKeysResult.Keys
+	return regenerateKeyResp.AccountListKeysResult.Keys, nil
 }
 
 func createWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armoperationalinsights.Workspace, error) {
-	workspacesClient := armoperationalinsights.NewWorkspacesClient(subscriptionID, cred, nil)
+	workspacesClient, err := armoperationalinsights.NewWorkspacesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := workspacesClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		workspaceName,
 		armoperationalinsights.Workspace{
-			Location:   to.StringPtr(location),
+			Location:   to.Ptr(location),
 			Properties: &armoperationalinsights.WorkspaceProperties{},
 		},
 		nil,
@@ -171,7 +181,10 @@ func createWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armoper
 }
 
 func createStorageInsight(ctx context.Context, cred azcore.TokenCredential, storageAccountID, storageKeyID string) (*armoperationalinsights.StorageInsight, error) {
-	storageInsightConfigsClient := armoperationalinsights.NewStorageInsightConfigsClient(subscriptionID, cred, nil)
+	storageInsightConfigsClient, err := armoperationalinsights.NewStorageInsightConfigsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := storageInsightConfigsClient.CreateOrUpdate(
 		ctx,
@@ -181,8 +194,8 @@ func createStorageInsight(ctx context.Context, cred azcore.TokenCredential, stor
 		armoperationalinsights.StorageInsight{
 			Properties: &armoperationalinsights.StorageInsightProperties{
 				StorageAccount: &armoperationalinsights.StorageAccount{
-					ID:  to.StringPtr(storageAccountID),
-					Key: to.StringPtr(storageKeyID),
+					ID:  to.Ptr(storageAccountID),
+					Key: to.Ptr(storageKeyID),
 				},
 			},
 		},
@@ -195,13 +208,16 @@ func createStorageInsight(ctx context.Context, cred azcore.TokenCredential, stor
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -210,17 +226,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

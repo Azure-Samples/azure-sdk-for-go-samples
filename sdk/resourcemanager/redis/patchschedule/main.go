@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -71,7 +70,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -80,18 +79,21 @@ func main() {
 }
 
 func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.VirtualNetwork, error) {
-	virtualNetworkClient := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
+	virtualNetworkClient, err := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := virtualNetworkClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		virtualNetworkName,
 		armnetwork.VirtualNetwork{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armnetwork.VirtualNetworkPropertiesFormat{
 				AddressSpace: &armnetwork.AddressSpace{
 					AddressPrefixes: []*string{
-						to.StringPtr("10.0.0.0/16"),
+						to.Ptr("10.0.0.0/16"),
 					},
 				},
 			},
@@ -110,7 +112,10 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 }
 
 func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.Subnet, error) {
-	subnetsClient := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
+	subnetsClient, err := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := subnetsClient.BeginCreateOrUpdate(
 		ctx,
@@ -119,7 +124,7 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 		subnetName,
 		armnetwork.Subnet{
 			Properties: &armnetwork.SubnetPropertiesFormat{
-				AddressPrefix: to.StringPtr("10.0.0.0/24"),
+				AddressPrefix: to.Ptr("10.0.0.0/24"),
 			},
 		},
 		nil,
@@ -137,31 +142,34 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 }
 
 func createRedis(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armredis.ResourceInfo, error) {
-	redisClient := armredis.NewClient(subscriptionID, cred, nil)
+	redisClient, err := armredis.NewClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := redisClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		redisName,
 		armredis.CreateParameters{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Zones: []*string{
-				to.StringPtr("1"),
+				to.Ptr("1"),
 			},
 			Properties: &armredis.CreateProperties{
 				SKU: &armredis.SKU{
-					Name:     armredis.SKUNamePremium.ToPtr(),
-					Family:   armredis.SKUFamilyP.ToPtr(),
-					Capacity: to.Int32Ptr(1),
+					Name:     to.Ptr(armredis.SKUNamePremium),
+					Family:   to.Ptr(armredis.SKUFamilyP),
+					Capacity: to.Ptr[int32](1),
 				},
-				EnableNonSSLPort: to.BoolPtr(true),
-				ShardCount:       to.Int32Ptr(2),
+				EnableNonSSLPort: to.Ptr(true),
+				ShardCount:       to.Ptr[int32](2),
 				RedisConfiguration: &armredis.CommonPropertiesRedisConfiguration{
-					MaxmemoryPolicy: to.StringPtr("allkeys-lru"),
+					MaxmemoryPolicy: to.Ptr("allkeys-lru"),
 				},
-				MinimumTLSVersion: armredis.TLSVersionOne2.ToPtr(),
-				SubnetID:          to.StringPtr(subnetID),
-				StaticIP:          to.StringPtr("10.0.0.5"),
+				MinimumTLSVersion: to.Ptr(armredis.TLSVersionOne2),
+				SubnetID:          to.Ptr(subnetID),
+				StaticIP:          to.Ptr("10.0.0.5"),
 			},
 		},
 		nil,
@@ -178,7 +186,10 @@ func createRedis(ctx context.Context, cred azcore.TokenCredential, subnetID stri
 }
 
 func createPatchSchedule(ctx context.Context, cred azcore.TokenCredential) (*armredis.PatchSchedule, error) {
-	patchSchedulesClient := armredis.NewPatchSchedulesClient(subscriptionID, cred, nil)
+	patchSchedulesClient, err := armredis.NewPatchSchedulesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := patchSchedulesClient.CreateOrUpdate(
 		ctx,
@@ -189,13 +200,13 @@ func createPatchSchedule(ctx context.Context, cred azcore.TokenCredential) (*arm
 			Properties: &armredis.ScheduleEntries{
 				ScheduleEntries: []*armredis.ScheduleEntry{
 					{
-						DayOfWeek:         armredis.DayOfWeekMonday.ToPtr(),
-						StartHourUTC:      to.Int32Ptr(12),
-						MaintenanceWindow: to.StringPtr("PT5H"),
+						DayOfWeek:         to.Ptr(armredis.DayOfWeekMonday),
+						StartHourUTC:      to.Ptr[int32](12),
+						MaintenanceWindow: to.Ptr("PT5H"),
 					},
 					{
-						DayOfWeek:    armredis.DayOfWeekTuesday.ToPtr(),
-						StartHourUTC: to.Int32Ptr(12),
+						DayOfWeek:    to.Ptr(armredis.DayOfWeekTuesday),
+						StartHourUTC: to.Ptr[int32](12),
 					},
 				},
 			},
@@ -209,13 +220,16 @@ func createPatchSchedule(ctx context.Context, cred azcore.TokenCredential) (*arm
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -224,17 +238,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

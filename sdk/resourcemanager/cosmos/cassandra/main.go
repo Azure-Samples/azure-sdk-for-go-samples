@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -64,7 +63,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -73,7 +72,10 @@ func main() {
 }
 
 func createCassandraKeyspace(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.CassandraKeyspaceGetResults, error) {
-	cassandraResourcesClient := armcosmos.NewCassandraResourcesClient(subscriptionID, cred, nil)
+	cassandraResourcesClient, err := armcosmos.NewCassandraResourcesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := cassandraResourcesClient.BeginCreateUpdateCassandraKeyspace(
 		ctx,
@@ -81,13 +83,13 @@ func createCassandraKeyspace(ctx context.Context, cred azcore.TokenCredential) (
 		accountName,
 		keyspaceName,
 		armcosmos.CassandraKeyspaceCreateUpdateParameters{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armcosmos.CassandraKeyspaceCreateUpdateProperties{
 				Resource: &armcosmos.CassandraKeyspaceResource{
-					ID: to.StringPtr(keyspaceName),
+					ID: to.Ptr(keyspaceName),
 				},
 				Options: &armcosmos.CreateUpdateOptions{
-					Throughput: to.Int32Ptr(2000),
+					Throughput: to.Ptr[int32](2000),
 				},
 			},
 		},
@@ -105,7 +107,10 @@ func createCassandraKeyspace(ctx context.Context, cred azcore.TokenCredential) (
 }
 
 func createCassandraTable(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.CassandraTableGetResults, error) {
-	cassandraResourcesClient := armcosmos.NewCassandraResourcesClient(subscriptionID, cred, nil)
+	cassandraResourcesClient, err := armcosmos.NewCassandraResourcesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := cassandraResourcesClient.BeginCreateUpdateCassandraTable(
 		ctx,
@@ -114,27 +119,27 @@ func createCassandraTable(ctx context.Context, cred azcore.TokenCredential) (*ar
 		keyspaceName,
 		tableName,
 		armcosmos.CassandraTableCreateUpdateParameters{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armcosmos.CassandraTableCreateUpdateProperties{
 				Resource: &armcosmos.CassandraTableResource{
-					ID:         to.StringPtr(tableName),
-					DefaultTTL: to.Int32Ptr(100),
+					ID:         to.Ptr(tableName),
+					DefaultTTL: to.Ptr[int32](100),
 					Schema: &armcosmos.CassandraSchema{
 						Columns: []*armcosmos.Column{
 							{
-								Name: to.StringPtr("columnA"),
-								Type: to.StringPtr("Ascii"),
+								Name: to.Ptr("columnA"),
+								Type: to.Ptr("Ascii"),
 							},
 						},
 						PartitionKeys: []*armcosmos.CassandraPartitionKey{
 							{
-								Name: to.StringPtr("columnA"),
+								Name: to.Ptr("columnA"),
 							},
 						},
 					},
 				},
 				Options: &armcosmos.CreateUpdateOptions{
-					Throughput: to.Int32Ptr(2000),
+					Throughput: to.Ptr[int32](2000),
 				},
 			},
 		},
@@ -152,26 +157,29 @@ func createCassandraTable(ctx context.Context, cred azcore.TokenCredential) (*ar
 }
 
 func createDatabaseAccount(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.DatabaseAccountGetResults, error) {
-	databaseAccountsClient := armcosmos.NewDatabaseAccountsClient(subscriptionID, cred, nil)
+	databaseAccountsClient, err := armcosmos.NewDatabaseAccountsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := databaseAccountsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		accountName,
 		armcosmos.DatabaseAccountCreateUpdateParameters{
-			Location: to.StringPtr(location),
-			Kind:     armcosmos.DatabaseAccountKindGlobalDocumentDB.ToPtr(),
+			Location: to.Ptr(location),
+			Kind:     to.Ptr(armcosmos.DatabaseAccountKindGlobalDocumentDB),
 			Properties: &armcosmos.DatabaseAccountCreateUpdateProperties{
-				DatabaseAccountOfferType: to.StringPtr("Standard"),
+				DatabaseAccountOfferType: to.Ptr("Standard"),
 				Locations: []*armcosmos.Location{
 					{
-						FailoverPriority: to.Int32Ptr(0),
-						LocationName:     to.StringPtr(location),
+						FailoverPriority: to.Ptr[int32](0),
+						LocationName:     to.Ptr(location),
 					},
 				},
 				Capabilities: []*armcosmos.Capability{
 					{
-						Name: to.StringPtr("EnableCassandra"),
+						Name: to.Ptr("EnableCassandra"),
 					},
 				},
 			},
@@ -190,13 +198,16 @@ func createDatabaseAccount(ctx context.Context, cred azcore.TokenCredential) (*a
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -205,17 +216,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

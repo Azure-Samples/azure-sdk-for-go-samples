@@ -542,7 +542,7 @@ func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, netw
 				AdminPassword: to.Ptr("Password01!@#"),
 				//require ssh key for authentication on linux
 				//LinuxConfiguration: &armcompute.LinuxConfiguration{
-				//	DisablePasswordAuthentication: to.BoolPtr(true),
+				//	DisablePasswordAuthentication: to.Ptr(true),
 				//	SSH: &armcompute.SSHConfiguration{
 				//		PublicKeys: []*armcompute.SSHPublicKey{
 				//			{

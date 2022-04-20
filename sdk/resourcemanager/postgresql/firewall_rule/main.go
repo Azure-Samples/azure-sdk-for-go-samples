@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -57,7 +56,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -66,24 +65,27 @@ func main() {
 }
 
 func createServer(ctx context.Context, cred azcore.TokenCredential) (*armpostgresql.Server, error) {
-	serversClient := armpostgresql.NewServersClient(subscriptionID, cred, nil)
+	serversClient, err := armpostgresql.NewServersClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := serversClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		serverName,
 		armpostgresql.ServerForCreate{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armpostgresql.ServerPropertiesForDefaultCreate{
-				CreateMode:                 armpostgresql.CreateModeDefault.ToPtr(),
-				InfrastructureEncryption:   armpostgresql.InfrastructureEncryptionDisabled.ToPtr(),
-				PublicNetworkAccess:        armpostgresql.PublicNetworkAccessEnumEnabled.ToPtr(),
-				Version:                    armpostgresql.ServerVersionEleven.ToPtr(),
-				AdministratorLogin:         to.StringPtr("dummylogin"),
-				AdministratorLoginPassword: to.StringPtr("QWE123!@#"),
+				CreateMode:                 to.Ptr(armpostgresql.CreateModeDefault),
+				InfrastructureEncryption:   to.Ptr(armpostgresql.InfrastructureEncryptionDisabled),
+				PublicNetworkAccess:        to.Ptr(armpostgresql.PublicNetworkAccessEnumEnabled),
+				Version:                    to.Ptr(armpostgresql.ServerVersionEleven),
+				AdministratorLogin:         to.Ptr("dummylogin"),
+				AdministratorLoginPassword: to.Ptr("QWE123!@#"),
 			},
 			SKU: &armpostgresql.SKU{
-				Name: to.StringPtr("B_Gen5_1"),
+				Name: to.Ptr("B_Gen5_1"),
 			},
 		},
 		nil,
@@ -99,7 +101,10 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armpostgre
 }
 
 func createFirewallRule(ctx context.Context, cred azcore.TokenCredential) (*armpostgresql.FirewallRule, error) {
-	firewallRulesClient := armpostgresql.NewFirewallRulesClient(subscriptionID, cred, nil)
+	firewallRulesClient, err := armpostgresql.NewFirewallRulesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := firewallRulesClient.BeginCreateOrUpdate(
 		ctx,
@@ -108,8 +113,8 @@ func createFirewallRule(ctx context.Context, cred azcore.TokenCredential) (*armp
 		firewallName,
 		armpostgresql.FirewallRule{
 			Properties: &armpostgresql.FirewallRuleProperties{
-				StartIPAddress: to.StringPtr("0.0.0.3"),
-				EndIPAddress:   to.StringPtr("0.0.0.3"),
+				StartIPAddress: to.Ptr("0.0.0.3"),
+				EndIPAddress:   to.Ptr("0.0.0.3"),
 			},
 		},
 		nil,
@@ -125,13 +130,16 @@ func createFirewallRule(ctx context.Context, cred azcore.TokenCredential) (*armp
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -140,17 +148,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -61,30 +60,39 @@ func main() {
 	}
 	log.Println("get static site:", *staticSite.ID)
 
-	listFunctions := listStaticSiteFunctions(ctx, cred)
+	listFunctions, err := listStaticSiteFunctions(ctx, cred)
+	if err != nil {
+		log.Fatal(err)
+	}
 	log.Println("list static site functions:", len(listFunctions))
 
-	list := listStaticSite(ctx, cred)
+	list, err := listStaticSite(ctx, cred)
+	if err != nil {
+		log.Fatal(err)
+	}
 	log.Println("list static site:", len(list))
 
-	listCustimDomain := listStaticSiteCustomDomain(ctx, cred)
+	listCustimDomain, err := listStaticSiteCustomDomain(ctx, cred)
+	if err != nil {
+		log.Fatal(err)
+	}
 	log.Println("list static site custom domain:", len(listCustimDomain))
 
-	reset, err := resetStaticSiteApiKey(ctx, cred)
+	err = resetStaticSiteApiKey(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("reset static site api key:", reset.Status)
+	log.Println("reset static site api key")
 
-	detach, err := detachStaticSite(ctx, cred)
+	err = detachStaticSite(ctx, cred)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("detach static site:", detach.Status)
+	log.Println("detached static site")
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -93,24 +101,27 @@ func main() {
 }
 
 func createStaticSite(ctx context.Context, cred azcore.TokenCredential) (*armappservice.StaticSiteARMResource, error) {
-	staticSitesClient := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
+	staticSitesClient, err := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := staticSitesClient.BeginCreateOrUpdateStaticSite(
 		ctx,
 		resourceGroupName,
 		staticSiteName,
 		armappservice.StaticSiteARMResource{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			SKU: &armappservice.SKUDescription{
-				Name: to.StringPtr("Free"),
+				Name: to.Ptr("Free"),
 			},
 			Properties: &armappservice.StaticSite{
-				RepositoryURL:   to.StringPtr(repoURL),
-				Branch:          to.StringPtr("master"),
-				RepositoryToken: to.StringPtr(repoToken),
+				RepositoryURL:   to.Ptr(repoURL),
+				Branch:          to.Ptr("master"),
+				RepositoryToken: to.Ptr(repoToken),
 				BuildProperties: &armappservice.StaticSiteBuildProperties{
-					AppLocation: to.StringPtr("app"),
-					APILocation: to.StringPtr("api"),
+					AppLocation: to.Ptr("app"),
+					APILocation: to.Ptr("api"),
 				},
 			},
 		},
@@ -126,41 +137,64 @@ func createStaticSite(ctx context.Context, cred azcore.TokenCredential) (*armapp
 	return &resp.StaticSiteARMResource, nil
 }
 
-func listStaticSiteFunctions(ctx context.Context, cred azcore.TokenCredential) []*armappservice.StaticSiteFunctionOverviewARMResource {
-	staticSitesClient := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
+func listStaticSiteFunctions(ctx context.Context, cred azcore.TokenCredential) ([]*armappservice.StaticSiteFunctionOverviewARMResource, error) {
+	staticSitesClient, err := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	result := make([]*armappservice.StaticSiteFunctionOverviewARMResource, 0)
-	listPager := staticSitesClient.ListStaticSiteFunctions(resourceGroupName, staticSiteName, nil)
-	for listPager.NextPage(ctx) {
-		resp := listPager.PageResponse()
+	listPager := staticSitesClient.NewListStaticSiteFunctionsPager(resourceGroupName, staticSiteName, nil)
+	for listPager.More() {
+		resp, err := listPager.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
 		result = append(result, resp.Value...)
 	}
-	return result
+	return result, nil
 }
 
-func listStaticSite(ctx context.Context, cred azcore.TokenCredential) []*armappservice.StaticSiteARMResource {
-	staticSitesClient := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
+func listStaticSite(ctx context.Context, cred azcore.TokenCredential) ([]*armappservice.StaticSiteARMResource, error) {
+	staticSitesClient, err := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	result := make([]*armappservice.StaticSiteARMResource, 0)
-	listPager := staticSitesClient.List(nil)
-	for listPager.NextPage(ctx) {
-		resp := listPager.PageResponse()
+	listPager := staticSitesClient.NewListPager(nil)
+	for listPager.More() {
+		resp, err := listPager.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
 		result = append(result, resp.Value...)
 	}
-	return result
+	return result, nil
 }
 
-func listStaticSiteCustomDomain(ctx context.Context, cred azcore.TokenCredential) []*armappservice.StaticSiteCustomDomainOverviewARMResource {
-	staticSitesClient := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
+func listStaticSiteCustomDomain(ctx context.Context, cred azcore.TokenCredential) ([]*armappservice.StaticSiteCustomDomainOverviewARMResource, error) {
+	staticSitesClient, err := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 	result := make([]*armappservice.StaticSiteCustomDomainOverviewARMResource, 0)
-	listPager := staticSitesClient.ListStaticSiteCustomDomains(resourceGroupName, staticSiteName, nil)
-	for listPager.NextPage(ctx) {
-		resp := listPager.PageResponse()
+	listPager := staticSitesClient.NewListStaticSiteCustomDomainsPager(resourceGroupName, staticSiteName, nil)
+	for listPager.More() {
+		resp, err := listPager.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
 		result = append(result, resp.Value...)
 	}
-	return result
+	return result, nil
 }
 
 func getStaticSite(ctx context.Context, cred azcore.TokenCredential) (*armappservice.StaticSiteARMResource, error) {
-	staticSitesClient := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
+	staticSitesClient, err := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 	resp, err := staticSitesClient.GetStaticSite(ctx, resourceGroupName, staticSiteName, nil)
 	if err != nil {
 		return nil, err
@@ -168,47 +202,56 @@ func getStaticSite(ctx context.Context, cred azcore.TokenCredential) (*armappser
 	return &resp.StaticSiteARMResource, nil
 }
 
-func resetStaticSiteApiKey(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	staticSitesClient := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
-	resp, err := staticSitesClient.ResetStaticSiteAPIKey(
+func resetStaticSiteApiKey(ctx context.Context, cred azcore.TokenCredential) error {
+	staticSitesClient, err := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
+	_, err = staticSitesClient.ResetStaticSiteAPIKey(
 		ctx,
 		resourceGroupName,
 		staticSiteName,
 		armappservice.StaticSiteResetPropertiesARMResource{
 			Properties: &armappservice.StaticSiteResetPropertiesARMResourceProperties{
-				ShouldUpdateRepository: to.BoolPtr(true),
-				RepositoryToken:        to.StringPtr(repoToken),
+				ShouldUpdateRepository: to.Ptr(true),
+				RepositoryToken:        to.Ptr(repoToken),
 			},
 		},
 		nil,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }
 
-func detachStaticSite(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	staticSitesClient := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
+func detachStaticSite(ctx context.Context, cred azcore.TokenCredential) error {
+	staticSitesClient, err := armappservice.NewStaticSitesClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 	pollerResp, err := staticSitesClient.BeginDetachStaticSite(ctx, resourceGroupName, staticSiteName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -217,17 +260,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

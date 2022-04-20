@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -62,7 +61,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -71,33 +70,36 @@ func main() {
 }
 
 func createManagedCluster(ctx context.Context, cred azcore.TokenCredential) (*armcontainerservice.ManagedCluster, error) {
-	managedClustersClient := armcontainerservice.NewManagedClustersClient(subscriptionID, cred, nil)
+	managedClustersClient, err := armcontainerservice.NewManagedClustersClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := managedClustersClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		managedClustersName,
 		armcontainerservice.ManagedCluster{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armcontainerservice.ManagedClusterProperties{
-				DNSPrefix: to.StringPtr("aksgosdk"),
+				DNSPrefix: to.Ptr("aksgosdk"),
 				AgentPoolProfiles: []*armcontainerservice.ManagedClusterAgentPoolProfile{
 					{
-						Name:              to.StringPtr("askagent"),
-						Count:             to.Int32Ptr(1),
-						VMSize:            to.StringPtr("Standard_DS2_v2"),
-						MaxPods:           to.Int32Ptr(110),
-						MinCount:          to.Int32Ptr(1),
-						MaxCount:          to.Int32Ptr(100),
-						OSType:            armcontainerservice.OSTypeLinux.ToPtr(),
-						Type:              armcontainerservice.AgentPoolTypeVirtualMachineScaleSets.ToPtr(),
-						EnableAutoScaling: to.BoolPtr(true),
-						Mode:              armcontainerservice.AgentPoolModeSystem.ToPtr(),
+						Name:              to.Ptr("askagent"),
+						Count:             to.Ptr[int32](1),
+						VMSize:            to.Ptr("Standard_DS2_v2"),
+						MaxPods:           to.Ptr[int32](110),
+						MinCount:          to.Ptr[int32](1),
+						MaxCount:          to.Ptr[int32](100),
+						OSType:            to.Ptr(armcontainerservice.OSTypeLinux),
+						Type:              to.Ptr(armcontainerservice.AgentPoolTypeVirtualMachineScaleSets),
+						EnableAutoScaling: to.Ptr(true),
+						Mode:              to.Ptr(armcontainerservice.AgentPoolModeSystem),
 					},
 				},
 				ServicePrincipalProfile: &armcontainerservice.ManagedClusterServicePrincipalProfile{
-					ClientID: to.StringPtr(objectID),
-					Secret:   to.StringPtr(clientSecret),
+					ClientID: to.Ptr(objectID),
+					Secret:   to.Ptr(clientSecret),
 				},
 			},
 		},
@@ -114,13 +116,16 @@ func createManagedCluster(ctx context.Context, cred azcore.TokenCredential) (*ar
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -129,17 +134,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -56,7 +55,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		_, err := cleanup(ctx, cred)
+		err = cleanup(ctx, cred)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -65,22 +64,25 @@ func main() {
 }
 
 func createServer(ctx context.Context, cred azcore.TokenCredential) (*armmysql.Server, error) {
-	serversClient := armmysql.NewServersClient(subscriptionID, cred, nil)
+	serversClient, err := armmysql.NewServersClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	pollerResp, err := serversClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		serverName,
 		armmysql.ServerForCreate{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 			Properties: &armmysql.ServerPropertiesForCreate{
-				CreateMode: armmysql.CreateModeDefault.ToPtr(),
+				CreateMode: to.Ptr(armmysql.CreateModeDefault),
 			},
 			SKU: &armmysql.SKU{
-				Name:     to.StringPtr("GP_Gen5_2"),
-				Tier:     armmysql.SKUTierGeneralPurpose.ToPtr(),
-				Capacity: to.Int32Ptr(2),
-				Family:   to.StringPtr("Gen5"),
+				Name:     to.Ptr("GP_Gen5_2"),
+				Tier:     to.Ptr(armmysql.SKUTierGeneralPurpose),
+				Capacity: to.Ptr[int32](2),
+				Family:   to.Ptr("Gen5"),
 			},
 		},
 		nil,
@@ -96,7 +98,11 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armmysql.S
 }
 
 func getServer(ctx context.Context, cred azcore.TokenCredential) (*armmysql.Server, error) {
-	serversClient := armmysql.NewServersClient(subscriptionID, cred, nil)
+	serversClient, err := armmysql.NewServersClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	resp, err := serversClient.Get(ctx, resourceGroupName, serverName, nil)
 	if err != nil {
 		return nil, err
@@ -105,13 +111,16 @@ func getServer(ctx context.Context, cred azcore.TokenCredential) (*armmysql.Serv
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		armresources.ResourceGroup{
-			Location: to.StringPtr(location),
+			Location: to.Ptr(location),
 		},
 		nil)
 	if err != nil {
@@ -120,17 +129,20 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) (*http.Response, error) {
-	resourceGroupClient := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return err
+	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.RawResponse, nil
+	return nil
 }

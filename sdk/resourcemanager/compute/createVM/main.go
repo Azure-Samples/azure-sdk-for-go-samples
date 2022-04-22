@@ -168,7 +168,7 @@ func connectionAzure() (azcore.TokenCredential, error) {
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroup, err := armresources.NewResourceGroupsClient(subscriptionId, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionId, cred, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 		Tags:     map[string]*string{"sample-rs-tag": to.Ptr("sample-tag")}, // resource group update tags
 	}
 
-	resp, err := resourceGroup.CreateOrUpdate(ctx, resourceGroupName, parameters, nil)
+	resp, err := resourceGroupClient.CreateOrUpdate(ctx, resourceGroupName, parameters, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -187,12 +187,12 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 }
 
 func deleteResourceGroup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroup, err := armresources.NewResourceGroupsClient(subscriptionId, cred, nil)
+	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionId, cred, nil)
 	if err != nil {
 		return err
 	}
 
-	pollerResponse, err := resourceGroup.BeginDelete(ctx, resourceGroupName, nil)
+	pollerResponse, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
 		return err
 	}

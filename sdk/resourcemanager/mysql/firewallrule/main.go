@@ -5,15 +5,13 @@ package main
 
 import (
 	"context"
-	"log"
-	"os"
-	"time"
-
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/mysql/armmysql"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
+	"log"
+	"os"
 )
 
 var (
@@ -97,7 +95,7 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armmysql.S
 	if err != nil {
 		return nil, err
 	}
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +124,7 @@ func createFirewallRule(ctx context.Context, cred azcore.TokenCredential) (*armm
 	if err != nil {
 		return nil, err
 	}
-	resp, err := pollerResp.PollUntilDone(ctx, 30*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +174,7 @@ func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
 		return err
 	}
 
-	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return err
 	}

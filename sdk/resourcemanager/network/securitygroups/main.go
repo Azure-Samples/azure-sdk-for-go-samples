@@ -6,15 +6,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
-	"time"
-
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
+	"log"
+	"os"
 )
 
 var (
@@ -131,7 +129,7 @@ func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential
 		return nil, err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +165,7 @@ func createSSHRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwor
 		return nil, fmt.Errorf("cannot create SSH security rule: %v", err)
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get security rule create or update future response: %v", err)
 	}
@@ -204,7 +202,7 @@ func createHTTPRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwo
 		return nil, fmt.Errorf("cannot create HTTP security rule: %v", err)
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get security rule create or update future response: %v", err)
 	}
@@ -241,7 +239,7 @@ func createSQLRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwor
 		return nil, fmt.Errorf("cannot create SQL security rule: %v", err)
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get security rule create or update future response: %v", err)
 	}
@@ -278,7 +276,7 @@ func createDenyOutRule(ctx context.Context, cred azcore.TokenCredential) (*armne
 		return nil, fmt.Errorf("cannot create deny out security rule: %v", err)
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get security rule create or update future response: %v", err)
 	}
@@ -315,7 +313,7 @@ func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
 	if err != nil {
 		return err
 	}
-	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return err
 	}

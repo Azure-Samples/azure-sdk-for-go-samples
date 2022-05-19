@@ -13,7 +13,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"log"
 	"os"
-	"time"
 )
 
 var (
@@ -107,7 +106,7 @@ func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwo
 		return nil, err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +213,7 @@ func createLoadBalancer(ctx context.Context, cred azcore.TokenCredential, pip *a
 		return nil, fmt.Errorf("cannot create load balancer: %v", err)
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +231,7 @@ func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
 		return err
 	}
 
-	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return err
 	}

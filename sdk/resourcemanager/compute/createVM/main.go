@@ -5,16 +5,14 @@ package main
 
 import (
 	"context"
-	"log"
-	"os"
-	"time"
-
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
+	"log"
+	"os"
 )
 
 var subscriptionId string
@@ -197,7 +195,7 @@ func deleteResourceGroup(ctx context.Context, cred azcore.TokenCredential) error
 		return err
 	}
 
-	_, err = pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResponse.PollUntilDone(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -235,7 +233,7 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 		return nil, err
 	}
 
-	resp, err := pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResponse.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +252,7 @@ func deleteVirtualNetWork(ctx context.Context, cred azcore.TokenCredential) erro
 		return err
 	}
 
-	_, err = pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResponse.PollUntilDone(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -279,7 +277,7 @@ func createSubnets(ctx context.Context, cred azcore.TokenCredential) (*armnetwor
 		return nil, err
 	}
 
-	resp, err := pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResponse.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -298,7 +296,7 @@ func deleteSubnets(ctx context.Context, cred azcore.TokenCredential) error {
 		return err
 	}
 
-	_, err = pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResponse.PollUntilDone(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -356,7 +354,7 @@ func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential
 		return nil, err
 	}
 
-	resp, err := pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResponse.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -374,7 +372,7 @@ func deleteNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential
 		return err
 	}
 
-	_, err = pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResponse.PollUntilDone(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -399,7 +397,7 @@ func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwo
 		return nil, err
 	}
 
-	resp, err := pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResponse.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -417,7 +415,7 @@ func deletePublicIP(ctx context.Context, cred azcore.TokenCredential) error {
 		return err
 	}
 
-	_, err = pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResponse.PollUntilDone(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -459,7 +457,7 @@ func createNetWorkInterface(ctx context.Context, cred azcore.TokenCredential, su
 		return nil, err
 	}
 
-	resp, err := pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResponse.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -478,7 +476,7 @@ func deleteNetWorkInterface(ctx context.Context, cred azcore.TokenCredential) er
 		return err
 	}
 
-	_, err = pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResponse.PollUntilDone(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -568,7 +566,7 @@ func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, netw
 		return nil, err
 	}
 
-	resp, err := pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResponse.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -587,7 +585,7 @@ func deleteVirtualMachine(ctx context.Context, cred azcore.TokenCredential) erro
 		return err
 	}
 
-	_, err = pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResponse.PollUntilDone(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -606,7 +604,7 @@ func deleteDisk(ctx context.Context, cred azcore.TokenCredential) error {
 		return err
 	}
 
-	_, err = pollerResponse.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResponse.PollUntilDone(ctx, nil)
 	if err != nil {
 		return err
 	}

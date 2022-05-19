@@ -5,15 +5,13 @@ package main
 
 import (
 	"context"
-	"log"
-	"os"
-	"time"
-
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/eventgrid/armeventgrid"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
+	"log"
+	"os"
 )
 
 var (
@@ -81,7 +79,7 @@ func createTopic(ctx context.Context, cred azcore.TokenCredential) (*armeventgri
 	if err != nil {
 		return nil, err
 	}
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +129,7 @@ func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
 		return err
 	}
 
-	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return err
 	}

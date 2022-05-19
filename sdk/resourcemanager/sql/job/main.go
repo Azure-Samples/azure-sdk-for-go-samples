@@ -127,7 +127,7 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Ser
 	if err != nil {
 		return nil, err
 	}
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func createDatabase(ctx context.Context, cred azcore.TokenCredential) (*armsql.D
 	if err != nil {
 		return nil, err
 	}
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +185,7 @@ func createJobAgent(ctx context.Context, cred azcore.TokenCredential, databaseID
 	if err != nil {
 		return nil, err
 	}
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -325,7 +325,7 @@ func createJobExecution(ctx context.Context, cred azcore.TokenCredential) (*arms
 	if err != nil {
 		return nil, err
 	}
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +362,7 @@ func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
 		return err
 	}
 
-	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return err
 	}

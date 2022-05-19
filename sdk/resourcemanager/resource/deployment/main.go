@@ -7,15 +7,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"os"
-	"time"
-
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
+	"io/ioutil"
+	"log"
+	"os"
 )
 
 var (
@@ -131,7 +129,7 @@ func createDeployment(ctx context.Context, cred azcore.TokenCredential, template
 		return nil, fmt.Errorf("cannot create deployment: %v", err)
 	}
 
-	resp, err := deploymentPollerResp.PollUntilDone(ctx, 10*time.Second)
+	resp, err := deploymentPollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get the create deployment future respone: %v", err)
 	}
@@ -162,7 +160,7 @@ func validateDeployment(ctx context.Context, cred azcore.TokenCredential, templa
 		return nil, err
 	}
 
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +198,7 @@ func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
 		return err
 	}
 
-	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return err
 	}

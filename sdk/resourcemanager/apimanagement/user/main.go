@@ -117,7 +117,7 @@ func createApiManagementService(ctx context.Context, cred azcore.TokenCredential
 	if err != nil {
 		return nil, err
 	}
-	resp, err := pollerResp.PollUntilDone(ctx, 10*time.Second)
+	resp, err := pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +250,7 @@ func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
 		return err
 	}
 
-	_, err = pollerResp.PollUntilDone(ctx, 10*time.Second)
+	_, err = pollerResp.PollUntilDone(ctx, nil)
 	if err != nil {
 		return err
 	}

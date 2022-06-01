@@ -1,13 +1,3 @@
----
-page_type: sample
-languages:
-- golang
-products:
-- azure
-description: "These code samples will show you how to manage Event Hubs using Azure SDK for Golang."
-urlFragment: eventhub
----
-
 # Getting started - Managing Event Hubs using Azure Golang SDK
 
 These code samples will show you how to manage Event Hubs using Azure SDK for Golang.
@@ -28,7 +18,7 @@ This project framework provides examples for the following services:
 1. Clone the repository.
 
     ```
-    git clone https://github.com/Azure-Samples/azure-sdk-for-go-samples.git --branch new-version
+    git clone https://github.com/Azure-Samples/azure-sdk-for-go-samples.git
     ```
 2. Set the environment variable.
 
@@ -45,7 +35,7 @@ This project framework provides examples for the following services:
 3. Run eventhub sample.
 
     ```
-    cd azure-sdk-for-go-samples/eventhub/consumer_groups
+    cd azure-sdk-for-go-samples/sdk/resourcemanager/eventhub/consumer_groups
     go mod tidy
     go run main.go
     ```

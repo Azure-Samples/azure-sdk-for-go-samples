@@ -1,13 +1,3 @@
----
-page_type: sample
-languages:
-- golang
-products:
-- azure
-description: "These code samples will show you how to manage API Management using Azure SDK for Golang."
-urlFragment: apimanagement
----
-
 # Getting started - Managing API Management using Azure Golang SDK
 
 These code samples will show you how to manage API Management using Azure SDK for Golang.
@@ -28,7 +18,7 @@ This project framework provides examples for the following services:
 1. Clone the repository.
 
     ```
-    git clone https://github.com/Azure-Samples/azure-sdk-for-go-samples.git --branch new-version
+    git clone https://github.com/Azure-Samples/azure-sdk-for-go-samples.git
     ```
 2. Set the environment variable.
 
@@ -45,7 +35,7 @@ This project framework provides examples for the following services:
 3. Run apimanagement sample.
 
     ```
-    cd azure-sdk-for-go-samples/apimanagement/apiversionset
+    cd azure-sdk-for-go-samples/sdk/resourcemanager/apimanagement/apiversionset
     go run main.go
     ```
    

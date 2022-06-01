@@ -1,13 +1,3 @@
----
-page_type: sample
-languages:
-- golang
-products:
-- azure
-description: "These code samples will show you how to manage Service Bus Manager using Azure SDK for Golang."
-urlFragment: servicebus
----
-
 # Getting started - Managing Service Bus using Azure Golang SDK
 
 These code samples will show you how to manage Service Bus using Azure SDK for Golang.
@@ -28,7 +18,7 @@ This project framework provides examples for the following services:
 1. Clone the repository.
 
     ```
-    git clone https://github.com/Azure-Samples/azure-sdk-for-go-samples.git --branch new-version
+    git clone https://github.com/Azure-Samples/azure-sdk-for-go-samples.git
     ```
    
 2. Set the environment variable.
@@ -46,7 +36,7 @@ This project framework provides examples for the following services:
 3. Run servicebus sample.
 
     ```
-    cd azure-sdk-for-go-samples/servicebus/subscriptions
+    cd azure-sdk-for-go-samples/sdk/resourcemanager/servicebus/subscriptions
     go mod tidy
     go run main.go
     ```

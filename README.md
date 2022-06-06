@@ -1,8 +1,8 @@
 # Azure SDK for Go Samples
 
-This repo contains a collection of sample usages of the new version of [Azure/azure-sdk-for-go]. All the samples are placed under [`sdk`](https://github.com/Azure-Samples/azure-sdk-for-go-samples/tree/main/sdk) folder and the folder structures are corresponding to the service packages under the `/sdk` directory of the [Azure/azure-sdk-for-go][] repo.
+This repo contains a collection of sample usages of the new version of [Azure/azure-sdk-for-go][]. All the samples are placed under [`sdk`](https://github.com/Azure-Samples/azure-sdk-for-go-samples/tree/main/sdk) folder and the folder structures are corresponding to the service packages under the `/sdk` directory of the [Azure/azure-sdk-for-go][] repo.
 
-For general SDK help start with the [main SDK README][].
+For general SDK help, please refer to the [SDK README][].
 
 ## To run tests
 
@@ -104,9 +104,12 @@ These values can be obtained from the portal, here's the instructions:
 
 This code is provided under the MIT license. See [LICENSE][] for details.
 
+## Contribute
 
-[main SDK README]: https://github.com/Azure/azure-sdk-for-go/blob/main/README.md
+We welcome your contributions! For instructions and our code of conduct see [CONTRIBUTING.md][]. And thank you!
+
+[SDK README]: https://github.com/Azure/azure-sdk-for-go/blob/main/README.md
 [Azure update feed]: https://azure.microsoft.com/updates/
 [Azure/azure-sdk-for-go]: https://github.com/Azure/azure-sdk-for-go
-[azure-cli]: https://github.com/Azure/azure-cli
 [LICENSE]: ./LICENSE.txt
+[CONTRIBUTING.md]: ./CONTRIBUTING.md

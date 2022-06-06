@@ -4,7 +4,7 @@ parameters:
     default: true
   - name: GoLintCLIVersion
     type: string
-    default: 'v1.44.0'
+    default: 'v1.46.2'
 
 
 stages:
@@ -47,6 +47,11 @@ stages:
         name: azsdk-pool-mms-ubuntu-2004-general
 
       steps:
+      - task: GoTool@0
+        inputs:
+          version: '1.18.2'
+        displayName: "Select Go Version"
+
       - template: ../steps/create-go-workspace.yml
 
       - template: ../steps/analyze.yml

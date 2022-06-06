@@ -12,6 +12,7 @@ steps:
       foreach ($md in $modDirs) {
         pushd $md
         Write-Host "##[command]Executing go build in $md"
+        go version
         go build ./...
       }
     displayName: Build
@@ -24,6 +25,7 @@ steps:
       foreach ($md in $modDirs) {
         pushd $md
         Write-Host "##[command]Executing go vet in $md"
+        go version
         go vet ./...
       }
     displayName: Vet

@@ -1,3 +1,13 @@
+---
+page_type: sample
+languages:
+- golang
+products:
+- azure
+description: "These code samples will show you how to manage Operational Insights Manager using Azure SDK for Golang."
+urlFragment: operationalinsights
+---
+
 # Getting started - Managing Operational Insights using Azure Golang SDK
 
 These code samples will show you how to manage Operational Insights using Azure SDK for Golang.

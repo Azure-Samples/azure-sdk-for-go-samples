@@ -1,3 +1,13 @@
+---
+page_type: sample
+languages:
+- golang
+products:
+- azure
+description: "These code samples will show you how to manage Service Bus Manager using Azure SDK for Golang."
+urlFragment: servicebus
+---
+
 # Getting started - Managing Service Bus using Azure Golang SDK
 
 These code samples will show you how to manage Service Bus using Azure SDK for Golang.

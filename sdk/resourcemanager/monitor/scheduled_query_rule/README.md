@@ -1,3 +1,13 @@
+---
+page_type: sample
+languages:
+- golang
+products:
+- azure
+description: "These code samples will show you how to manage Monitor Manager using Azure SDK for Golang."
+urlFragment: monitor
+---
+
 # Getting started - Managing Monitor using Azure Golang SDK
 
 These code samples will show you how to manage Monitor using Azure SDK for Golang.

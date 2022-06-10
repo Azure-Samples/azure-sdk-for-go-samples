@@ -1,3 +1,13 @@
+---
+page_type: sample
+languages:
+- golang
+products:
+- azure
+description: "These code samples will show you how to manage Compute using Azure SDK for Golang."
+urlFragment: compute
+---
+
 # Getting started - Managing Compute using Azure Golang SDK
 
 These code samples will show you how to manage Compute using Azure SDK for Golang.

@@ -1,3 +1,13 @@
+---
+page_type: sample
+languages:
+- golang
+products:
+- azure
+description: "These code samples will show you how to manage Event Grid using Azure SDK for Golang."
+urlFragment: eventgrid
+---
+
 # Getting started - Managing Event Grid using Azure Golang SDK
 
 These code samples will show you how to manage Event Grid using Azure SDK for Golang.

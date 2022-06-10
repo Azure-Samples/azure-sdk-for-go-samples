@@ -1,3 +1,13 @@
+---
+page_type: sample
+languages:
+- golang
+products:
+- azure
+description: "These code samples will show you how to manage Container Service using Azure SDK for Golang."
+urlFragment: containerservice
+---
+
 # Getting started - Managing Container Service using Azure Golang SDK
 
 These code samples will show you how to manage Container Service using Azure SDK for Golang.

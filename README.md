@@ -1,3 +1,12 @@
+---
+languages:
+- go
+products:
+- azure
+page_type: sample
+description: "A collection of samples showing how to use the Azure SDK for Go."
+---
+
 # Azure SDK for Go Samples
 
 This repo contains a collection of sample usages of the new version of [Azure/azure-sdk-for-go][]. All the samples are placed under [`sdk`](https://github.com/Azure-Samples/azure-sdk-for-go-samples/tree/main/sdk) folder and the folder structures are corresponding to the service packages under the `/sdk` directory of the [Azure/azure-sdk-for-go][] repo.

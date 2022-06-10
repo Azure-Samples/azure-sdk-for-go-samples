@@ -1,3 +1,13 @@
+---
+page_type: sample
+languages:
+- golang
+products:
+- azure
+description: "These code samples will show you how to manage Database for MySQL Manager using Azure SDK for Golang."
+urlFragment: mysql
+---
+
 # Getting started - Managing Database for MySQL using Azure Golang SDK
 
 These code samples will show you how to manage Database for MySQL using Azure SDK for Golang.

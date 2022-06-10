@@ -1,3 +1,13 @@
+---
+page_type: sample
+languages:
+- golang
+products:
+- azure
+description: "These code samples will show you how to manage Key Vault using Azure SDK for Golang."
+urlFragment: keyvault
+---
+
 # Getting started - Managing Key Vault using Azure Golang SDK
 
 These code samples will show you how to manage Key Vault using Azure SDK for Golang.

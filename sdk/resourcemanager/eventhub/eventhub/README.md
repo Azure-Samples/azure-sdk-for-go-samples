@@ -1,3 +1,13 @@
+---
+page_type: sample
+languages:
+- golang
+products:
+- azure
+description: "These code samples will show you how to manage Event Hubs using Azure SDK for Golang."
+urlFragment: eventhub
+---
+
 # Getting started - Managing Event Hubs using Azure Golang SDK
 
 These code samples will show you how to manage Event Hubs using Azure SDK for Golang.

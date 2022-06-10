@@ -1,3 +1,13 @@
+---
+page_type: sample
+languages:
+- golang
+products:
+- azure
+description: "These code samples will show you how to manage PrivateDNS using Azure SDK for Golang."
+urlFragment: privatedns
+---
+
 # Getting started - Managing PrivateDNS using Azure Golang SDK
 
 These code samples will show you how to manage PrivateDNS using Azure SDK for Golang.

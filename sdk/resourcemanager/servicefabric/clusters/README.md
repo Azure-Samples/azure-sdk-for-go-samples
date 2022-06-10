@@ -1,3 +1,13 @@
+---
+page_type: sample
+languages:
+- golang
+products:
+- azure
+description: "These code samples will show you how to manage Service Fabric Manager using Azure SDK for Golang."
+urlFragment: servicefabric
+---
+
 # Getting started - Managing Service Fabric using Azure Golang SDK
 
 These code samples will show you how to manage Service Fabric using Azure SDK for Golang.

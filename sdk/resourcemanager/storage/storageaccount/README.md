@@ -1,3 +1,13 @@
+---
+page_type: sample
+languages:
+- golang
+products:
+- azure
+description: "These code samples will show you how to manage Storage using Azure SDK for Golang."
+urlFragment: storage
+---
+
 # Getting started - Managing Storage using Azure Golang SDK
 
 These code samples will show you how to manage Storage using Azure SDK for Golang.

@@ -9,7 +9,7 @@ description: "A collection of samples showing how to use the Azure SDK for Go."
 
 # Azure SDK for Go Samples
 
-This repo contains a collection of sample usages of the new version of [Azure/azure-sdk-for-go][]. All the samples are placed under [`sdk`](https://github.com/Azure-Samples/azure-sdk-for-go-samples/tree/main/sdk) folder and the folder structures are corresponding to the service packages under the `/sdk` directory of the [Azure/azure-sdk-for-go][] repo.
+This repo contains a collection of sample usages of the new version of [Azure/azure-sdk-for-go][]. All the samples are placed under [`sdk`](https://github.com/Azure-Samples/azure-sdk-for-go-samples/tree/main/sdk) folder and the folder structures are corresponding to the service packages under the `/sdk` directory of the [Azure/azure-sdk-for-go][] repo. You can refer to this [doc](https://docs.microsoft.com/en-us/azure/developer/go/overview) to get started with Azure SDK for Go.
 
 For general SDK help, please refer to the [SDK README][].
 
@@ -26,6 +26,8 @@ You will need to authenticate to Azure either by using Azure CLI to sign in or s
 You could easily use `az login` in command line to sign in to Azure via your default browser. Detail instructions can be found in [Sign in with Azure CLI](https://docs.microsoft.com/cli/azure/authenticate-azure-cli).
 
 #### Setting Environment Variables
+
+If your code is going to run in a none-user-interactive environment, you can also authenticate by setting environment variables as below. 
 
 You will need the following values to authenticate to Azure
 

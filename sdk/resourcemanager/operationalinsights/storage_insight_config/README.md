@@ -17,7 +17,7 @@ These code samples will show you how to manage Operational Insights using Azure 
 This project framework provides examples for the following services:
 
 ### Operational Insights
-* Using the Azure SDK for Golang - Operational Insights Management Library [operationalinsights/armoperationalinsights](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/operationalinsights/armoperationalinsights) for the [Azure Operational Insights API](https://docs.microsoft.com/en-us/rest/api/operationalinsights/)
+* Using the Azure SDK for Golang - Operational Insights Management Library [operationalinsights/armoperationalinsights](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/operationalinsights/armoperationalinsights) for the [Azure Operational Insights API](https://docs.microsoft.com/en-us/rest/api/loganalytics/)
 
 ### Prerequisites
 * an [Azure subscription](https://azure.microsoft.com)

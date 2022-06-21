@@ -1,3 +1,5 @@
+# Please note, this package has been deprecated. Replacement can be found under [github.com/Azure-Samples/azure-sdk-for-go-samples/tree/main/sdk](https://github.com/Azure-Samples/azure-sdk-for-go-samples/tree/main/sdk/). We strongly encourage you to upgrade to continue receiving updates. See [Migration Guide](https://aka.ms/azsdk/golang/t2/migration) for guidance on upgrading. Refer to our [deprecation policy](https://azure.github.io/azure-sdk/policies_support.html) for more details.
+
 # Azure SDK for Go quickstart: Creating a VM
 
 This code accompanies the Azure documentation quickstart [Deploy an Azure virtual machine with the Azure SDK for Go](http://docs.microsoft.com/go/azure/azure-sdk-go-qs-vm). Running this code will

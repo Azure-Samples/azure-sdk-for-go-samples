@@ -176,7 +176,10 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 
 func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBNamespace, error) {
 	namespacesClient, err := armservicebus.NewNamespacesClient(subscriptionID, cred, nil)
-
+	if err != nil {
+		return nil, err
+	}
+	
 	pollerResp, err := namespacesClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,

@@ -16,7 +16,7 @@ func getImageSearchClient(accountName string) imagesearch.ImagesClient {
 	imageSearchClient := imagesearch.NewImagesClient()
 	csAuthorizer := autorest.NewCognitiveServicesAuthorizer(apiKey)
 	imageSearchClient.Authorizer = csAuthorizer
-	imageSearchClient.AddToUserAgent(config.UserAgent())
+	_ = imageSearchClient.AddToUserAgent(config.UserAgent())
 	return imageSearchClient
 }
 

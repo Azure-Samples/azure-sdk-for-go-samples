@@ -16,7 +16,7 @@ func getCDNClient() cdn.BaseClient {
 	cdnClient := cdn.New(config.SubscriptionID())
 	auth, _ := iam.GetResourceManagementAuthorizer()
 	cdnClient.Authorizer = auth
-	cdnClient.AddToUserAgent(config.UserAgent())
+	_ = cdnClient.AddToUserAgent(config.UserAgent())
 	return cdnClient
 }
 

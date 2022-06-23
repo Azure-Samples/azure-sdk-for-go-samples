@@ -17,7 +17,7 @@ func getDatabaseAccountClient() documentdb.DatabaseAccountsClient {
 	dbAccountClient := documentdb.NewDatabaseAccountsClient(config.SubscriptionID())
 	auth, _ := iam.GetResourceManagementAuthorizer()
 	dbAccountClient.Authorizer = auth
-	dbAccountClient.AddToUserAgent(config.UserAgent())
+	_ = dbAccountClient.AddToUserAgent(config.UserAgent())
 	return dbAccountClient
 }
 

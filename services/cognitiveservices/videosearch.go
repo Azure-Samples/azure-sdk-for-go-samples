@@ -16,7 +16,7 @@ func getVideoSearchClient(accountName string) videosearch.VideosClient {
 	videoSearchClient := videosearch.NewVideosClient()
 	csAuthorizer := autorest.NewCognitiveServicesAuthorizer(apiKey)
 	videoSearchClient.Authorizer = csAuthorizer
-	videoSearchClient.AddToUserAgent(config.UserAgent())
+	_ = videoSearchClient.AddToUserAgent(config.UserAgent())
 	return videoSearchClient
 }
 

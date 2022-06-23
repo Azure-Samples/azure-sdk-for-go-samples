@@ -17,7 +17,7 @@ func getLBClient() network.LoadBalancersClient {
 	lbClient := network.NewLoadBalancersClient(config.SubscriptionID())
 	auth, _ := iam.GetResourceManagementAuthorizer()
 	lbClient.Authorizer = auth
-	lbClient.AddToUserAgent(config.UserAgent())
+	_ = lbClient.AddToUserAgent(config.UserAgent())
 	return lbClient
 }
 

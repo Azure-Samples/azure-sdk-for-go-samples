@@ -23,55 +23,55 @@ const (
 func getVnetClient(activeDirectoryEndpoint, tokenAudience string) network.VirtualNetworksClient {
 	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience)
 	if err != nil {
-		log.Fatal(fmt.Sprintf(errorPrefix, "virtual network", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
+		log.Fatalf(fmt.Sprintf(errorPrefix, "virtual network", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
 	vnetClient := network.NewVirtualNetworksClientWithBaseURI(config.Environment().ResourceManagerEndpoint, config.SubscriptionID())
 	vnetClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	vnetClient.AddToUserAgent(config.UserAgent())
+	_ = vnetClient.AddToUserAgent(config.UserAgent())
 	return vnetClient
 }
 
 func getNsgClient(activeDirectoryEndpoint, tokenAudience string) network.SecurityGroupsClient {
 	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience)
 	if err != nil {
-		log.Fatal(fmt.Sprintf(errorPrefix, "security group", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
+		log.Fatalf(fmt.Sprintf(errorPrefix, "security group", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
 	nsgClient := network.NewSecurityGroupsClientWithBaseURI(config.Environment().ResourceManagerEndpoint, config.SubscriptionID())
 	nsgClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	nsgClient.AddToUserAgent(config.UserAgent())
+	_ = nsgClient.AddToUserAgent(config.UserAgent())
 	return nsgClient
 }
 
 func getIPClient(activeDirectoryEndpoint, tokenAudience string) network.PublicIPAddressesClient {
 	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience)
 	if err != nil {
-		log.Fatal(fmt.Sprintf(errorPrefix, "public IP address", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
+		log.Fatalf(fmt.Sprintf(errorPrefix, "public IP address", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
 	ipClient := network.NewPublicIPAddressesClientWithBaseURI(config.Environment().ResourceManagerEndpoint, config.SubscriptionID())
 	ipClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	ipClient.AddToUserAgent(config.UserAgent())
+	_ = ipClient.AddToUserAgent(config.UserAgent())
 	return ipClient
 }
 
 func getNicClient(activeDirectoryEndpoint, tokenAudience string) network.InterfacesClient {
 	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience)
 	if err != nil {
-		log.Fatal(fmt.Sprintf(errorPrefix, "network interface", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
+		log.Fatalf(fmt.Sprintf(errorPrefix, "network interface", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
 	nicClient := network.NewInterfacesClientWithBaseURI(config.Environment().ResourceManagerEndpoint, config.SubscriptionID())
 	nicClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	nicClient.AddToUserAgent(config.UserAgent())
+	_ = nicClient.AddToUserAgent(config.UserAgent())
 	return nicClient
 }
 
 func getSubnetClient(activeDirectoryEndpoint, tokenAudience string) network.SubnetsClient {
 	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience)
 	if err != nil {
-		log.Fatal(fmt.Sprintf(errorPrefix, "subnet", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
+		log.Fatalf(fmt.Sprintf(errorPrefix, "subnet", fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
 	subnetsClient := network.NewSubnetsClientWithBaseURI(config.Environment().ResourceManagerEndpoint, config.SubscriptionID())
 	subnetsClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	subnetsClient.AddToUserAgent(config.UserAgent())
+	_ = subnetsClient.AddToUserAgent(config.UserAgent())
 	return subnetsClient
 }
 

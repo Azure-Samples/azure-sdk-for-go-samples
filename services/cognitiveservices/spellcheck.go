@@ -16,7 +16,7 @@ func getSpellCheckClient(accountName string) spellcheck.BaseClient {
 	spellCheckClient := spellcheck.New()
 	csAuthorizer := autorest.NewCognitiveServicesAuthorizer(apiKey)
 	spellCheckClient.Authorizer = csAuthorizer
-	spellCheckClient.AddToUserAgent(config.UserAgent())
+	_ = spellCheckClient.AddToUserAgent(config.UserAgent())
 	return spellCheckClient
 }
 

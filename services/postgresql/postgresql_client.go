@@ -19,7 +19,7 @@ func getServersClient() flexibleservers.ServersClient {
 	serversClient := flexibleservers.NewServersClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	serversClient.Authorizer = a
-	serversClient.AddToUserAgent(config.UserAgent())
+	_ = serversClient.AddToUserAgent(config.UserAgent())
 	return serversClient
 }
 
@@ -107,7 +107,7 @@ func getFwRulesClient() flexibleservers.FirewallRulesClient {
 	fwrClient := flexibleservers.NewFirewallRulesClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	fwrClient.Authorizer = a
-	fwrClient.AddToUserAgent(config.UserAgent())
+	_ = fwrClient.AddToUserAgent(config.UserAgent())
 	return fwrClient
 }
 
@@ -142,7 +142,7 @@ func getConfigurationsClient() flexibleservers.ConfigurationsClient {
 	configClient := flexibleservers.NewConfigurationsClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	configClient.Authorizer = a
-	configClient.AddToUserAgent(config.UserAgent())
+	_ = configClient.AddToUserAgent(config.UserAgent())
 	return configClient
 }
 

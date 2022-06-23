@@ -18,7 +18,7 @@ func getContainerGroupsClient() (containerinstance.ContainerGroupsClient, error)
 	containerGroupsClient := containerinstance.NewContainerGroupsClient(config.SubscriptionID())
 	auth, _ := iam.GetResourceManagementAuthorizer()
 	containerGroupsClient.Authorizer = auth
-	containerGroupsClient.AddToUserAgent(config.UserAgent())
+	_ = containerGroupsClient.AddToUserAgent(config.UserAgent())
 	return containerGroupsClient, nil
 }
 

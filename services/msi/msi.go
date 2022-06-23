@@ -20,7 +20,7 @@ func getMSIUserAssignedIDClient() (*msi.UserAssignedIdentitiesClient, error) {
 	}
 	msiClient := msi.NewUserAssignedIdentitiesClient(config.SubscriptionID())
 	msiClient.Authorizer = a
-	msiClient.AddToUserAgent(config.UserAgent())
+	_ = msiClient.AddToUserAgent(config.UserAgent())
 	return &msiClient, nil
 }
 

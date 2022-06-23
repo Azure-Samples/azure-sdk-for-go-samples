@@ -25,7 +25,7 @@ func getGroupsClient(activeDirectoryEndpoint, tokenAudience string) resources.Gr
 		config.Environment().ResourceManagerEndpoint,
 		config.SubscriptionID())
 	groupsClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	groupsClient.AddToUserAgent(config.UserAgent())
+	_ = groupsClient.AddToUserAgent(config.UserAgent())
 	return groupsClient
 }
 

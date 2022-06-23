@@ -17,7 +17,7 @@ func getBlobClient() storage.BlobServicesClient {
 	blobClient := storage.NewBlobServicesClient(config.SubscriptionID())
 	auth, _ := iam.GetResourceManagementAuthorizer()
 	blobClient.Authorizer = auth
-	blobClient.AddToUserAgent(config.UserAgent())
+	_ = blobClient.AddToUserAgent(config.UserAgent())
 	return blobClient
 }
 
@@ -25,7 +25,7 @@ func getObjRepClient() storage.ObjectReplicationPoliciesClient {
 	objRepClient := storage.NewObjectReplicationPoliciesClient(config.SubscriptionID())
 	auth, _ := iam.GetResourceManagementAuthorizer()
 	objRepClient.Authorizer = auth
-	objRepClient.AddToUserAgent(config.UserAgent())
+	_ = objRepClient.AddToUserAgent(config.UserAgent())
 	return objRepClient
 }
 

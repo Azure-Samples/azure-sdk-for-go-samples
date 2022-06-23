@@ -22,11 +22,11 @@ const (
 func getStorageAccountsClient(activeDirectoryEndpoint, tokenAudience string) storage.AccountsClient {
 	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience)
 	if err != nil {
-		log.Fatal(fmt.Sprintf(errorPrefix, fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
+		log.Fatalf(fmt.Sprintf(errorPrefix, fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
 	storageAccountsClient := storage.NewAccountsClientWithBaseURI(config.Environment().ResourceManagerEndpoint, config.SubscriptionID())
 	storageAccountsClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	storageAccountsClient.AddToUserAgent(config.UserAgent())
+	_ = storageAccountsClient.AddToUserAgent(config.UserAgent())
 	return storageAccountsClient
 }
 

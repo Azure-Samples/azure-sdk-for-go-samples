@@ -16,7 +16,7 @@ func getNamespacesClient() eventhub.NamespacesClient {
 	nsClient := eventhub.NewNamespacesClient(config.SubscriptionID())
 	auth, _ := iam.GetResourceManagementAuthorizer()
 	nsClient.Authorizer = auth
-	nsClient.AddToUserAgent(config.UserAgent())
+	_ = nsClient.AddToUserAgent(config.UserAgent())
 	return nsClient
 }
 

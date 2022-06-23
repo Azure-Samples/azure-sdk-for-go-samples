@@ -25,7 +25,7 @@ func getStorageAccountsClient() storage.AccountsClient {
 	storageAccountsClient := storage.NewAccountsClient(config.SubscriptionID())
 	auth, _ := iam.GetResourceManagementAuthorizer()
 	storageAccountsClient.Authorizer = auth
-	storageAccountsClient.AddToUserAgent(config.UserAgent())
+	_ = storageAccountsClient.AddToUserAgent(config.UserAgent())
 	return storageAccountsClient
 }
 
@@ -33,7 +33,7 @@ func getUsageClient() storage.UsagesClient {
 	usageClient := storage.NewUsagesClient(config.SubscriptionID())
 	auth, _ := iam.GetResourceManagementAuthorizer()
 	usageClient.Authorizer = auth
-	usageClient.AddToUserAgent(config.UserAgent())
+	_ = usageClient.AddToUserAgent(config.UserAgent())
 	return usageClient
 }
 

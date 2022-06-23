@@ -19,7 +19,7 @@ func getDisksClient() compute.DisksClient {
 	disksClient := compute.NewDisksClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	disksClient.Authorizer = a
-	disksClient.AddToUserAgent(config.UserAgent())
+	_ = disksClient.AddToUserAgent(config.UserAgent())
 	return disksClient
 }
 

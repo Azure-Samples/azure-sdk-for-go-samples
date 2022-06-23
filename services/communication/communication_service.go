@@ -17,7 +17,7 @@ func GetManagementServiceClient() communication.ServiceClient {
 	serviceClient := communication.NewServiceClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	serviceClient.Authorizer = a
-	serviceClient.AddToUserAgent(config.UserAgent())
+	_ = serviceClient.AddToUserAgent(config.UserAgent())
 	return serviceClient
 }
 
@@ -25,7 +25,7 @@ func GetOperationsStatusesClient() communication.OperationStatusesClient {
 	operationsClient := communication.NewOperationStatusesClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	operationsClient.Authorizer = a
-	operationsClient.AddToUserAgent(config.UserAgent())
+	_ = operationsClient.AddToUserAgent(config.UserAgent())
 	return operationsClient
 }
 

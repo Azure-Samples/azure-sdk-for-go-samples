@@ -17,7 +17,7 @@ func getNsgClient() network.SecurityGroupsClient {
 	nsgClient := network.NewSecurityGroupsClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	nsgClient.Authorizer = a
-	nsgClient.AddToUserAgent(config.UserAgent())
+	_ = nsgClient.AddToUserAgent(config.UserAgent())
 	return nsgClient
 }
 
@@ -117,7 +117,7 @@ func getSecurityRulesClient() network.SecurityRulesClient {
 	rulesClient := network.NewSecurityRulesClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	rulesClient.Authorizer = a
-	rulesClient.AddToUserAgent(config.UserAgent())
+	_ = rulesClient.AddToUserAgent(config.UserAgent())
 	return rulesClient
 }
 

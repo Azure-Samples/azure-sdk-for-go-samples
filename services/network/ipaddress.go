@@ -17,7 +17,7 @@ func getIPClient() network.PublicIPAddressesClient {
 	ipClient := network.NewPublicIPAddressesClient(config.SubscriptionID())
 	auth, _ := iam.GetResourceManagementAuthorizer()
 	ipClient.Authorizer = auth
-	ipClient.AddToUserAgent(config.UserAgent())
+	_ = ipClient.AddToUserAgent(config.UserAgent())
 	return ipClient
 }
 

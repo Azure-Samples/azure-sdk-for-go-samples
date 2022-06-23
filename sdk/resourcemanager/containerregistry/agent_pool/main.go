@@ -5,13 +5,14 @@ package main
 
 import (
 	"context"
+	"log"
+	"os"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerregistry/armcontainerregistry"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
-	"log"
-	"os"
 )
 
 var (
@@ -138,6 +139,9 @@ func createAgentPool(ctx context.Context, cred azcore.TokenCredential) (*armcont
 
 func getAgentPool(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.AgentPool, error) {
 	agentPoolsClient, err := armcontainerregistry.NewAgentPoolsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := agentPoolsClient.Get(ctx, resourceGroupName, registryName, agentPoolName, nil)
 	if err != nil {
@@ -148,6 +152,9 @@ func getAgentPool(ctx context.Context, cred azcore.TokenCredential) (*armcontain
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
 	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,

@@ -22,7 +22,7 @@ func getVMClient() compute.VirtualMachinesClient {
 	vmClient := compute.NewVirtualMachinesClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	vmClient.Authorizer = a
-	vmClient.AddToUserAgent(config.UserAgent())
+	_ = vmClient.AddToUserAgent(config.UserAgent())
 	return vmClient
 }
 
@@ -30,7 +30,7 @@ func getVMExtensionsClient() compute.VirtualMachineExtensionsClient {
 	extClient := compute.NewVirtualMachineExtensionsClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	extClient.Authorizer = a
-	extClient.AddToUserAgent(config.UserAgent())
+	_ = extClient.AddToUserAgent(config.UserAgent())
 	return extClient
 }
 

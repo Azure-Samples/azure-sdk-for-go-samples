@@ -16,7 +16,7 @@ func getNewsSearchClient(accountName string) newssearch.NewsClient {
 	newsSearchClient := newssearch.NewNewsClient()
 	csAuthorizer := autorest.NewCognitiveServicesAuthorizer(apiKey)
 	newsSearchClient.Authorizer = csAuthorizer
-	newsSearchClient.AddToUserAgent(config.UserAgent())
+	_ = newsSearchClient.AddToUserAgent(config.UserAgent())
 	return newsSearchClient
 }
 

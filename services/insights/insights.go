@@ -22,7 +22,7 @@ func ListMetricDefinitions(resourceURI string) ([]string, error) {
 	}
 	metricsDefClient := insights.NewMetricDefinitionsClient(config.SubscriptionID())
 	metricsDefClient.Authorizer = a
-	metricsDefClient.AddToUserAgent(config.UserAgent())
+	_ = metricsDefClient.AddToUserAgent(config.UserAgent())
 	result, err := metricsDefClient.List(context.Background(), resourceURI, "")
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func GetMetricsData(ctx context.Context, resourceID string, metrics []string) ([
 	}
 	metricsClient := insights.NewMetricsClient(config.SubscriptionID())
 	metricsClient.Authorizer = a
-	metricsClient.AddToUserAgent(config.UserAgent())
+	_ = metricsClient.AddToUserAgent(config.UserAgent())
 
 	endTime := time.Now().UTC()
 	startTime := endTime.Add(time.Duration(-5) * time.Minute)

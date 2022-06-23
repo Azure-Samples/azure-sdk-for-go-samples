@@ -18,7 +18,7 @@ func getResourcesClient() resources.Client {
 	resourcesClient := resources.NewClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	resourcesClient.Authorizer = a
-	resourcesClient.AddToUserAgent(config.UserAgent())
+	_ = resourcesClient.AddToUserAgent(config.UserAgent())
 	return resourcesClient
 }
 

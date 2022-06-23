@@ -28,12 +28,12 @@ const (
 func getVMClient(activeDirectoryEndpoint, tokenAudience string) hybridcompute.VirtualMachinesClient {
 	token, err := iam.GetResourceManagementTokenHybrid(activeDirectoryEndpoint, tokenAudience)
 	if err != nil {
-		log.Fatal(fmt.Sprintf(errorPrefix, fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
+		log.Fatalf(fmt.Sprintf(errorPrefix, fmt.Sprintf("Cannot generate token. Error details: %v.", err)))
 	}
 	vmClient := hybridcompute.NewVirtualMachinesClientWithBaseURI(
 		config.Environment().ResourceManagerEndpoint, config.SubscriptionID())
 	vmClient.Authorizer = autorest.NewBearerAuthorizer(token)
-	vmClient.AddToUserAgent(config.UserAgent())
+	_ = vmClient.AddToUserAgent(config.UserAgent())
 	return vmClient
 }
 

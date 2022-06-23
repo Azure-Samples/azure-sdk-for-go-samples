@@ -16,7 +16,7 @@ func getCustomSearchClient(accountName string) customsearch.CustomInstanceClient
 	customSearchClient := customsearch.NewCustomInstanceClient()
 	csAuthorizer := autorest.NewCognitiveServicesAuthorizer(apiKey)
 	customSearchClient.Authorizer = csAuthorizer
-	customSearchClient.AddToUserAgent(config.UserAgent())
+	_ = customSearchClient.AddToUserAgent(config.UserAgent())
 	return customSearchClient
 }
 

@@ -22,7 +22,7 @@ func getClustersClient() (*hdinsight.ClustersClient, error) {
 	}
 	client := hdinsight.NewClustersClient(config.SubscriptionID())
 	client.Authorizer = a
-	client.AddToUserAgent(config.UserAgent())
+	_ = client.AddToUserAgent(config.UserAgent())
 	return &client, nil
 }
 

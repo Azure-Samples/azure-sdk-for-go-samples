@@ -21,7 +21,7 @@ func getServicePrincipalsClient() graphrbac.ServicePrincipalsClient {
 	spClient := graphrbac.NewServicePrincipalsClient(config.TenantID())
 	a, _ := iam.GetGraphAuthorizer()
 	spClient.Authorizer = a
-	spClient.AddToUserAgent(config.UserAgent())
+	_ = spClient.AddToUserAgent(config.UserAgent())
 	return spClient
 }
 
@@ -29,7 +29,7 @@ func getApplicationsClient() graphrbac.ApplicationsClient {
 	appClient := graphrbac.NewApplicationsClient(config.TenantID())
 	a, _ := iam.GetGraphAuthorizer()
 	appClient.Authorizer = a
-	appClient.AddToUserAgent(config.UserAgent())
+	_ = appClient.AddToUserAgent(config.UserAgent())
 	return appClient
 }
 
@@ -38,7 +38,7 @@ func getADGroupsClient() graphrbac.GroupsClient {
 	groupsClient := graphrbac.NewGroupsClient(config.TenantID())
 	a, _ := iam.GetGraphAuthorizer()
 	groupsClient.Authorizer = a
-	groupsClient.AddToUserAgent(config.UserAgent())
+	_ = groupsClient.AddToUserAgent(config.UserAgent())
 	return groupsClient
 }
 
@@ -91,7 +91,7 @@ func getSignedInUserClient() graphrbac.SignedInUserClient {
 	signedInUserClient := graphrbac.NewSignedInUserClient(config.TenantID())
 	a, _ := iam.GetGraphAuthorizer()
 	signedInUserClient.Authorizer = a
-	signedInUserClient.AddToUserAgent(config.UserAgent())
+	_ = signedInUserClient.AddToUserAgent(config.UserAgent())
 	return signedInUserClient
 }
 

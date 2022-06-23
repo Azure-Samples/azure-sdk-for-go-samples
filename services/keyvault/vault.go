@@ -22,7 +22,7 @@ func getVaultsClient() keyvault.VaultsClient {
 	vaultsClient := keyvault.NewVaultsClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	vaultsClient.Authorizer = a
-	vaultsClient.AddToUserAgent(config.UserAgent())
+	_ = vaultsClient.AddToUserAgent(config.UserAgent())
 	return vaultsClient
 }
 

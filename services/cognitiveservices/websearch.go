@@ -16,7 +16,7 @@ func getWebSearchClient(accountName string) websearch.WebClient {
 	webSearchClient := websearch.NewWebClient()
 	csAuthorizer := autorest.NewCognitiveServicesAuthorizer(apiKey)
 	webSearchClient.Authorizer = csAuthorizer
-	webSearchClient.AddToUserAgent(config.UserAgent())
+	_ = webSearchClient.AddToUserAgent(config.UserAgent())
 	return webSearchClient
 }
 

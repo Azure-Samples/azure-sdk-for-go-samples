@@ -16,7 +16,7 @@ func getHubsClient() eventhub.EventHubsClient {
 	hubClient := eventhub.NewEventHubsClient(config.SubscriptionID())
 	auth, _ := iam.GetResourceManagementAuthorizer()
 	hubClient.Authorizer = auth
-	hubClient.AddToUserAgent(config.UserAgent())
+	_ = hubClient.AddToUserAgent(config.UserAgent())
 	return hubClient
 }
 

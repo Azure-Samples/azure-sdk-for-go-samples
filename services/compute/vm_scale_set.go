@@ -22,7 +22,7 @@ func GetVMSSClient() compute.VirtualMachineScaleSetsClient {
 	vmssClient := compute.NewVirtualMachineScaleSetsClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	vmssClient.Authorizer = a
-	vmssClient.AddToUserAgent(config.UserAgent())
+	_ = vmssClient.AddToUserAgent(config.UserAgent())
 	return vmssClient
 }
 
@@ -30,7 +30,7 @@ func GetVMSSExtensionsClient() compute.VirtualMachineScaleSetExtensionsClient {
 	extClient := compute.NewVirtualMachineScaleSetExtensionsClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	extClient.Authorizer = a
-	extClient.AddToUserAgent(config.UserAgent())
+	_ = extClient.AddToUserAgent(config.UserAgent())
 	return extClient
 }
 

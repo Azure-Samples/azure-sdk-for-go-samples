@@ -28,7 +28,7 @@ This project framework provides examples for the following services:
 1. Clone the repository.
 
     ```
-    git clone https://github.com/Azure-Samples/azure-sdk-for-go-samples.git --branch new-version
+    git clone https://github.com/Azure-Samples/azure-sdk-for-go-samples.git
     ```
    
 2. Set the environment variable.
@@ -46,7 +46,7 @@ This project framework provides examples for the following services:
 3. Run resources sample.
 
     ```
-    cd azure-sdk-for-go-samples/resource/resources
+    cd azure-sdk-for-go-samples/sdk/resourcemanager/resource/resources
     go mod tidy
     go run main.go
     ```

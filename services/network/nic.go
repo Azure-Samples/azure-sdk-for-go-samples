@@ -18,7 +18,7 @@ func getNicClient() network.InterfacesClient {
 	nicClient := network.NewInterfacesClient(config.SubscriptionID())
 	auth, _ := iam.GetResourceManagementAuthorizer()
 	nicClient.Authorizer = auth
-	nicClient.AddToUserAgent(config.UserAgent())
+	_ = nicClient.AddToUserAgent(config.UserAgent())
 	return nicClient
 }
 

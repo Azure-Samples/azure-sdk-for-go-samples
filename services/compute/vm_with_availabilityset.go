@@ -18,7 +18,7 @@ func getAvailabilitySetsClient() compute.AvailabilitySetsClient {
 	asClient := compute.NewAvailabilitySetsClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	asClient.Authorizer = a
-	asClient.AddToUserAgent(config.UserAgent())
+	_ = asClient.AddToUserAgent(config.UserAgent())
 	return asClient
 }
 

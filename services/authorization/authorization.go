@@ -19,7 +19,7 @@ func getRoleDefinitionsClient() (authorization.RoleDefinitionsClient, error) {
 	roleDefClient := authorization.NewRoleDefinitionsClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	roleDefClient.Authorizer = a
-	roleDefClient.AddToUserAgent(config.UserAgent())
+	_ = roleDefClient.AddToUserAgent(config.UserAgent())
 	return roleDefClient, nil
 }
 
@@ -27,7 +27,7 @@ func getRoleAssignmentsClient() (authorization.RoleAssignmentsClient, error) {
 	roleClient := authorization.NewRoleAssignmentsClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	roleClient.Authorizer = a
-	roleClient.AddToUserAgent(config.UserAgent())
+	_ = roleClient.AddToUserAgent(config.UserAgent())
 	return roleClient, nil
 }
 

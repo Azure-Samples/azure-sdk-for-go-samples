@@ -16,7 +16,7 @@ func getEntitySearchClient(accountName string) entitysearch.EntitiesClient {
 	entitySearchClient := entitysearch.NewEntitiesClient()
 	csAuthorizer := autorest.NewCognitiveServicesAuthorizer(apiKey)
 	entitySearchClient.Authorizer = csAuthorizer
-	entitySearchClient.AddToUserAgent(config.UserAgent())
+	_ = entitySearchClient.AddToUserAgent(config.UserAgent())
 	return entitySearchClient
 }
 

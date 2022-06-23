@@ -18,7 +18,7 @@ func getServersClient() sql.ServersClient {
 	serversClient := sql.NewServersClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	serversClient.Authorizer = a
-	serversClient.AddToUserAgent(config.UserAgent())
+	_ = serversClient.AddToUserAgent(config.UserAgent())
 	return serversClient
 }
 
@@ -55,7 +55,7 @@ func getDbClient() sql.DatabasesClient {
 	dbClient := sql.NewDatabasesClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	dbClient.Authorizer = a
-	dbClient.AddToUserAgent(config.UserAgent())
+	_ = dbClient.AddToUserAgent(config.UserAgent())
 	return dbClient
 }
 
@@ -99,7 +99,7 @@ func getFwRulesClient() sql.FirewallRulesClient {
 	fwrClient := sql.NewFirewallRulesClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	fwrClient.Authorizer = a
-	fwrClient.AddToUserAgent(config.UserAgent())
+	_ = fwrClient.AddToUserAgent(config.UserAgent())
 	return fwrClient
 }
 

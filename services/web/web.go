@@ -18,7 +18,7 @@ func getWebAppsClient() (client web.AppsClient, err error) {
 	if err != nil {
 		return
 	}
-	client.AddToUserAgent(config.UserAgent())
+	_ = client.AddToUserAgent(config.UserAgent())
 	return
 }
 

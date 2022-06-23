@@ -17,7 +17,7 @@ func getSubnetsClient() network.SubnetsClient {
 	subnetsClient := network.NewSubnetsClient(config.SubscriptionID())
 	auth, _ := iam.GetResourceManagementAuthorizer()
 	subnetsClient.Authorizer = auth
-	subnetsClient.AddToUserAgent(config.UserAgent())
+	_ = subnetsClient.AddToUserAgent(config.UserAgent())
 	return subnetsClient
 }
 

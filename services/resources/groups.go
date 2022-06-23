@@ -25,7 +25,7 @@ func getGroupsClient() resources.GroupsClient {
 		log.Fatalf("failed to initialize authorizer: %v\n", err)
 	}
 	groupsClient.Authorizer = a
-	groupsClient.AddToUserAgent(config.UserAgent())
+	_ = groupsClient.AddToUserAgent(config.UserAgent())
 	return groupsClient
 }
 
@@ -38,14 +38,14 @@ func getGroupsClientWithAuthFile() resources.GroupsClient {
 		log.Fatalf("failed to initialize authorizer: %v\n", err)
 	}
 	groupsClient.Authorizer = a
-	groupsClient.AddToUserAgent(config.UserAgent())
+	_ = groupsClient.AddToUserAgent(config.UserAgent())
 	return groupsClient
 }
 
 // CreateGroup creates a new resource group named by env var
 func CreateGroup(ctx context.Context, groupName string) (resources.Group, error) {
 	groupsClient := getGroupsClient()
-	log.Println(fmt.Sprintf("creating resource group '%s' on location: %v", groupName, config.Location()))
+	log.Printf("creating resource group '%s' on location: %v\n", groupName, config.Location())
 	return groupsClient.CreateOrUpdate(
 		ctx,
 		groupName,
@@ -58,7 +58,7 @@ func CreateGroup(ctx context.Context, groupName string) (resources.Group, error)
 // is set up based on an auth file created using the Azure CLI.
 func CreateGroupWithAuthFile(ctx context.Context, groupName string) (resources.Group, error) {
 	groupsClient := getGroupsClientWithAuthFile()
-	log.Println(fmt.Sprintf("creating resource group '%s' on location: %v", groupName, config.Location()))
+	log.Printf("creating resource group '%s' on location: %v\n", groupName, config.Location())
 	return groupsClient.CreateOrUpdate(
 		ctx,
 		groupName,

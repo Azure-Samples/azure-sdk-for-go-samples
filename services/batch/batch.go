@@ -28,7 +28,7 @@ func getAccountClient() batchARM.AccountClient {
 	accountClient := batchARM.NewAccountClient(config.SubscriptionID())
 	auth, _ := iam.GetResourceManagementAuthorizer()
 	accountClient.Authorizer = auth
-	accountClient.AddToUserAgent(config.UserAgent())
+	_ = accountClient.AddToUserAgent(config.UserAgent())
 	return accountClient
 }
 
@@ -36,7 +36,7 @@ func getPoolClient(accountName, accountLocation string) batch.PoolClient {
 	poolClient := batch.NewPoolClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
 	auth, _ := iam.GetBatchAuthorizer()
 	poolClient.Authorizer = auth
-	poolClient.AddToUserAgent(config.UserAgent())
+	_ = poolClient.AddToUserAgent(config.UserAgent())
 	poolClient.RequestInspector = fixContentTypeInspector()
 	return poolClient
 }
@@ -45,7 +45,7 @@ func getJobClient(accountName, accountLocation string) batch.JobClient {
 	jobClient := batch.NewJobClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
 	auth, _ := iam.GetBatchAuthorizer()
 	jobClient.Authorizer = auth
-	jobClient.AddToUserAgent(config.UserAgent())
+	_ = jobClient.AddToUserAgent(config.UserAgent())
 	jobClient.RequestInspector = fixContentTypeInspector()
 	return jobClient
 }
@@ -54,7 +54,7 @@ func getTaskClient(accountName, accountLocation string) batch.TaskClient {
 	taskClient := batch.NewTaskClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
 	auth, _ := iam.GetBatchAuthorizer()
 	taskClient.Authorizer = auth
-	taskClient.AddToUserAgent(config.UserAgent())
+	_ = taskClient.AddToUserAgent(config.UserAgent())
 	taskClient.RequestInspector = fixContentTypeInspector()
 	return taskClient
 }
@@ -63,7 +63,7 @@ func getFileClient(accountName, accountLocation string) batch.FileClient {
 	fileClient := batch.NewFileClientWithBaseURI(getBatchBaseURL(accountName, accountLocation))
 	auth, _ := iam.GetBatchAuthorizer()
 	fileClient.Authorizer = auth
-	fileClient.AddToUserAgent(config.UserAgent())
+	_ = fileClient.AddToUserAgent(config.UserAgent())
 	fileClient.RequestInspector = fixContentTypeInspector()
 	return fileClient
 }

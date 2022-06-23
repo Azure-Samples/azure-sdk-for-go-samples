@@ -7,42 +7,25 @@
 
 # <a name="guidance"></a> Guidance for writing new samples
 
-This repo provides samples to help developers understand how to interact with Azure services using the Azure SDK for Go. The following guidance for creating samples helps ensure consistency across our many supported services.
+This repo provides samples to help developers understand how to interact with Azure services using the Azure SDK for Go. The following guidance for creating samples helps ensure consistency across our supported services.
 
-* Any service in [`azure-sdk-for-go/services/...`][1] is eligible for a top-level folder in this repo (`azure-sdk-for-go-samples`).
-* Each top-level folder in `azure-sdk-for-go-samples` is a library of common operations typically executed for that service. Operations are associated with entities in the service's API and included in a file named for that entity. For example, the `storage/` directory is arranged as described below.
-* Each top-level folder should contain at least one testable file named `<service>_test.go` which exercises all methods in the directory.
-* An example top-level directory for Azure Storage follows. The leaf nodes are method names within a file.
+* Any service in [`azure-sdk-for-go/sdk/...`][1] is eligible for a folder under `sdk` in this repo (`azure-sdk-for-go-samples`).
+* Each sub-folder under the above top-level folder is a sample of common operations typically executed for that service and should contain a `main.go` file which can be executed directly. For example, the `sdk/resourcemanager/compute` directory is arranged as below.
 
 ```
-  storage/
-      account.go
-          CreateAccount
-          DeleteAccount
-          GetAccount
-          UpdateAccount
-      block_blob.go
-          CreateBlockBlob
-          CreateBlockBlobWithStream
-          DeleteBlockBlob
-      container.go
+  compute/
+      availablilityset
+          go.mod
+          go.sum
+          LICENSE.txt
+          main.go
+          README.md
+      create_vm
           ...
-      file.go
-          ...
-      page_blob.go
-          ...
-      queue.go
-      storage_test.go
-          Example
-          ExampleFile
+      ...
 ```
 
-* Samples for one service should utilize methods from other samples for non-essential operations. For example, compute should utilize operations from network to deploy a network for a VM; and all samples should utilize operations from `iam/` for authentication.
-* All samples should use the same conventions for naming and using environment variables. This convention currently is:
-  * All env vars used across the samples repo should be listed in the root `.env.tpl`. This allows a user to set all env vars in one place and run `go test ./...`.
-  * Env vars should be named `AZURE_<SERVICE>_<VARNAME>`, e.g. `AZURE_STORAGE_ACCOUNTNAME` and `AZURE_VNET_NAME`.
-
-[1]: https://github.com/Azure/azure-sdk-for-go/tree/master/services
+[1]: https://github.com/Azure/azure-sdk-for-go/tree/main/sdk
 
 
 ## <a name="cla"></a> Contributor License Agreement (CLA)
@@ -116,7 +99,7 @@ Before you submit your Pull Request (PR) consider the following guidelines:
     * Rebase your fork against the main repo and force-push the new series of commits to your GitHub repo:
 
     ```shell
-    $ git rebase origin/master
+    $ git rebase origin/main
     $ git push --force
     ```
 

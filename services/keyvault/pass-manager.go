@@ -95,7 +95,7 @@ func listSecrets(basicClient keyvault.BaseClient) {
 		os.Exit(1)
 	}
 
-	for ; secretList.NotDone(); secretList.NextWithContext(context.Background()) {
+	for ; secretList.NotDone(); _ = secretList.NextWithContext(context.Background()) {
 		// group by ContentType
 		secWithType := make(map[string][]string)
 		secWithoutType := make([]string, 1)

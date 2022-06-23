@@ -17,7 +17,7 @@ func getVnetClient() network.VirtualNetworksClient {
 	vnetClient := network.NewVirtualNetworksClient(config.SubscriptionID())
 	a, _ := iam.GetResourceManagementAuthorizer()
 	vnetClient.Authorizer = a
-	vnetClient.AddToUserAgent(config.UserAgent())
+	_ = vnetClient.AddToUserAgent(config.UserAgent())
 	return vnetClient
 }
 

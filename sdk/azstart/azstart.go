@@ -22,12 +22,12 @@ func ExampleUsingARMClients() {
 		panic(err)
 	}
 
-	// Construct an ARM client passing subscription ID, credential, & optional options
+	// Construct an ARM client factory passing subscription ID, credential, & optional options
+	// which could be used to create any client in one ARM module
+	clientFactory, err := armresources.NewClientFactory("<SubscriptionId>", credential, nil)
+
 	// This example creates a ResourceGroupsClient, but you can create any ARM client
-	client, err := armresources.NewResourceGroupsClient("<SubscriptionId>", credential, nil)
-	if err != nil {
-		panic(err)
-	}
+	client := clientFactory.NewResourceGroupsClient()
 
 	// You can now call client methods to invoke service operations
 	// This example calls CreateOrUpdate, but you can call any client method

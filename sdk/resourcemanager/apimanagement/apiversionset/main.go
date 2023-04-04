@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/apimanagement/armapimanagement"
@@ -15,6 +14,9 @@ import (
 )
 
 var (
+	clientFactory       *armapimanagement.ClientFactory
+	resourceGroupClient *armresources.ResourceGroupsClient
+
 	subscriptionID    string
 	location          = "westus"
 	resourceGroupName = "sample-resource-group"
@@ -35,19 +37,30 @@ func main() {
 
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	clientFactory, err = armapimanagement.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	resourcesClientFactory, err := armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	apiManagementService, err := createApiManagementService(ctx, cred)
+	apiManagementService, err := createApiManagementService(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("api management service:", *apiManagementService.ID)
 
-	apiVersionSet, err := createApiVersionSet(ctx, cred)
+	apiVersionSet, err := createApiVersionSet(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,7 +68,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -63,13 +76,9 @@ func main() {
 	}
 }
 
-func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceResource, error) {
-	apiManagementServiceClient, err := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createApiManagementService(ctx context.Context) (*armapimanagement.ServiceResource, error) {
 
-	pollerResp, err := apiManagementServiceClient.BeginCreateOrUpdate(
+	pollerResp, err := clientFactory.NewServiceClient().BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -96,13 +105,9 @@ func createApiManagementService(ctx context.Context, cred azcore.TokenCredential
 	return &resp.ServiceResource, nil
 }
 
-func createApiVersionSet(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIVersionSetContract, error) {
-	apiVersionSetClient, err := armapimanagement.NewAPIVersionSetClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createApiVersionSet(ctx context.Context) (*armapimanagement.APIVersionSetContract, error) {
 
-	resp, err := apiVersionSetClient.CreateOrUpdate(
+	resp, err := clientFactory.NewAPIVersionSetClient().CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -122,11 +127,7 @@ func createApiVersionSet(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resp.APIVersionSetContract, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -141,11 +142,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

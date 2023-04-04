@@ -15,13 +15,20 @@ import (
 )
 
 var (
-	clientFactory       *armapimanagement.ClientFactory
-	resourceGroupClient *armresources.ResourceGroupsClient
-
 	subscriptionID    string
 	location          = "westus"
 	resourceGroupName = "sample-resource-group"
 	serviceName       = "sample-api-service"
+)
+
+var (
+	apimanagementClientFactory *armapimanagement.ClientFactory
+	resourcesClientFactory     *armresources.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	serviceClient       *armapimanagement.ServiceClient
 )
 
 func main() {
@@ -36,16 +43,17 @@ func main() {
 	}
 	ctx := context.Background()
 
-	clientFactory, err = armapimanagement.NewClientFactory(subscriptionID, cred, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	resourcesClientFactory, err := armresources.NewClientFactory(subscriptionID, cred, nil)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	apimanagementClientFactory, err = armapimanagement.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serviceClient = apimanagementClientFactory.NewServiceClient()
 
 	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
@@ -90,7 +98,7 @@ func main() {
 
 func createApiManagementService(ctx context.Context) (*armapimanagement.ServiceResource, error) {
 
-	pollerResp, err := clientFactory.NewServiceClient().BeginCreateOrUpdate(
+	pollerResp, err := serviceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -120,7 +128,7 @@ func createApiManagementService(ctx context.Context) (*armapimanagement.ServiceR
 // The resource type 'getDomainOwnershipIdentifier' could not be found in the namespace 'Microsoft.ApiManagement' for api version '2021-04-01-preview'. The supported api-versions are '2020-12-01,2021-01-01-preview'."}
 func getDomainOwnershipIdentifier(ctx context.Context) (*armapimanagement.ServiceGetDomainOwnershipIdentifierResult, error) {
 
-	resp, err := clientFactory.NewServiceClient().GetDomainOwnershipIdentifier(ctx, nil)
+	resp, err := serviceClient.GetDomainOwnershipIdentifier(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +137,7 @@ func getDomainOwnershipIdentifier(ctx context.Context) (*armapimanagement.Servic
 
 func getSsoToken(ctx context.Context) (*armapimanagement.ServiceGetSsoTokenResult, error) {
 
-	resp, err := clientFactory.NewServiceClient().GetSsoToken(ctx, resourceGroupName, serviceName, nil)
+	resp, err := serviceClient.GetSsoToken(ctx, resourceGroupName, serviceName, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +146,7 @@ func getSsoToken(ctx context.Context) (*armapimanagement.ServiceGetSsoTokenResul
 
 func getApiManagementService(ctx context.Context) (*armapimanagement.ServiceResource, error) {
 
-	resp, err := clientFactory.NewServiceClient().Get(ctx, resourceGroupName, serviceName, nil)
+	resp, err := serviceClient.Get(ctx, resourceGroupName, serviceName, nil)
 	if err != nil {
 		return nil, err
 	}

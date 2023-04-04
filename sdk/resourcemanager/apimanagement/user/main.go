@@ -16,14 +16,22 @@ import (
 )
 
 var (
-	clientFactory       *armapimanagement.ClientFactory
-	resourceGroupClient *armresources.ResourceGroupsClient
-
 	subscriptionID    string
 	location          = "westus"
 	resourceGroupName = "sample-resource-group"
 	serviceName       = "sample-api-service"
 	userID            = "sampleuserid"
+)
+
+var (
+	apimanagementClientFactory *armapimanagement.ClientFactory
+	resourcesClientFactory     *armresources.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	serviceClient       *armapimanagement.ServiceClient
+	userClient          *armapimanagement.UserClient
 )
 
 func main() {
@@ -39,16 +47,18 @@ func main() {
 
 	ctx := context.Background()
 
-	clientFactory, err = armapimanagement.NewClientFactory(subscriptionID, cred, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	resourcesClientFactory, err := armresources.NewClientFactory(subscriptionID, cred, nil)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	apimanagementClientFactory, err = armapimanagement.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serviceClient = apimanagementClientFactory.NewServiceClient()
+	userClient = apimanagementClientFactory.NewUserClient()
 
 	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
@@ -106,7 +116,7 @@ func main() {
 
 func createApiManagementService(ctx context.Context) (*armapimanagement.ServiceResource, error) {
 
-	pollerResp, err := clientFactory.NewServiceClient().BeginCreateOrUpdate(
+	pollerResp, err := serviceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -135,7 +145,7 @@ func createApiManagementService(ctx context.Context) (*armapimanagement.ServiceR
 
 func createUser(ctx context.Context) (*armapimanagement.UserContract, error) {
 
-	resp, err := clientFactory.NewUserClient().CreateOrUpdate(
+	resp, err := userClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -157,7 +167,7 @@ func createUser(ctx context.Context) (*armapimanagement.UserContract, error) {
 
 func getEntityTag(ctx context.Context) (*armapimanagement.UserClientGetEntityTagResponse, error) {
 
-	resp, err := clientFactory.NewUserClient().GetEntityTag(ctx, resourceGroupName, serviceName, userID, nil)
+	resp, err := userClient.GetEntityTag(ctx, resourceGroupName, serviceName, userID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +176,7 @@ func getEntityTag(ctx context.Context) (*armapimanagement.UserClientGetEntityTag
 
 func getSharedAccessToken(ctx context.Context) (*armapimanagement.UserTokenResult, error) {
 
-	resp, err := clientFactory.NewUserClient().GetSharedAccessToken(
+	resp, err := userClient.GetSharedAccessToken(
 		ctx,
 		resourceGroupName,
 		serviceName, userID,
@@ -186,7 +196,7 @@ func getSharedAccessToken(ctx context.Context) (*armapimanagement.UserTokenResul
 
 func generateSsoURL(ctx context.Context) (*armapimanagement.GenerateSsoURLResult, error) {
 
-	resp, err := clientFactory.NewUserClient().GenerateSsoURL(ctx, resourceGroupName, serviceName, userID, nil)
+	resp, err := userClient.GenerateSsoURL(ctx, resourceGroupName, serviceName, userID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +205,7 @@ func generateSsoURL(ctx context.Context) (*armapimanagement.GenerateSsoURLResult
 
 func listUsers(ctx context.Context) ([]*armapimanagement.UserContract, error) {
 
-	pager := clientFactory.NewUserClient().NewListByServicePager(resourceGroupName, serviceName, nil)
+	pager := userClient.NewListByServicePager(resourceGroupName, serviceName, nil)
 
 	users := make([]*armapimanagement.UserContract, 0)
 	for pager.More() {

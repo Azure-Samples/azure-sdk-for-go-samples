@@ -14,15 +14,24 @@ import (
 )
 
 var (
-	clientFactory       *armapimanagement.ClientFactory
-	resourceGroupClient *armresources.ResourceGroupsClient
-
 	subscriptionID    string
 	location          = "westus"
 	resourceGroupName = "sample-resource-group"
 	serviceName       = "sample-api-service"
 	apiID             = "sample-api"
 	schemaID          = "sample-api-schema"
+)
+
+var (
+	apimanagementClientFactory *armapimanagement.ClientFactory
+	resourcesClientFactory     *armresources.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	serviceClient       *armapimanagement.ServiceClient
+	apiClient           *armapimanagement.APIClient
+	apiSchemaClient     *armapimanagement.APISchemaClient
 )
 
 func main() {
@@ -37,16 +46,19 @@ func main() {
 	}
 	ctx := context.Background()
 
-	clientFactory, err = armapimanagement.NewClientFactory(subscriptionID, cred, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	resourcesClientFactory, err := armresources.NewClientFactory(subscriptionID, cred, nil)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	apimanagementClientFactory, err = armapimanagement.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serviceClient = apimanagementClientFactory.NewServiceClient()
+	apiClient = apimanagementClientFactory.NewAPIClient()
+	apiSchemaClient = apimanagementClientFactory.NewAPISchemaClient()
 
 	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
@@ -84,7 +96,7 @@ func main() {
 
 func createApiManagementService(ctx context.Context) (*armapimanagement.ServiceResource, error) {
 
-	pollerResp, err := clientFactory.NewServiceClient().BeginCreateOrUpdate(
+	pollerResp, err := serviceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -113,7 +125,7 @@ func createApiManagementService(ctx context.Context) (*armapimanagement.ServiceR
 
 func createApi(ctx context.Context) (*armapimanagement.APIContract, error) {
 
-	pollerResp, err := clientFactory.NewAPIClient().BeginCreateOrUpdate(
+	pollerResp, err := apiClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -142,7 +154,7 @@ func createApi(ctx context.Context) (*armapimanagement.APIContract, error) {
 
 func createApiSchema(ctx context.Context) (*armapimanagement.SchemaContract, error) {
 
-	pollerResp, err := clientFactory.NewAPISchemaClient().BeginCreateOrUpdate(
+	pollerResp, err := apiSchemaClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,

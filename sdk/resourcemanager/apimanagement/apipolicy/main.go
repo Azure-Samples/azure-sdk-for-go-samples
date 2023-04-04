@@ -14,14 +14,23 @@ import (
 )
 
 var (
-	clientFactory       *armapimanagement.ClientFactory
-	resourceGroupClient *armresources.ResourceGroupsClient
-
 	subscriptionID    string
 	location          = "westus"
 	resourceGroupName = "sample-resource-group"
 	serviceName       = "sample-api-service"
 	apiID             = "sample-api"
+)
+
+var (
+	apimanagementClientFactory *armapimanagement.ClientFactory
+	resourcesClientFactory     *armresources.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	serviceClient       *armapimanagement.ServiceClient
+	apiClient           *armapimanagement.APIClient
+	apiPolicyClient     *armapimanagement.APIPolicyClient
 )
 
 func main() {
@@ -42,16 +51,19 @@ func main() {
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	clientFactory, err = armapimanagement.NewClientFactory(subscriptionID, cred, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	resourcesClientFactory, err := armresources.NewClientFactory(subscriptionID, cred, nil)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	apimanagementClientFactory, err = armapimanagement.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serviceClient = apimanagementClientFactory.NewServiceClient()
+	apiClient = apimanagementClientFactory.NewAPIClient()
+	apiPolicyClient = apimanagementClientFactory.NewAPIPolicyClient()
 
 	apiManagementService, err := createApiManagementService(ctx)
 	if err != nil {
@@ -83,7 +95,7 @@ func main() {
 
 func createApiManagementService(ctx context.Context) (*armapimanagement.ServiceResource, error) {
 
-	pollerResp, err := clientFactory.NewServiceClient().BeginCreateOrUpdate(
+	pollerResp, err := serviceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -112,7 +124,7 @@ func createApiManagementService(ctx context.Context) (*armapimanagement.ServiceR
 
 func createApi(ctx context.Context) (*armapimanagement.APIContract, error) {
 
-	pollerResp, err := clientFactory.NewAPIClient().BeginCreateOrUpdate(
+	pollerResp, err := apiClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -158,7 +170,7 @@ var value = `<?xml version="1.0" encoding="utf-8"?>
 
 func createApiPolicy(ctx context.Context) (*armapimanagement.PolicyContract, error) {
 
-	resp, err := clientFactory.NewAPIPolicyClient().CreateOrUpdate(
+	resp, err := apiPolicyClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,

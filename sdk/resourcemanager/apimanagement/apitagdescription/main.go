@@ -14,15 +14,25 @@ import (
 )
 
 var (
-	clientFactory       *armapimanagement.ClientFactory
-	resourceGroupClient *armresources.ResourceGroupsClient
-
 	subscriptionID    string
 	location          = "westus"
 	resourceGroupName = "sample-resource-group"
 	serviceName       = "sample-api-service"
 	apiID             = "sample-api"
 	tagID             = "sample-tag"
+)
+
+var (
+	apimanagementClientFactory *armapimanagement.ClientFactory
+	resourcesClientFactory     *armresources.ClientFactory
+)
+
+var (
+	resourceGroupClient     *armresources.ResourceGroupsClient
+	serviceClient           *armapimanagement.ServiceClient
+	apiClient               *armapimanagement.APIClient
+	tagClient               *armapimanagement.TagClient
+	apiTagDescriptionClient *armapimanagement.APITagDescriptionClient
 )
 
 func main() {
@@ -38,16 +48,20 @@ func main() {
 
 	ctx := context.Background()
 
-	clientFactory, err = armapimanagement.NewClientFactory(subscriptionID, cred, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	resourcesClientFactory, err := armresources.NewClientFactory(subscriptionID, cred, nil)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	apimanagementClientFactory, err = armapimanagement.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serviceClient = apimanagementClientFactory.NewServiceClient()
+	apiClient = apimanagementClientFactory.NewAPIClient()
+	tagClient = apimanagementClientFactory.NewTagClient()
+	apiTagDescriptionClient = apimanagementClientFactory.NewAPITagDescriptionClient()
 
 	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
@@ -91,7 +105,7 @@ func main() {
 
 func createApiManagementService(ctx context.Context) (*armapimanagement.ServiceResource, error) {
 
-	pollerResp, err := clientFactory.NewServiceClient().BeginCreateOrUpdate(
+	pollerResp, err := serviceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -120,7 +134,7 @@ func createApiManagementService(ctx context.Context) (*armapimanagement.ServiceR
 
 func createApi(ctx context.Context) (*armapimanagement.APIContract, error) {
 
-	pollerResp, err := clientFactory.NewAPIClient().BeginCreateOrUpdate(
+	pollerResp, err := apiClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -149,7 +163,7 @@ func createApi(ctx context.Context) (*armapimanagement.APIContract, error) {
 
 func createTag(ctx context.Context) (*armapimanagement.TagClientCreateOrUpdateResponse, error) {
 
-	resp, err := clientFactory.NewTagClient().CreateOrUpdate(
+	resp, err := tagClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -169,7 +183,7 @@ func createTag(ctx context.Context) (*armapimanagement.TagClientCreateOrUpdateRe
 
 func createApiTagDescription(ctx context.Context) (*armapimanagement.TagDescriptionContract, error) {
 
-	resp, err := clientFactory.NewAPITagDescriptionClient().CreateOrUpdate(
+	resp, err := apiTagDescriptionClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,

@@ -5,10 +5,9 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/appservice/armappservice"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/appservice/armappservice/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"log"
 	"os"
@@ -19,6 +18,16 @@ var (
 	location           = "westus"
 	resourceGroupName  = "sample-resource-group"
 	appServicePlanName = "sample-appservice-plan"
+)
+
+var (
+	resourcesClientFactory  *armresources.ClientFactory
+	appserviceClientFactory *armappservice.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	plansClient         *armappservice.PlansClient
 )
 
 func main() {
@@ -33,19 +42,31 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	appserviceClientFactory, err = armappservice.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	plansClient = appserviceClientFactory.NewPlansClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	appServicePlan, err := createAppServicePlan(ctx, cred)
+	appServicePlan, err := createAppServicePlan(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("app service plan:", *appServicePlan.ID)
 
-	appServicePlan, err = getAppServicePlan(ctx, cred)
+	appServicePlan, err = getAppServicePlan(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,7 +74,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -61,13 +82,9 @@ func main() {
 	}
 }
 
-func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*armappservice.Plan, error) {
-	appServicePlansClient, err := armappservice.NewPlansClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createAppServicePlan(ctx context.Context) (*armappservice.Plan, error) {
 
-	pollerResp, err := appServicePlansClient.BeginCreateOrUpdate(
+	pollerResp, err := plansClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		appServicePlanName,
@@ -94,13 +111,9 @@ func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.Plan, nil
 }
 
-func getAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*armappservice.Plan, error) {
-	appServicePlansClient, err := armappservice.NewPlansClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getAppServicePlan(ctx context.Context) (*armappservice.Plan, error) {
 
-	resp, err := appServicePlansClient.Get(
+	resp, err := plansClient.Get(
 		ctx,
 		resourceGroupName,
 		appServicePlanName,
@@ -112,11 +125,7 @@ func getAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*armap
 	return &resp.Plan, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -131,11 +140,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

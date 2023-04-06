@@ -9,7 +9,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/automation/armautomation"
@@ -25,6 +24,18 @@ var (
 	webhookName           = "sample-automation-webhook"
 )
 
+var (
+	resourcesClientFactory  *armresources.ClientFactory
+	automationClientFactory *armautomation.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	accountClient       *armautomation.AccountClient
+	runbookClient       *armautomation.RunbookClient
+	webhookClient       *armautomation.WebhookClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -37,37 +48,51 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	automationClientFactory, err = armautomation.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	accountClient = automationClientFactory.NewAccountClient()
+	runbookClient = automationClientFactory.NewRunbookClient()
+	webhookClient = automationClientFactory.NewWebhookClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	account, err := createAutomationAccount(ctx, cred)
+	account, err := createAutomationAccount(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("automation account:", *account.ID)
 
-	runbook, err := createAutomationRunbook(ctx, cred)
+	runbook, err := createAutomationRunbook(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("automation runbook:", *runbook.ID)
 
-	webhook, err := createAutomationWebhook(ctx, cred)
+	webhook, err := createAutomationWebhook(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("automation webhook:", *webhook.ID)
 
-	webhook, err = getAutomationWebhook(ctx, cred)
+	webhook, err = getAutomationWebhook(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get automation webhook:", *webhook.ID)
 
-	webhookURI, err := generateURI(ctx, cred)
+	webhookURI, err := generateURI(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -75,7 +100,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -83,11 +108,7 @@ func main() {
 	}
 }
 
-func createAutomationAccount(ctx context.Context, cred azcore.TokenCredential) (*armautomation.Account, error) {
-	accountClient, err := armautomation.NewAccountClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createAutomationAccount(ctx context.Context) (*armautomation.Account, error) {
 
 	resp, err := accountClient.CreateOrUpdate(
 		ctx,
@@ -111,13 +132,9 @@ func createAutomationAccount(ctx context.Context, cred azcore.TokenCredential) (
 	return &resp.Account, nil
 }
 
-func createAutomationRunbook(ctx context.Context, cred azcore.TokenCredential) (*armautomation.Runbook, error) {
-	runBookClient, err := armautomation.NewRunbookClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createAutomationRunbook(ctx context.Context) (*armautomation.Runbook, error) {
 
-	resp, err := runBookClient.CreateOrUpdate(
+	resp, err := runbookClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		automationAccountName,
@@ -148,11 +165,7 @@ func createAutomationRunbook(ctx context.Context, cred azcore.TokenCredential) (
 	return &resp.Runbook, nil
 }
 
-func createAutomationWebhook(ctx context.Context, cred azcore.TokenCredential) (*armautomation.Webhook, error) {
-	webhookClient, err := armautomation.NewWebhookClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createAutomationWebhook(ctx context.Context) (*armautomation.Webhook, error) {
 
 	resp, err := webhookClient.CreateOrUpdate(
 		ctx,
@@ -179,11 +192,7 @@ func createAutomationWebhook(ctx context.Context, cred azcore.TokenCredential) (
 	return &resp.Webhook, nil
 }
 
-func getAutomationWebhook(ctx context.Context, cred azcore.TokenCredential) (*armautomation.Webhook, error) {
-	webhookClient, err := armautomation.NewWebhookClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getAutomationWebhook(ctx context.Context) (*armautomation.Webhook, error) {
 
 	resp, err := webhookClient.Get(ctx, resourceGroupName, automationAccountName, webhookName, nil)
 	if err != nil {
@@ -193,11 +202,7 @@ func getAutomationWebhook(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.Webhook, nil
 }
 
-func generateURI(ctx context.Context, cred azcore.TokenCredential) (string, error) {
-	webhookClient, err := armautomation.NewWebhookClient(subscriptionID, cred, nil)
-	if err != nil {
-		return "", err
-	}
+func generateURI(ctx context.Context) (string, error) {
 
 	resp, err := webhookClient.GenerateURI(ctx, resourceGroupName, automationAccountName, nil)
 	if err != nil {
@@ -207,11 +212,7 @@ func generateURI(ctx context.Context, cred azcore.TokenCredential) (string, erro
 	return *resp.Value, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -227,11 +228,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

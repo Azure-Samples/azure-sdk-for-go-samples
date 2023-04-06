@@ -43,7 +43,7 @@ func ExampleUsingARMClients() {
 	fmt.Printf("Resource group ID: %s\n", *response.ResourceGroup.ID)
 }
 
-// UsingDPClients shows how to construct & use a data-plane Client to invoke service methods
+// ExampleUsingDPClients shows how to construct & use a data-plane Client to invoke service methods
 func ExampleUsingDataPlaneClients() {
 	// Construct a credential type from the azidentity package
 	// or the module defining the client you wish to use

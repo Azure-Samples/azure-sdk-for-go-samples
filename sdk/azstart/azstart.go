@@ -13,7 +13,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 )
 
-// UsingARMClients shows how to construct & use an ARM Client to invoke service methods
+// ExampleUsingARMClients shows how to construct & use an ARM Client to invoke service methods
 func ExampleUsingARMClients() {
 	// Construct a credential type from the azidentity package
 	// or the module defining the client you wish to use

@@ -69,7 +69,7 @@ func ExampleUsingDataPlaneClients() {
 	fmt.Printf("Name: %s, Value: %s\n", *response.ID, *response.Value)
 }
 
-// PagingOverACollection shows how to page over a collection's items
+// ExamplePagingOverACollection shows how to page over a collection's items
 func ExamplePagingOverACollection() {
 	// Construct a credential type from the azidentity
 	credential, err := azidentity.NewDefaultAzureCredential(nil)

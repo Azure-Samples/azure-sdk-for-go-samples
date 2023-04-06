@@ -102,7 +102,7 @@ func ExamplePagingOverACollection() {
 	}
 }
 
-// LongRunningOperation shows how to invoke a long-running operation and poll for its completion
+// ExampleLongRunningOperation shows how to invoke a long-running operation and poll for its completion
 func ExampleLongRunningOperation() {
 	// Construct a credential type from the azidentity
 	credential, err := azidentity.NewDefaultAzureCredential(nil)

@@ -10,7 +10,6 @@ import (
 	"math"
 	"os"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 )
@@ -18,6 +17,14 @@ import (
 var (
 	subscriptionID            string
 	resourceProviderNamespace = "Microsoft.Compute"
+)
+
+var (
+	resourcesClientFactory *armresources.ClientFactory
+)
+
+var (
+	providersClient *armresources.ProvidersClient
 )
 
 func main() {
@@ -32,19 +39,25 @@ func main() {
 	}
 	ctx := context.Background()
 
-	provider, err := registerProvider(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	providersClient = resourcesClientFactory.NewProvidersClient()
+
+	provider, err := registerProvider(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("registered provider:", *provider.ID)
 
-	provider, err = getProvider(ctx, cred)
+	provider, err = getProvider(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get provider:", *provider.ID)
 
-	providers, err := listProvider(ctx, cred)
+	providers, err := listProvider(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,7 +67,7 @@ func main() {
 		log.Printf("Namespace: %s,RegistratonState: %s\n", *providers[i].Namespace, *providers[i].RegistrationState)
 	}
 
-	providerPermissionsResult, err := providerPermissions(ctx, cred)
+	providerPermissionsResult, err := providerPermissions(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,7 +78,7 @@ func main() {
 	log.Println(string(data))
 
 	// Tenant
-	providers, err = listAtTenantScopeProvider(ctx, cred)
+	providers, err = listAtTenantScopeProvider(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -75,34 +88,16 @@ func main() {
 		log.Println("Namespace:", *providers[i].Namespace)
 	}
 
-	atTenant, err := getAtTenantScopeProvider(ctx, cred)
+	atTenant, err := getAtTenantScopeProvider(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get atTenant:", *atTenant.Namespace)
 }
 
-func registerProvider(ctx context.Context, cred azcore.TokenCredential) (*armresources.Provider, error) {
-	providerClient, err := armresources.NewProvidersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func registerProvider(ctx context.Context) (*armresources.Provider, error) {
 
-	providerResp, err := providerClient.Register(ctx, resourceProviderNamespace, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &providerResp.Provider, nil
-}
-
-func getProvider(ctx context.Context, cred azcore.TokenCredential) (*armresources.Provider, error) {
-	providerClient, err := armresources.NewProvidersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	providerResp, err := providerClient.Get(ctx, resourceProviderNamespace, nil)
+	providerResp, err := providersClient.Register(ctx, resourceProviderNamespace, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -110,13 +105,19 @@ func getProvider(ctx context.Context, cred azcore.TokenCredential) (*armresource
 	return &providerResp.Provider, nil
 }
 
-func listProvider(ctx context.Context, cred azcore.TokenCredential) ([]*armresources.Provider, error) {
-	providerClient, err := armresources.NewProvidersClient(subscriptionID, cred, nil)
+func getProvider(ctx context.Context) (*armresources.Provider, error) {
+
+	providerResp, err := providersClient.Get(ctx, resourceProviderNamespace, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	providerList := providerClient.NewListPager(nil)
+	return &providerResp.Provider, nil
+}
+
+func listProvider(ctx context.Context) ([]*armresources.Provider, error) {
+
+	providerList := providersClient.NewListPager(nil)
 
 	var providers = make([]*armresources.Provider, 0)
 	for providerList.More() {
@@ -130,13 +131,9 @@ func listProvider(ctx context.Context, cred azcore.TokenCredential) ([]*armresou
 	return providers, nil
 }
 
-func getAtTenantScopeProvider(ctx context.Context, cred azcore.TokenCredential) (*armresources.Provider, error) {
-	providerClient, err := armresources.NewProvidersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getAtTenantScopeProvider(ctx context.Context) (*armresources.Provider, error) {
 
-	providerResp, err := providerClient.GetAtTenantScope(ctx, resourceProviderNamespace, nil)
+	providerResp, err := providersClient.GetAtTenantScope(ctx, resourceProviderNamespace, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -144,13 +141,9 @@ func getAtTenantScopeProvider(ctx context.Context, cred azcore.TokenCredential) 
 	return &providerResp.Provider, nil
 }
 
-func listAtTenantScopeProvider(ctx context.Context, cred azcore.TokenCredential) ([]*armresources.Provider, error) {
-	providerClient, err := armresources.NewProvidersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func listAtTenantScopeProvider(ctx context.Context) ([]*armresources.Provider, error) {
 
-	providerList := providerClient.NewListAtTenantScopePager(&armresources.ProvidersClientListAtTenantScopeOptions{})
+	providerList := providersClient.NewListAtTenantScopePager(&armresources.ProvidersClientListAtTenantScopeOptions{})
 	var providers = make([]*armresources.Provider, 0)
 	for providerList.More() {
 		pageResp, err := providerList.NextPage(ctx)
@@ -163,13 +156,9 @@ func listAtTenantScopeProvider(ctx context.Context, cred azcore.TokenCredential)
 	return providers, nil
 }
 
-func providerPermissions(ctx context.Context, cred azcore.TokenCredential) (*armresources.ProviderPermissionListResult, error) {
-	providerClient, err := armresources.NewProvidersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func providerPermissions(ctx context.Context) (*armresources.ProviderPermissionListResult, error) {
 
-	providerPermissionsResp, err := providerClient.ProviderPermissions(ctx, resourceProviderNamespace, nil)
+	providerPermissionsResp, err := providersClient.ProviderPermissions(ctx, resourceProviderNamespace, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -22,6 +22,17 @@ var (
 	vaultName         = "sample-recoveryservice-vault"
 )
 
+var (
+	resourcesClientFactory        *armresources.ClientFactory
+	recoveryservicesClientFactory *armrecoveryservices.ClientFactory
+)
+
+var (
+	resourceGroupClient     *armresources.ResourceGroupsClient
+	vaultsClient            *armrecoveryservices.VaultsClient
+	vaultExtendedInfoClient *armrecoveryservices.VaultExtendedInfoClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -33,6 +44,19 @@ func main() {
 		log.Fatal(err)
 	}
 	ctx := context.Background()
+
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	recoveryservicesClientFactory, err = armrecoveryservices.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	vaultsClient = recoveryservicesClientFactory.NewVaultsClient()
+	vaultExtendedInfoClient = recoveryservicesClientFactory.NewVaultExtendedInfoClient()
 
 	resourceGroup, err := createResourceGroup(ctx, cred)
 	if err != nil {
@@ -69,12 +93,8 @@ func main() {
 }
 
 func createRecoveryServiceVault(ctx context.Context, cred azcore.TokenCredential) (*armrecoveryservices.Vault, error) {
-	vaultClient, err := armrecoveryservices.NewVaultsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
 
-	pollerResp, err := vaultClient.BeginCreateOrUpdate(
+	pollerResp, err := vaultsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		vaultName,
@@ -100,10 +120,6 @@ func createRecoveryServiceVault(ctx context.Context, cred azcore.TokenCredential
 }
 
 func createVaultExtendedInfo(ctx context.Context, cred azcore.TokenCredential) (*armrecoveryservices.VaultExtendedInfoResource, error) {
-	vaultExtendedInfoClient, err := armrecoveryservices.NewVaultExtendedInfoClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
 
 	resp, err := vaultExtendedInfoClient.CreateOrUpdate(
 		ctx,
@@ -125,10 +141,6 @@ func createVaultExtendedInfo(ctx context.Context, cred azcore.TokenCredential) (
 }
 
 func getVaultExtendedInfo(ctx context.Context, cred azcore.TokenCredential) (*armrecoveryservices.VaultExtendedInfoResource, error) {
-	vaultExtendedInfoClient, err := armrecoveryservices.NewVaultExtendedInfoClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
 
 	resp, err := vaultExtendedInfoClient.Get(ctx, resourceGroupName, vaultName, nil)
 	if err != nil {
@@ -139,10 +151,6 @@ func getVaultExtendedInfo(ctx context.Context, cred azcore.TokenCredential) (*ar
 }
 
 func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -158,10 +166,6 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 }
 
 func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

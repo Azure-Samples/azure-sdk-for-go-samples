@@ -5,13 +5,12 @@ package main
 
 import (
 	"context"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/datalake-store/armdatalakestore"
 	"log"
 	"os"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/datalake-store/armdatalakestore"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 )
 
@@ -20,6 +19,16 @@ var (
 	location          = "eastus2"
 	resourceGroupName = "sample-resource-group"
 	accountName       = "sample2datalake2account"
+)
+
+var (
+	resourcesClientFactory     *armresources.ClientFactory
+	datalakestoreClientFactory *armdatalakestore.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	accountsClient      *armdatalakestore.AccountsClient
 )
 
 func main() {
@@ -34,19 +43,31 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	datalakestoreClientFactory, err = armdatalakestore.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	accountsClient = datalakestoreClientFactory.NewAccountsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	account, err := createDataLakeStoreAccount(ctx, cred)
+	account, err := createDataLakeStoreAccount(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("datalake store account:", *account.ID)
 
-	account, err = getDataLakeStoreAccount(ctx, cred)
+	account, err = getDataLakeStoreAccount(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,7 +75,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -62,11 +83,7 @@ func main() {
 	}
 }
 
-func createDataLakeStoreAccount(ctx context.Context, cred azcore.TokenCredential) (*armdatalakestore.Account, error) {
-	accountsClient, err := armdatalakestore.NewAccountsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createDataLakeStoreAccount(ctx context.Context) (*armdatalakestore.Account, error) {
 
 	pollerResp, err := accountsClient.BeginCreate(
 		ctx,
@@ -98,11 +115,7 @@ func createDataLakeStoreAccount(ctx context.Context, cred azcore.TokenCredential
 	return &resp.Account, nil
 }
 
-func getDataLakeStoreAccount(ctx context.Context, cred azcore.TokenCredential) (*armdatalakestore.Account, error) {
-	accountsClient, err := armdatalakestore.NewAccountsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getDataLakeStoreAccount(ctx context.Context) (*armdatalakestore.Account, error) {
 
 	resp, err := accountsClient.Get(ctx, resourceGroupName, accountName, nil)
 	if err != nil {
@@ -112,11 +125,7 @@ func getDataLakeStoreAccount(ctx context.Context, cred azcore.TokenCredential) (
 	return &resp.Account, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -132,11 +141,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

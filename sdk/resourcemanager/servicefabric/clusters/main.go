@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
@@ -21,6 +20,16 @@ var (
 	clusterName       = "sample-servicefabric-cluster"
 )
 
+var (
+	resourcesClientFactory     *armresources.ClientFactory
+	servicefabricClientFactory *armservicefabric.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	clustersClient      *armservicefabric.ClustersClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -33,19 +42,31 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	servicefabricClientFactory, err = armservicefabric.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	clustersClient = servicefabricClientFactory.NewClustersClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	cluster, err := createCluster(ctx, cred)
+	cluster, err := createCluster(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("service fabric cluster:", *cluster.ID)
 
-	cluster, err = getCluster(ctx, cred)
+	cluster, err = getCluster(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,7 +74,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -61,11 +82,7 @@ func main() {
 	}
 }
 
-func createCluster(ctx context.Context, cred azcore.TokenCredential) (*armservicefabric.Cluster, error) {
-	clustersClient, err := armservicefabric.NewClustersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createCluster(ctx context.Context) (*armservicefabric.Cluster, error) {
 
 	pollerResp, err := clustersClient.BeginCreateOrUpdate(
 		ctx,
@@ -127,11 +144,7 @@ func createCluster(ctx context.Context, cred azcore.TokenCredential) (*armservic
 	return &resp.Cluster, nil
 }
 
-func getCluster(ctx context.Context, cred azcore.TokenCredential) (*armservicefabric.Cluster, error) {
-	clustersClient, err := armservicefabric.NewClustersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getCluster(ctx context.Context) (*armservicefabric.Cluster, error) {
 
 	resp, err := clustersClient.Get(ctx, resourceGroupName, clusterName, nil)
 	if err != nil {
@@ -140,11 +153,7 @@ func getCluster(ctx context.Context, cred azcore.TokenCredential) (*armservicefa
 	return &resp.Cluster, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -159,11 +168,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

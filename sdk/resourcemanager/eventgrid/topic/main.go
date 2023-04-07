@@ -5,10 +5,9 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/eventgrid/armeventgrid"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/eventgrid/armeventgrid/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"log"
 	"os"
@@ -19,6 +18,16 @@ var (
 	location          = "westus"
 	resourceGroupName = "sample-resource-group"
 	topicName         = "sample-event-topic"
+)
+
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	eventgridClientFactory *armeventgrid.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	topicsClient        *armeventgrid.TopicsClient
 )
 
 func main() {
@@ -33,19 +42,31 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	eventgridClientFactory, err = armeventgrid.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	topicsClient = eventgridClientFactory.NewTopicsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	topic, err := createTopic(ctx, cred)
+	topic, err := createTopic(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("topic:", *topic.ID)
 
-	topic, err = getTopic(ctx, cred)
+	topic, err = getTopic(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,7 +74,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -61,11 +82,7 @@ func main() {
 	}
 }
 
-func createTopic(ctx context.Context, cred azcore.TokenCredential) (*armeventgrid.Topic, error) {
-	topicsClient, err := armeventgrid.NewTopicsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createTopic(ctx context.Context) (*armeventgrid.Topic, error) {
 
 	pollerResp, err := topicsClient.BeginCreateOrUpdate(
 		ctx,
@@ -86,11 +103,7 @@ func createTopic(ctx context.Context, cred azcore.TokenCredential) (*armeventgri
 	return &resp.Topic, nil
 }
 
-func getTopic(ctx context.Context, cred azcore.TokenCredential) (*armeventgrid.Topic, error) {
-	topicsClient, err := armeventgrid.NewTopicsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getTopic(ctx context.Context) (*armeventgrid.Topic, error) {
 
 	resp, err := topicsClient.Get(ctx, resourceGroupName, topicName, nil)
 	if err != nil {
@@ -99,11 +112,7 @@ func getTopic(ctx context.Context, cred azcore.TokenCredential) (*armeventgrid.T
 	return &resp.Topic, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -118,11 +127,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

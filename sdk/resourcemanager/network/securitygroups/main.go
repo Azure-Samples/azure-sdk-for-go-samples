@@ -6,10 +6,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"log"
 	"os"
@@ -20,6 +19,17 @@ var (
 	location          = "westus"
 	resourceGroupName = "sample-resources-group"
 	securityGroupName = "sample-network-security-group"
+)
+
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	networkClientFactory   *armnetwork.ClientFactory
+)
+
+var (
+	resourceGroupClient  *armresources.ResourceGroupsClient
+	securityGroupsClient *armnetwork.SecurityGroupsClient
+	securityRulesClient  *armnetwork.SecurityRulesClient
 )
 
 func main() {
@@ -34,37 +44,50 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	networkClientFactory, err = armnetwork.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	securityGroupsClient = networkClientFactory.NewSecurityGroupsClient()
+	securityRulesClient = networkClientFactory.NewSecurityRulesClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	networkSecurityGroup, err := createNetworkSecurityGroup(ctx, cred)
+	networkSecurityGroup, err := createNetworkSecurityGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("network security group:", *networkSecurityGroup.ID)
 
-	sshRule, err := createSSHRule(ctx, cred)
+	sshRule, err := createSSHRule(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("SSH:", *sshRule.ID)
 
-	httpRule, err := createHTTPRule(ctx, cred)
+	httpRule, err := createHTTPRule(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("HTTP:", *httpRule.ID)
 
-	sqlRule, err := createSQLRule(ctx, cred)
+	sqlRule, err := createSQLRule(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("SQL:", *sqlRule.ID)
 
-	denyOutRule, err := createDenyOutRule(ctx, cred)
+	denyOutRule, err := createDenyOutRule(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -72,7 +95,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -80,13 +103,9 @@ func main() {
 	}
 }
 
-func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityGroup, error) {
-	networkSecurityGroupClient, err := armnetwork.NewSecurityGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createNetworkSecurityGroup(ctx context.Context) (*armnetwork.SecurityGroup, error) {
 
-	pollerResp, err := networkSecurityGroupClient.BeginCreateOrUpdate(
+	pollerResp, err := securityGroupsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		securityGroupName,
@@ -136,13 +155,9 @@ func createNetworkSecurityGroup(ctx context.Context, cred azcore.TokenCredential
 	return &resp.SecurityGroup, nil
 }
 
-func createSSHRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityRule, error) {
-	securityRules, err := armnetwork.NewSecurityRulesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createSSHRule(ctx context.Context) (*armnetwork.SecurityRule, error) {
 
-	pollerResp, err := securityRules.BeginCreateOrUpdate(ctx,
+	pollerResp, err := securityRulesClient.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
 		securityGroupName,
 		"ALLOW-SSH",
@@ -173,13 +188,9 @@ func createSSHRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwor
 	return &resp.SecurityRule, nil
 }
 
-func createHTTPRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityRule, error) {
-	securityRules, err := armnetwork.NewSecurityRulesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createHTTPRule(ctx context.Context) (*armnetwork.SecurityRule, error) {
 
-	pollerResp, err := securityRules.BeginCreateOrUpdate(ctx,
+	pollerResp, err := securityRulesClient.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
 		securityGroupName,
 		"ALLOW-HTTP",
@@ -210,13 +221,9 @@ func createHTTPRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwo
 	return &resp.SecurityRule, nil
 }
 
-func createSQLRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityRule, error) {
-	securityRules, err := armnetwork.NewSecurityRulesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createSQLRule(ctx context.Context) (*armnetwork.SecurityRule, error) {
 
-	pollerResp, err := securityRules.BeginCreateOrUpdate(ctx,
+	pollerResp, err := securityRulesClient.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
 		securityGroupName,
 		"ALLOW-SQL",
@@ -247,13 +254,9 @@ func createSQLRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwor
 	return &resp.SecurityRule, nil
 }
 
-func createDenyOutRule(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.SecurityRule, error) {
-	securityRules, err := armnetwork.NewSecurityRulesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createDenyOutRule(ctx context.Context) (*armnetwork.SecurityRule, error) {
 
-	pollerResp, err := securityRules.BeginCreateOrUpdate(ctx,
+	pollerResp, err := securityRulesClient.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
 		securityGroupName,
 		"DENY-OUT",
@@ -284,11 +287,7 @@ func createDenyOutRule(ctx context.Context, cred azcore.TokenCredential) (*armne
 	return &resp.SecurityRule, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -303,11 +302,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

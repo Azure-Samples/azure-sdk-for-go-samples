@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/privatedns/armprivatedns"
@@ -21,6 +20,16 @@ var (
 	privateZoneName   = "sample.private.zone"
 )
 
+var (
+	resourcesClientFactory  *armresources.ClientFactory
+	privatednsClientFactory *armprivatedns.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	privateZonesClient  *armprivatedns.PrivateZonesClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -33,13 +42,25 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	privatednsClientFactory, err = armprivatedns.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	privateZonesClient = privatednsClientFactory.NewPrivateZonesClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	privateZone, err := createPrivateZone(ctx, cred)
+	privateZone, err := createPrivateZone(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -47,7 +68,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -55,11 +76,7 @@ func main() {
 	}
 }
 
-func createPrivateZone(ctx context.Context, cred azcore.TokenCredential) (*armprivatedns.PrivateZone, error) {
-	privateZonesClient, err := armprivatedns.NewPrivateZonesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createPrivateZone(ctx context.Context) (*armprivatedns.PrivateZone, error) {
 
 	pollersResp, err := privateZonesClient.BeginCreateOrUpdate(
 		ctx,
@@ -80,11 +97,7 @@ func createPrivateZone(ctx context.Context, cred azcore.TokenCredential) (*armpr
 	return &resp.PrivateZone, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -99,11 +112,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

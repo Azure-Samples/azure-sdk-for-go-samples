@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/operationalinsights/armoperationalinsights"
@@ -96,7 +95,7 @@ func main() {
 	}
 	log.Println("operational insights workspace:", *workspace.ID)
 
-	storageInsight, err := createStorageInsight(ctx, cred, *storageAccount.ID, *keys[0].Value)
+	storageInsight, err := createStorageInsight(ctx, *storageAccount.ID, *keys[0].Value)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -198,7 +197,7 @@ func createWorkspace(ctx context.Context) (*armoperationalinsights.Workspace, er
 	return &resp.Workspace, nil
 }
 
-func createStorageInsight(ctx context.Context, cred azcore.TokenCredential, storageAccountID, storageKeyID string) (*armoperationalinsights.StorageInsight, error) {
+func createStorageInsight(ctx context.Context, storageAccountID, storageKeyID string) (*armoperationalinsights.StorageInsight, error) {
 
 	resp, err := storageInsightConfigsClient.CreateOrUpdate(
 		ctx,

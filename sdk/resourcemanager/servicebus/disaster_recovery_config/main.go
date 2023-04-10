@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v2"
@@ -117,7 +116,7 @@ func main() {
 		log.Println("disaster recovery name existed.")
 	}
 
-	disasterRecoveryConfig, err := createDisasterRecoveryConfig(ctx, cred, *namespacePrimary.ID)
+	disasterRecoveryConfig, err := createDisasterRecoveryConfig(ctx, *namespacePrimary.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -293,7 +292,7 @@ func checkNameAvailability(ctx context.Context) (bool, error) {
 	return *resp.NameAvailable, nil
 }
 
-func createDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential, secondNamespaceID string) (*armservicebus.ArmDisasterRecovery, error) {
+func createDisasterRecoveryConfig(ctx context.Context, secondNamespaceID string) (*armservicebus.ArmDisasterRecovery, error) {
 
 	resp, err := disasterRecoveryConfigsClient.CreateOrUpdate(
 		ctx,

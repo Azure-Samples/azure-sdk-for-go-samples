@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v2"
@@ -99,7 +98,7 @@ func main() {
 	}
 	log.Println("service bus namespace authorization rule:", *namespaceAuthorizationRule.ID)
 
-	namespaceNetworkRuleSet, err := createNamespaceNetworkRuleSet(ctx, cred, *subnet.ID)
+	namespaceNetworkRuleSet, err := createNamespaceNetworkRuleSet(ctx, *subnet.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -220,7 +219,7 @@ func createNamespaceAuthorizationRule(ctx context.Context) (*armservicebus.SBAut
 	return &resp.SBAuthorizationRule, nil
 }
 
-func createNamespaceNetworkRuleSet(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armservicebus.NetworkRuleSet, error) {
+func createNamespaceNetworkRuleSet(ctx context.Context, subnetID string) (*armservicebus.NetworkRuleSet, error) {
 
 	resp, err := namespacesClient.CreateOrUpdateNetworkRuleSet(
 		ctx,

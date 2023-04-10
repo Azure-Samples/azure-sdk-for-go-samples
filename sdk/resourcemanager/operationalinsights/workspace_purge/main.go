@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/operationalinsights/armoperationalinsights"
@@ -75,7 +74,7 @@ func main() {
 	}
 	log.Println("purge workspace:", *purge.OperationID, *purge.XMSStatusLocation)
 
-	purgeStatus, err := purgeStatusWorkspace(ctx, cred, *purge.OperationID)
+	purgeStatus, err := purgeStatusWorkspace(ctx, *purge.OperationID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -131,7 +130,7 @@ func purgeWorkspace(ctx context.Context) (*armoperationalinsights.WorkspacePurge
 	return &resp, nil
 }
 
-func purgeStatusWorkspace(ctx context.Context, cred azcore.TokenCredential, purgeID string) (*armoperationalinsights.WorkspacePurgeStatusResponse, error) {
+func purgeStatusWorkspace(ctx context.Context, purgeID string) (*armoperationalinsights.WorkspacePurgeStatusResponse, error) {
 
 	resp, err := workspacePurgeClient.GetPurgeStatus(ctx, resourceGroupName, workspaceName, purgeID, nil)
 	if err != nil {

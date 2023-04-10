@@ -5,10 +5,9 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/cosmos/armcosmos"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/cosmos/armcosmos/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"log"
 	"os"
@@ -23,6 +22,17 @@ var (
 	tableName         = "sample-cosmos-table"
 )
 
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	cosmosClientFactory    *armcosmos.ClientFactory
+)
+
+var (
+	resourceGroupClient      *armresources.ResourceGroupsClient
+	cassandraResourcesClient *armcosmos.CassandraResourcesClient
+	databaseAccountsClient   *armcosmos.DatabaseAccountsClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -35,25 +45,38 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	cosmosClientFactory, err = armcosmos.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	cassandraResourcesClient = cosmosClientFactory.NewCassandraResourcesClient()
+	databaseAccountsClient = cosmosClientFactory.NewDatabaseAccountsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	databaseAccount, err := createDatabaseAccount(ctx, cred)
+	databaseAccount, err := createDatabaseAccount(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("cosmos database account:", *databaseAccount.ID)
 
-	cassandraKeyspace, err := createCassandraKeyspace(ctx, cred)
+	cassandraKeyspace, err := createCassandraKeyspace(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("cosmos cassandra keyspace:", *cassandraKeyspace.ID)
 
-	cassandraTable, err := createCassandraTable(ctx, cred)
+	cassandraTable, err := createCassandraTable(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,7 +84,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -69,11 +92,7 @@ func main() {
 	}
 }
 
-func createCassandraKeyspace(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.CassandraKeyspaceGetResults, error) {
-	cassandraResourcesClient, err := armcosmos.NewCassandraResourcesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createCassandraKeyspace(ctx context.Context) (*armcosmos.CassandraKeyspaceGetResults, error) {
 
 	pollerResp, err := cassandraResourcesClient.BeginCreateUpdateCassandraKeyspace(
 		ctx,
@@ -104,11 +123,7 @@ func createCassandraKeyspace(ctx context.Context, cred azcore.TokenCredential) (
 	return &resp.CassandraKeyspaceGetResults, nil
 }
 
-func createCassandraTable(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.CassandraTableGetResults, error) {
-	cassandraResourcesClient, err := armcosmos.NewCassandraResourcesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createCassandraTable(ctx context.Context) (*armcosmos.CassandraTableGetResults, error) {
 
 	pollerResp, err := cassandraResourcesClient.BeginCreateUpdateCassandraTable(
 		ctx,
@@ -154,11 +169,7 @@ func createCassandraTable(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.CassandraTableGetResults, nil
 }
 
-func createDatabaseAccount(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.DatabaseAccountGetResults, error) {
-	databaseAccountsClient, err := armcosmos.NewDatabaseAccountsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createDatabaseAccount(ctx context.Context) (*armcosmos.DatabaseAccountGetResults, error) {
 
 	pollerResp, err := databaseAccountsClient.BeginCreateOrUpdate(
 		ctx,
@@ -195,11 +206,7 @@ func createDatabaseAccount(ctx context.Context, cred azcore.TokenCredential) (*a
 	return &resp.DatabaseAccountGetResults, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -214,11 +221,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

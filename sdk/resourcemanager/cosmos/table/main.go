@@ -5,10 +5,9 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/cosmos/armcosmos"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/cosmos/armcosmos/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"log"
 	"os"
@@ -20,6 +19,17 @@ var (
 	resourceGroupName = "sample-resource-group"
 	accountName       = "sample-cosmos-account"
 	tableName         = "sample-cosmos-table"
+)
+
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	cosmosClientFactory    *armcosmos.ClientFactory
+)
+
+var (
+	resourceGroupClient    *armresources.ResourceGroupsClient
+	databaseAccountsClient *armcosmos.DatabaseAccountsClient
+	tableResourcesClient   *armcosmos.TableResourcesClient
 )
 
 func main() {
@@ -34,19 +44,32 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	cosmosClientFactory, err = armcosmos.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	databaseAccountsClient = cosmosClientFactory.NewDatabaseAccountsClient()
+	tableResourcesClient = cosmosClientFactory.NewTableResourcesClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	databaseAccount, err := createDatabaseAccount(ctx, cred)
+	databaseAccount, err := createDatabaseAccount(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("cosmos database account:", *databaseAccount.ID)
 
-	table, err := createTable(ctx, cred)
+	table, err := createTable(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,7 +77,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -62,11 +85,7 @@ func main() {
 	}
 }
 
-func createDatabaseAccount(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.DatabaseAccountGetResults, error) {
-	databaseAccountsClient, err := armcosmos.NewDatabaseAccountsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createDatabaseAccount(ctx context.Context) (*armcosmos.DatabaseAccountGetResults, error) {
 
 	pollerResp, err := databaseAccountsClient.BeginCreateOrUpdate(
 		ctx,
@@ -105,11 +124,7 @@ func createDatabaseAccount(ctx context.Context, cred azcore.TokenCredential) (*a
 	return &resp.DatabaseAccountGetResults, nil
 }
 
-func createTable(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.TableGetResults, error) {
-	tableResourcesClient, err := armcosmos.NewTableResourcesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createTable(ctx context.Context) (*armcosmos.TableGetResults, error) {
 
 	pollerResp, err := tableResourcesClient.BeginCreateUpdateTable(
 		ctx,
@@ -138,11 +153,7 @@ func createTable(ctx context.Context, cred azcore.TokenCredential) (*armcosmos.T
 	return &resp.TableGetResults, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -157,11 +168,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

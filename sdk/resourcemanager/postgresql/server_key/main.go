@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/keyvault/armkeyvault"
@@ -25,6 +24,20 @@ var (
 	vaultName         = "sample2vault"
 	keyName           = "sample2key"
 	serverKeyName     = "sample-postgresql-key"
+)
+
+var (
+	resourcesClientFactory  *armresources.ClientFactory
+	keyvaultClientFactory   *armkeyvault.ClientFactory
+	postgresqlClientFactory *armpostgresql.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	vaultsClient        *armkeyvault.VaultsClient
+	keysClient          *armkeyvault.KeysClient
+	serversClient       *armpostgresql.ServersClient
+	serverKeysClient    *armpostgresql.ServerKeysClient
 )
 
 func main() {
@@ -49,31 +62,51 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	keyvaultClientFactory, err = armkeyvault.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	vaultsClient = keyvaultClientFactory.NewVaultsClient()
+	keysClient = keyvaultClientFactory.NewKeysClient()
+
+	postgresqlClientFactory, err = armpostgresql.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serversClient = postgresqlClientFactory.NewServersClient()
+	serverKeysClient = postgresqlClientFactory.NewServerKeysClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	server, err := createServer(ctx, cred)
+	server, err := createServer(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("postgresql server:", *server.ID)
 
-	vault, err := createVault(ctx, cred)
+	vault, err := createVault(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("vault:", *vault.ID)
 
-	key, err := createKey(ctx, cred)
+	key, err := createKey(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("key:", *key.ID)
 
-	serverKey, err := createServerKey(ctx, cred, *key.ID)
+	serverKey, err := createServerKey(ctx, *key.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -81,7 +114,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -89,11 +122,7 @@ func main() {
 	}
 }
 
-func createServer(ctx context.Context, cred azcore.TokenCredential) (*armpostgresql.Server, error) {
-	serversClient, err := armpostgresql.NewServersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createServer(ctx context.Context) (*armpostgresql.Server, error) {
 
 	pollerResp, err := serversClient.BeginCreate(
 		ctx,
@@ -125,11 +154,7 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armpostgre
 	return &resp.Server, nil
 }
 
-func createVault(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Vault, error) {
-	vaultsClient, err := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createVault(ctx context.Context) (*armkeyvault.Vault, error) {
 
 	pollerResp, err := vaultsClient.BeginCreateOrUpdate(
 		ctx,
@@ -195,11 +220,7 @@ func createVault(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault
 	return &resp.Vault, nil
 }
 
-func createKey(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Key, error) {
-	keysClient, err := armkeyvault.NewKeysClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createKey(ctx context.Context) (*armkeyvault.Key, error) {
 
 	secretResp, err := keysClient.CreateIfNotExist(
 		ctx,
@@ -228,11 +249,7 @@ func createKey(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.K
 	return &secretResp.Key, nil
 }
 
-func createServerKey(ctx context.Context, cred azcore.TokenCredential, keyID string) (*armpostgresql.ServerKey, error) {
-	serverKeysClient, err := armpostgresql.NewServerKeysClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createServerKey(ctx context.Context, keyID string) (*armpostgresql.ServerKey, error) {
 
 	pollerResp, err := serverKeysClient.BeginCreateOrUpdate(
 		ctx,
@@ -257,11 +274,7 @@ func createServerKey(ctx context.Context, cred azcore.TokenCredential, keyID str
 	return &resp.ServerKey, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -276,11 +289,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

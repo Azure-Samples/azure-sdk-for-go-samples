@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
@@ -23,6 +22,18 @@ var (
 	subscriptionName  = "sample-subscription"
 )
 
+var (
+	resourcesClientFactory  *armresources.ClientFactory
+	servicebusClientFactory *armservicebus.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	namespacesClient    *armservicebus.NamespacesClient
+	topicsClient        *armservicebus.TopicsClient
+	subscriptionsClient *armservicebus.SubscriptionsClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -35,25 +46,38 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+	servicebusClientFactory, err = armservicebus.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	namespacesClient = servicebusClientFactory.NewNamespacesClient()
+	topicsClient = servicebusClientFactory.NewTopicsClient()
+	subscriptionsClient = servicebusClientFactory.NewSubscriptionsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	namespace, err := createNamespace(ctx, cred)
+	namespace, err := createNamespace(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("service bus namespace:", *namespace.ID)
 
-	topic, err := createTopic(ctx, cred)
+	topic, err := createTopic(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("service bus topic:", *topic.ID)
 
-	subscription, err := createSubscription(ctx, cred)
+	subscription, err := createSubscription(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,7 +85,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -69,11 +93,7 @@ func main() {
 	}
 }
 
-func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBNamespace, error) {
-	namespacesClient, err := armservicebus.NewNamespacesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createNamespace(ctx context.Context) (*armservicebus.SBNamespace, error) {
 
 	pollerResp, err := namespacesClient.BeginCreateOrUpdate(
 		ctx,
@@ -99,11 +119,7 @@ func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armserv
 	return &resp.SBNamespace, nil
 }
 
-func createTopic(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBTopic, error) {
-	topicsClient, err := armservicebus.NewTopicsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createTopic(ctx context.Context) (*armservicebus.SBTopic, error) {
 
 	resp, err := topicsClient.CreateOrUpdate(
 		ctx,
@@ -121,11 +137,7 @@ func createTopic(ctx context.Context, cred azcore.TokenCredential) (*armserviceb
 	return &resp.SBTopic, nil
 }
 
-func createSubscription(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBSubscription, error) {
-	subscriptionsClient, err := armservicebus.NewSubscriptionsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createSubscription(ctx context.Context) (*armservicebus.SBSubscription, error) {
 
 	resp, err := subscriptionsClient.CreateOrUpdate(
 		ctx,
@@ -142,11 +154,7 @@ func createSubscription(ctx context.Context, cred azcore.TokenCredential) (*arms
 	return &resp.SBSubscription, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -161,11 +169,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/eventhub/armeventhub"
@@ -23,6 +22,17 @@ var (
 	disasterRecoveryConfigName = "sample-disaster-recovery-config"
 )
 
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	eventhubClientFactory  *armeventhub.ClientFactory
+)
+
+var (
+	resourceGroupClient           *armresources.ResourceGroupsClient
+	namespacesClient              *armeventhub.NamespacesClient
+	disasterRecoveryConfigsClient *armeventhub.DisasterRecoveryConfigsClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -35,44 +45,57 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	eventhubClientFactory, err = armeventhub.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	namespacesClient = eventhubClientFactory.NewNamespacesClient()
+	disasterRecoveryConfigsClient = eventhubClientFactory.NewDisasterRecoveryConfigsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	namespace, err := createNamespace(ctx, cred)
+	namespace, err := createNamespace(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("eventhub namespace:", *namespace.ID)
 
-	secondNamespace, err := createSecondNamespace(ctx, cred)
+	secondNamespace, err := createSecondNamespace(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("eventhub second namespace:", *secondNamespace.ID)
 
-	ava, err := checkNameAva(ctx, cred)
+	ava, err := checkNameAva(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("check name availability:", *ava.NameAvailable)
 
-	disasterRecoveryConfig, err := createDisasterRecoveryConfig(ctx, cred, *secondNamespace.ID)
+	disasterRecoveryConfig, err := createDisasterRecoveryConfig(ctx, *secondNamespace.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("disaster recovery config:", *disasterRecoveryConfig.ID)
 
-	disasterRecoveryConfig, err = getDisasterRecoveryConfig(ctx, cred)
+	disasterRecoveryConfig, err = getDisasterRecoveryConfig(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get disaster recovery config:", *disasterRecoveryConfig.ID)
 
 	// Only after breakPairing or failOVer can clean resource
-	err = breakPairingDisasterRecoveryConfig(ctx, cred)
+	err = breakPairingDisasterRecoveryConfig(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -86,7 +109,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -94,11 +117,7 @@ func main() {
 	}
 }
 
-func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armeventhub.EHNamespace, error) {
-	namespacesClient, err := armeventhub.NewNamespacesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createNamespace(ctx context.Context) (*armeventhub.EHNamespace, error) {
 
 	pollerResp, err := namespacesClient.BeginCreateOrUpdate(
 		ctx,
@@ -127,11 +146,7 @@ func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armeven
 	return &resp.EHNamespace, nil
 }
 
-func createSecondNamespace(ctx context.Context, cred azcore.TokenCredential) (*armeventhub.EHNamespace, error) {
-	namespacesClient, err := armeventhub.NewNamespacesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createSecondNamespace(ctx context.Context) (*armeventhub.EHNamespace, error) {
 
 	pollerResp, err := namespacesClient.BeginCreateOrUpdate(
 		ctx,
@@ -160,11 +175,7 @@ func createSecondNamespace(ctx context.Context, cred azcore.TokenCredential) (*a
 	return &resp.EHNamespace, nil
 }
 
-func checkNameAva(ctx context.Context, cred azcore.TokenCredential) (*armeventhub.CheckNameAvailabilityResult, error) {
-	disasterRecoveryConfigsClient, err := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func checkNameAva(ctx context.Context) (*armeventhub.CheckNameAvailabilityResult, error) {
 
 	resp, err := disasterRecoveryConfigsClient.CheckNameAvailability(
 		ctx,
@@ -181,11 +192,7 @@ func checkNameAva(ctx context.Context, cred azcore.TokenCredential) (*armeventhu
 	return &resp.CheckNameAvailabilityResult, nil
 }
 
-func createDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential, secondNamespaceID string) (*armeventhub.ArmDisasterRecovery, error) {
-	disasterRecoveryConfigsClient, err := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createDisasterRecoveryConfig(ctx context.Context, secondNamespaceID string) (*armeventhub.ArmDisasterRecovery, error) {
 
 	resp, err := disasterRecoveryConfigsClient.CreateOrUpdate(
 		ctx,
@@ -205,11 +212,7 @@ func createDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredenti
 	return &resp.ArmDisasterRecovery, nil
 }
 
-func getDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential) (*armeventhub.ArmDisasterRecovery, error) {
-	disasterRecoveryConfigsClient, err := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getDisasterRecoveryConfig(ctx context.Context) (*armeventhub.ArmDisasterRecovery, error) {
 
 	resp, err := disasterRecoveryConfigsClient.Get(ctx, resourceGroupName, namespacesName, disasterRecoveryConfigName, nil)
 	if err != nil {
@@ -218,24 +221,16 @@ func getDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential)
 	return &resp.ArmDisasterRecovery, nil
 }
 
-func breakPairingDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential) error {
-	disasterRecoveryConfigsClient, err := armeventhub.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func breakPairingDisasterRecoveryConfig(ctx context.Context) error {
 
-	_, err = disasterRecoveryConfigsClient.BreakPairing(ctx, resourceGroupName, namespacesName, disasterRecoveryConfigName, nil)
+	_, err := disasterRecoveryConfigsClient.BreakPairing(ctx, resourceGroupName, namespacesName, disasterRecoveryConfigName, nil)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -250,11 +245,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

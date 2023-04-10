@@ -5,10 +5,9 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v4"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"log"
 	"os"
@@ -21,6 +20,17 @@ var (
 	resourceGroupName = "sample-resource-group"
 	hostGroupName     = "sample-host-group"
 	hostName          = "sample-host"
+)
+
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	computeClientFactory   *armcompute.ClientFactory
+)
+
+var (
+	resourceGroupClient       *armresources.ResourceGroupsClient
+	dedicatedHostGroupsClient *armcompute.DedicatedHostGroupsClient
+	dedicatedHostsClient      *armcompute.DedicatedHostsClient
 )
 
 func main() {
@@ -40,31 +50,44 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	computeClientFactory, err = armcompute.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	dedicatedHostGroupsClient = computeClientFactory.NewDedicatedHostGroupsClient()
+	dedicatedHostsClient = computeClientFactory.NewDedicatedHostsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	dedicatedHostGroup, err := createDedicatedHostGroups(ctx, cred)
+	dedicatedHostGroup, err := createDedicatedHostGroups(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("dedicated host group:", *dedicatedHostGroup.ID)
 
-	dedicatedHost, err := createDedicatedHost(ctx, cred)
+	dedicatedHost, err := createDedicatedHost(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("dedicated host:", *dedicatedHost.ID)
 
-	dedicatedHostGroup, err = getDedicatedHostGroups(ctx, cred)
+	dedicatedHostGroup, err = getDedicatedHostGroups(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get dedicated host:", *dedicatedHostGroup.ID)
 
-	dedicatedHost, err = getDedicatedHost(ctx, cred)
+	dedicatedHost, err = getDedicatedHost(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -72,7 +95,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err := cleanup(ctx, cred)
+		err := cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -80,11 +103,7 @@ func main() {
 	}
 }
 
-func createDedicatedHostGroups(ctx context.Context, cred azcore.TokenCredential) (*armcompute.DedicatedHostGroup, error) {
-	dedicatedHostGroupsClient, err := armcompute.NewDedicatedHostGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createDedicatedHostGroups(ctx context.Context) (*armcompute.DedicatedHostGroup, error) {
 
 	resp, err := dedicatedHostGroupsClient.CreateOrUpdate(
 		ctx,
@@ -106,11 +125,7 @@ func createDedicatedHostGroups(ctx context.Context, cred azcore.TokenCredential)
 	return &resp.DedicatedHostGroup, nil
 }
 
-func getDedicatedHostGroups(ctx context.Context, cred azcore.TokenCredential) (*armcompute.DedicatedHostGroup, error) {
-	dedicatedHostGroupsClient, err := armcompute.NewDedicatedHostGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getDedicatedHostGroups(ctx context.Context) (*armcompute.DedicatedHostGroup, error) {
 
 	resp, err := dedicatedHostGroupsClient.Get(ctx, resourceGroupName, hostGroupName, nil)
 	if err != nil {
@@ -120,13 +135,9 @@ func getDedicatedHostGroups(ctx context.Context, cred azcore.TokenCredential) (*
 	return &resp.DedicatedHostGroup, nil
 }
 
-func createDedicatedHost(ctx context.Context, cred azcore.TokenCredential) (*armcompute.DedicatedHost, error) {
-	dedicatedHostClient, err := armcompute.NewDedicatedHostsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createDedicatedHost(ctx context.Context) (*armcompute.DedicatedHost, error) {
 
-	pollerResp, err := dedicatedHostClient.BeginCreateOrUpdate(
+	pollerResp, err := dedicatedHostsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		hostGroupName,
@@ -153,13 +164,9 @@ func createDedicatedHost(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resp.DedicatedHost, nil
 }
 
-func getDedicatedHost(ctx context.Context, cred azcore.TokenCredential) (*armcompute.DedicatedHost, error) {
-	dedicatedHostClient, err := armcompute.NewDedicatedHostsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getDedicatedHost(ctx context.Context) (*armcompute.DedicatedHost, error) {
 
-	resp, err := dedicatedHostClient.Get(ctx, resourceGroupName, hostGroupName, hostName, nil)
+	resp, err := dedicatedHostsClient.Get(ctx, resourceGroupName, hostGroupName, hostName, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -167,11 +174,7 @@ func getDedicatedHost(ctx context.Context, cred azcore.TokenCredential) (*armcom
 	return &resp.DedicatedHost, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -186,11 +189,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

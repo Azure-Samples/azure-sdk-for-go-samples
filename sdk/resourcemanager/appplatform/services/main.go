@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/appplatform/armappplatform"
@@ -20,6 +19,16 @@ var (
 	location          = "westus"
 	resourceGroupName = "sample-resource-group"
 	serviceName       = "sample-spring-cloud"
+)
+
+var (
+	resourcesClientFactory   *armresources.ClientFactory
+	appplatformClientFactory *armappplatform.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	servicesClient      *armappplatform.ServicesClient
 )
 
 func main() {
@@ -34,25 +43,37 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	appplatformClientFactory, err = armappplatform.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	servicesClient = appplatformClientFactory.NewServicesClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	service, err := createSpringCloudService(ctx, cred)
+	service, err := createSpringCloudService(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("app platform service:", *service.ID)
 
-	service, err = getSpringCloudService(ctx, cred)
+	service, err = getSpringCloudService(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get app platform service:", *service.ID)
 
-	testKey, err := regenerateTestKey(ctx, cred)
+	testKey, err := regenerateTestKey(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,7 +81,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -68,11 +89,7 @@ func main() {
 	}
 }
 
-func createSpringCloudService(ctx context.Context, cred azcore.TokenCredential) (*armappplatform.ServiceResource, error) {
-	servicesClient, err := armappplatform.NewServicesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createSpringCloudService(ctx context.Context) (*armappplatform.ServiceResource, error) {
 
 	pollerResp, err := servicesClient.BeginCreateOrUpdate(
 		ctx,
@@ -99,11 +116,7 @@ func createSpringCloudService(ctx context.Context, cred azcore.TokenCredential) 
 	return &resp.ServiceResource, nil
 }
 
-func getSpringCloudService(ctx context.Context, cred azcore.TokenCredential) (*armappplatform.ServiceResource, error) {
-	servicesClient, err := armappplatform.NewServicesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getSpringCloudService(ctx context.Context) (*armappplatform.ServiceResource, error) {
 
 	resp, err := servicesClient.Get(ctx, resourceGroupName, serviceName, nil)
 	if err != nil {
@@ -113,11 +126,7 @@ func getSpringCloudService(ctx context.Context, cred azcore.TokenCredential) (*a
 	return &resp.ServiceResource, nil
 }
 
-func regenerateTestKey(ctx context.Context, cred azcore.TokenCredential) (*armappplatform.TestKeys, error) {
-	servicesClient, err := armappplatform.NewServicesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func regenerateTestKey(ctx context.Context) (*armappplatform.TestKeys, error) {
 
 	resp, err := servicesClient.RegenerateTestKey(
 		ctx,
@@ -135,11 +144,7 @@ func regenerateTestKey(ctx context.Context, cred azcore.TokenCredential) (*armap
 	return &resp.TestKeys, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -155,8 +160,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/appplatform/armappplatform"
@@ -23,6 +22,17 @@ var (
 	appName           = "sample-app"
 )
 
+var (
+	resourcesClientFactory   *armresources.ClientFactory
+	appplatformClientFactory *armappplatform.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	servicesClient      *armappplatform.ServicesClient
+	appsClient          *armappplatform.AppsClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -35,37 +45,50 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	appplatformClientFactory, err = armappplatform.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	servicesClient = appplatformClientFactory.NewServicesClient()
+	appsClient = appplatformClientFactory.NewAppsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	service, err := createSpringCloudService(ctx, cred)
+	service, err := createSpringCloudService(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("app platform service:", *service.ID)
 
-	app, err := createAPP(ctx, cred)
+	app, err := createAPP(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("spring cloud app:", *app.ID)
 
-	app, err = getAppResource(ctx, cred)
+	app, err = getAppResource(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get spring cloud app:", *app.ID)
 
-	uploadURL, err := getAppResourceUploadURL(ctx, cred)
+	uploadURL, err := getAppResourceUploadURL(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("app resource upload url:", *uploadURL.RelativePath, *uploadURL.UploadURL)
 
-	domain, err := validateDomain(ctx, cred)
+	domain, err := validateDomain(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -73,7 +96,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -81,11 +104,7 @@ func main() {
 	}
 }
 
-func createSpringCloudService(ctx context.Context, cred azcore.TokenCredential) (*armappplatform.ServiceResource, error) {
-	servicesClient, err := armappplatform.NewServicesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createSpringCloudService(ctx context.Context) (*armappplatform.ServiceResource, error) {
 
 	pollerResp, err := servicesClient.BeginCreateOrUpdate(
 		ctx,
@@ -112,11 +131,7 @@ func createSpringCloudService(ctx context.Context, cred azcore.TokenCredential) 
 	return &resp.ServiceResource, nil
 }
 
-func createAPP(ctx context.Context, cred azcore.TokenCredential) (*armappplatform.AppResource, error) {
-	appsClient, err := armappplatform.NewAppsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createAPP(ctx context.Context) (*armappplatform.AppResource, error) {
 
 	pollerResp, err := appsClient.BeginCreateOrUpdate(
 		ctx,
@@ -151,11 +166,7 @@ func createAPP(ctx context.Context, cred azcore.TokenCredential) (*armappplatfor
 	return &resp.AppResource, nil
 }
 
-func getAppResource(ctx context.Context, cred azcore.TokenCredential) (*armappplatform.AppResource, error) {
-	appsClient, err := armappplatform.NewAppsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getAppResource(ctx context.Context) (*armappplatform.AppResource, error) {
 
 	resp, err := appsClient.Get(ctx, resourceGroupName, serviceName, appName, nil)
 	if err != nil {
@@ -165,11 +176,7 @@ func getAppResource(ctx context.Context, cred azcore.TokenCredential) (*armapppl
 	return &resp.AppResource, nil
 }
 
-func getAppResourceUploadURL(ctx context.Context, cred azcore.TokenCredential) (*armappplatform.ResourceUploadDefinition, error) {
-	appsClient, err := armappplatform.NewAppsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getAppResourceUploadURL(ctx context.Context) (*armappplatform.ResourceUploadDefinition, error) {
 
 	resp, err := appsClient.GetResourceUploadURL(ctx, resourceGroupName, serviceName, appName, nil)
 	if err != nil {
@@ -179,11 +186,7 @@ func getAppResourceUploadURL(ctx context.Context, cred azcore.TokenCredential) (
 	return &resp.ResourceUploadDefinition, nil
 }
 
-func validateDomain(ctx context.Context, cred azcore.TokenCredential) (*armappplatform.CustomDomainValidateResult, error) {
-	appsClient, err := armappplatform.NewAppsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func validateDomain(ctx context.Context) (*armappplatform.CustomDomainValidateResult, error) {
 
 	resp, err := appsClient.ValidateDomain(
 		ctx,
@@ -202,11 +205,7 @@ func validateDomain(ctx context.Context, cred azcore.TokenCredential) (*armapppl
 	return &resp.CustomDomainValidateResult, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -222,11 +221,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
@@ -21,6 +20,17 @@ var (
 	storageAccountName = "sample2storage2account"
 )
 
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	storageClientFactory   *armstorage.ClientFactory
+)
+
+var (
+	resourceGroupClient      *armresources.ResourceGroupsClient
+	accountsClient           *armstorage.AccountsClient
+	managementPoliciesClient *armstorage.ManagementPoliciesClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -33,25 +43,38 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	storageClientFactory, err = armstorage.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	accountsClient = storageClientFactory.NewAccountsClient()
+	managementPoliciesClient = storageClientFactory.NewManagementPoliciesClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	storageAccount, err := createStorageAccount(ctx, cred)
+	storageAccount, err := createStorageAccount(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("storage account:", *storageAccount.ID)
 
-	managementPolicy, err := createManagementPolicy(ctx, cred)
+	managementPolicy, err := createManagementPolicy(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("management policy:", *managementPolicy.ID)
 
-	managementPolicy, err = getManagementPolicy(ctx, cred)
+	managementPolicy, err = getManagementPolicy(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,7 +82,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -67,13 +90,9 @@ func main() {
 	}
 }
 
-func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Account, error) {
-	storageAccountClient, err := armstorage.NewAccountsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createStorageAccount(ctx context.Context) (*armstorage.Account, error) {
 
-	pollerResp, err := storageAccountClient.BeginCreate(
+	pollerResp, err := accountsClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
@@ -110,11 +129,7 @@ func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.Account, nil
 }
 
-func createManagementPolicy(ctx context.Context, cred azcore.TokenCredential) (*armstorage.ManagementPolicy, error) {
-	managementPoliciesClient, err := armstorage.NewManagementPoliciesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createManagementPolicy(ctx context.Context) (*armstorage.ManagementPolicy, error) {
 
 	resp, err := managementPoliciesClient.CreateOrUpdate(
 		ctx,
@@ -170,11 +185,7 @@ func createManagementPolicy(ctx context.Context, cred azcore.TokenCredential) (*
 	return &resp.ManagementPolicy, nil
 }
 
-func getManagementPolicy(ctx context.Context, cred azcore.TokenCredential) (*armstorage.ManagementPolicy, error) {
-	managementPoliciesClient, err := armstorage.NewManagementPoliciesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getManagementPolicy(ctx context.Context) (*armstorage.ManagementPolicy, error) {
 
 	resp, err := managementPoliciesClient.Get(ctx, resourceGroupName, storageAccountName, armstorage.ManagementPolicyNameDefault, nil)
 	if err != nil {
@@ -183,11 +194,7 @@ func getManagementPolicy(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resp.ManagementPolicy, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -202,11 +209,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

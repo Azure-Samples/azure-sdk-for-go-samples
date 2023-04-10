@@ -5,10 +5,9 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/sql/armsql"
 	"log"
@@ -25,6 +24,21 @@ var (
 	virtualNetworkRuleName = "sample-virtual-network-rule"
 )
 
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	networkClientFactory   *armnetwork.ClientFactory
+	sqlClientFactory       *armsql.ClientFactory
+)
+
+var (
+	resourceGroupClient       *armresources.ResourceGroupsClient
+	virtualNetworksClient     *armnetwork.VirtualNetworksClient
+	subnetsClient             *armnetwork.SubnetsClient
+	serversClient             *armsql.ServersClient
+	databasesClient           *armsql.DatabasesClient
+	virtualNetworkRulesClient *armsql.VirtualNetworkRulesClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -37,37 +51,58 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	networkClientFactory, err = armnetwork.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	virtualNetworksClient = networkClientFactory.NewVirtualNetworksClient()
+	subnetsClient = networkClientFactory.NewSubnetsClient()
+
+	sqlClientFactory, err = armsql.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serversClient = sqlClientFactory.NewServersClient()
+	databasesClient = sqlClientFactory.NewDatabasesClient()
+	virtualNetworkRulesClient = sqlClientFactory.NewVirtualNetworkRulesClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	server, err := createServer(ctx, cred)
+	server, err := createServer(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("server:", *server.ID)
 
-	virtualNetwork, err := createVirtualNetwork(ctx, cred)
+	virtualNetwork, err := createVirtualNetwork(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("virtual network:", *virtualNetwork.ID)
 
-	subnet, err := createSubnet(ctx, cred)
+	subnet, err := createSubnet(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("subnet:", *subnet.ID)
 
-	virtualNetworkRule, err := createVirtualNetworkRule(ctx, cred, *subnet.ID)
+	virtualNetworkRule, err := createVirtualNetworkRule(ctx, *subnet.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("virtual network rule:", *virtualNetworkRule.ID)
 
-	virtualNetworkRule, err = getVirtualNetworkRule(ctx, cred)
+	virtualNetworkRule, err = getVirtualNetworkRule(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -75,7 +110,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -83,11 +118,7 @@ func main() {
 	}
 }
 
-func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Server, error) {
-	serversClient, err := armsql.NewServersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createServer(ctx context.Context) (*armsql.Server, error) {
 
 	pollerResp, err := serversClient.BeginCreateOrUpdate(
 		ctx,
@@ -112,13 +143,9 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Ser
 	return &resp.Server, nil
 }
 
-func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.VirtualNetwork, error) {
-	virtualNetworkClient, err := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createVirtualNetwork(ctx context.Context) (*armnetwork.VirtualNetwork, error) {
 
-	pollerResp, err := virtualNetworkClient.BeginCreateOrUpdate(
+	pollerResp, err := virtualNetworksClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		virtualNetworkName,
@@ -145,11 +172,7 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.VirtualNetwork, nil
 }
 
-func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.Subnet, error) {
-	subnetsClient, err := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createSubnet(ctx context.Context) (*armnetwork.Subnet, error) {
 
 	pollerResp, err := subnetsClient.BeginCreateOrUpdate(
 		ctx,
@@ -174,11 +197,7 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 	return &resp.Subnet, nil
 }
 
-func createVirtualNetworkRule(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armsql.VirtualNetworkRule, error) {
-	virtualNetworkRulesClient, err := armsql.NewVirtualNetworkRulesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createVirtualNetworkRule(ctx context.Context, subnetID string) (*armsql.VirtualNetworkRule, error) {
 
 	pollerResp, err := virtualNetworkRulesClient.BeginCreateOrUpdate(
 		ctx,
@@ -203,11 +222,7 @@ func createVirtualNetworkRule(ctx context.Context, cred azcore.TokenCredential, 
 	return &resp.VirtualNetworkRule, nil
 }
 
-func getVirtualNetworkRule(ctx context.Context, cred azcore.TokenCredential) (*armsql.VirtualNetworkRule, error) {
-	virtualNetworkRulesClient, err := armsql.NewVirtualNetworkRulesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getVirtualNetworkRule(ctx context.Context) (*armsql.VirtualNetworkRule, error) {
 
 	resp, err := virtualNetworkRulesClient.Get(ctx, resourceGroupName, serverName, virtualNetworkRuleName, nil)
 	if err != nil {
@@ -216,11 +231,7 @@ func getVirtualNetworkRule(ctx context.Context, cred azcore.TokenCredential) (*a
 	return &resp.VirtualNetworkRule, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -235,11 +246,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"log"
 	"os"
 
@@ -24,6 +23,17 @@ var (
 	failoverGroupName = "sample-failover-group"
 )
 
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	sqlClientFactory       *armsql.ClientFactory
+)
+
+var (
+	resourceGroupClient  *armresources.ResourceGroupsClient
+	serversClient        *armsql.ServersClient
+	failoverGroupsClient *armsql.FailoverGroupsClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -36,31 +46,44 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	sqlClientFactory, err = armsql.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serversClient = sqlClientFactory.NewServersClient()
+	failoverGroupsClient = sqlClientFactory.NewFailoverGroupsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	server, err := createServer(ctx, cred)
+	server, err := createServer(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("server:", *server.ID)
 
-	partnerServer, err := createPartnerServer(ctx, cred)
+	partnerServer, err := createPartnerServer(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("partner server:", *partnerServer.ID)
 
-	failoverGroup, err := createFailoverGroup(ctx, cred, *partnerServer.ID)
+	failoverGroup, err := createFailoverGroup(ctx, *partnerServer.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("failover group:", *failoverGroup.ID)
 
-	failoverGroup, err = getFailoverGroup(ctx, cred, *partnerServer.ID)
+	failoverGroup, err = getFailoverGroup(ctx, *partnerServer.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,7 +91,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -76,11 +99,7 @@ func main() {
 	}
 }
 
-func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Server, error) {
-	serversClient, err := armsql.NewServersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createServer(ctx context.Context) (*armsql.Server, error) {
 
 	pollerResp, err := serversClient.BeginCreateOrUpdate(
 		ctx,
@@ -105,11 +124,7 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Ser
 	return &resp.Server, nil
 }
 
-func createPartnerServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Server, error) {
-	serversClient, err := armsql.NewServersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createPartnerServer(ctx context.Context) (*armsql.Server, error) {
 
 	pollerResp, err := serversClient.BeginCreateOrUpdate(
 		ctx,
@@ -134,11 +149,7 @@ func createPartnerServer(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resp.Server, nil
 }
 
-func createFailoverGroup(ctx context.Context, cred azcore.TokenCredential, partnerServerID string) (*armsql.FailoverGroup, error) {
-	failoverGroupsClient, err := armsql.NewFailoverGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createFailoverGroup(ctx context.Context, partnerServerID string) (*armsql.FailoverGroup, error) {
 
 	pollerResp, err := failoverGroupsClient.BeginCreateOrUpdate(
 		ctx,
@@ -171,11 +182,7 @@ func createFailoverGroup(ctx context.Context, cred azcore.TokenCredential, partn
 	return &resp.FailoverGroup, nil
 }
 
-func getFailoverGroup(ctx context.Context, cred azcore.TokenCredential, partnerServerID string) (*armsql.FailoverGroup, error) {
-	failoverGroupsClient, err := armsql.NewFailoverGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getFailoverGroup(ctx context.Context, partnerServerID string) (*armsql.FailoverGroup, error) {
 
 	resp, err := failoverGroupsClient.Get(ctx, resourceGroupName, serverName, failoverGroupName, nil)
 	if err != nil {
@@ -184,11 +191,7 @@ func getFailoverGroup(ctx context.Context, cred azcore.TokenCredential, partnerS
 	return &resp.FailoverGroup, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -203,11 +206,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

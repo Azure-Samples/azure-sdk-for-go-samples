@@ -5,12 +5,11 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v4"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/monitor/armmonitor"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"log"
 	"os"
@@ -27,6 +26,22 @@ var (
 	vmScaleSetName       = "sample-vm-scale-set"
 )
 
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	computeClientFactory   *armcompute.ClientFactory
+	networkClientFactory   *armnetwork.ClientFactory
+	monitorClientFactory   *armmonitor.ClientFactory
+)
+
+var (
+	resourceGroupClient           *armresources.ResourceGroupsClient
+	virtualNetworksClient         *armnetwork.VirtualNetworksClient
+	subnetsClient                 *armnetwork.SubnetsClient
+	interfacesClient              *armnetwork.InterfacesClient
+	virtualMachineScaleSetsClient *armcompute.VirtualMachineScaleSetsClient
+	autoscaleSettingsClient       *armmonitor.AutoscaleSettingsClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -39,37 +54,63 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	networkClientFactory, err = armnetwork.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	virtualNetworksClient = networkClientFactory.NewVirtualNetworksClient()
+	subnetsClient = networkClientFactory.NewSubnetsClient()
+	interfacesClient = networkClientFactory.NewInterfacesClient()
+
+	computeClientFactory, err = armcompute.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	virtualMachineScaleSetsClient = computeClientFactory.NewVirtualMachineScaleSetsClient()
+
+	monitorClientFactory, err = armmonitor.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	autoscaleSettingsClient = monitorClientFactory.NewAutoscaleSettingsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	virtualNetwork, err := createVirtualNetwork(ctx, cred)
+	virtualNetwork, err := createVirtualNetwork(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("virtual network:", *virtualNetwork.ID)
 
-	subnet, err := createSubnet(ctx, cred)
+	subnet, err := createSubnet(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("subnet:", *subnet.ID)
 
-	nic, err := createNIC(ctx, cred, *subnet.ID)
+	nic, err := createNIC(ctx, *subnet.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("network interface:", *nic.ID)
 
-	vmss, err := createVMSS(ctx, cred, *subnet.ID)
+	vmss, err := createVMSS(ctx, *subnet.ID)
 	if err != nil {
 		log.Fatalf("cannot create virtual machine scale sets:%+v", err)
 	}
 	log.Printf("virtual machine scale sets: %s", *vmss.ID)
 
-	autoscaleSetting, err := createAutoscaleSetting(ctx, cred, *vmss.ID)
+	autoscaleSetting, err := createAutoscaleSetting(ctx, *vmss.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -77,7 +118,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -85,13 +126,9 @@ func main() {
 	}
 }
 
-func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.VirtualNetwork, error) {
-	virtualNetworkClient, err := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createVirtualNetwork(ctx context.Context) (*armnetwork.VirtualNetwork, error) {
 
-	pollerResp, err := virtualNetworkClient.BeginCreateOrUpdate(
+	pollerResp, err := virtualNetworksClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		virtualNetworkName,
@@ -118,11 +155,7 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.VirtualNetwork, nil
 }
 
-func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.Subnet, error) {
-	subnetsClient, err := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createSubnet(ctx context.Context) (*armnetwork.Subnet, error) {
 
 	pollerResp, err := subnetsClient.BeginCreateOrUpdate(
 		ctx,
@@ -147,13 +180,9 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 	return &resp.Subnet, nil
 }
 
-func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armnetwork.Interface, error) {
-	nicClient, err := armnetwork.NewInterfacesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createNIC(ctx context.Context, subnetID string) (*armnetwork.Interface, error) {
 
-	pollerResp, err := nicClient.BeginCreateOrUpdate(
+	pollerResp, err := interfacesClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		networkInterfaceName,
@@ -185,13 +214,9 @@ func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID string
 	return &resp.Interface, nil
 }
 
-func createVMSS(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armcompute.VirtualMachineScaleSet, error) {
-	vmssClient, err := armcompute.NewVirtualMachineScaleSetsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createVMSS(ctx context.Context, subnetID string) (*armcompute.VirtualMachineScaleSet, error) {
 
-	pollerResp, err := vmssClient.BeginCreateOrUpdate(
+	pollerResp, err := virtualMachineScaleSetsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		vmScaleSetName,
@@ -266,11 +291,7 @@ func createVMSS(ctx context.Context, cred azcore.TokenCredential, subnetID strin
 	return &resp.VirtualMachineScaleSet, nil
 }
 
-func createAutoscaleSetting(ctx context.Context, cred azcore.TokenCredential, resourceURI string) (*armmonitor.AutoscaleSettingResource, error) {
-	autoscaleSettingsClient, err := armmonitor.NewAutoscaleSettingsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createAutoscaleSetting(ctx context.Context, resourceURI string) (*armmonitor.AutoscaleSettingResource, error) {
 
 	resp, err := autoscaleSettingsClient.CreateOrUpdate(
 		ctx,
@@ -316,11 +337,7 @@ func createAutoscaleSetting(ctx context.Context, cred azcore.TokenCredential, re
 	return &resp.AutoscaleSettingResource, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -335,11 +352,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/monitor/armmonitor"
@@ -23,6 +22,19 @@ var (
 	ruleName          = "sample-scheduled-query-rules"
 )
 
+var (
+	resourcesClientFactory           *armresources.ClientFactory
+	operationalinsightsClientFactory *armoperationalinsights.ClientFactory
+	monitorClientFactory             *armmonitor.ClientFactory
+)
+
+var (
+	resourceGroupClient       *armresources.ResourceGroupsClient
+	workspacesClient          *armoperationalinsights.WorkspacesClient
+	logProfilesClient         *armmonitor.LogProfilesClient
+	scheduledQueryRulesClient *armmonitor.ScheduledQueryRulesClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -35,25 +47,44 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	operationalinsightsClientFactory, err = armoperationalinsights.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	workspacesClient = operationalinsightsClientFactory.NewWorkspacesClient()
+
+	monitorClientFactory, err = armmonitor.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	logProfilesClient = monitorClientFactory.NewLogProfilesClient()
+	scheduledQueryRulesClient = monitorClientFactory.NewScheduledQueryRulesClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	workspace, err := createWorkspaces(ctx, cred)
+	workspace, err := createWorkspaces(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("workspace:", *workspace.ID)
 
-	scheduledQueryRule, err := createScheduledQueryRule(ctx, cred, *workspace.ID)
+	scheduledQueryRule, err := createScheduledQueryRule(ctx, *workspace.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("scheduled query rule:", *scheduledQueryRule.ID)
 
-	scheduledQueryRule, err = getScheduledQueryRule(ctx, cred)
+	scheduledQueryRule, err = getScheduledQueryRule(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,7 +92,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -69,11 +100,7 @@ func main() {
 	}
 }
 
-func createWorkspaces(ctx context.Context, cred azcore.TokenCredential) (*armoperationalinsights.Workspace, error) {
-	workspacesClient, err := armoperationalinsights.NewWorkspacesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createWorkspaces(ctx context.Context) (*armoperationalinsights.Workspace, error) {
 
 	pollerResp, err := workspacesClient.BeginCreateOrUpdate(
 		ctx,
@@ -103,43 +130,64 @@ func createWorkspaces(ctx context.Context, cred azcore.TokenCredential) (*armope
 	return &resp.Workspace, nil
 }
 
-func createScheduledQueryRule(ctx context.Context, cred azcore.TokenCredential, workspaceID string) (*armmonitor.LogSearchRuleResource, error) {
-	scheduledQueryRulesClient, err := armmonitor.NewScheduledQueryRulesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createScheduledQueryRule(ctx context.Context, workspaceID string) (*armmonitor.ScheduledQueryRuleResource, error) {
 
 	resp, err := scheduledQueryRulesClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		ruleName,
-		armmonitor.LogSearchRuleResource{
+		armmonitor.ScheduledQueryRuleResource{
 			Location: to.Ptr(location),
-			Properties: &armmonitor.LogSearchRule{
-				Action: &armmonitor.AlertingAction{
-					Severity: to.Ptr(armmonitor.AlertSeverityOne),
-					Trigger: &armmonitor.TriggerCondition{
-						Threshold:         to.Ptr[float64](3),
-						ThresholdOperator: to.Ptr(armmonitor.ConditionalOperatorGreaterThan),
-						MetricTrigger: &armmonitor.LogMetricTrigger{
-							MetricColumn:      to.Ptr("Computer"),
-							MetricTriggerType: to.Ptr(armmonitor.MetricTriggerTypeConsecutive),
-							Threshold:         to.Ptr[float64](5),
-							ThresholdOperator: to.Ptr(armmonitor.ConditionalOperatorGreaterThan),
-						},
+			Properties: &armmonitor.ScheduledQueryRuleProperties{
+				Description: to.Ptr("Performance rule"),
+				Actions: &armmonitor.Actions{
+					ActionGroups: []*string{
+						to.Ptr(workspaceID),
+					},
+					CustomProperties: map[string]*string{
+						"key11": to.Ptr("value11"),
+						"key12": to.Ptr("value12"),
 					},
 				},
-				Source: &armmonitor.Source{
-					DataSourceID: to.Ptr(workspaceID),
-					Query:        to.Ptr("Heartbeat | summarize AggregatedValue = count() by bin(TimeGenerated, 5m)"),
-					QueryType:    to.Ptr(armmonitor.QueryTypeResultCount),
+				CheckWorkspaceAlertsStorageConfigured: to.Ptr(true),
+				Criteria: &armmonitor.ScheduledQueryRuleCriteria{
+					AllOf: []*armmonitor.Condition{
+						{
+							Dimensions: []*armmonitor.Dimension{
+								{
+									Name:     to.Ptr("ComputerIp"),
+									Operator: to.Ptr(armmonitor.DimensionOperatorExclude),
+									Values: []*string{
+										to.Ptr("192.168.1.1")},
+								},
+								{
+									Name:     to.Ptr("OSType"),
+									Operator: to.Ptr(armmonitor.DimensionOperatorInclude),
+									Values: []*string{
+										to.Ptr("*")},
+								}},
+							FailingPeriods: &armmonitor.ConditionFailingPeriods{
+								MinFailingPeriodsToAlert:  to.Ptr[int64](1),
+								NumberOfEvaluationPeriods: to.Ptr[int64](1),
+							},
+							MetricMeasureColumn: to.Ptr("% Processor Time"),
+							Operator:            to.Ptr(armmonitor.ConditionOperatorGreaterThan),
+							Query:               to.Ptr("Perf | where ObjectName == \"Processor\""),
+							ResourceIDColumn:    to.Ptr("resourceId"),
+							Threshold:           to.Ptr[float64](70),
+							TimeAggregation:     to.Ptr(armmonitor.TimeAggregationAverage),
+						}},
 				},
-				Description: to.Ptr("log search rule description"),
-				Enabled:     to.Ptr(armmonitor.EnabledTrue),
-				Schedule: &armmonitor.Schedule{
-					FrequencyInMinutes:  to.Ptr[int32](15),
-					TimeWindowInMinutes: to.Ptr[int32](15),
+				Enabled:             to.Ptr(true),
+				EvaluationFrequency: to.Ptr("PT5M"),
+				MuteActionsDuration: to.Ptr("PT30M"),
+				RuleResolveConfiguration: &armmonitor.RuleResolveConfiguration{
+					AutoResolved:  to.Ptr(true),
+					TimeToResolve: to.Ptr("PT10M"),
 				},
+				Severity:            to.Ptr(armmonitor.AlertSeverity(4)),
+				SkipQueryValidation: to.Ptr(true),
+				WindowSize:          to.Ptr("PT10M"),
 			},
 		},
 		nil,
@@ -147,27 +195,19 @@ func createScheduledQueryRule(ctx context.Context, cred azcore.TokenCredential, 
 	if err != nil {
 		return nil, err
 	}
-	return &resp.LogSearchRuleResource, nil
+	return &resp.ScheduledQueryRuleResource, nil
 }
 
-func getScheduledQueryRule(ctx context.Context, cred azcore.TokenCredential) (*armmonitor.LogSearchRuleResource, error) {
-	scheduledQueryRulesClient, err := armmonitor.NewScheduledQueryRulesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getScheduledQueryRule(ctx context.Context) (*armmonitor.ScheduledQueryRuleResource, error) {
 
 	resp, err := scheduledQueryRulesClient.Get(ctx, resourceGroupName, ruleName, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &resp.LogSearchRuleResource, nil
+	return &resp.ScheduledQueryRuleResource, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -182,11 +222,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

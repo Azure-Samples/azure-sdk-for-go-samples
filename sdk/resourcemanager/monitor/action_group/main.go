@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/monitor/armmonitor"
@@ -21,6 +20,16 @@ var (
 	actionGroupName   = "sample-action-group"
 )
 
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	monitorClientFactory   *armmonitor.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	actionGroupsClient  *armmonitor.ActionGroupsClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -33,19 +42,31 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	monitorClientFactory, err = armmonitor.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	actionGroupsClient = monitorClientFactory.NewActionGroupsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	actionGroup, err := createActionGroup(ctx, cred)
+	actionGroup, err := createActionGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("action group:", *actionGroup.ID)
 
-	actionGroup, err = getActionGroup(ctx, cred)
+	actionGroup, err = getActionGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,7 +74,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -61,11 +82,7 @@ func main() {
 	}
 }
 
-func createActionGroup(ctx context.Context, cred azcore.TokenCredential) (*armmonitor.ActionGroupResource, error) {
-	actionGroupsClient, err := armmonitor.NewActionGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createActionGroup(ctx context.Context) (*armmonitor.ActionGroupResource, error) {
 
 	resp, err := actionGroupsClient.CreateOrUpdate(
 		ctx,
@@ -100,11 +117,7 @@ func createActionGroup(ctx context.Context, cred azcore.TokenCredential) (*armmo
 	return &resp.ActionGroupResource, nil
 }
 
-func getActionGroup(ctx context.Context, cred azcore.TokenCredential) (*armmonitor.ActionGroupResource, error) {
-	actionGroupsClient, err := armmonitor.NewActionGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getActionGroup(ctx context.Context) (*armmonitor.ActionGroupResource, error) {
 
 	resp, err := actionGroupsClient.Get(ctx, resourceGroupName, actionGroupName, nil)
 	if err != nil {
@@ -113,11 +126,7 @@ func getActionGroup(ctx context.Context, cred azcore.TokenCredential) (*armmonit
 	return &resp.ActionGroupResource, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -132,11 +141,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

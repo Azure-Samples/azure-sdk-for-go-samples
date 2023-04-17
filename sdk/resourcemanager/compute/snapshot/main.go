@@ -62,6 +62,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	disksClient = computeClientFactory.NewDisksClient()
+	snapshotsClient = computeClientFactory.NewSnapshotsClient()
+	imagesClient = computeClientFactory.NewImagesClient()
 
 	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {

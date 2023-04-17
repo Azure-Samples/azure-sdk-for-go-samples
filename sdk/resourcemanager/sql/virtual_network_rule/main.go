@@ -35,7 +35,6 @@ var (
 	virtualNetworksClient     *armnetwork.VirtualNetworksClient
 	subnetsClient             *armnetwork.SubnetsClient
 	serversClient             *armsql.ServersClient
-	databasesClient           *armsql.DatabasesClient
 	virtualNetworkRulesClient *armsql.VirtualNetworkRulesClient
 )
 
@@ -69,7 +68,6 @@ func main() {
 		log.Fatal(err)
 	}
 	serversClient = sqlClientFactory.NewServersClient()
-	databasesClient = sqlClientFactory.NewDatabasesClient()
 	virtualNetworkRulesClient = sqlClientFactory.NewVirtualNetworkRulesClient()
 
 	resourceGroup, err := createResourceGroup(ctx)

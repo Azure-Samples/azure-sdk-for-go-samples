@@ -31,7 +31,6 @@ var (
 var (
 	resourceGroupClient       *armresources.ResourceGroupsClient
 	workspacesClient          *armoperationalinsights.WorkspacesClient
-	logProfilesClient         *armmonitor.LogProfilesClient
 	scheduledQueryRulesClient *armmonitor.ScheduledQueryRulesClient
 )
 
@@ -63,7 +62,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	logProfilesClient = monitorClientFactory.NewLogProfilesClient()
 	scheduledQueryRulesClient = monitorClientFactory.NewScheduledQueryRulesClient()
 
 	resourceGroup, err := createResourceGroup(ctx)

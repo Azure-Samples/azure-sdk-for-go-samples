@@ -31,11 +31,12 @@ var (
 )
 
 var (
-	resourceGroupClient *armresources.ResourceGroupsClient
-	disksClient         *armcompute.DisksClient
-	snapshotsClient     *armcompute.SnapshotsClient
-	galleriesClient     *armcompute.GalleriesClient
-	galleryImagesClient *armcompute.GalleryImagesClient
+	resourceGroupClient       *armresources.ResourceGroupsClient
+	disksClient               *armcompute.DisksClient
+	snapshotsClient           *armcompute.SnapshotsClient
+	galleriesClient           *armcompute.GalleriesClient
+	galleryApplicationsClient *armcompute.GalleryApplicationsClient
+	galleryImagesClient       *armcompute.GalleryImagesClient
 )
 
 func main() {
@@ -68,6 +69,7 @@ func main() {
 	disksClient = computeClientFactory.NewDisksClient()
 	snapshotsClient = computeClientFactory.NewSnapshotsClient()
 	galleriesClient = computeClientFactory.NewGalleriesClient()
+	galleryApplicationsClient = computeClientFactory.NewGalleryApplicationsClient()
 	galleryImagesClient = computeClientFactory.NewGalleryImagesClient()
 
 	resourceGroup, err := createResourceGroup(ctx)
@@ -88,7 +90,7 @@ func main() {
 	}
 	log.Println("snapshot:", *snapshot.ID)
 
-	gallery, err := createGallery(ctx, *disk.ID)
+	gallery, err := createGallery(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -177,7 +179,7 @@ func createSnapshot(ctx context.Context, diskID string) (*armcompute.Snapshot, e
 	return &resp.Snapshot, nil
 }
 
-func createGallery(ctx context.Context, diskID string) (*armcompute.Gallery, error) {
+func createGallery(ctx context.Context) (*armcompute.Gallery, error) {
 
 	pollerResp, err := galleriesClient.BeginCreateOrUpdate(
 		ctx,
@@ -203,16 +205,19 @@ func createGallery(ctx context.Context, diskID string) (*armcompute.Gallery, err
 	return &resp.Gallery, nil
 }
 
-func createGalleryApplication(ctx context.Context) (*armcompute.Gallery, error) {
+func createGalleryApplication(ctx context.Context) (*armcompute.GalleryApplication, error) {
 
-	pollerResp, err := galleriesClient.BeginCreateOrUpdate(
+	pollerResp, err := galleryApplicationsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		galleryName,
-		armcompute.Gallery{
+		galleryApplicationName,
+		armcompute.GalleryApplication{
 			Location: to.Ptr(location),
-			Properties: &armcompute.GalleryProperties{
-				Description: to.Ptr("This is the gallery application description."),
+			Properties: &armcompute.GalleryApplicationProperties{
+				Description:     to.Ptr("This is the gallery application description."),
+				Eula:            to.Ptr("This is the gallery application EULA."),
+				SupportedOSType: to.Ptr(armcompute.OperatingSystemTypesWindows),
 			},
 		},
 		nil,
@@ -226,7 +231,7 @@ func createGalleryApplication(ctx context.Context) (*armcompute.Gallery, error) 
 		return nil, err
 	}
 
-	return &resp.Gallery, nil
+	return &resp.GalleryApplication, nil
 }
 
 func createGalleryImage(ctx context.Context) (*armcompute.GalleryImage, error) {

@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
@@ -23,6 +22,15 @@ var (
 	deploymentName    = "sample-deployment"
 )
 
+var (
+	resourcesClientFactory *armresources.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	deploymentsClient   *armresources.DeploymentsClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -35,13 +43,20 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+	deploymentsClient = resourcesClientFactory.NewDeploymentsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	exist, err := checkExistDeployment(ctx, cred)
+	exist, err := checkExistDeployment(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,13 +70,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	deploymentExtended, err := createDeployment(ctx, cred, template, params)
+	deploymentExtended, err := createDeployment(ctx, template, params)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("created deployment:", *deploymentExtended.ID)
 
-	validateResult, err := validateDeployment(ctx, cred, template, params)
+	validateResult, err := validateDeployment(ctx, template, params)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -70,7 +85,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -92,11 +107,7 @@ func readJson(path string) (map[string]interface{}, error) {
 	return template, nil
 }
 
-func checkExistDeployment(ctx context.Context, cred azcore.TokenCredential) (bool, error) {
-	deploymentsClient, err := armresources.NewDeploymentsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return false, err
-	}
+func checkExistDeployment(ctx context.Context) (bool, error) {
 
 	boolResp, err := deploymentsClient.CheckExistence(ctx, resourceGroupName, deploymentName, nil)
 	if err != nil {
@@ -106,11 +117,7 @@ func checkExistDeployment(ctx context.Context, cred azcore.TokenCredential) (boo
 	return boolResp.Success, nil
 }
 
-func createDeployment(ctx context.Context, cred azcore.TokenCredential, template, params map[string]interface{}) (*armresources.DeploymentExtended, error) {
-	deploymentsClient, err := armresources.NewDeploymentsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createDeployment(ctx context.Context, template, params map[string]interface{}) (*armresources.DeploymentExtended, error) {
 
 	deploymentPollerResp, err := deploymentsClient.BeginCreateOrUpdate(
 		ctx,
@@ -137,11 +144,7 @@ func createDeployment(ctx context.Context, cred azcore.TokenCredential, template
 	return &resp.DeploymentExtended, nil
 }
 
-func validateDeployment(ctx context.Context, cred azcore.TokenCredential, template, params map[string]interface{}) (*armresources.DeploymentValidateResult, error) {
-	deploymentsClient, err := armresources.NewDeploymentsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func validateDeployment(ctx context.Context, template, params map[string]interface{}) (*armresources.DeploymentValidateResult, error) {
 
 	pollerResp, err := deploymentsClient.BeginValidate(
 		ctx,
@@ -168,11 +171,7 @@ func validateDeployment(ctx context.Context, cred azcore.TokenCredential, templa
 	return &resp.DeploymentValidateResult, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -187,11 +186,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

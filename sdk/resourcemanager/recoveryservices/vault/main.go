@@ -5,14 +5,12 @@ package main
 
 import (
 	"context"
-	"log"
-	"os"
-
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/recoveryservices/armrecoveryservices"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
+	"log"
+	"os"
 )
 
 var (
@@ -20,6 +18,16 @@ var (
 	location          = "westus"
 	resourceGroupName = "sample-resource-group"
 	vaultName         = "sample-recoveryservice-vault"
+)
+
+var (
+	resourcesClientFactory        *armresources.ClientFactory
+	recoveryservicesClientFactory *armrecoveryservices.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	vaultsClient        *armrecoveryservices.VaultsClient
 )
 
 func main() {
@@ -34,19 +42,31 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	recoveryservicesClientFactory, err = armrecoveryservices.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	vaultsClient = recoveryservicesClientFactory.NewVaultsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	vault, err := createRecoveryServiceVault(ctx, cred)
+	vault, err := createRecoveryServiceVault(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("recovery service vault:", *vault.ID)
 
-	vault, err = getRecoveryServiceVault(ctx, cred)
+	vault, err = getRecoveryServiceVault(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,7 +74,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -62,13 +82,9 @@ func main() {
 	}
 }
 
-func createRecoveryServiceVault(ctx context.Context, cred azcore.TokenCredential) (*armrecoveryservices.Vault, error) {
-	vaultClient, err := armrecoveryservices.NewVaultsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createRecoveryServiceVault(ctx context.Context) (*armrecoveryservices.Vault, error) {
 
-	pollerResp, err := vaultClient.BeginCreateOrUpdate(
+	pollerResp, err := vaultsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		vaultName,
@@ -93,13 +109,9 @@ func createRecoveryServiceVault(ctx context.Context, cred azcore.TokenCredential
 	return &resp.Vault, err
 }
 
-func getRecoveryServiceVault(ctx context.Context, cred azcore.TokenCredential) (*armrecoveryservices.Vault, error) {
-	vaultClient, err := armrecoveryservices.NewVaultsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getRecoveryServiceVault(ctx context.Context) (*armrecoveryservices.Vault, error) {
 
-	resp, err := vaultClient.Get(ctx, resourceGroupName, vaultName, nil)
+	resp, err := vaultsClient.Get(ctx, resourceGroupName, vaultName, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -107,11 +119,7 @@ func getRecoveryServiceVault(ctx context.Context, cred azcore.TokenCredential) (
 	return &resp.Vault, err
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -127,11 +135,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

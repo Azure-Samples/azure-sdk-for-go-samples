@@ -9,7 +9,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/apimanagement/armapimanagement"
@@ -22,6 +21,17 @@ var (
 	resourceGroupName = "sample-resource-group"
 	serviceName       = "sample-api-service"
 	userID            = "sampleuserid"
+)
+
+var (
+	apimanagementClientFactory *armapimanagement.ClientFactory
+	resourcesClientFactory     *armresources.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	serviceClient       *armapimanagement.ServiceClient
+	userClient          *armapimanagement.UserClient
 )
 
 func main() {
@@ -37,43 +47,56 @@ func main() {
 
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	apimanagementClientFactory, err = armapimanagement.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serviceClient = apimanagementClientFactory.NewServiceClient()
+	userClient = apimanagementClientFactory.NewUserClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	apiManagementService, err := createApiManagementService(ctx, cred)
+	apiManagementService, err := createApiManagementService(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("api management service:", *apiManagementService.ID)
 
-	user, err := createUser(ctx, cred)
+	user, err := createUser(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("user:", *user.ID)
 
-	entityTag, err := getEntityTag(ctx, cred)
+	entityTag, err := getEntityTag(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("entity tag:", *entityTag.ETag, entityTag.Success)
 
-	sharedAccessToken, err := getSharedAccessToken(ctx, cred)
+	sharedAccessToken, err := getSharedAccessToken(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("shared access token:", *sharedAccessToken.Value)
 
-	generateSsoUrl, err := generateSsoURL(ctx, cred)
+	generateSsoUrl, err := generateSsoURL(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("generate Sso URL:", *generateSsoUrl.Value)
 
-	users, err := listUsers(ctx, cred)
+	users, err := listUsers(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,7 +106,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -91,13 +114,9 @@ func main() {
 	}
 }
 
-func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceResource, error) {
-	apiManagementServiceClient, err := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createApiManagementService(ctx context.Context) (*armapimanagement.ServiceResource, error) {
 
-	pollerResp, err := apiManagementServiceClient.BeginCreateOrUpdate(
+	pollerResp, err := serviceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -124,11 +143,7 @@ func createApiManagementService(ctx context.Context, cred azcore.TokenCredential
 	return &resp.ServiceResource, nil
 }
 
-func createUser(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.UserContract, error) {
-	userClient, err := armapimanagement.NewUserClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createUser(ctx context.Context) (*armapimanagement.UserContract, error) {
 
 	resp, err := userClient.CreateOrUpdate(
 		ctx,
@@ -150,11 +165,7 @@ func createUser(ctx context.Context, cred azcore.TokenCredential) (*armapimanage
 	return &resp.UserContract, nil
 }
 
-func getEntityTag(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.UserClientGetEntityTagResponse, error) {
-	userClient, err := armapimanagement.NewUserClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getEntityTag(ctx context.Context) (*armapimanagement.UserClientGetEntityTagResponse, error) {
 
 	resp, err := userClient.GetEntityTag(ctx, resourceGroupName, serviceName, userID, nil)
 	if err != nil {
@@ -163,11 +174,7 @@ func getEntityTag(ctx context.Context, cred azcore.TokenCredential) (*armapimana
 	return &resp, nil
 }
 
-func getSharedAccessToken(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.UserTokenResult, error) {
-	userClient, err := armapimanagement.NewUserClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getSharedAccessToken(ctx context.Context) (*armapimanagement.UserTokenResult, error) {
 
 	resp, err := userClient.GetSharedAccessToken(
 		ctx,
@@ -187,11 +194,7 @@ func getSharedAccessToken(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.UserTokenResult, nil
 }
 
-func generateSsoURL(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.GenerateSsoURLResult, error) {
-	userClient, err := armapimanagement.NewUserClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func generateSsoURL(ctx context.Context) (*armapimanagement.GenerateSsoURLResult, error) {
 
 	resp, err := userClient.GenerateSsoURL(ctx, resourceGroupName, serviceName, userID, nil)
 	if err != nil {
@@ -200,11 +203,7 @@ func generateSsoURL(ctx context.Context, cred azcore.TokenCredential) (*armapima
 	return &resp.GenerateSsoURLResult, nil
 }
 
-func listUsers(ctx context.Context, cred azcore.TokenCredential) ([]*armapimanagement.UserContract, error) {
-	userClient, err := armapimanagement.NewUserClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func listUsers(ctx context.Context) ([]*armapimanagement.UserContract, error) {
 
 	pager := userClient.NewListByServicePager(resourceGroupName, serviceName, nil)
 
@@ -220,11 +219,7 @@ func listUsers(ctx context.Context, cred azcore.TokenCredential) ([]*armapimanag
 	return users, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -239,11 +234,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

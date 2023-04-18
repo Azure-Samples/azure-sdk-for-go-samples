@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerregistry/armcontainerregistry"
@@ -22,6 +21,17 @@ var (
 	webhookName       = "sample2webhook"
 )
 
+var (
+	resourcesClientFactory         *armresources.ClientFactory
+	containerRegistryClientFactory *armcontainerregistry.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	registriesClient    *armcontainerregistry.RegistriesClient
+	webhooksClient      *armcontainerregistry.WebhooksClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -34,25 +44,38 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	containerRegistryClientFactory, err = armcontainerregistry.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	registriesClient = containerRegistryClientFactory.NewRegistriesClient()
+	webhooksClient = containerRegistryClientFactory.NewWebhooksClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	registry, err := createRegistry(ctx, cred)
+	registry, err := createRegistry(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("registry:", *registry.ID)
 
-	webhook, err := createWebhook(ctx, cred)
+	webhook, err := createWebhook(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("webhook:", *webhook.ID)
 
-	webhook, err = getWebhook(ctx, cred)
+	webhook, err = getWebhook(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,7 +83,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -68,11 +91,7 @@ func main() {
 	}
 }
 
-func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.Registry, error) {
-	registriesClient, err := armcontainerregistry.NewRegistriesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createRegistry(ctx context.Context) (*armcontainerregistry.Registry, error) {
 
 	pollerResp, err := registriesClient.BeginCreate(
 		ctx,
@@ -102,11 +121,7 @@ func createRegistry(ctx context.Context, cred azcore.TokenCredential) (*armconta
 	return &resp.Registry, nil
 }
 
-func createWebhook(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.Webhook, error) {
-	webhooksClient, err := armcontainerregistry.NewWebhooksClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createWebhook(ctx context.Context) (*armcontainerregistry.Webhook, error) {
 
 	pollerResp, err := webhooksClient.BeginCreate(
 		ctx,
@@ -135,11 +150,7 @@ func createWebhook(ctx context.Context, cred azcore.TokenCredential) (*armcontai
 	return &resp.Webhook, nil
 }
 
-func getWebhook(ctx context.Context, cred azcore.TokenCredential) (*armcontainerregistry.Webhook, error) {
-	webhooksClient, err := armcontainerregistry.NewWebhooksClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getWebhook(ctx context.Context) (*armcontainerregistry.Webhook, error) {
 
 	resp, err := webhooksClient.Get(ctx, resourceGroupName, registryName, webhookName, nil)
 	if err != nil {
@@ -148,11 +159,7 @@ func getWebhook(ctx context.Context, cred azcore.TokenCredential) (*armcontainer
 	return &resp.Webhook, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -167,11 +174,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

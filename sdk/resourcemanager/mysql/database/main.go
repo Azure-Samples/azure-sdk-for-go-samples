@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/mysql/armmysql"
@@ -22,6 +21,17 @@ var (
 	databaseName      = "sample-database"
 )
 
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	mysqlClientFactory     *armmysql.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	serversClient       *armmysql.ServersClient
+	databasesClient     *armmysql.DatabasesClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -34,25 +44,38 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	mysqlClientFactory, err = armmysql.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serversClient = mysqlClientFactory.NewServersClient()
+	databasesClient = mysqlClientFactory.NewDatabasesClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	server, err := createServer(ctx, cred)
+	server, err := createServer(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("mysql server:", *server.ID)
 
-	database, err := createDatabase(ctx, cred)
+	database, err := createDatabase(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("mysql database:", *database.ID)
 
-	database, err = getDatabase(ctx, cred)
+	database, err = getDatabase(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,7 +83,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -68,11 +91,7 @@ func main() {
 	}
 }
 
-func createServer(ctx context.Context, cred azcore.TokenCredential) (*armmysql.Server, error) {
-	serversClient, err := armmysql.NewServersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createServer(ctx context.Context) (*armmysql.Server, error) {
 
 	pollerResp, err := serversClient.BeginCreate(
 		ctx,
@@ -102,12 +121,9 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armmysql.S
 	return &resp.Server, nil
 }
 
-func createDatabase(ctx context.Context, cred azcore.TokenCredential) (*armmysql.Database, error) {
-	databaseClient, err := armmysql.NewDatabasesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
-	pollerResp, err := databaseClient.BeginCreateOrUpdate(
+func createDatabase(ctx context.Context) (*armmysql.Database, error) {
+
+	pollerResp, err := databasesClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serverName,
@@ -130,23 +146,16 @@ func createDatabase(ctx context.Context, cred azcore.TokenCredential) (*armmysql
 	return &resp.Database, nil
 }
 
-func getDatabase(ctx context.Context, cred azcore.TokenCredential) (*armmysql.Database, error) {
-	databaseClient, err := armmysql.NewDatabasesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := databaseClient.Get(ctx, resourceGroupName, serverName, databaseName, nil)
+func getDatabase(ctx context.Context) (*armmysql.Database, error) {
+
+	resp, err := databasesClient.Get(ctx, resourceGroupName, serverName, databaseName, nil)
 	if err != nil {
 		return nil, err
 	}
 	return &resp.Database, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -161,11 +170,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

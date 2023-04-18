@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/eventhub/armeventhub"
@@ -25,6 +24,20 @@ var (
 	consumerGroupName  = "sample-consumer-group"
 )
 
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	storageClientFactory   *armstorage.ClientFactory
+	eventhubClientFactory  *armeventhub.ClientFactory
+)
+
+var (
+	resourceGroupClient  *armresources.ResourceGroupsClient
+	accountsClient       *armstorage.AccountsClient
+	namespacesClient     *armeventhub.NamespacesClient
+	eventHubsClient      *armeventhub.EventHubsClient
+	consumerGroupsClient *armeventhub.ConsumerGroupsClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -37,31 +50,51 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	storageClientFactory, err = armstorage.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	accountsClient = storageClientFactory.NewAccountsClient()
+
+	eventhubClientFactory, err = armeventhub.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	namespacesClient = eventhubClientFactory.NewNamespacesClient()
+	eventHubsClient = eventhubClientFactory.NewEventHubsClient()
+	consumerGroupsClient = eventhubClientFactory.NewConsumerGroupsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	storageAccount, err := createStorageAccount(ctx, cred)
+	storageAccount, err := createStorageAccount(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("storage account:", *storageAccount.ID)
 
-	namespace, err := createNamespace(ctx, cred)
+	namespace, err := createNamespace(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("eventhub namespace:", *namespace.ID)
 
-	eventhub, err := createEventHub(ctx, cred, *storageAccount.ID)
+	eventhub, err := createEventHub(ctx, *storageAccount.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("eventhub:", *eventhub.ID)
 
-	consumerGroup, err := createConsumerGroup(ctx, cred)
+	consumerGroup, err := createConsumerGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -69,7 +102,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -77,13 +110,9 @@ func main() {
 	}
 }
 
-func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Account, error) {
-	storageAccountClient, err := armstorage.NewAccountsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createStorageAccount(ctx context.Context) (*armstorage.Account, error) {
 
-	pollerResp, err := storageAccountClient.BeginCreate(
+	pollerResp, err := accountsClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
@@ -104,11 +133,7 @@ func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.Account, nil
 }
 
-func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armeventhub.EHNamespace, error) {
-	namespacesClient, err := armeventhub.NewNamespacesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createNamespace(ctx context.Context) (*armeventhub.EHNamespace, error) {
 
 	pollerResp, err := namespacesClient.BeginCreateOrUpdate(
 		ctx,
@@ -137,11 +162,7 @@ func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armeven
 	return &resp.EHNamespace, nil
 }
 
-func createEventHub(ctx context.Context, cred azcore.TokenCredential, storageAccountID string) (*armeventhub.Eventhub, error) {
-	eventHubsClient, err := armeventhub.NewEventHubsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createEventHub(ctx context.Context, storageAccountID string) (*armeventhub.Eventhub, error) {
 
 	resp, err := eventHubsClient.CreateOrUpdate(
 		ctx,
@@ -177,11 +198,7 @@ func createEventHub(ctx context.Context, cred azcore.TokenCredential, storageAcc
 	return &resp.Eventhub, nil
 }
 
-func createConsumerGroup(ctx context.Context, cred azcore.TokenCredential) (*armeventhub.ConsumerGroup, error) {
-	consumerGroupsClient, err := armeventhub.NewConsumerGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createConsumerGroup(ctx context.Context) (*armeventhub.ConsumerGroup, error) {
 
 	resp, err := consumerGroupsClient.CreateOrUpdate(
 		ctx,
@@ -202,11 +219,7 @@ func createConsumerGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resp.ConsumerGroup, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -221,11 +234,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

@@ -5,10 +5,9 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/servicebus/armservicebus"
 	"log"
@@ -27,6 +26,20 @@ var (
 	disasterRecoveryConfigName = "sample-disaster-recovery"
 )
 
+var (
+	resourcesClientFactory  *armresources.ClientFactory
+	networkClientFactory    *armnetwork.ClientFactory
+	servicebusClientFactory *armservicebus.ClientFactory
+)
+
+var (
+	resourceGroupClient           *armresources.ResourceGroupsClient
+	virtualNetworksClient         *armnetwork.VirtualNetworksClient
+	subnetsClient                 *armnetwork.SubnetsClient
+	namespacesClient              *armservicebus.NamespacesClient
+	disasterRecoveryConfigsClient *armservicebus.DisasterRecoveryConfigsClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -39,43 +52,63 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	networkClientFactory, err = armnetwork.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	virtualNetworksClient = networkClientFactory.NewVirtualNetworksClient()
+	subnetsClient = networkClientFactory.NewSubnetsClient()
+
+	servicebusClientFactory, err = armservicebus.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	namespacesClient = servicebusClientFactory.NewNamespacesClient()
+	disasterRecoveryConfigsClient = servicebusClientFactory.NewDisasterRecoveryConfigsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	virtualNetwork, err := createVirtualNetwork(ctx, cred)
+	virtualNetwork, err := createVirtualNetwork(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("virtual network:", *virtualNetwork.ID)
 
-	subnet, err := createSubnet(ctx, cred)
+	subnet, err := createSubnet(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("subnet:", *subnet.ID)
 
-	namespace, err := createNamespace(ctx, cred)
+	namespace, err := createNamespace(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("service bus namespace:", *namespace.ID)
 
-	namespacePrimary, err := createNamespacePrimary(ctx, cred)
+	namespacePrimary, err := createNamespacePrimary(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("service bus namespace primary:", *namespacePrimary.ID)
 
-	namespaceAuthorizationRule, err := createNamespaceAuthorizationRule(ctx, cred)
+	namespaceAuthorizationRule, err := createNamespaceAuthorizationRule(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("service bus namespace authorization rule:", *namespaceAuthorizationRule.ID)
 
-	exist, err := checkNameAvailability(ctx, cred)
+	exist, err := checkNameAvailability(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,19 +116,19 @@ func main() {
 		log.Println("disaster recovery name existed.")
 	}
 
-	disasterRecoveryConfig, err := createDisasterRecoveryConfig(ctx, cred, *namespacePrimary.ID)
+	disasterRecoveryConfig, err := createDisasterRecoveryConfig(ctx, *namespacePrimary.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("service bus disaster recovery config:", *disasterRecoveryConfig.ID)
 
-	disasterRecoveryConfig, err = getDisasterRecoveryConfig(ctx, cred)
+	disasterRecoveryConfig, err = getDisasterRecoveryConfig(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get service bus disaster recovery config:", *disasterRecoveryConfig.ID)
 
-	err = failOverDisasterRecoveryConfig(ctx, cred)
+	err = failOverDisasterRecoveryConfig(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -103,7 +136,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -111,13 +144,9 @@ func main() {
 	}
 }
 
-func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.VirtualNetwork, error) {
-	virtualNetworkClient, err := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createVirtualNetwork(ctx context.Context) (*armnetwork.VirtualNetwork, error) {
 
-	pollerResp, err := virtualNetworkClient.BeginCreateOrUpdate(
+	pollerResp, err := virtualNetworksClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		virtualNetworkName,
@@ -144,11 +173,7 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.VirtualNetwork, nil
 }
 
-func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.Subnet, error) {
-	subnetsClient, err := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createSubnet(ctx context.Context) (*armnetwork.Subnet, error) {
 
 	pollerResp, err := subnetsClient.BeginCreateOrUpdate(
 		ctx,
@@ -174,12 +199,8 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 	return &resp.Subnet, nil
 }
 
-func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBNamespace, error) {
-	namespacesClient, err := armservicebus.NewNamespacesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
-	
+func createNamespace(ctx context.Context) (*armservicebus.SBNamespace, error) {
+
 	pollerResp, err := namespacesClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
@@ -204,11 +225,7 @@ func createNamespace(ctx context.Context, cred azcore.TokenCredential) (*armserv
 	return &resp.SBNamespace, nil
 }
 
-func createNamespacePrimary(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBNamespace, error) {
-	namespacesClient, err := armservicebus.NewNamespacesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createNamespacePrimary(ctx context.Context) (*armservicebus.SBNamespace, error) {
 
 	pollerResp, err := namespacesClient.BeginCreateOrUpdate(
 		ctx,
@@ -234,11 +251,7 @@ func createNamespacePrimary(ctx context.Context, cred azcore.TokenCredential) (*
 	return &resp.SBNamespace, nil
 }
 
-func createNamespaceAuthorizationRule(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.SBAuthorizationRule, error) {
-	namespacesClient, err := armservicebus.NewNamespacesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createNamespaceAuthorizationRule(ctx context.Context) (*armservicebus.SBAuthorizationRule, error) {
 
 	resp, err := namespacesClient.CreateOrUpdateAuthorizationRule(
 		ctx,
@@ -262,13 +275,9 @@ func createNamespaceAuthorizationRule(ctx context.Context, cred azcore.TokenCred
 	return &resp.SBAuthorizationRule, nil
 }
 
-func checkNameAvailability(ctx context.Context, cred azcore.TokenCredential) (bool, error) {
-	namespacesClient, err := armservicebus.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return false, err
-	}
+func checkNameAvailability(ctx context.Context) (bool, error) {
 
-	resp, err := namespacesClient.CheckNameAvailability(
+	resp, err := disasterRecoveryConfigsClient.CheckNameAvailability(
 		ctx,
 		resourceGroupName,
 		namespaceName,
@@ -283,11 +292,7 @@ func checkNameAvailability(ctx context.Context, cred azcore.TokenCredential) (bo
 	return *resp.NameAvailable, nil
 }
 
-func createDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential, secondNamespaceID string) (*armservicebus.ArmDisasterRecovery, error) {
-	disasterRecoveryConfigsClient, err := armservicebus.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createDisasterRecoveryConfig(ctx context.Context, secondNamespaceID string) (*armservicebus.ArmDisasterRecovery, error) {
 
 	resp, err := disasterRecoveryConfigsClient.CreateOrUpdate(
 		ctx,
@@ -308,11 +313,7 @@ func createDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredenti
 	return &resp.ArmDisasterRecovery, nil
 }
 
-func getDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential) (*armservicebus.ArmDisasterRecovery, error) {
-	disasterRecoveryConfigsClient, err := armservicebus.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getDisasterRecoveryConfig(ctx context.Context) (*armservicebus.ArmDisasterRecovery, error) {
 
 	resp, err := disasterRecoveryConfigsClient.Get(ctx, resourceGroupName, namespaceName, disasterRecoveryConfigName, nil)
 	if err != nil {
@@ -322,13 +323,9 @@ func getDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential)
 	return &resp.ArmDisasterRecovery, nil
 }
 
-func failOverDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCredential) error {
-	disasterRecoveryConfigsClient, err := armservicebus.NewDisasterRecoveryConfigsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func failOverDisasterRecoveryConfig(ctx context.Context) error {
 
-	_, err = disasterRecoveryConfigsClient.FailOver(ctx, resourceGroupName, namespacePrimaryName, disasterRecoveryConfigName, nil)
+	_, err := disasterRecoveryConfigsClient.FailOver(ctx, resourceGroupName, namespacePrimaryName, disasterRecoveryConfigName, nil)
 	if err != nil {
 		return err
 	}
@@ -336,11 +333,7 @@ func failOverDisasterRecoveryConfig(ctx context.Context, cred azcore.TokenCreden
 	return nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -355,11 +348,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

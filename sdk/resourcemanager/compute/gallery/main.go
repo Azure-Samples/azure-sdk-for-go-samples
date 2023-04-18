@@ -5,10 +5,9 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v4"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"log"
 	"os"
@@ -24,6 +23,20 @@ var (
 	galleryName            = "sample_gallery"
 	galleryApplicationName = "sample_gallery_application"
 	galleryImageName       = "sample_gallery_image"
+)
+
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	computeClientFactory   *armcompute.ClientFactory
+)
+
+var (
+	resourceGroupClient       *armresources.ResourceGroupsClient
+	disksClient               *armcompute.DisksClient
+	snapshotsClient           *armcompute.SnapshotsClient
+	galleriesClient           *armcompute.GalleriesClient
+	galleryApplicationsClient *armcompute.GalleryApplicationsClient
+	galleryImagesClient       *armcompute.GalleryImagesClient
 )
 
 func main() {
@@ -43,37 +56,53 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	computeClientFactory, err = armcompute.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	disksClient = computeClientFactory.NewDisksClient()
+	snapshotsClient = computeClientFactory.NewSnapshotsClient()
+	galleriesClient = computeClientFactory.NewGalleriesClient()
+	galleryApplicationsClient = computeClientFactory.NewGalleryApplicationsClient()
+	galleryImagesClient = computeClientFactory.NewGalleryImagesClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	disk, err := createDisk(ctx, cred)
+	disk, err := createDisk(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("disk:", *disk.ID)
 
-	snapshot, err := createSnapshot(ctx, cred, *disk.ID)
+	snapshot, err := createSnapshot(ctx, *disk.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("snapshot:", *snapshot.ID)
 
-	gallery, err := createGallery(ctx, cred, *disk.ID)
+	gallery, err := createGallery(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("gallery:", *gallery.ID)
 
-	galleryApplication, err := createGalleryApplication(ctx, cred)
+	galleryApplication, err := createGalleryApplication(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("gallery application:", *galleryApplication.ID)
 
-	galleryImage, err := createGalleryImage(ctx, cred)
+	galleryImage, err := createGalleryImage(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -81,7 +110,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err := cleanup(ctx, cred)
+		err := cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -89,11 +118,7 @@ func main() {
 	}
 }
 
-func createDisk(ctx context.Context, cred azcore.TokenCredential) (*armcompute.Disk, error) {
-	disksClient, err := armcompute.NewDisksClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createDisk(ctx context.Context) (*armcompute.Disk, error) {
 
 	pollerResp, err := disksClient.BeginCreateOrUpdate(
 		ctx,
@@ -125,13 +150,9 @@ func createDisk(ctx context.Context, cred azcore.TokenCredential) (*armcompute.D
 	return &resp.Disk, nil
 }
 
-func createSnapshot(ctx context.Context, cred azcore.TokenCredential, diskID string) (*armcompute.Snapshot, error) {
-	snapshotClient, err := armcompute.NewSnapshotsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createSnapshot(ctx context.Context, diskID string) (*armcompute.Snapshot, error) {
 
-	pollerResp, err := snapshotClient.BeginCreateOrUpdate(
+	pollerResp, err := snapshotsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		snapshotName,
@@ -158,11 +179,7 @@ func createSnapshot(ctx context.Context, cred azcore.TokenCredential, diskID str
 	return &resp.Snapshot, nil
 }
 
-func createGallery(ctx context.Context, cred azcore.TokenCredential, diskID string) (*armcompute.Gallery, error) {
-	galleriesClient, err := armcompute.NewGalleriesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createGallery(ctx context.Context) (*armcompute.Gallery, error) {
 
 	pollerResp, err := galleriesClient.BeginCreateOrUpdate(
 		ctx,
@@ -188,13 +205,9 @@ func createGallery(ctx context.Context, cred azcore.TokenCredential, diskID stri
 	return &resp.Gallery, nil
 }
 
-func createGalleryApplication(ctx context.Context, cred azcore.TokenCredential) (*armcompute.GalleryApplication, error) {
-	galleriesClient, err := armcompute.NewGalleryApplicationsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createGalleryApplication(ctx context.Context) (*armcompute.GalleryApplication, error) {
 
-	pollerResp, err := galleriesClient.BeginCreateOrUpdate(
+	pollerResp, err := galleryApplicationsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		galleryName,
@@ -221,13 +234,9 @@ func createGalleryApplication(ctx context.Context, cred azcore.TokenCredential) 
 	return &resp.GalleryApplication, nil
 }
 
-func createGalleryImage(ctx context.Context, cred azcore.TokenCredential) (*armcompute.GalleryImage, error) {
-	galleryImageClient, err := armcompute.NewGalleryImagesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createGalleryImage(ctx context.Context) (*armcompute.GalleryImage, error) {
 
-	pollerResp, err := galleryImageClient.BeginCreateOrUpdate(
+	pollerResp, err := galleryImagesClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		galleryName,
@@ -259,11 +268,7 @@ func createGalleryImage(ctx context.Context, cred azcore.TokenCredential) (*armc
 	return &resp.GalleryImage, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -278,11 +283,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

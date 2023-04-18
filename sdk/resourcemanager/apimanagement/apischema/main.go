@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/apimanagement/armapimanagement"
@@ -23,6 +22,18 @@ var (
 	schemaID          = "sample-api-schema"
 )
 
+var (
+	apimanagementClientFactory *armapimanagement.ClientFactory
+	resourcesClientFactory     *armresources.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	serviceClient       *armapimanagement.ServiceClient
+	apiClient           *armapimanagement.APIClient
+	apiSchemaClient     *armapimanagement.APISchemaClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -35,25 +46,39 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	apimanagementClientFactory, err = armapimanagement.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serviceClient = apimanagementClientFactory.NewServiceClient()
+	apiClient = apimanagementClientFactory.NewAPIClient()
+	apiSchemaClient = apimanagementClientFactory.NewAPISchemaClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	apiManagementService, err := createApiManagementService(ctx, cred)
+	apiManagementService, err := createApiManagementService(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("api management service:", *apiManagementService.ID)
 
-	api, err := createApi(ctx, cred)
+	api, err := createApi(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("api:", *api.ID)
 
-	apiSchema, err := createApiSchema(ctx, cred)
+	apiSchema, err := createApiSchema(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,7 +86,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -69,13 +94,9 @@ func main() {
 	}
 }
 
-func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceResource, error) {
-	apiManagementServiceClient, err := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createApiManagementService(ctx context.Context) (*armapimanagement.ServiceResource, error) {
 
-	pollerResp, err := apiManagementServiceClient.BeginCreateOrUpdate(
+	pollerResp, err := serviceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -102,13 +123,9 @@ func createApiManagementService(ctx context.Context, cred azcore.TokenCredential
 	return &resp.ServiceResource, nil
 }
 
-func createApi(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.APIContract, error) {
-	APIClient, err := armapimanagement.NewAPIClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createApi(ctx context.Context) (*armapimanagement.APIContract, error) {
 
-	pollerResp, err := APIClient.BeginCreateOrUpdate(
+	pollerResp, err := apiClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -135,11 +152,7 @@ func createApi(ctx context.Context, cred azcore.TokenCredential) (*armapimanagem
 	return &resp.APIContract, nil
 }
 
-func createApiSchema(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.SchemaContract, error) {
-	apiSchemaClient, err := armapimanagement.NewAPISchemaClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createApiSchema(ctx context.Context) (*armapimanagement.SchemaContract, error) {
 
 	pollerResp, err := apiSchemaClient.BeginCreateOrUpdate(
 		ctx,
@@ -164,11 +177,7 @@ func createApiSchema(ctx context.Context, cred azcore.TokenCredential) (*armapim
 	return &resp.SchemaContract, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -183,11 +192,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

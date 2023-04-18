@@ -6,15 +6,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
-
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/datafactory/armdatafactory"
-
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/datafactory/armdatafactory/v3"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
+	"log"
+	"os"
 )
 
 var (
@@ -22,6 +19,16 @@ var (
 	location          = "westus"
 	resourceGroupName = "sample-resource-group"
 	factoryName       = "sample-data2factory"
+)
+
+var (
+	resourcesClientFactory   *armresources.ClientFactory
+	datafactoryClientFactory *armdatafactory.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	factoriesClient     *armdatafactory.FactoriesClient
 )
 
 func main() {
@@ -36,25 +43,37 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	datafactoryClientFactory, err = armdatafactory.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	factoriesClient = datafactoryClientFactory.NewFactoriesClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	dataFactory, err := createDataFactory(ctx, cred)
+	dataFactory, err := createDataFactory(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("data factory:", *dataFactory.ID)
 
-	dataFactory, err = getDataFactory(ctx, cred)
+	dataFactory, err = getDataFactory(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get data factory:", *dataFactory.ID)
 
-	factories, err := getFactories(ctx, cred)
+	factories, err := getFactories(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,7 +84,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -73,11 +92,7 @@ func main() {
 	}
 }
 
-func createDataFactory(ctx context.Context, cred azcore.TokenCredential) (*armdatafactory.Factory, error) {
-	factoriesClient, err := armdatafactory.NewFactoriesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createDataFactory(ctx context.Context) (*armdatafactory.Factory, error) {
 
 	resp, err := factoriesClient.CreateOrUpdate(
 		ctx,
@@ -104,11 +119,7 @@ func createDataFactory(ctx context.Context, cred azcore.TokenCredential) (*armda
 	return &resp.Factory, nil
 }
 
-func getDataFactory(ctx context.Context, cred azcore.TokenCredential) (*armdatafactory.Factory, error) {
-	factoriesClient, err := armdatafactory.NewFactoriesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getDataFactory(ctx context.Context) (*armdatafactory.Factory, error) {
 
 	resp, err := factoriesClient.Get(ctx, resourceGroupName, factoryName, nil)
 	if err != nil {
@@ -118,11 +129,7 @@ func getDataFactory(ctx context.Context, cred azcore.TokenCredential) (*armdataf
 	return &resp.Factory, nil
 }
 
-func getFactories(ctx context.Context, cred azcore.TokenCredential) ([]*armdatafactory.Factory, error) {
-	factoriesClient, err := armdatafactory.NewFactoriesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getFactories(ctx context.Context) ([]*armdatafactory.Factory, error) {
 
 	list := factoriesClient.NewListPager(nil)
 	var factories []*armdatafactory.Factory
@@ -136,11 +143,7 @@ func getFactories(ctx context.Context, cred azcore.TokenCredential) ([]*armdataf
 	return factories, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -156,11 +159,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

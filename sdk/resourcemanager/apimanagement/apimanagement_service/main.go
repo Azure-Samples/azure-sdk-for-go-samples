@@ -5,13 +5,13 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"log"
+	"os"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/apimanagement/armapimanagement"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
-	"log"
-	"os"
 )
 
 var (
@@ -19,6 +19,16 @@ var (
 	location          = "westus"
 	resourceGroupName = "sample-resource-group"
 	serviceName       = "sample-api-service"
+)
+
+var (
+	apimanagementClientFactory *armapimanagement.ClientFactory
+	resourcesClientFactory     *armresources.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	serviceClient       *armapimanagement.ServiceClient
 )
 
 func main() {
@@ -33,32 +43,44 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	apimanagementClientFactory, err = armapimanagement.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serviceClient = apimanagementClientFactory.NewServiceClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
 	// if happen soft-delete please use delete_service sample to delete
-	apiManagementService, err := createApiManagementService(ctx, cred)
+	apiManagementService, err := createApiManagementService(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("api management service:", *apiManagementService.ID)
 
-	apiManagementService, err = getApiManagementService(ctx, cred)
+	apiManagementService, err = getApiManagementService(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get api management service:", *apiManagementService.ID)
 
-	ssoToken, err := getSsoToken(ctx, cred)
+	ssoToken, err := getSsoToken(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("ssoToken:", *ssoToken.RedirectURI)
 
-	domainOwnershipIdentifier, err := getDomainOwnershipIdentifier(ctx, cred)
+	domainOwnershipIdentifier, err := getDomainOwnershipIdentifier(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -66,7 +88,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -74,13 +96,9 @@ func main() {
 	}
 }
 
-func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceResource, error) {
-	apiManagementServiceClient, err := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createApiManagementService(ctx context.Context) (*armapimanagement.ServiceResource, error) {
 
-	pollerResp, err := apiManagementServiceClient.BeginCreateOrUpdate(
+	pollerResp, err := serviceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -107,51 +125,35 @@ func createApiManagementService(ctx context.Context, cred azcore.TokenCredential
 	return &resp.ServiceResource, nil
 }
 
-//The resource type 'getDomainOwnershipIdentifier' could not be found in the namespace 'Microsoft.ApiManagement' for api version '2021-04-01-preview'. The supported api-versions are '2020-12-01,2021-01-01-preview'."}
-func getDomainOwnershipIdentifier(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceGetDomainOwnershipIdentifierResult, error) {
-	apiManagementServiceClient, err := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+// The resource type 'getDomainOwnershipIdentifier' could not be found in the namespace 'Microsoft.ApiManagement' for api version '2021-04-01-preview'. The supported api-versions are '2020-12-01,2021-01-01-preview'."}
+func getDomainOwnershipIdentifier(ctx context.Context) (*armapimanagement.ServiceGetDomainOwnershipIdentifierResult, error) {
 
-	resp, err := apiManagementServiceClient.GetDomainOwnershipIdentifier(ctx, nil)
+	resp, err := serviceClient.GetDomainOwnershipIdentifier(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	return &resp.ServiceGetDomainOwnershipIdentifierResult, nil
 }
 
-func getSsoToken(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceGetSsoTokenResult, error) {
-	apiManagementServiceClient, err := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getSsoToken(ctx context.Context) (*armapimanagement.ServiceGetSsoTokenResult, error) {
 
-	resp, err := apiManagementServiceClient.GetSsoToken(ctx, resourceGroupName, serviceName, nil)
+	resp, err := serviceClient.GetSsoToken(ctx, resourceGroupName, serviceName, nil)
 	if err != nil {
 		return nil, err
 	}
 	return &resp.ServiceGetSsoTokenResult, nil
 }
 
-func getApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceResource, error) {
-	apiManagementServiceClient, err := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getApiManagementService(ctx context.Context) (*armapimanagement.ServiceResource, error) {
 
-	resp, err := apiManagementServiceClient.Get(ctx, resourceGroupName, serviceName, nil)
+	resp, err := serviceClient.Get(ctx, resourceGroupName, serviceName, nil)
 	if err != nil {
 		return nil, err
 	}
 	return &resp.ServiceResource, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -166,11 +168,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

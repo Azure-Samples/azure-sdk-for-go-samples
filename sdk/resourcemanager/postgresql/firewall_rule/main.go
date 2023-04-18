@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/postgresql/armpostgresql"
@@ -22,6 +21,17 @@ var (
 	firewallName      = "sample-postgresql-firewall"
 )
 
+var (
+	resourcesClientFactory  *armresources.ClientFactory
+	postgresqlClientFactory *armpostgresql.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	serversClient       *armpostgresql.ServersClient
+	firewallRulesClient *armpostgresql.FirewallRulesClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -34,19 +44,32 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	postgresqlClientFactory, err = armpostgresql.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serversClient = postgresqlClientFactory.NewServersClient()
+	firewallRulesClient = postgresqlClientFactory.NewFirewallRulesClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	server, err := createServer(ctx, cred)
+	server, err := createServer(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("postgresql server:", *server.ID)
 
-	firewallRule, err := createFirewallRule(ctx, cred)
+	firewallRule, err := createFirewallRule(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,7 +77,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -62,11 +85,7 @@ func main() {
 	}
 }
 
-func createServer(ctx context.Context, cred azcore.TokenCredential) (*armpostgresql.Server, error) {
-	serversClient, err := armpostgresql.NewServersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createServer(ctx context.Context) (*armpostgresql.Server, error) {
 
 	pollerResp, err := serversClient.BeginCreate(
 		ctx,
@@ -98,11 +117,7 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armpostgre
 	return &resp.Server, nil
 }
 
-func createFirewallRule(ctx context.Context, cred azcore.TokenCredential) (*armpostgresql.FirewallRule, error) {
-	firewallRulesClient, err := armpostgresql.NewFirewallRulesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createFirewallRule(ctx context.Context) (*armpostgresql.FirewallRule, error) {
 
 	pollerResp, err := firewallRulesClient.BeginCreateOrUpdate(
 		ctx,
@@ -127,11 +142,7 @@ func createFirewallRule(ctx context.Context, cred azcore.TokenCredential) (*armp
 	return &resp.FirewallRule, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -146,11 +157,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

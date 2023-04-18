@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/monitor/armmonitor"
@@ -21,6 +20,16 @@ var (
 	activityLogAlertName = "sample-activity-log-alert"
 )
 
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	monitorClientFactory   *armmonitor.ClientFactory
+)
+
+var (
+	resourceGroupClient     *armresources.ResourceGroupsClient
+	activityLogAlertsClient *armmonitor.ActivityLogAlertsClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -33,19 +42,31 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	monitorClientFactory, err = armmonitor.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	activityLogAlertsClient = monitorClientFactory.NewActivityLogAlertsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	activityLogAlert, err := createActivityLogAlert(ctx, cred)
+	activityLogAlert, err := createActivityLogAlert(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("activity log alert:", *activityLogAlert.ID)
 
-	activityLogAlert, err = getActivityLogAlert(ctx, cred)
+	activityLogAlert, err = getActivityLogAlert(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,7 +74,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -61,13 +82,9 @@ func main() {
 	}
 }
 
-func createActivityLogAlert(ctx context.Context, cred azcore.TokenCredential) (*armmonitor.ActivityLogAlertResource, error) {
-	activityLogAlert, err := armmonitor.NewActivityLogAlertsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createActivityLogAlert(ctx context.Context) (*armmonitor.ActivityLogAlertResource, error) {
 
-	resp, err := activityLogAlert.CreateOrUpdate(
+	resp, err := activityLogAlertsClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		activityLogAlertName,
@@ -104,24 +121,16 @@ func createActivityLogAlert(ctx context.Context, cred azcore.TokenCredential) (*
 	return &resp.ActivityLogAlertResource, nil
 }
 
-func getActivityLogAlert(ctx context.Context, cred azcore.TokenCredential) (*armmonitor.ActivityLogAlertResource, error) {
-	activityLogAlert, err := armmonitor.NewActivityLogAlertsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getActivityLogAlert(ctx context.Context) (*armmonitor.ActivityLogAlertResource, error) {
 
-	resp, err := activityLogAlert.Get(ctx, resourceGroupName, activityLogAlertName, nil)
+	resp, err := activityLogAlertsClient.Get(ctx, resourceGroupName, activityLogAlertName, nil)
 	if err != nil {
 		return nil, err
 	}
 	return &resp.ActivityLogAlertResource, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -136,11 +145,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

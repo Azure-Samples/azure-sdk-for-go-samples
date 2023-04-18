@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/operationalinsights/armoperationalinsights"
@@ -21,6 +20,17 @@ var (
 	workspaceName     = "sample-workspace"
 )
 
+var (
+	resourcesClientFactory           *armresources.ClientFactory
+	operationalinsightsClientFactory *armoperationalinsights.ClientFactory
+)
+
+var (
+	resourceGroupClient  *armresources.ResourceGroupsClient
+	workspacesClient     *armoperationalinsights.WorkspacesClient
+	workspacePurgeClient *armoperationalinsights.WorkspacePurgeClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -33,25 +43,38 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	operationalinsightsClientFactory, err = armoperationalinsights.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	workspacesClient = operationalinsightsClientFactory.NewWorkspacesClient()
+	workspacePurgeClient = operationalinsightsClientFactory.NewWorkspacePurgeClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	workspace, err := createWorkspace(ctx, cred)
+	workspace, err := createWorkspace(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("operational insights workspace:", *workspace.ID)
 
-	purge, err := purgeWorkspace(ctx, cred)
+	purge, err := purgeWorkspace(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("purge workspace:", *purge.OperationID, *purge.XMSStatusLocation)
 
-	purgeStatus, err := purgeStatusWorkspace(ctx, cred, *purge.OperationID)
+	purgeStatus, err := purgeStatusWorkspace(ctx, *purge.OperationID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,7 +82,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -67,11 +90,7 @@ func main() {
 	}
 }
 
-func createWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armoperationalinsights.Workspace, error) {
-	workspacesClient, err := armoperationalinsights.NewWorkspacesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createWorkspace(ctx context.Context) (*armoperationalinsights.Workspace, error) {
 
 	pollerResp, err := workspacesClient.BeginCreateOrUpdate(
 		ctx,
@@ -93,11 +112,7 @@ func createWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armoper
 	return &resp.Workspace, nil
 }
 
-func purgeWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armoperationalinsights.WorkspacePurgeClientPurgeResponse, error) {
-	workspacePurgeClient, err := armoperationalinsights.NewWorkspacePurgeClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func purgeWorkspace(ctx context.Context) (*armoperationalinsights.WorkspacePurgeClientPurgeResponse, error) {
 
 	resp, err := workspacePurgeClient.Purge(
 		ctx,
@@ -115,11 +130,7 @@ func purgeWorkspace(ctx context.Context, cred azcore.TokenCredential) (*armopera
 	return &resp, nil
 }
 
-func purgeStatusWorkspace(ctx context.Context, cred azcore.TokenCredential, purgeID string) (*armoperationalinsights.WorkspacePurgeStatusResponse, error) {
-	workspacePurgeClient, err := armoperationalinsights.NewWorkspacePurgeClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func purgeStatusWorkspace(ctx context.Context, purgeID string) (*armoperationalinsights.WorkspacePurgeStatusResponse, error) {
 
 	resp, err := workspacePurgeClient.GetPurgeStatus(ctx, resourceGroupName, workspaceName, purgeID, nil)
 	if err != nil {
@@ -128,11 +139,7 @@ func purgeStatusWorkspace(ctx context.Context, cred azcore.TokenCredential, purg
 	return &resp.WorkspacePurgeStatusResponse, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -147,11 +154,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

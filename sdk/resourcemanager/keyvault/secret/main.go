@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/keyvault/armkeyvault"
@@ -21,6 +20,17 @@ var (
 	resourceGroupName = "sample-resource-group"
 	vaultName         = "sample2vault"
 	secretName        = "sample2secret"
+)
+
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	keyvaultClientFactory  *armkeyvault.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	vaultsClient        *armkeyvault.VaultsClient
+	secretsClient       *armkeyvault.SecretsClient
 )
 
 func main() {
@@ -40,19 +50,32 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	keyvaultClientFactory, err = armkeyvault.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	vaultsClient = keyvaultClientFactory.NewVaultsClient()
+	secretsClient = keyvaultClientFactory.NewSecretsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	vault, err := createVault(ctx, cred)
+	vault, err := createVault(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("vault:", *vault.ID)
 
-	secret, err := createSecret(ctx, cred)
+	secret, err := createSecret(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,7 +83,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -68,11 +91,7 @@ func main() {
 	}
 }
 
-func createVault(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Vault, error) {
-	vaultsClient, err := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createVault(ctx context.Context) (*armkeyvault.Vault, error) {
 
 	pollerResp, err := vaultsClient.BeginCreateOrUpdate(
 		ctx,
@@ -102,11 +121,7 @@ func createVault(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault
 	return &resp.Vault, nil
 }
 
-func createSecret(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Secret, error) {
-	secretsClient, err := armkeyvault.NewSecretsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createSecret(ctx context.Context) (*armkeyvault.Secret, error) {
 
 	secretResp, err := secretsClient.CreateOrUpdate(
 		ctx,
@@ -130,11 +145,7 @@ func createSecret(ctx context.Context, cred azcore.TokenCredential) (*armkeyvaul
 	return &secretResp.Secret, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -149,11 +160,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

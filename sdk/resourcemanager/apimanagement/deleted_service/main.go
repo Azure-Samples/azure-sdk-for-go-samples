@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/apimanagement/armapimanagement"
@@ -21,6 +20,17 @@ var (
 	serviceName       = "sample-api-service"
 )
 
+var (
+	apimanagementClientFactory *armapimanagement.ClientFactory
+	resourcesClientFactory     *armresources.ClientFactory
+)
+
+var (
+	resourceGroupClient   *armresources.ResourceGroupsClient
+	serviceClient         *armapimanagement.ServiceClient
+	deletedServicesClient *armapimanagement.DeletedServicesClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -34,35 +44,48 @@ func main() {
 
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	apimanagementClientFactory, err = armapimanagement.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serviceClient = apimanagementClientFactory.NewServiceClient()
+	deletedServicesClient = apimanagementClientFactory.NewDeletedServicesClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
 	//create api service
-	apiManagementService, err := createApiManagementService(ctx, cred)
+	apiManagementService, err := createApiManagementService(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("api management service:", *apiManagementService.ID)
 
 	// soft-delete api service
-	_, err = deleteApiManagementService(ctx, cred)
+	_, err = deleteApiManagementService(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("deleted api management service.")
 
 	// delete api service
-	resp, err := deleteService(ctx, cred)
+	resp, err := deleteService(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("delete service:", *resp.ID)
 
 	// again create api service
-	apiManagementService, err = createApiManagementService(ctx, cred)
+	apiManagementService, err = createApiManagementService(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -70,7 +93,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -78,11 +101,7 @@ func main() {
 	}
 }
 
-func deleteService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.DeletedServicesClientPurgeResponse, error) {
-	deletedServicesClient, err := armapimanagement.NewDeletedServicesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func deleteService(ctx context.Context) (*armapimanagement.DeletedServicesClientPurgeResponse, error) {
 
 	pollerResp, err := deletedServicesClient.BeginPurge(ctx, serviceName, location, nil)
 	if err != nil {
@@ -95,13 +114,9 @@ func deleteService(ctx context.Context, cred azcore.TokenCredential) (*armapiman
 	return &resp, nil
 }
 
-func createApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceResource, error) {
-	apiManagementServiceClient, err := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createApiManagementService(ctx context.Context) (*armapimanagement.ServiceResource, error) {
 
-	pollerResp, err := apiManagementServiceClient.BeginCreateOrUpdate(
+	pollerResp, err := serviceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		serviceName,
@@ -128,13 +143,9 @@ func createApiManagementService(ctx context.Context, cred azcore.TokenCredential
 	return &resp.ServiceResource, nil
 }
 
-func deleteApiManagementService(ctx context.Context, cred azcore.TokenCredential) (*armapimanagement.ServiceResource, error) {
-	apiManagementServiceClient, err := armapimanagement.NewServiceClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func deleteApiManagementService(ctx context.Context) (*armapimanagement.ServiceResource, error) {
 
-	pollerResp, err := apiManagementServiceClient.BeginDelete(ctx, resourceGroupName, serviceName, nil)
+	pollerResp, err := serviceClient.BeginDelete(ctx, resourceGroupName, serviceName, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -145,11 +156,7 @@ func deleteApiManagementService(ctx context.Context, cred azcore.TokenCredential
 	return &resp.ServiceResource, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -164,11 +171,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

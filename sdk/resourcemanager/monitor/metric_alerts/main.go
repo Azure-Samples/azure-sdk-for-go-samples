@@ -5,12 +5,11 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v4"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/monitor/armmonitor"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"log"
 	"os"
@@ -28,6 +27,22 @@ var (
 	metricAlertName      = "sample-metric-alert"
 )
 
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	computeClientFactory   *armcompute.ClientFactory
+	networkClientFactory   *armnetwork.ClientFactory
+	monitorClientFactory   *armmonitor.ClientFactory
+)
+
+var (
+	resourceGroupClient   *armresources.ResourceGroupsClient
+	virtualNetworksClient *armnetwork.VirtualNetworksClient
+	subnetsClient         *armnetwork.SubnetsClient
+	interfacesClient      *armnetwork.InterfacesClient
+	virtualMachinesClient *armcompute.VirtualMachinesClient
+	metricAlertsClient    *armmonitor.MetricAlertsClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -40,37 +55,63 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	networkClientFactory, err = armnetwork.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	virtualNetworksClient = networkClientFactory.NewVirtualNetworksClient()
+	subnetsClient = networkClientFactory.NewSubnetsClient()
+	interfacesClient = networkClientFactory.NewInterfacesClient()
+
+	computeClientFactory, err = armcompute.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	virtualMachinesClient = computeClientFactory.NewVirtualMachinesClient()
+
+	monitorClientFactory, err = armmonitor.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	metricAlertsClient = monitorClientFactory.NewMetricAlertsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	virtualNetwork, err := createVirtualNetwork(ctx, cred)
+	virtualNetwork, err := createVirtualNetwork(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("virtual network:", *virtualNetwork.ID)
 
-	subnet, err := createSubnet(ctx, cred)
+	subnet, err := createSubnet(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("subnet:", *subnet.ID)
 
-	nic, err := createNIC(ctx, cred, *subnet.ID)
+	nic, err := createNIC(ctx, *subnet.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("network interface:", *nic.ID)
 
-	virtualMachine, err := createVirtualMachine(ctx, cred, *nic.ID)
+	virtualMachine, err := createVirtualMachine(ctx, *nic.ID)
 	if err != nil {
 		log.Fatalf("cannot create virual machine:%+v", err)
 	}
 	log.Printf("virual machine: %s", *virtualMachine.ID)
 
-	metricAlert, err := createMetricAlerts(ctx, cred, *virtualMachine.ID)
+	metricAlert, err := createMetricAlerts(ctx, *virtualMachine.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -78,7 +119,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -86,13 +127,9 @@ func main() {
 	}
 }
 
-func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.VirtualNetwork, error) {
-	virtualNetworkClient, err := armnetwork.NewVirtualNetworksClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createVirtualNetwork(ctx context.Context) (*armnetwork.VirtualNetwork, error) {
 
-	pollerResp, err := virtualNetworkClient.BeginCreateOrUpdate(
+	pollerResp, err := virtualNetworksClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		virtualNetworkName,
@@ -119,11 +156,7 @@ func createVirtualNetwork(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.VirtualNetwork, nil
 }
 
-func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.Subnet, error) {
-	subnetsClient, err := armnetwork.NewSubnetsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createSubnet(ctx context.Context) (*armnetwork.Subnet, error) {
 
 	pollerResp, err := subnetsClient.BeginCreateOrUpdate(
 		ctx,
@@ -148,13 +181,9 @@ func createSubnet(ctx context.Context, cred azcore.TokenCredential) (*armnetwork
 	return &resp.Subnet, nil
 }
 
-func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID string) (*armnetwork.Interface, error) {
-	nicClient, err := armnetwork.NewInterfacesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createNIC(ctx context.Context, subnetID string) (*armnetwork.Interface, error) {
 
-	pollerResp, err := nicClient.BeginCreateOrUpdate(
+	pollerResp, err := interfacesClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		networkInterfaceName,
@@ -187,11 +216,7 @@ func createNIC(ctx context.Context, cred azcore.TokenCredential, subnetID string
 	return &resp.Interface, nil
 }
 
-func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, networkInterfaceID string) (*armcompute.VirtualMachine, error) {
-	vmClient, err := armcompute.NewVirtualMachinesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createVirtualMachine(ctx context.Context, networkInterfaceID string) (*armcompute.VirtualMachine, error) {
 
 	parameters := armcompute.VirtualMachine{
 		Location: to.Ptr(location),
@@ -238,7 +263,7 @@ func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, netw
 		},
 	}
 
-	pollerResponse, err := vmClient.BeginCreateOrUpdate(ctx, resourceGroupName, virtualMachineName, parameters, nil)
+	pollerResponse, err := virtualMachinesClient.BeginCreateOrUpdate(ctx, resourceGroupName, virtualMachineName, parameters, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -251,11 +276,7 @@ func createVirtualMachine(ctx context.Context, cred azcore.TokenCredential, netw
 	return &resp.VirtualMachine, nil
 }
 
-func createMetricAlerts(ctx context.Context, cred azcore.TokenCredential, resourceURI string) (*armmonitor.MetricAlertResource, error) {
-	metricAlertsClient, err := armmonitor.NewMetricAlertsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createMetricAlerts(ctx context.Context, resourceURI string) (*armmonitor.MetricAlertResource, error) {
 
 	resp, err := metricAlertsClient.CreateOrUpdate(
 		ctx,
@@ -305,11 +326,7 @@ func createMetricAlerts(ctx context.Context, cred azcore.TokenCredential, resour
 	return &resp.MetricAlertResource, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -324,11 +341,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

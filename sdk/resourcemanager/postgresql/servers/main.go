@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/postgresql/armpostgresql"
@@ -21,6 +20,17 @@ var (
 	serverName        = "sample2server"
 )
 
+var (
+	resourcesClientFactory  *armresources.ClientFactory
+	postgresqlClientFactory *armpostgresql.ClientFactory
+)
+
+var (
+	resourceGroupClient         *armresources.ResourceGroupsClient
+	checkNameAvailabilityClient *armpostgresql.CheckNameAvailabilityClient
+	serversClient               *armpostgresql.ServersClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -33,37 +43,50 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	postgresqlClientFactory, err = armpostgresql.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	checkNameAvailabilityClient = postgresqlClientFactory.NewCheckNameAvailabilityClient()
+	serversClient = postgresqlClientFactory.NewServersClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	availability, err := checkNameAvailability(ctx, cred, serverName)
+	availability, err := checkNameAvailability(ctx, serverName)
 	if err != nil {
 		log.Println(err)
 	}
 	log.Println("check name availability:", *availability.NameAvailable)
 
-	server, err := createServer(ctx, cred)
+	server, err := createServer(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("postgresql server:", *server.ID)
 
-	server, err = updateServer(ctx, cred)
+	server, err = updateServer(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("postgresql update server:", *server.ID)
 
-	err = restartServer(ctx, cred)
+	err = restartServer(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("postgresql restart server")
 
-	server, err = getServer(ctx, cred)
+	server, err = getServer(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,7 +94,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -79,11 +102,7 @@ func main() {
 	}
 }
 
-func checkNameAvailability(ctx context.Context, cred azcore.TokenCredential, checkName string) (*armpostgresql.NameAvailability, error) {
-	checkNameAvailabilityClient, err := armpostgresql.NewCheckNameAvailabilityClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func checkNameAvailability(ctx context.Context, checkName string) (*armpostgresql.NameAvailability, error) {
 
 	resp, err := checkNameAvailabilityClient.Execute(
 		ctx,
@@ -98,11 +117,7 @@ func checkNameAvailability(ctx context.Context, cred azcore.TokenCredential, che
 	return &resp.NameAvailability, nil
 }
 
-func createServer(ctx context.Context, cred azcore.TokenCredential) (*armpostgresql.Server, error) {
-	serversClient, err := armpostgresql.NewServersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createServer(ctx context.Context) (*armpostgresql.Server, error) {
 
 	pollerResp, err := serversClient.BeginCreate(
 		ctx,
@@ -130,11 +145,7 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armpostgre
 	return &resp.Server, nil
 }
 
-func updateServer(ctx context.Context, cred azcore.TokenCredential) (*armpostgresql.Server, error) {
-	serversClient, err := armpostgresql.NewServersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func updateServer(ctx context.Context) (*armpostgresql.Server, error) {
 
 	pollerResp, err := serversClient.BeginUpdate(
 		ctx,
@@ -157,11 +168,7 @@ func updateServer(ctx context.Context, cred azcore.TokenCredential) (*armpostgre
 	return &resp.Server, nil
 }
 
-func restartServer(ctx context.Context, cred azcore.TokenCredential) error {
-	serversClient, err := armpostgresql.NewServersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func restartServer(ctx context.Context) error {
 
 	pollerResp, err := serversClient.BeginRestart(ctx, resourceGroupName, serverName, nil)
 	if err != nil {
@@ -174,11 +181,7 @@ func restartServer(ctx context.Context, cred azcore.TokenCredential) error {
 	return nil
 }
 
-func getServer(ctx context.Context, cred azcore.TokenCredential) (*armpostgresql.Server, error) {
-	serversClient, err := armpostgresql.NewServersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getServer(ctx context.Context) (*armpostgresql.Server, error) {
 
 	resp, err := serversClient.Get(ctx, resourceGroupName, serverName, nil)
 	if err != nil {
@@ -187,11 +190,7 @@ func getServer(ctx context.Context, cred azcore.TokenCredential) (*armpostgresql
 	return &resp.Server, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -206,11 +205,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

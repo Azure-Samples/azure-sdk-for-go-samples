@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/automation/armautomation"
@@ -24,6 +23,18 @@ var (
 	jobName               = "sample-automation-job"
 )
 
+var (
+	resourcesClientFactory  *armresources.ClientFactory
+	automationClientFactory *armautomation.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	accountClient       *armautomation.AccountClient
+	runbookClient       *armautomation.RunbookClient
+	jobClient           *armautomation.JobClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -36,43 +47,57 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	automationClientFactory, err = armautomation.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	accountClient = automationClientFactory.NewAccountClient()
+	runbookClient = automationClientFactory.NewRunbookClient()
+	jobClient = automationClientFactory.NewJobClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	account, err := createAutomationAccount(ctx, cred)
+	account, err := createAutomationAccount(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("automation account:", *account.ID)
 
-	runbook, err := createAutomationRunbook(ctx, cred)
+	runbook, err := createAutomationRunbook(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("automation runbook:", *runbook.ID)
 
-	job, err := createAutomationJob(ctx, cred)
+	job, err := createAutomationJob(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("automation job:", *job.ID)
 
-	job, err = getAutomationJob(ctx, cred)
+	job, err = getAutomationJob(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get automation job:", *job.ID)
 
-	jobOutput, err := getJobOutput(ctx, cred)
+	jobOutput, err := getJobOutput(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get automation job output:", jobOutput)
 
-	runbookContent, err := getRunbookContent(ctx, cred)
+	runbookContent, err := getRunbookContent(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -80,7 +105,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -88,11 +113,7 @@ func main() {
 	}
 }
 
-func createAutomationAccount(ctx context.Context, cred azcore.TokenCredential) (*armautomation.Account, error) {
-	accountClient, err := armautomation.NewAccountClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createAutomationAccount(ctx context.Context) (*armautomation.Account, error) {
 
 	resp, err := accountClient.CreateOrUpdate(
 		ctx,
@@ -116,13 +137,9 @@ func createAutomationAccount(ctx context.Context, cred azcore.TokenCredential) (
 	return &resp.Account, nil
 }
 
-func createAutomationRunbook(ctx context.Context, cred azcore.TokenCredential) (*armautomation.Runbook, error) {
-	runBookClient, err := armautomation.NewRunbookClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createAutomationRunbook(ctx context.Context) (*armautomation.Runbook, error) {
 
-	resp, err := runBookClient.CreateOrUpdate(
+	resp, err := runbookClient.CreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		automationAccountName,
@@ -153,11 +170,7 @@ func createAutomationRunbook(ctx context.Context, cred azcore.TokenCredential) (
 	return &resp.Runbook, nil
 }
 
-func createAutomationJob(ctx context.Context, cred azcore.TokenCredential) (*armautomation.Job, error) {
-	jobClient, err := armautomation.NewJobClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createAutomationJob(ctx context.Context) (*armautomation.Job, error) {
 
 	resp, err := jobClient.Create(
 		ctx,
@@ -184,11 +197,7 @@ func createAutomationJob(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resp.Job, nil
 }
 
-func getAutomationJob(ctx context.Context, cred azcore.TokenCredential) (*armautomation.Job, error) {
-	jobClient, err := armautomation.NewJobClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getAutomationJob(ctx context.Context) (*armautomation.Job, error) {
 
 	resp, err := jobClient.Get(ctx, resourceGroupName, automationAccountName, jobName, nil)
 	if err != nil {
@@ -198,11 +207,7 @@ func getAutomationJob(ctx context.Context, cred azcore.TokenCredential) (*armaut
 	return &resp.Job, nil
 }
 
-func getJobOutput(ctx context.Context, cred azcore.TokenCredential) (string, error) {
-	jobClient, err := armautomation.NewJobClient(subscriptionID, cred, nil)
-	if err != nil {
-		return "", err
-	}
+func getJobOutput(ctx context.Context) (string, error) {
 
 	resp, err := jobClient.GetOutput(ctx, resourceGroupName, automationAccountName, jobName, nil)
 	if err != nil {
@@ -212,11 +217,7 @@ func getJobOutput(ctx context.Context, cred azcore.TokenCredential) (string, err
 	return *resp.Value, nil
 }
 
-func getRunbookContent(ctx context.Context, cred azcore.TokenCredential) (string, error) {
-	jobClient, err := armautomation.NewJobClient(subscriptionID, cred, nil)
-	if err != nil {
-		return "", err
-	}
+func getRunbookContent(ctx context.Context) (string, error) {
 
 	resp, err := jobClient.GetRunbookContent(ctx, resourceGroupName, automationAccountName, jobName, nil)
 	if err != nil {
@@ -226,11 +227,7 @@ func getRunbookContent(ctx context.Context, cred azcore.TokenCredential) (string
 	return *resp.Value, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -246,11 +243,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

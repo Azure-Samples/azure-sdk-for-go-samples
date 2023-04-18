@@ -11,7 +11,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/iothub/armiothub"
@@ -23,6 +22,16 @@ var (
 	location          = "eastus"
 	resourceGroupName = "sample-resource-group"
 	iotHubName        = "sample-iothub"
+)
+
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	iothubClientFactory    *armiothub.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	resourceClient      *armiothub.ResourceClient
 )
 
 func main() {
@@ -37,36 +46,48 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	iothubClientFactory, err = armiothub.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceClient = iothubClientFactory.NewResourceClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	iothubResource, err := createIotHubResource(ctx, cred)
+	iothubResource, err := createIotHubResource(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("iothub resource:", *iothubResource.ID)
 
-	iothubResource, err = getIotHubResource(ctx, cred)
+	iothubResource, err = getIotHubResource(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get iothub resource:", *iothubResource.ID)
 
-	iothubStats, err := getIotHubStats(ctx, cred)
+	iothubStats, err := getIotHubStats(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Printf("get iothub resource stats:%v\n", *iothubStats)
 
-	endpointHealths := getIotHubEndpointHealth(ctx, cred)
+	endpointHealths := getIotHubEndpointHealth(ctx)
 	log.Println("get iothub resource endpoint health:", endpointHealths)
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -74,13 +95,9 @@ func main() {
 	}
 }
 
-func createIotHubResource(ctx context.Context, cred azcore.TokenCredential) (*armiothub.Description, error) {
-	iotHubResourceClient, err := armiothub.NewResourceClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createIotHubResource(ctx context.Context) (*armiothub.Description, error) {
 
-	pollerResp, err := iotHubResourceClient.BeginCreateOrUpdate(
+	pollerResp, err := resourceClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		iotHubName,
@@ -136,13 +153,9 @@ func createIotHubResource(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.Description, nil
 }
 
-func getIotHubResource(ctx context.Context, cred azcore.TokenCredential) (*armiothub.Description, error) {
-	iotHubResourceClient, err := armiothub.NewResourceClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getIotHubResource(ctx context.Context) (*armiothub.Description, error) {
 
-	resp, err := iotHubResourceClient.Get(ctx, resourceGroupName, iotHubName, nil)
+	resp, err := resourceClient.Get(ctx, resourceGroupName, iotHubName, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -150,13 +163,9 @@ func getIotHubResource(ctx context.Context, cred azcore.TokenCredential) (*armio
 	return &resp.Description, nil
 }
 
-func getIotHubEndpointHealth(ctx context.Context, cred azcore.TokenCredential) []*armiothub.EndpointHealthData {
-	iotHubResourceClient, err := armiothub.NewResourceClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil
-	}
+func getIotHubEndpointHealth(ctx context.Context) []*armiothub.EndpointHealthData {
 
-	pager := iotHubResourceClient.NewGetEndpointHealthPager(resourceGroupName, iotHubName, nil)
+	pager := resourceClient.NewGetEndpointHealthPager(resourceGroupName, iotHubName, nil)
 	results := make([]*armiothub.EndpointHealthData, 0)
 	for pager.More() {
 		resp, err := pager.NextPage(ctx)
@@ -169,13 +178,9 @@ func getIotHubEndpointHealth(ctx context.Context, cred azcore.TokenCredential) [
 	return results
 }
 
-func getIotHubStats(ctx context.Context, cred azcore.TokenCredential) (*armiothub.RegistryStatistics, error) {
-	iotHubResourceClient, err := armiothub.NewResourceClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getIotHubStats(ctx context.Context) (*armiothub.RegistryStatistics, error) {
 
-	resp, err := iotHubResourceClient.GetStats(ctx, resourceGroupName, iotHubName, nil)
+	resp, err := resourceClient.GetStats(ctx, resourceGroupName, iotHubName, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -183,11 +188,7 @@ func getIotHubStats(ctx context.Context, cred azcore.TokenCredential) (*armiothu
 	return &resp.RegistryStatistics, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -203,11 +204,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

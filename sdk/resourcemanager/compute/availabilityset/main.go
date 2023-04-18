@@ -5,10 +5,9 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v4"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"log"
 	"os"
@@ -19,6 +18,16 @@ var (
 	location            = "westus"
 	resourceGroupName   = "sample-resource-group"
 	availabilitySetName = "sample-availability-sets"
+)
+
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	computeClientFactory   *armcompute.ClientFactory
+)
+
+var (
+	resourceGroupClient    *armresources.ResourceGroupsClient
+	availabilitySetsClient *armcompute.AvailabilitySetsClient
 )
 
 func main() {
@@ -33,19 +42,31 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	computeClientFactory, err = armcompute.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	availabilitySetsClient = computeClientFactory.NewAvailabilitySetsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	availabilitySets, err := createAvailabilitySet(ctx, cred)
+	availabilitySets, err := createAvailabilitySet(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("availability set:", *availabilitySets.ID)
 
-	availabilitySetList, err := listAvailabilitySet(ctx, cred)
+	availabilitySetList, err := listAvailabilitySet(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,7 +74,7 @@ func main() {
 		log.Println(i, *v.ID)
 	}
 
-	availabilitySetSizesList, err := listAvailabilitySizes(ctx, cred)
+	availabilitySetSizesList, err := listAvailabilitySizes(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -63,7 +84,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err := cleanup(ctx, cred)
+		err := cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -71,11 +92,7 @@ func main() {
 	}
 }
 
-func createAvailabilitySet(ctx context.Context, cred azcore.TokenCredential) (*armcompute.AvailabilitySet, error) {
-	availabilitySetsClient, err := armcompute.NewAvailabilitySetsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createAvailabilitySet(ctx context.Context) (*armcompute.AvailabilitySet, error) {
 
 	resp, err := availabilitySetsClient.CreateOrUpdate(
 		ctx,
@@ -100,11 +117,7 @@ func createAvailabilitySet(ctx context.Context, cred azcore.TokenCredential) (*a
 	return &resp.AvailabilitySet, nil
 }
 
-func listAvailabilitySet(ctx context.Context, cred azcore.TokenCredential) ([]*armcompute.AvailabilitySet, error) {
-	availabilitySetsClient, err := armcompute.NewAvailabilitySetsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func listAvailabilitySet(ctx context.Context) ([]*armcompute.AvailabilitySet, error) {
 
 	pager := availabilitySetsClient.NewListPager(resourceGroupName, nil)
 	availabilitySets := make([]*armcompute.AvailabilitySet, 0)
@@ -119,11 +132,7 @@ func listAvailabilitySet(ctx context.Context, cred azcore.TokenCredential) ([]*a
 	return availabilitySets, nil
 }
 
-func listAvailabilitySizes(ctx context.Context, cred azcore.TokenCredential) ([]*armcompute.VirtualMachineSize, error) {
-	availabilitySetsClient, err := armcompute.NewAvailabilitySetsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func listAvailabilitySizes(ctx context.Context) ([]*armcompute.VirtualMachineSize, error) {
 
 	pager := availabilitySetsClient.NewListAvailableSizesPager(resourceGroupName, availabilitySetName, nil)
 	availabilitySizes := make([]*armcompute.VirtualMachineSize, 0)
@@ -138,11 +147,7 @@ func listAvailabilitySizes(ctx context.Context, cred azcore.TokenCredential) ([]
 	return availabilitySizes, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -157,11 +162,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

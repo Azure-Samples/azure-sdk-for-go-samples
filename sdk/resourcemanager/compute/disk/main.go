@@ -5,10 +5,9 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v4"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/keyvault/armkeyvault"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"log"
@@ -24,6 +23,20 @@ var (
 	vaultName             = "sample2vault"
 	keyName               = "sample2key"
 	diskEncryptionSetName = "sample-disk-encryption"
+)
+
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	keyvaultClientFactory  *armkeyvault.ClientFactory
+	computeClientFactory   *armcompute.ClientFactory
+)
+
+var (
+	resourceGroupClient      *armresources.ResourceGroupsClient
+	vaultsClient             *armkeyvault.VaultsClient
+	keysClient               *armkeyvault.KeysClient
+	disksClient              *armcompute.DisksClient
+	diskEncryptionSetsClient *armcompute.DiskEncryptionSetsClient
 )
 
 func main() {
@@ -43,31 +56,51 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	keyvaultClientFactory, err = armkeyvault.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	vaultsClient = keyvaultClientFactory.NewVaultsClient()
+	keysClient = keyvaultClientFactory.NewKeysClient()
+
+	computeClientFactory, err = armcompute.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	disksClient = computeClientFactory.NewDisksClient()
+	diskEncryptionSetsClient = computeClientFactory.NewDiskEncryptionSetsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	vault, err := createVault(ctx, cred)
+	vault, err := createVault(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("vault:", *vault.ID)
 
-	key, err := createKey(ctx, cred)
+	key, err := createKey(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("key:", *key.ID)
 
-	disk, err := createDisk(ctx, cred)
+	disk, err := createDisk(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("virtual disk:", *disk.ID)
 
-	diskEncryptionSet, err := diskEncryptionSets(ctx, cred, *vault.ID, *key.Properties.KeyURIWithVersion)
+	diskEncryptionSet, err := diskEncryptionSets(ctx, *vault.ID, *key.Properties.KeyURIWithVersion)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -75,7 +108,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err := cleanup(ctx, cred)
+		err := cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -83,11 +116,7 @@ func main() {
 	}
 }
 
-func createDisk(ctx context.Context, cred azcore.TokenCredential) (*armcompute.Disk, error) {
-	disksClient, err := armcompute.NewDisksClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createDisk(ctx context.Context) (*armcompute.Disk, error) {
 
 	pollerResp, err := disksClient.BeginCreateOrUpdate(
 		ctx,
@@ -119,11 +148,7 @@ func createDisk(ctx context.Context, cred azcore.TokenCredential) (*armcompute.D
 	return &resp.Disk, nil
 }
 
-func createVault(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Vault, error) {
-	vaultsClient, err := armkeyvault.NewVaultsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createVault(ctx context.Context) (*armkeyvault.Vault, error) {
 
 	pollerResp, err := vaultsClient.BeginCreateOrUpdate(
 		ctx,
@@ -173,11 +198,7 @@ func createVault(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault
 	}
 	return &resp.Vault, nil
 }
-func createKey(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.Key, error) {
-	keysClient, err := armkeyvault.NewKeysClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createKey(ctx context.Context) (*armkeyvault.Key, error) {
 
 	secretResp, err := keysClient.CreateIfNotExist(
 		ctx,
@@ -206,11 +227,7 @@ func createKey(ctx context.Context, cred azcore.TokenCredential) (*armkeyvault.K
 	return &secretResp.Key, nil
 }
 
-func diskEncryptionSets(ctx context.Context, cred azcore.TokenCredential, vaultID, keyURL string) (*armcompute.DiskEncryptionSet, error) {
-	diskEncryptionSetsClient, err := armcompute.NewDiskEncryptionSetsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func diskEncryptionSets(ctx context.Context, vaultID, keyURL string) (*armcompute.DiskEncryptionSet, error) {
 
 	pollerResp, err := diskEncryptionSetsClient.BeginCreateOrUpdate(
 		ctx,
@@ -244,11 +261,7 @@ func diskEncryptionSets(ctx context.Context, cred azcore.TokenCredential, vaultI
 	return &resp.DiskEncryptionSet, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -263,11 +276,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

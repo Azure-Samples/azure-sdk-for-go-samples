@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
@@ -22,6 +21,16 @@ var (
 	storageAccountName = "sample2storage2account"
 )
 
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	storageClientFactory   *armstorage.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	accountsClient      *armstorage.AccountsClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -34,13 +43,25 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	storageClientFactory, err = armstorage.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	accountsClient = storageClientFactory.NewAccountsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	availability, err := checkNameAvailability(ctx, cred)
+	availability, err := checkNameAvailability(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -48,19 +69,19 @@ func main() {
 		log.Fatal(*availability.Message)
 	}
 
-	storageAccount, err := createStorageAccount(ctx, cred)
+	storageAccount, err := createStorageAccount(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("storage account:", *storageAccount.ID)
 
-	properties, err := storageAccountProperties(ctx, cred)
+	properties, err := storageAccountProperties(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println(*properties.ID)
 
-	listByResourceGroup, err := listByResourceGroupStorageAccount(ctx, cred)
+	listByResourceGroup, err := listByResourceGroupStorageAccount(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,7 +89,7 @@ func main() {
 		log.Println(*sa.ID)
 	}
 
-	list, err := listStorageAccount(ctx, cred)
+	list, err := listStorageAccount(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -77,7 +98,7 @@ func main() {
 		log.Println("\t" + *sa.ID)
 	}
 
-	keys, err := regenerateKeyStorageAccount(ctx, cred)
+	keys, err := regenerateKeyStorageAccount(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -87,7 +108,7 @@ func main() {
 		}
 	}
 
-	keys2, err := listKeysStorageAccount(ctx, cred)
+	keys2, err := listKeysStorageAccount(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -96,7 +117,7 @@ func main() {
 		log.Println("\t", i, *v.KeyName, *v.Value, *v.CreationTime, *v.Permissions)
 	}
 
-	update, err := updateStorageAccount(ctx, cred)
+	update, err := updateStorageAccount(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -104,7 +125,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -112,13 +133,9 @@ func main() {
 	}
 }
 
-func storageAccountProperties(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Account, error) {
-	storageAccountClient, err := armstorage.NewAccountsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func storageAccountProperties(ctx context.Context) (*armstorage.Account, error) {
 
-	storageAccountResponse, err := storageAccountClient.GetProperties(
+	storageAccountResponse, err := accountsClient.GetProperties(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
@@ -130,13 +147,9 @@ func storageAccountProperties(ctx context.Context, cred azcore.TokenCredential) 
 	return &storageAccountResponse.Account, nil
 }
 
-func checkNameAvailability(ctx context.Context, cred azcore.TokenCredential) (*armstorage.CheckNameAvailabilityResult, error) {
-	storageAccountClient, err := armstorage.NewAccountsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func checkNameAvailability(ctx context.Context) (*armstorage.CheckNameAvailabilityResult, error) {
 
-	result, err := storageAccountClient.CheckNameAvailability(
+	result, err := accountsClient.CheckNameAvailability(
 		ctx,
 		armstorage.AccountCheckNameAvailabilityParameters{
 			Name: to.Ptr(storageAccountName),
@@ -149,13 +162,9 @@ func checkNameAvailability(ctx context.Context, cred azcore.TokenCredential) (*a
 	return &result.CheckNameAvailabilityResult, nil
 }
 
-func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Account, error) {
-	storageAccountClient, err := armstorage.NewAccountsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createStorageAccount(ctx context.Context) (*armstorage.Account, error) {
 
-	pollerResp, err := storageAccountClient.BeginCreate(
+	pollerResp, err := accountsClient.BeginCreate(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
@@ -200,13 +209,9 @@ func createStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.Account, nil
 }
 
-func listByResourceGroupStorageAccount(ctx context.Context, cred azcore.TokenCredential) ([]*armstorage.Account, error) {
-	storageAccountClient, err := armstorage.NewAccountsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func listByResourceGroupStorageAccount(ctx context.Context) ([]*armstorage.Account, error) {
 
-	listAccounts := storageAccountClient.NewListByResourceGroupPager(resourceGroupName, nil)
+	listAccounts := accountsClient.NewListByResourceGroupPager(resourceGroupName, nil)
 
 	list := make([]*armstorage.Account, 0)
 	for listAccounts.More() {
@@ -219,13 +224,9 @@ func listByResourceGroupStorageAccount(ctx context.Context, cred azcore.TokenCre
 	return list, nil
 }
 
-func listStorageAccount(ctx context.Context, cred azcore.TokenCredential) ([]*armstorage.Account, error) {
-	storageAccountClient, err := armstorage.NewAccountsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func listStorageAccount(ctx context.Context) ([]*armstorage.Account, error) {
 
-	listAccounts := storageAccountClient.NewListPager(nil)
+	listAccounts := accountsClient.NewListPager(nil)
 
 	list := make([]*armstorage.Account, 0)
 	for listAccounts.More() {
@@ -239,13 +240,9 @@ func listStorageAccount(ctx context.Context, cred azcore.TokenCredential) ([]*ar
 	return list, nil
 }
 
-func listKeysStorageAccount(ctx context.Context, cred azcore.TokenCredential) ([]*armstorage.AccountKey, error) {
-	storageAccountClient, err := armstorage.NewAccountsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func listKeysStorageAccount(ctx context.Context) ([]*armstorage.AccountKey, error) {
 
-	listKeys, err := storageAccountClient.ListKeys(ctx, resourceGroupName, storageAccountName, nil)
+	listKeys, err := accountsClient.ListKeys(ctx, resourceGroupName, storageAccountName, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -253,13 +250,9 @@ func listKeysStorageAccount(ctx context.Context, cred azcore.TokenCredential) ([
 	return listKeys.AccountListKeysResult.Keys, nil
 }
 
-func regenerateKeyStorageAccount(ctx context.Context, cred azcore.TokenCredential) ([]*armstorage.AccountKey, error) {
-	storageAccountClient, err := armstorage.NewAccountsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func regenerateKeyStorageAccount(ctx context.Context) ([]*armstorage.AccountKey, error) {
 
-	regenerateKeyResp, err := storageAccountClient.RegenerateKey(
+	regenerateKeyResp, err := accountsClient.RegenerateKey(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
@@ -275,13 +268,9 @@ func regenerateKeyStorageAccount(ctx context.Context, cred azcore.TokenCredentia
 	return regenerateKeyResp.AccountListKeysResult.Keys, nil
 }
 
-func updateStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*armstorage.Account, error) {
-	storageAccountClient, err := armstorage.NewAccountsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func updateStorageAccount(ctx context.Context) (*armstorage.Account, error) {
 
-	updateResp, err := storageAccountClient.Update(
+	updateResp, err := accountsClient.Update(
 		ctx,
 		resourceGroupName,
 		storageAccountName,
@@ -298,11 +287,7 @@ func updateStorageAccount(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &updateResp.Account, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -317,11 +302,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

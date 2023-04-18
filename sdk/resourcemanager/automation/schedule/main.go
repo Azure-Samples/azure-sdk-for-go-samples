@@ -9,7 +9,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/automation/armautomation"
@@ -24,6 +23,17 @@ var (
 	scheduleName          = "sample-automation-schedule"
 )
 
+var (
+	resourcesClientFactory  *armresources.ClientFactory
+	automationClientFactory *armautomation.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	accountClient       *armautomation.AccountClient
+	scheduleClient      *armautomation.ScheduleClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -36,19 +46,32 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	automationClientFactory, err = armautomation.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	accountClient = automationClientFactory.NewAccountClient()
+	scheduleClient = automationClientFactory.NewScheduleClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	account, err := createAutomationAccount(ctx, cred)
+	account, err := createAutomationAccount(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("automation account:", *account.ID)
 
-	schedule, err := createAutomationSchedule(ctx, cred)
+	schedule, err := createAutomationSchedule(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,7 +79,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -64,11 +87,7 @@ func main() {
 	}
 }
 
-func createAutomationAccount(ctx context.Context, cred azcore.TokenCredential) (*armautomation.Account, error) {
-	accountClient, err := armautomation.NewAccountClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createAutomationAccount(ctx context.Context) (*armautomation.Account, error) {
 
 	resp, err := accountClient.CreateOrUpdate(
 		ctx,
@@ -92,11 +111,7 @@ func createAutomationAccount(ctx context.Context, cred azcore.TokenCredential) (
 	return &resp.Account, nil
 }
 
-func createAutomationSchedule(ctx context.Context, cred azcore.TokenCredential) (*armautomation.Schedule, error) {
-	scheduleClient, err := armautomation.NewScheduleClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createAutomationSchedule(ctx context.Context) (*armautomation.Schedule, error) {
 
 	resp, err := scheduleClient.CreateOrUpdate(
 		ctx,
@@ -122,11 +137,7 @@ func createAutomationSchedule(ctx context.Context, cred azcore.TokenCredential) 
 	return &resp.Schedule, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -142,11 +153,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

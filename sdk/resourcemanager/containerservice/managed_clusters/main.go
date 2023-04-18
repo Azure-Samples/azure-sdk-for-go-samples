@@ -5,10 +5,9 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"log"
 	"os"
@@ -21,6 +20,16 @@ var (
 	location            = "westus"
 	resourceGroupName   = "sample-resource-group"
 	managedClustersName = "sample-aks-cluster"
+)
+
+var (
+	resourcesClientFactory        *armresources.ClientFactory
+	containerserviceClientFactory *armcontainerservice.ClientFactory
+)
+
+var (
+	resourceGroupClient   *armresources.ResourceGroupsClient
+	managedClustersClient *armcontainerservice.ManagedClustersClient
 )
 
 func main() {
@@ -45,13 +54,25 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	containerserviceClientFactory, err = armcontainerservice.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	managedClustersClient = containerserviceClientFactory.NewManagedClustersClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	managedCluster, err := createManagedCluster(ctx, cred)
+	managedCluster, err := createManagedCluster(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,7 +80,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -67,11 +88,7 @@ func main() {
 	}
 }
 
-func createManagedCluster(ctx context.Context, cred azcore.TokenCredential) (*armcontainerservice.ManagedCluster, error) {
-	managedClustersClient, err := armcontainerservice.NewManagedClustersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createManagedCluster(ctx context.Context) (*armcontainerservice.ManagedCluster, error) {
 
 	pollerResp, err := managedClustersClient.BeginCreateOrUpdate(
 		ctx,
@@ -113,11 +130,7 @@ func createManagedCluster(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.ManagedCluster, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -132,11 +145,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

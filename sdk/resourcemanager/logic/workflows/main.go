@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/logic/armlogic"
@@ -20,6 +19,16 @@ var (
 	location          = "westus"
 	resourceGroupName = "sample-resource-group"
 	workflowName      = "sample-logic-workflow"
+)
+
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	logicClientFactory     *armlogic.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	workflowsClient     *armlogic.WorkflowsClient
 )
 
 func main() {
@@ -34,19 +43,31 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	logicClientFactory, err = armlogic.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	workflowsClient = logicClientFactory.NewWorkflowsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	workflow, err := createWorkflow(ctx, cred)
+	workflow, err := createWorkflow(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("logic workflows:", *workflow.ID)
 
-	workflow, err = getWorkflow(ctx, cred)
+	workflow, err = getWorkflow(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,7 +75,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -62,11 +83,7 @@ func main() {
 	}
 }
 
-func createWorkflow(ctx context.Context, cred azcore.TokenCredential) (*armlogic.Workflow, error) {
-	workflowsClient, err := armlogic.NewWorkflowsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createWorkflow(ctx context.Context) (*armlogic.Workflow, error) {
 
 	resp, err := workflowsClient.CreateOrUpdate(
 		ctx,
@@ -94,11 +111,7 @@ func createWorkflow(ctx context.Context, cred azcore.TokenCredential) (*armlogic
 	return &resp.Workflow, nil
 }
 
-func getWorkflow(ctx context.Context, cred azcore.TokenCredential) (*armlogic.Workflow, error) {
-	workflowsClient, err := armlogic.NewWorkflowsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getWorkflow(ctx context.Context) (*armlogic.Workflow, error) {
 
 	resp, err := workflowsClient.Get(ctx, resourceGroupName, workflowName, nil)
 	if err != nil {
@@ -108,11 +121,7 @@ func getWorkflow(ctx context.Context, cred azcore.TokenCredential) (*armlogic.Wo
 	return &resp.Workflow, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -128,11 +137,8 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
+
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {
 		return err

@@ -9,7 +9,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
@@ -29,6 +28,23 @@ var (
 	jobStepName       = "sample-job-step"
 )
 
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	sqlClientFactory       *armsql.ClientFactory
+)
+
+var (
+	resourceGroupClient   *armresources.ResourceGroupsClient
+	serversClient         *armsql.ServersClient
+	databasesClient       *armsql.DatabasesClient
+	jobAgentsClient       *armsql.JobAgentsClient
+	jobCredentialsClient  *armsql.JobCredentialsClient
+	jobTargetGroupsClient *armsql.JobTargetGroupsClient
+	jobsClient            *armsql.JobsClient
+	jobStepsClient        *armsql.JobStepsClient
+	jobExecutionsClient   *armsql.JobExecutionsClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -41,55 +57,74 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	sqlClientFactory, err = armsql.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serversClient = sqlClientFactory.NewServersClient()
+	databasesClient = sqlClientFactory.NewDatabasesClient()
+	jobAgentsClient = sqlClientFactory.NewJobAgentsClient()
+	jobCredentialsClient = sqlClientFactory.NewJobCredentialsClient()
+	jobTargetGroupsClient = sqlClientFactory.NewJobTargetGroupsClient()
+	jobsClient = sqlClientFactory.NewJobsClient()
+	jobStepsClient = sqlClientFactory.NewJobStepsClient()
+	jobExecutionsClient = sqlClientFactory.NewJobExecutionsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	server, err := createServer(ctx, cred)
+	server, err := createServer(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("server:", *server.ID)
 
-	database, err := createDatabase(ctx, cred)
+	database, err := createDatabase(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("database:", *database.ID)
 
-	jobAgent, err := createJobAgent(ctx, cred, *database.ID)
+	jobAgent, err := createJobAgent(ctx, *database.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("job agent:", *jobAgent.ID)
 
-	jobCredential, err := createJobCredential(ctx, cred)
+	jobCredential, err := createJobCredential(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("job credential:", *jobCredential.ID)
 
-	jobTargetGroup, err := createJobTargetGroup(ctx, cred)
+	jobTargetGroup, err := createJobTargetGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("job target group:", *jobTargetGroup.ID)
 
-	job, err := createJob(ctx, cred)
+	job, err := createJob(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("job:", *job.ID)
 
-	jobStep, err := createJobStep(ctx, cred, *jobCredential.ID, *jobTargetGroup.ID)
+	jobStep, err := createJobStep(ctx, *jobCredential.ID, *jobTargetGroup.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("job step:", *jobStep.ID)
 
-	jobExecution, err := createJobExecution(ctx, cred)
+	jobExecution, err := createJobExecution(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -97,7 +132,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -105,11 +140,7 @@ func main() {
 	}
 }
 
-func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Server, error) {
-	serversClient, err := armsql.NewServersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createServer(ctx context.Context) (*armsql.Server, error) {
 
 	pollerResp, err := serversClient.BeginCreateOrUpdate(
 		ctx,
@@ -134,11 +165,7 @@ func createServer(ctx context.Context, cred azcore.TokenCredential) (*armsql.Ser
 	return &resp.Server, nil
 }
 
-func createDatabase(ctx context.Context, cred azcore.TokenCredential) (*armsql.Database, error) {
-	databasesClient, err := armsql.NewDatabasesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createDatabase(ctx context.Context) (*armsql.Database, error) {
 
 	pollerResp, err := databasesClient.BeginCreateOrUpdate(
 		ctx,
@@ -163,11 +190,7 @@ func createDatabase(ctx context.Context, cred azcore.TokenCredential) (*armsql.D
 	return &resp.Database, nil
 }
 
-func createJobAgent(ctx context.Context, cred azcore.TokenCredential, databaseID string) (*armsql.JobAgent, error) {
-	jobAgentsClient, err := armsql.NewJobAgentsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createJobAgent(ctx context.Context, databaseID string) (*armsql.JobAgent, error) {
 
 	pollerResp, err := jobAgentsClient.BeginCreateOrUpdate(
 		ctx,
@@ -192,11 +215,7 @@ func createJobAgent(ctx context.Context, cred azcore.TokenCredential, databaseID
 	return &resp.JobAgent, nil
 }
 
-func createJobCredential(ctx context.Context, cred azcore.TokenCredential) (*armsql.JobCredential, error) {
-	jobCredentialsClient, err := armsql.NewJobCredentialsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createJobCredential(ctx context.Context) (*armsql.JobCredential, error) {
 
 	resp, err := jobCredentialsClient.CreateOrUpdate(
 		ctx,
@@ -218,11 +237,7 @@ func createJobCredential(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resp.JobCredential, nil
 }
 
-func createJobTargetGroup(ctx context.Context, cred azcore.TokenCredential) (*armsql.JobTargetGroup, error) {
-	jobTargetGroupsClient, err := armsql.NewJobTargetGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createJobTargetGroup(ctx context.Context) (*armsql.JobTargetGroup, error) {
 
 	resp, err := jobTargetGroupsClient.CreateOrUpdate(
 		ctx,
@@ -243,11 +258,7 @@ func createJobTargetGroup(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.JobTargetGroup, nil
 }
 
-func createJob(ctx context.Context, cred azcore.TokenCredential) (*armsql.Job, error) {
-	jobsClient, err := armsql.NewJobsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createJob(ctx context.Context) (*armsql.Job, error) {
 
 	startTime, _ := time.Parse("2006-01-02 15:04:05 06", "2021-09-18T18:30:01Z")
 	endTime, _ := time.Parse("2006-01-02 15:04:05 06", "2021-09-18T23:59:59Z")
@@ -278,11 +289,7 @@ func createJob(ctx context.Context, cred azcore.TokenCredential) (*armsql.Job, e
 	return &resp.Job, nil
 }
 
-func createJobStep(ctx context.Context, cred azcore.TokenCredential, credentialID, targetGroupID string) (*armsql.JobStep, error) {
-	jobStepsClient, err := armsql.NewJobStepsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createJobStep(ctx context.Context, credentialID, targetGroupID string) (*armsql.JobStep, error) {
 
 	resp, err := jobStepsClient.CreateOrUpdate(
 		ctx,
@@ -308,11 +315,7 @@ func createJobStep(ctx context.Context, cred azcore.TokenCredential, credentialI
 	return &resp.JobStep, nil
 }
 
-func createJobExecution(ctx context.Context, cred azcore.TokenCredential) (*armsql.JobExecution, error) {
-	jobExecutionsClient, err := armsql.NewJobExecutionsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createJobExecution(ctx context.Context) (*armsql.JobExecution, error) {
 
 	pollerResp, err := jobExecutionsClient.BeginCreate(
 		ctx,
@@ -332,11 +335,7 @@ func createJobExecution(ctx context.Context, cred azcore.TokenCredential) (*arms
 	return &resp.JobExecution, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -351,11 +350,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

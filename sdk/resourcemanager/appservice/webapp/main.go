@@ -5,10 +5,9 @@ package main
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/appservice/armappservice"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/appservice/armappservice/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"log"
 	"os"
@@ -23,6 +22,17 @@ var (
 	slotName           = "sample-slotxyz"
 )
 
+var (
+	resourcesClientFactory  *armresources.ClientFactory
+	appserviceClientFactory *armappservice.ClientFactory
+)
+
+var (
+	resourceGroupClient *armresources.ResourceGroupsClient
+	plansClient         *armappservice.PlansClient
+	webAppsClient       *armappservice.WebAppsClient
+)
+
 func main() {
 	subscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	if len(subscriptionID) == 0 {
@@ -35,44 +45,57 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	appserviceClientFactory, err = armappservice.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	plansClient = appserviceClientFactory.NewPlansClient()
+	webAppsClient = appserviceClientFactory.NewWebAppsClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	appServicePlan, err := createAppServicePlan(ctx, cred)
+	appServicePlan, err := createAppServicePlan(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("app service plan:", *appServicePlan.ID)
 
 	// If encounter missing error information, it may be that appServiceName has already been used.
-	appService, err := createWebApp(ctx, cred, *appServicePlan.ID)
+	appService, err := createWebApp(ctx, *appServicePlan.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("appservice app:", *appService.ID)
 
-	appService, err = getWebApp(ctx, cred)
+	appService, err = getWebApp(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get appservice app:", *appService.ID)
 
-	appServiceSlot, err := createWebAppSlot(ctx, cred, *appServicePlan.ID)
+	appServiceSlot, err := createWebAppSlot(ctx, *appServicePlan.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("appservice app slot:", *appServiceSlot.ID)
 
-	appServiceSlot, err = getWebAppSlot(ctx, cred)
+	appServiceSlot, err = getWebAppSlot(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("get appservice app slot:", *appServiceSlot.ID)
 
-	appConfiguration, err := getAppConfiguration(ctx, cred)
+	appConfiguration, err := getAppConfiguration(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -80,7 +103,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -88,13 +111,9 @@ func main() {
 	}
 }
 
-func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*armappservice.Plan, error) {
-	appServicePlansClient, err := armappservice.NewPlansClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createAppServicePlan(ctx context.Context) (*armappservice.Plan, error) {
 
-	pollerResp, err := appServicePlansClient.BeginCreateOrUpdate(
+	pollerResp, err := plansClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		appServicePlanName,
@@ -122,13 +141,9 @@ func createAppServicePlan(ctx context.Context, cred azcore.TokenCredential) (*ar
 	return &resp.Plan, nil
 }
 
-func createWebApp(ctx context.Context, cred azcore.TokenCredential, appServicePlanID string) (*armappservice.Site, error) {
-	appsClient, err := armappservice.NewWebAppsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createWebApp(ctx context.Context, appServicePlanID string) (*armappservice.Site, error) {
 
-	pollerResp, err := appsClient.BeginCreateOrUpdate(
+	pollerResp, err := webAppsClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		appServiceName,
@@ -167,13 +182,9 @@ func createWebApp(ctx context.Context, cred azcore.TokenCredential, appServicePl
 	return &resp.Site, nil
 }
 
-func createWebAppSlot(ctx context.Context, cred azcore.TokenCredential, appServicePlanID string) (*armappservice.Site, error) {
-	appsClient, err := armappservice.NewWebAppsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createWebAppSlot(ctx context.Context, appServicePlanID string) (*armappservice.Site, error) {
 
-	pollerResp, err := appsClient.BeginCreateOrUpdateSlot(
+	pollerResp, err := webAppsClient.BeginCreateOrUpdateSlot(
 		ctx,
 		resourceGroupName,
 		appServiceName,
@@ -206,50 +217,34 @@ func createWebAppSlot(ctx context.Context, cred azcore.TokenCredential, appServi
 	return &resp.Site, nil
 }
 
-func getWebApp(ctx context.Context, cred azcore.TokenCredential) (*armappservice.Site, error) {
-	appsClient, err := armappservice.NewWebAppsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getWebApp(ctx context.Context) (*armappservice.Site, error) {
 
-	resp, err := appsClient.Get(ctx, resourceGroupName, appServiceName, nil)
+	resp, err := webAppsClient.Get(ctx, resourceGroupName, appServiceName, nil)
 	if err != nil {
 		return nil, err
 	}
 	return &resp.Site, nil
 }
 
-func getWebAppSlot(ctx context.Context, cred azcore.TokenCredential) (*armappservice.Site, error) {
-	appsClient, err := armappservice.NewWebAppsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getWebAppSlot(ctx context.Context) (*armappservice.Site, error) {
 
-	resp, err := appsClient.GetSlot(ctx, resourceGroupName, appServiceName, slotName, nil)
+	resp, err := webAppsClient.GetSlot(ctx, resourceGroupName, appServiceName, slotName, nil)
 	if err != nil {
 		return nil, err
 	}
 	return &resp.Site, nil
 }
 
-func getAppConfiguration(ctx context.Context, cred azcore.TokenCredential) (*armappservice.SiteConfigResource, error) {
-	appsClient, err := armappservice.NewWebAppsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func getAppConfiguration(ctx context.Context) (*armappservice.SiteConfigResource, error) {
 
-	resp, err := appsClient.GetConfiguration(ctx, resourceGroupName, appServiceName, nil)
+	resp, err := webAppsClient.GetConfiguration(ctx, resourceGroupName, appServiceName, nil)
 	if err != nil {
 		return nil, err
 	}
 	return &resp.SiteConfigResource, nil
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -264,11 +259,7 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

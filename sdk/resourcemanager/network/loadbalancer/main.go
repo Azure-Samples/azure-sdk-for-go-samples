@@ -6,10 +6,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	"log"
 	"os"
@@ -21,6 +20,17 @@ var (
 	resourceGroupName   = "sample-resources-group"
 	publicIPAddressName = "sample-public-ip"
 	loadBalancerName    = "sample-load-balancer"
+)
+
+var (
+	resourcesClientFactory *armresources.ClientFactory
+	networkClientFactory   *armnetwork.ClientFactory
+)
+
+var (
+	resourceGroupClient     *armresources.ResourceGroupsClient
+	publicIPAddressesClient *armnetwork.PublicIPAddressesClient
+	loadBalancersClient     *armnetwork.LoadBalancersClient
 )
 
 func main() {
@@ -35,19 +45,32 @@ func main() {
 	}
 	ctx := context.Background()
 
-	resourceGroup, err := createResourceGroup(ctx, cred)
+	resourcesClientFactory, err = armresources.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resourceGroupClient = resourcesClientFactory.NewResourceGroupsClient()
+
+	networkClientFactory, err = armnetwork.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	publicIPAddressesClient = networkClientFactory.NewPublicIPAddressesClient()
+	loadBalancersClient = networkClientFactory.NewLoadBalancersClient()
+
+	resourceGroup, err := createResourceGroup(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("resources group:", *resourceGroup.ID)
 
-	publicIP, err := createPublicIP(ctx, cred)
+	publicIP, err := createPublicIP(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("public ip:", *publicIP.ID)
 
-	loadBalancer, err := createLoadBalancer(ctx, cred, publicIP)
+	loadBalancer, err := createLoadBalancer(ctx, publicIP)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,7 +78,7 @@ func main() {
 
 	keepResource := os.Getenv("KEEP_RESOURCE")
 	if len(keepResource) == 0 {
-		err = cleanup(ctx, cred)
+		err = cleanup(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -63,11 +86,7 @@ func main() {
 	}
 }
 
-func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*armresources.ResourceGroup, error) {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createResourceGroup(ctx context.Context) (*armresources.ResourceGroup, error) {
 
 	resourceGroupResp, err := resourceGroupClient.CreateOrUpdate(
 		ctx,
@@ -82,13 +101,9 @@ func createResourceGroup(ctx context.Context, cred azcore.TokenCredential) (*arm
 	return &resourceGroupResp.ResourceGroup, nil
 }
 
-func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwork.PublicIPAddress, error) {
-	publicIPClient, err := armnetwork.NewPublicIPAddressesClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
+func createPublicIP(ctx context.Context) (*armnetwork.PublicIPAddress, error) {
 
-	pollerResp, err := publicIPClient.BeginCreateOrUpdate(
+	pollerResp, err := publicIPAddressesClient.BeginCreateOrUpdate(
 		ctx,
 		resourceGroupName,
 		publicIPAddressName,
@@ -113,18 +128,13 @@ func createPublicIP(ctx context.Context, cred azcore.TokenCredential) (*armnetwo
 	return &resp.PublicIPAddress, nil
 }
 
-func createLoadBalancer(ctx context.Context, cred azcore.TokenCredential, pip *armnetwork.PublicIPAddress) (*armnetwork.LoadBalancer, error) {
+func createLoadBalancer(ctx context.Context, pip *armnetwork.PublicIPAddress) (*armnetwork.LoadBalancer, error) {
 	probeName := "probe"
 	frontEndIPConfigName := "fip"
 	backEndAddressPoolName := "backEndPool"
 	idPrefix := fmt.Sprintf("subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers", subscriptionID, resourceGroupName)
 
-	lbClient, err := armnetwork.NewLoadBalancersClient(subscriptionID, cred, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	pollerResp, err := lbClient.BeginCreateOrUpdate(ctx,
+	pollerResp, err := loadBalancersClient.BeginCreateOrUpdate(ctx,
 		resourceGroupName,
 		loadBalancerName,
 		armnetwork.LoadBalancer{
@@ -220,11 +230,7 @@ func createLoadBalancer(ctx context.Context, cred azcore.TokenCredential, pip *a
 	return &resp.LoadBalancer, nil
 }
 
-func cleanup(ctx context.Context, cred azcore.TokenCredential) error {
-	resourceGroupClient, err := armresources.NewResourceGroupsClient(subscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
+func cleanup(ctx context.Context) error {
 
 	pollerResp, err := resourceGroupClient.BeginDelete(ctx, resourceGroupName, nil)
 	if err != nil {

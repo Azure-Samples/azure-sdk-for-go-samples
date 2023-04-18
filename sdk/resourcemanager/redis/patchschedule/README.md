@@ -1,7 +1,7 @@
 ---
 page_type: sample
 languages:
-- golang
+- go
 products:
 - azure
 description: "These code samples will show you how to manage Cache for Redis using Azure SDK for Golang."

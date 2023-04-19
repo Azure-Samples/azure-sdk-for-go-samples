@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage App Service Manager using Azure SDK for Golang."
-urlFragment: appservice
+urlFragment: appservice-web-plans
 ---
 
 # Getting started - Managing App Service Manager using Azure Golang SDK

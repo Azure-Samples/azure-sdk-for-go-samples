@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage Database for PostgreSQL using Azure SDK for Golang."
-urlFragment: postgresql
+urlFragment: postgre-sql-vnet-rule
 ---
 
 # Getting started - Managing Database for PostgreSQL using Azure Golang SDK

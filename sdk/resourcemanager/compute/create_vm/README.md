@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage Compute using Azure SDK for Golang."
-urlFragment: compute
+urlFragment: compute-create-vm
 ---
 
 # Getting started - Managing Compute using Azure Golang SDK

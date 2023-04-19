@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage Virtual Network Manager using Azure SDK for Golang."
-urlFragment: network
+urlFragment: virutal-network
 ---
 
 # Getting started - Managing Virtual Network using Azure Golang SDK

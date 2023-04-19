@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage Database for MySQL Manager using Azure SDK for Golang."
-urlFragment: mysql
+urlFragment: mysql-firewall-rule
 ---
 
 # Getting started - Managing Database for MySQL using Azure Golang SDK

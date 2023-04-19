@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage Cosmos DB using Azure SDK for Golang."
-urlFragment: cosmos
+urlFragment: cosmos-cassandra
 ---
 
 # Getting started - Managing Cosmos DB using Azure Golang SDK

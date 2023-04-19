@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage Service Bus Manager using Azure SDK for Golang."
-urlFragment: servicebus
+urlFragment: service-bus-name-space
 ---
 
 # Getting started - Managing Service Bus using Azure Golang SDK

@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage Resource Manager using Azure SDK for Golang."
-urlFragment: resources
+urlFragment: resource-provider
 ---
 
 # Getting started - Managing Resource Manager using Azure Golang SDK

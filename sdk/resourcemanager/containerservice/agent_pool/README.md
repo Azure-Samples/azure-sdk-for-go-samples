@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage Container Service using Azure SDK for Golang."
-urlFragment: containerservice
+urlFragment: container-service-agent-pool
 ---
 
 # Getting started - Managing Container Service using Azure Golang SDK

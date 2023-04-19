@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage Data Factory using Azure SDK for Golang."
-urlFragment: datafactory
+urlFragment: data-factory-data-sets
 ---
 
 # Getting started - Managing Data Factory using Azure Golang SDK

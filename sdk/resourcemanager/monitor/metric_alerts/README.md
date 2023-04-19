@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage Monitor Manager using Azure SDK for Golang."
-urlFragment: monitor
+urlFragment: monitor-metric-alerts
 ---
 
 # Getting started - Managing Monitor using Azure Golang SDK

@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage Storage using Azure SDK for Golang."
-urlFragment: storage
+urlFragment: storage-blob
 ---
 
 # Getting started - Managing Storage using Azure Golang SDK

@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage Automation using Azure SDK for Golang."
-urlFragment: automation
+urlFragment: automation-module
 ---
 
 # Getting started - Managing Automation using Azure Golang SDK

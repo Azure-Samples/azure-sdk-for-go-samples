@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage Operational Insights Manager using Azure SDK for Golang."
-urlFragment: operationalinsights
+urlFragment: operational-insights-workspace-purge
 ---
 
 # Getting started - Managing Operational Insights using Azure Golang SDK

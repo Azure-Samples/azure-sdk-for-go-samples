@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage PrivateDNS using Azure SDK for Golang."
-urlFragment: privatedns
+urlFragment: private-dns-record-sets
 ---
 
 # Getting started - Managing PrivateDNS using Azure Golang SDK

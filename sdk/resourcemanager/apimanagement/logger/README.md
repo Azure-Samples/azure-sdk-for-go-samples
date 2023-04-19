@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage API Management using Azure SDK for Golang."
-urlFragment: apimanagement
+urlFragment: logger
 ---
 
 # Getting started - Managing API Management using Azure Golang SDK

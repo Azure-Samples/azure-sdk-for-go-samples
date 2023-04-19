@@ -5,7 +5,7 @@ languages:
 products:
 - azure
 description: "These code samples will show you how to manage Container Registry using Azure SDK for Golang."
-urlFragment: containerregistry
+urlFragment: container-registry-token
 ---
 
 # Getting started - Managing Container Registry using Azure Golang SDK

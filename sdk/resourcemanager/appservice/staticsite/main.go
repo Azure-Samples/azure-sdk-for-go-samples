@@ -31,8 +31,8 @@ var (
 )
 
 // replace your repo information
-var repoURL = "https://github.com/804873052/azure-rest-api-specs" // https://github.com/<github-name>/azure-rest-api-specs
-var repoToken = "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"        // github token https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+var repoURL = "" // https://github.com/<github-name>/azure-rest-api-specs
+var repoToken = "" // github token https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
 func main() {
 	if repoToken == "" {
 		log.Fatal("Please input repo information.")

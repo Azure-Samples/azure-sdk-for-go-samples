@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Cache for Redis using Azure SDK for Golang."
+description: "These code samples will show you how to manage Cache for Redis Firewall Rule using Azure SDK for Golang."
 urlFragment: redis-firewall-rule
 ---
 
-# Getting started - Managing Cache for Redis using Azure Golang SDK
+# Getting started - Managing Cache for Redis Firewall Rule using Azure Golang SDK
 
-These code samples will show you how to manage Cache for Redis using Azure SDK for Golang.
+These code samples will show you how to manage Cache for Redis Firewall Rule using Azure SDK for Golang.
 
 ## Features
 

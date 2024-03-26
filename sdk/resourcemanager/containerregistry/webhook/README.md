@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Container Registry using Azure SDK for Golang."
+description: "These code samples will show you how to manage Container Registry WebHook using Azure SDK for Golang."
 urlFragment: container-registry-web-hook
 ---
 
-# Getting started - Managing Container Registry using Azure Golang SDK
+# Getting started - Managing Container Registry WebHook using Azure Golang SDK
 
-These code samples will show you how to manage Container Registry using Azure SDK for Golang.
+These code samples will show you how to manage Container Registry WebHook using Azure SDK for Golang.
 
 ## Features
 

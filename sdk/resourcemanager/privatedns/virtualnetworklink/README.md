@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage PrivateDNS using Azure SDK for Golang."
+description: "These code samples will show you how to manage PrivateDNS Virtual Network Link using Azure SDK for Golang."
 urlFragment: private-dns-vnet-link
 ---
 
-# Getting started - Managing PrivateDNS using Azure Golang SDK
+# Getting started - Managing PrivateDNS Virtual Network Link using Azure Golang SDK
 
-These code samples will show you how to manage PrivateDNS using Azure SDK for Golang.
+These code samples will show you how to manage PrivateDNS Virtual Network Link using Azure SDK for Golang.
 
 ## Features
 

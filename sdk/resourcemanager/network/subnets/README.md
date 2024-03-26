@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Virtual Network Manager using Azure SDK for Golang."
+description: "These code samples will show you how to manage Virtual Network Subnet using Azure SDK for Golang."
 urlFragment: network-subnets
 ---
 
-# Getting started - Managing Virtual Network using Azure Golang SDK
+# Getting started - Managing Virtual Network Subnet using Azure Golang SDK
 
-These code samples will show you how to manage Virtual Network using Azure SDK for Golang.
+These code samples will show you how to manage Virtual Network Subnet using Azure SDK for Golang.
 
 ## Features
 

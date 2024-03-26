@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Database for PostgreSQL using Azure SDK for Golang."
+description: "These code samples will show you how to manage Database for PostgreSQL Server using Azure SDK for Golang."
 urlFragment: postgresql-servers
 ---
 
-# Getting started - Managing Database for PostgreSQL using Azure Golang SDK
+# Getting started - Managing Database for PostgreSQL Server using Azure Golang SDK
 
-These code samples will show you how to manage Database for PostgreSQL using Azure SDK for Golang.
+These code samples will show you how to manage Database for PostgreSQL Server using Azure SDK for Golang.
 
 ## Features
 

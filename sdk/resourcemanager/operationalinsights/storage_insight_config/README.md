@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Operational Insights Manager using Azure SDK for Golang."
+description: "These code samples will show you how to manage Operational Insights Storage Insight Config using Azure SDK for Golang."
 urlFragment: operational-insights-storage-insights
 ---
 
-# Getting started - Managing Operational Insights using Azure Golang SDK
+# Getting started - Managing Operational Insights Storage Insight Config using Azure Golang SDK
 
-These code samples will show you how to manage Operational Insights using Azure SDK for Golang.
+These code samples will show you how to manage Operational Insights Storage Insight Config using Azure SDK for Golang.
 
 ## Features
 

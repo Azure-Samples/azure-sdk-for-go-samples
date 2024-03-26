@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Container Service using Azure SDK for Golang."
+description: "These code samples will show you how to manage Container Service Agent Pool using Azure SDK for Golang."
 urlFragment: container-service-agent-pool
 ---
 
-# Getting started - Managing Container Service using Azure Golang SDK
+# Getting started - Managing Container Service Agent Pool using Azure Golang SDK
 
-These code samples will show you how to manage Container Service using Azure SDK for Golang.
+These code samples will show you how to manage Container Service Agent Pool using Azure SDK for Golang.
 
 ## Features
 

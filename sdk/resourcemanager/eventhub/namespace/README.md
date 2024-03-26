@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Event Hubs using Azure SDK for Golang."
+description: "These code samples will show you how to manage Event Hubs Namespace using Azure SDK for Golang."
 urlFragment: event-hub-name-space
 ---
 
-# Getting started - Managing Event Hubs using Azure Golang SDK
+# Getting started - Managing Event Hubs Namespace using Azure Golang SDK
 
-These code samples will show you how to manage Event Hubs using Azure SDK for Golang.
+These code samples will show you how to manage Event Hubs Namespace using Azure SDK for Golang.
 
 ## Features
 

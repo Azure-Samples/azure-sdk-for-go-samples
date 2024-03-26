@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Storage using Azure SDK for Golang."
+description: "These code samples will show you how to manage Storage Management Policy using Azure SDK for Golang."
 urlFragment: storage-management-policy
 ---
 
-# Getting started - Managing Storage using Azure Golang SDK
+# Getting started - Managing Storage Management Policy using Azure Golang SDK
 
-These code samples will show you how to manage Storage using Azure SDK for Golang.
+These code samples will show you how to manage Storage Management Policy using Azure SDK for Golang.
 
 ## Features
 

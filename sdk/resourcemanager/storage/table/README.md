@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Storage using Azure SDK for Golang."
+description: "These code samples will show you how to manage Storage Table using Azure SDK for Golang."
 urlFragment: storage-table
 ---
 
-# Getting started - Managing Storage using Azure Golang SDK
+# Getting started - Managing Storage Table using Azure Golang SDK
 
-These code samples will show you how to manage Storage using Azure SDK for Golang.
+These code samples will show you how to manage Storage Table using Azure SDK for Golang.
 
 ## Features
 

@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Resource Manager using Azure SDK for Golang."
+description: "These code samples will show you how to manage Resource Deployment using Azure SDK for Golang."
 urlFragment: resource-deployment
 ---
 
-# Getting started - Managing Resource Manager using Azure Golang SDK
+# Getting started - Managing Resource Deployment using Azure Golang SDK
 
-These code samples will show you how to manage Resource using Azure SDK for Golang.
+These code samples will show you how to manage Resource Deployment using Azure SDK for Golang.
 
 ## Features
 

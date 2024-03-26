@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Compute using Azure SDK for Golang."
+description: "These code samples will show you how to manage Compute Availability Set using Azure SDK for Golang."
 urlFragment: compute-availability-set
 ---
 
-# Getting started - Managing Compute using Azure Golang SDK
+# Getting started - Managing Compute Availability Set using Azure Golang SDK
 
-These code samples will show you how to manage Compute using Azure SDK for Golang.
+These code samples will show you how to manage Compute Availability Set using Azure SDK for Golang.
 
 ## Features
 

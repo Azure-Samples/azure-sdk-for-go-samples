@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Cosmos DB using Azure SDK for Golang."
+description: "These code samples will show you how to manage Cosmos DB Table using Azure SDK for Golang."
 urlFragment: cosmos-table
 ---
 
-# Getting started - Managing Cosmos DB using Azure Golang SDK
+# Getting started - Managing Cosmos DB Table using Azure Golang SDK
 
-These code samples will show you how to manage Cosmos DB using Azure SDK for Golang.
+These code samples will show you how to manage Cosmos DB Table using Azure SDK for Golang.
 
 ## Features
 

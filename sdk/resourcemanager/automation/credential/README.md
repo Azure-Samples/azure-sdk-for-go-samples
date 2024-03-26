@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Automation using Azure SDK for Golang."
+description: "These code samples will show you how to manage Automation Credential using Azure SDK for Golang."
 urlFragment: automation-credential
 ---
 
-# Getting started - Managing Automation using Azure Golang SDK
+# Getting started - Managing Automation Credential using Azure Golang SDK
 
-These code samples will show you how to manage Automation using Azure SDK for Golang.
+These code samples will show you how to manage Automation Credential using Azure SDK for Golang.
 
 ## Features
 

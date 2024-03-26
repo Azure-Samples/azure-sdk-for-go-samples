@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage SQL Database Manager using Azure SDK for Golang."
+description: "These code samples will show you how to manage SQL Database Communication Link using Azure SDK for Golang."
 urlFragment: sql-server-communication-link
 ---
 
-# Getting started - Managing SQL Database using Azure Golang SDK
+# Getting started - Managing SQL Server Communication Link using Azure Golang SDK
 
-These code samples will show you how to manage SQL Database using Azure SDK for Golang.
+These code samples will show you how to manage SQL Database Communication Link using Azure SDK for Golang.
 
 ## Features
 

@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Recovery Services using Azure SDK for Golang."
+description: "These code samples will show you how to manage Recovery Services Vault Extended Info using Azure SDK for Golang."
 urlFragment: recovery-services-vault-extended
 ---
 
-# Getting started - Managing Recovery Services using Azure Golang SDK
+# Getting started - Managing Recovery Services Vault Extended Info using Azure Golang SDK
 
-These code samples will show you how to manage Recovery Services using Azure SDK for Golang.
+These code samples will show you how to manage Recovery Services Vault Extended Info using Azure SDK for Golang.
 
 ## Features
 

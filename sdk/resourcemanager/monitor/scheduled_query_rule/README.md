@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Monitor Manager using Azure SDK for Golang."
+description: "These code samples will show you how to manage Monitor Scheduled Query Rule using Azure SDK for Golang."
 urlFragment: monitor-scheduled-query
 ---
 
-# Getting started - Managing Monitor using Azure Golang SDK
+# Getting started - Managing Monitor Scheduled Query Rule using Azure Golang SDK
 
-These code samples will show you how to manage Monitor using Azure SDK for Golang.
+These code samples will show you how to manage Monitor Scheduled Query Rule using Azure SDK for Golang.
 
 ## Features
 

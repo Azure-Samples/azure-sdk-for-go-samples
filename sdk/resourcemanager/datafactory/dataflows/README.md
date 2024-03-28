@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Data Factory using Azure SDK for Golang."
+description: "These code samples will show you how to manage DataFlows resource of Data Factory service using Azure SDK for Golang."
 urlFragment: data-factory-data-flows
 ---
 
-# Getting started - Managing Data Factory using Azure Golang SDK
+# Getting started - Managing DataFlows resource of Data Factory service using Azure Golang SDK
 
-These code samples will show you how to manage Data Factory using Azure SDK for Golang.
+These code samples will show you how to manage DataFlows resource of Data Factory service using Azure SDK for Golang.
 
 ## Features
 

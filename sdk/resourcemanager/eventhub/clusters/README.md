@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Event Hubs using Azure SDK for Golang."
+description: "These code samples will show you how to manage Cluster resource of Event Hubs service using Azure SDK for Golang."
 urlFragment: event-hub-clusters
 ---
 
-# Getting started - Managing Event Hubs using Azure Golang SDK
+# Getting started - Managing Cluster resource of Event Hubs service using Azure Golang SDK
 
-These code samples will show you how to manage Event Hubs using Azure SDK for Golang.
+These code samples will show you how to manage Cluster resource of Event Hubs service using Azure SDK for Golang.
 
 ## Features
 

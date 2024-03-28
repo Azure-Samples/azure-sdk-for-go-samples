@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage API Management using Azure SDK for Golang."
+description: "These code samples will show you how to manage Signin Setting resource of API Service service using Azure SDK for Golang."
 urlFragment: api-signin-setting
 ---
 
-# Getting started - Managing API Management using Azure Golang SDK
+# Getting started - Managing Signin Setting resource of API Service using Azure Golang SDK
 
-These code samples will show you how to manage API Management using Azure SDK for Golang.
+These code samples will show you how to manage Signin Setting resource of API Service service using Azure SDK for Golang.
 
 ## Features
 

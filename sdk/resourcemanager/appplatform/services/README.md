@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage App Platform using Azure SDK for Golang."
+description: "These code samples will show you how to manage Services resource of App Platform service using Azure SDK for Golang."
 urlFragment: app-platform-services
 ---
 
-# Getting started - Managing App Platform using Azure Golang SDK
+# Getting started - Managing Services resource of App Platform service using Azure Golang SDK
 
-These code samples will show you how to manage App Platform using Azure SDK for Golang.
+These code samples will show you how to manage Services resource of App Platform service using Azure SDK for Golang.
 
 ## Features
 

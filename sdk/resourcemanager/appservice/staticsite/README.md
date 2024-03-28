@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage App Service Manager using Azure SDK for Golang."
+description: "These code samples will show you how to manage Static Site resource of App Service service using Azure SDK for Golang."
 urlFragment: appservice
 ---
 
-# Getting started - Managing App Service Manager using Azure Golang SDK
+# Getting started - Managing Static Site resource of App Service service using Azure Golang SDK
 
-These code samples will show you how to manage App Service using Azure SDK for Golang.
+These code samples will show you how to manage Static Site resource of App Service service using Azure SDK for Golang.
 
 ## Features
 

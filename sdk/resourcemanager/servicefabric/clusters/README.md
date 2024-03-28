@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Service Fabric Manager using Azure SDK for Golang."
+description: "These code samples will show you how to manage Cluster resource of Service Fabric service using Azure SDK for Golang."
 urlFragment: service-fabric-clusters
 ---
 
-# Getting started - Managing Service Fabric using Azure Golang SDK
+# Getting started - Managing Cluster resource of Service Fabric service using Azure Golang SDK
 
-These code samples will show you how to manage Service Fabric using Azure SDK for Golang.
+These code samples will show you how to manage Cluster resource of Service Fabric service using Azure SDK for Golang.
 
 ## Features
 

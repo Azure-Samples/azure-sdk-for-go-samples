@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage API Management using Azure SDK for Golang."
+description: "These code samples will show you how to manage Policy resource of API service using Azure SDK for Golang."
 urlFragment: api-policy
 ---
 
-# Getting started - Managing API Management using Azure Golang SDK
+# Getting started - Managing Policy resource of API service using Azure Golang SDK
 
-These code samples will show you how to manage API Management using Azure SDK for Golang.
+These code samples will show you how to manage Policy resource of API service using Azure SDK for Golang.
 
 ## Features
 

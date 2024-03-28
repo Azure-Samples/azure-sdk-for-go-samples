@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Resource Provider using Azure SDK for Golang."
+description: "These code samples will show you how to manage Provider resource of Resource service using Azure SDK for Golang."
 urlFragment: resource-provider
 ---
 
-# Getting started - Managing Resource Provider using Azure Golang SDK
+# Getting started - Managing Provider resource of Resource service using Azure Golang SDK
 
-These code samples will show you how to manage Resource Provider using Azure SDK for Golang.
+These code samples will show you how to manage Provider resource of Resource service using Azure SDK for Golang.
 
 ## Features
 

@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Operational Insights Workspace Purge using Azure SDK for Golang."
+description: "These code samples will show you how to manage Workspace Purge resource of Operational Insights service using Azure SDK for Golang."
 urlFragment: operational-insights-workspace-purge
 ---
 
-# Getting started - Managing Operational Insights Workspace Purge using Azure Golang SDK
+# Getting started - Managing Workspace Purge resource of Operational Insights service using Azure Golang SDK
 
-These code samples will show you how to manage Operational Insights Workspace Purge using Azure SDK for Golang.
+These code samples will show you how to manage Workspace Purge resource of Operational Insights service using Azure SDK for Golang.
 
 ## Features
 

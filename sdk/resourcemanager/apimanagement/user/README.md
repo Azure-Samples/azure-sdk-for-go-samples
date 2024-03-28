@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage API Service User using Azure SDK for Golang."
+description: "These code samples will show you how to manage User resource of API Service service using Azure SDK for Golang."
 urlFragment: api-user
 ---
 
-# Getting started - Managing API Service User using Azure Golang SDK
+# Getting started - Managing User resource of API Service service using Azure Golang SDK
 
-These code samples will show you how to manage API Service User using Azure SDK for Golang.
+These code samples will show you how to manage User resource of API Service service using Azure SDK for Golang.
 
 ## Features
 

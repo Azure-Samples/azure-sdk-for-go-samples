@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Storage File Share using Azure SDK for Golang."
+description: "These code samples will show you how to manage File Share resource of Storage service using Azure SDK for Golang."
 urlFragment: storage-file
 ---
 
-# Getting started - Managing Storage File Share using Azure Golang SDK
+# Getting started - Managing File Share resource of Storage service using Azure Golang SDK
 
-These code samples will show you how to manage Storage File Share using Azure SDK for Golang.
+These code samples will show you how to manage File Share resource of Storage service using Azure SDK for Golang.
 
 ## Features
 

@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Monitor Action Group using Azure SDK for Golang."
+description: "These code samples will show you how to manage Action Group resource of Monitor service using Azure SDK for Golang."
 urlFragment: monitor-action-group
 ---
 
-# Getting started - Managing Monitor Action Group using Azure Golang SDK
+# Getting started - Managing Action Group resource of Monitor service using Azure Golang SDK
 
-These code samples will show you how to manage Monitor Action Group using Azure SDK for Golang.
+These code samples will show you how to manage Action Group resource of Monitor service using Azure SDK for Golang.
 
 ## Features
 

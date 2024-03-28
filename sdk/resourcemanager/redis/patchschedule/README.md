@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Cache for Redis Patch Schedule using Azure SDK for Golang."
+description: "These code samples will show you how to manage Patch Schedule resource of Cache for Redis service using Azure SDK for Golang."
 urlFragment: redis-patch-schedule
 ---
 
-# Getting started - Managing Cache for Redis Patch Schedule using Azure Golang SDK
+# Getting started - Managing Patch Schedule resource of Cache for Redis service using Azure Golang SDK
 
-These code samples will show you how to manage Cache for Redis Patch Schedule using Azure SDK for Golang.
+These code samples will show you how to manage Patch Schedule resource of Cache for Redis service using Azure SDK for Golang.
 
 ## Features
 

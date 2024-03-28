@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Service Bus Disaster Recovery Config using Azure SDK for Golang."
+description: "These code samples will show you how to manage Disaster Recovery Config resource of Service Bus service using Azure SDK for Golang."
 urlFragment: service-bus-disaster-recovery
 ---
 
-# Getting started - Managing Service Bus Disaster Recovery Config using Azure Golang SDK
+# Getting started - Managing Disaster Recovery Config resource of Service Bus service using Azure Golang SDK
 
-These code samples will show you how to manage Service Bus Disaster Recovery Config using Azure SDK for Golang.
+These code samples will show you how to manage Disaster Recovery Config resource of Service Bus service using Azure SDK for Golang.
 
 ## Features
 

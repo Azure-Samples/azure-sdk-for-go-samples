@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Service Bus Namespace using Azure SDK for Golang."
+description: "These code samples will show you how to manage Namespace resource of Service Bus service using Azure SDK for Golang."
 urlFragment: service-bus-name-space
 ---
 
-# Getting started - Managing Service Bus Namespace using Azure Golang SDK
+# Getting started - Managing Namespace resource of Service Bus service using Azure Golang SDK
 
-These code samples will show you how to manage Service Bus Namespace using Azure SDK for Golang.
+These code samples will show you how to manage Namespace resource of Service Bus service using Azure SDK for Golang.
 
 ## Features
 

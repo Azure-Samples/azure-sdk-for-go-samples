@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Monitor Log Profile using Azure SDK for Golang."
+description: "These code samples will show you how to manage Log Profile resource of Monitor service using Azure SDK for Golang."
 urlFragment: monitor-log-profile
 ---
 
-# Getting started - Managing Monitor Log Profile using Azure Golang SDK
+# Getting started - Managing Log Profile resource of Monitor service using Azure Golang SDK
 
-These code samples will show you how to manage Monitor Log Profile using Azure SDK for Golang.
+These code samples will show you how to manage Log Profile resource of Monitor service using Azure SDK for Golang.
 
 ## Features
 

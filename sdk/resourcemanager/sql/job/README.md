@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage SQL Database Job using Azure SDK for Golang."
+description: "These code samples will show you how to manage Job resource of SQL Database service using Azure SDK for Golang."
 urlFragment: sql-job
 ---
 
-# Getting started - Managing SQL Job using Azure Golang SDK
+# Getting started - Managing Job resource of SQL Database service using Azure Golang SDK
 
-These code samples will show you how to manage SQL Database Job using Azure SDK for Golang.
+These code samples will show you how to manage Job resource of SQL Database service using Azure SDK for Golang.
 
 ## Features
 

@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Compute Dedicated Host using Azure SDK for Golang."
+description: "These code samples will show you how to manage Dedicated Host resource of Compute service using Azure SDK for Golang."
 urlFragment: compute-dedicated-host
 ---
 
-# Getting started - Managing Compute Dedicated Host using Azure Golang SDK
+# Getting started - Managing Dedicated Host resource of Compute service using Azure Golang SDK
 
-These code samples will show you how to manage Compute Dedicated Host using Azure SDK for Golang.
+These code samples will show you how to manage Dedicated Host resource of Compute service using Azure SDK for Golang.
 
 ## Features
 

@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage App Service Plans using Azure SDK for Golang."
+description: "These code samples will show you how to manage Plans resource of App Service service using Azure SDK for Golang."
 urlFragment: appservice-web-plans
 ---
 
-# Getting started - Managing App Service Plans using Azure Golang SDK
+# Getting started - Managing Plans resource of App Service service using Azure Golang SDK
 
-These code samples will show you how to manage App Service Plans using Azure SDK for Golang.
+These code samples will show you how to manage Plans resource of App Service service using Azure SDK for Golang.
 
 ## Features
 

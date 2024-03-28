@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Cosmos DB Cassandra using Azure SDK for Golang."
+description: "These code samples will show you how to manage Cassandra resource of Cosmos DB service using Azure SDK for Golang."
 urlFragment: cosmos-cassandra
 ---
 
-# Getting started - Managing Cosmos DB Cassandra using Azure Golang SDK
+# Getting started - Managing Cassandra resource of Cosmos DB service using Azure Golang SDK
 
-These code samples will show you how to manage Cosmos DB Cassandra using Azure SDK for Golang.
+These code samples will show you how to manage Cassandra resource of Cosmos DB service using Azure SDK for Golang.
 
 ## Features
 

@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Event Grid Domain using Azure SDK for Golang."
+description: "These code samples will show you how to manage Domain resource of Event Grid service using Azure SDK for Golang."
 urlFragment: event-grid-domain
 ---
 
-# Getting started - Managing Event Grid Domain using Azure Golang SDK
+# Getting started - Managing Domain resource of Event Grid service using Azure Golang SDK
 
-These code samples will show you how to manage Event Grid Domain using Azure SDK for Golang.
+These code samples will show you how to manage Domain resource of Event Grid service using Azure SDK for Golang.
 
 ## Features
 

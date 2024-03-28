@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage SQL Database Virtual Network Rule using Azure SDK for Golang."
+description: "These code samples will show you how to manage Virtual Network Rule resource of SQL Database service using Azure SDK for Golang."
 urlFragment: sql-vnet-rule
 ---
 
-# Getting started - Managing SQL Virtual Network Rule using Azure Golang SDK
+# Getting started - Managing Virtual Network Rule resource of SQL Database service using Azure Golang SDK
 
-These code samples will show you how to manage SQL Database Virtual Network Rule using Azure SDK for Golang.
+These code samples will show you how to manage Virtual Network Rule resource of SQL Database service using Azure SDK for Golang.
 
 ## Features
 

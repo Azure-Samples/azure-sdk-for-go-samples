@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Cosmos DB Gremlin using Azure SDK for Golang."
+description: "These code samples will show you how to manage Gremlin resource of Cosmos DB service using Azure SDK for Golang."
 urlFragment: cosmos-gremlin
 ---
 
-# Getting started - Managing Cosmos DB Gremlin using Azure Golang SDK
+# Getting started - Managing Gremlin resource of Cosmos DB service using Azure Golang SDK
 
-These code samples will show you how to manage Cosmos DB Gremlin using Azure SDK for Golang.
+These code samples will show you how to manage Gremlin resource of Cosmos DB service using Azure SDK for Golang.
 
 ## Features
 

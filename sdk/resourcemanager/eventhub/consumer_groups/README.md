@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Event Hubs Consumer Groups using Azure SDK for Golang."
+description: "These code samples will show you how to manage Consumer Groups resource of Event Hubs service using Azure SDK for Golang."
 urlFragment: event-hub-consumer-groups
 ---
 
-# Getting started - Managing Event Hubs Consumer Groups using Azure Golang SDK
+# Getting started - Managing Consumer Groups resource of Event Hubs service using Azure Golang SDK
 
-These code samples will show you how to manage Event Hubs Consumer Groups using Azure SDK for Golang.
+These code samples will show you how to manage Consumer Groups resource of Event Hubs service using Azure SDK for Golang.
 
 ## Features
 

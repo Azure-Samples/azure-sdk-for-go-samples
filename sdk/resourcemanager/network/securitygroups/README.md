@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Virtual Network Security Groups using Azure SDK for Golang."
+description: "These code samples will show you how to manage Security Groups resource of Virtual Network service using Azure SDK for Golang."
 urlFragment: network-security-groups
 ---
 
-# Getting started - Managing Virtual Network Security Groups using Azure Golang SDK
+# Getting started - Managing Security Groups resource of Virtual Network service using Azure Golang SDK
 
-These code samples will show you how to manage Virtual Network Security Groups using Azure SDK for Golang.
+These code samples will show you how to manage Security Groups resource of Virtual Network service using Azure SDK for Golang.
 
 ## Features
 

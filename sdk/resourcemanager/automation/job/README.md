@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Automation Job using Azure SDK for Golang."
+description: "These code samples will show you how to manage Job resource of Automation service using Azure SDK for Golang."
 urlFragment: automation-job
 ---
 
-# Getting started - Managing Automation Job using Azure Golang SDK
+# Getting started - Managing Job resource of Automation service using Azure Golang SDK
 
-These code samples will show you how to manage Automation Job using Azure SDK for Golang.
+These code samples will show you how to manage Job resource of Automation service using Azure SDK for Golang.
 
 ## Features
 

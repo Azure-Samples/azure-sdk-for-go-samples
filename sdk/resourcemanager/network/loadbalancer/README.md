@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Virtual Network Load Balancer using Azure SDK for Golang."
+description: "These code samples will show you how to manage Load Balancer resource of Virtual Network service using Azure SDK for Golang."
 urlFragment: network-load-balancer
 ---
 
-# Getting started - Managing Virtual Network Load Balancer using Azure Golang SDK
+# Getting started - Managing Load Balancer resource of Virtual Network service using Azure Golang SDK
 
-These code samples will show you how to manage Virtual Network Load Balancer using Azure SDK for Golang.
+These code samples will show you how to manage Load Balancer resource of Virtual Network service using Azure SDK for Golang.
 
 ## Features
 

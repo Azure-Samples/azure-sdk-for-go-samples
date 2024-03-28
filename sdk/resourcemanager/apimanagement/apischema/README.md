@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage API Schema using Azure SDK for Golang."
+description: "These code samples will show you how to manage Schema resource of API service using Azure SDK for Golang."
 urlFragment: api-schema
 ---
 
-# Getting started - Managing API Schema using Azure Golang SDK
+# Getting started - Managing Schema resource of API service using Azure Golang SDK
 
-These code samples will show you how to manage API Schema using Azure SDK for Golang.
+These code samples will show you how to manage Schema resource of API service using Azure SDK for Golang.
 
 ## Features
 

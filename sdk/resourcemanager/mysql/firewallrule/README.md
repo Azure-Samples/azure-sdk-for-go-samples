@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Database for MySQL Rirewall using Azure SDK for Golang."
+description: "These code samples will show you how to manage Firewall Rule resource of Database for MySQL service using Azure SDK for Golang."
 urlFragment: mysql-firewall-rule
 ---
 
-# Getting started - Managing Database for MySQL Rirewall Rule using Azure Golang SDK
+# Getting started - Managing Firewall Rule resource of Database for MySQL service using Azure Golang SDK
 
-These code samples will show you how to manage Database for MySQL Rirewall using Azure SDK for Golang.
+These code samples will show you how to manage Firewall Rule resource of Database for MySQL service using Azure SDK for Golang.
 
 ## Features
 

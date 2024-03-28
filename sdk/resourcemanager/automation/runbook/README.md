@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Automation RunBook using Azure SDK for Golang."
+description: "These code samples will show you how to manage RunBook resource of Automation service using Azure SDK for Golang."
 urlFragment: automation-runbook
 ---
 
-# Getting started - Managing Automation RunBook using Azure Golang SDK
+# Getting started - Managing RunBook resource of Automation service using Azure Golang SDK
 
-These code samples will show you how to manage Automation RunBook using Azure SDK for Golang.
+These code samples will show you how to manage RunBook resource of Automation service using Azure SDK for Golang.
 
 ## Features
 

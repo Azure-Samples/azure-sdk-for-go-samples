@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Container Registry Scope Map using Azure SDK for Golang."
+description: "These code samples will show you how to manage Scope Map resource of Container Registry service using Azure SDK for Golang."
 urlFragment: container-registry-scope-map
 ---
 
-# Getting started - Managing Container Registry Scope Map using Azure Golang SDK
+# Getting started - Managing Scope Map resource of Container Registry service using Azure Golang SDK
 
-These code samples will show you how to manage Container Registry Scope Map using Azure SDK for Golang.
+These code samples will show you how to manage Scope Map resource of Container Registry service using Azure SDK for Golang.
 
 ## Features
 

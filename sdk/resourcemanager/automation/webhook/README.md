@@ -4,11 +4,11 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Automation WebHook using Azure SDK for Golang."
+description: "These code samples will show you how to manage WebHook resource of Automation service using Azure SDK for Golang."
 urlFragment: automation-webhook
 ---
 
-# Getting started - Managing Automation WebHook using Azure Golang SDK
+# Getting started - Managing WebHook resource of Automation service using Azure Golang SDK
 
 These code samples will show you how to manage Automation WebHook using Azure SDK for Golang.
 

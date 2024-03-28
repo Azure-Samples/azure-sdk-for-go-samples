@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Virtual Network IP Address using Azure SDK for Golang."
+description: "These code samples will show you how to manage IP Address resource of Virtual Network service using Azure SDK for Golang."
 urlFragment: network-ip
 ---
 
-# Getting started - Managing Virtual Network IP Address using Azure Golang SDK
+# Getting started - Managing IP Address resource of Virtual Network service using Azure Golang SDK
 
-These code samples will show you how to manage Virtual Network IP Address using Azure SDK for Golang.
+These code samples will show you how to manage IP Address resource of Virtual Network service using Azure SDK for Golang.
 
 ## Features
 

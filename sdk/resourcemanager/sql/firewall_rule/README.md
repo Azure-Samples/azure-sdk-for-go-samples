@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage SQL Database Firewall Rule using Azure SDK for Golang."
+description: "These code samples will show you how to manage Firewall Rule resource of SQL Database service using Azure SDK for Golang."
 urlFragment: sql-firewall-rule
 ---
 
-# Getting started - Managing SQL Firewall Rule using Azure Golang SDK
+# Getting started - Managing Firewall Rule resource of SQL Database service using Azure Golang SDK
 
-These code samples will show you how to manage SQL Database Firewall Rule using Azure SDK for Golang.
+These code samples will show you how to manage Firewall Rule resource of SQL Database service using Azure SDK for Golang.
 
 ## Features
 

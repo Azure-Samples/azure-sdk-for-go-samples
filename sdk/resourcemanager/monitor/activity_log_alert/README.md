@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Monitor Activity Log Alert using Azure SDK for Golang."
+description: "These code samples will show you how to manage Activity Log Alert resource of Monitor service using Azure SDK for Golang."
 urlFragment: monitor-activity-log-alert
 ---
 
-# Getting started - Managing Monitor Activity Log Alert using Azure Golang SDK
+# Getting started - Managing Activity Log Alert resource of Monitor service using Azure Golang SDK
 
-These code samples will show you how to manage Monitor Activity Log Alert using Azure SDK for Golang.
+These code samples will show you how to manage Activity Log Alert resource of Monitor service using Azure SDK for Golang.
 
 ## Features
 

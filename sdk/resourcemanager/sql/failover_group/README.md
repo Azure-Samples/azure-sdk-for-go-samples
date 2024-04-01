@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage SQL Database Manager using Azure SDK for Golang."
+description: "These code samples will show you how to manage Failover Group resource of SQL Database service using Azure SDK for Golang."
 urlFragment: sql-failover-group
 ---
 
-# Getting started - Managing SQL Database using Azure Golang SDK
+# Getting started - Managing Failover Group resource of SQL Database service using Azure Golang SDK
 
-These code samples will show you how to manage SQL Database using Azure SDK for Golang.
+These code samples will show you how to manage Failover Group resource of SQL Database service using Azure SDK for Golang.
 
 ## Features
 

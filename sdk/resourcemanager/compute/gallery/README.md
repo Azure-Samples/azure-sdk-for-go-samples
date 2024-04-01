@@ -4,13 +4,13 @@ languages:
 - go
 products:
 - azure
-description: "These code samples will show you how to manage Compute using Azure SDK for Golang."
+description: "These code samples will show you how to manage Gallery resource of Compute service using Azure SDK for Golang."
 urlFragment: compute-gallery
 ---
 
-# Getting started - Managing Compute using Azure Golang SDK
+# Getting started - Managing Gallery resource of Compute service using Azure Golang SDK
 
-These code samples will show you how to manage Compute using Azure SDK for Golang.
+These code samples will show you how to manage Gallery resource of Compute service using Azure SDK for Golang.
 
 ## Features
 

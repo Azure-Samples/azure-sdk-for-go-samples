@@ -7,12 +7,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
-	"io/ioutil"
-	"log"
-	"os"
 )
 
 var (
@@ -94,7 +94,7 @@ func main() {
 }
 
 func readJson(path string) (map[string]interface{}, error) {
-	templateFile, err := ioutil.ReadFile(path)
+	templateFile, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
